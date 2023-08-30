@@ -23,15 +23,9 @@ module.exports = {
     // 'plugin:vue/vue3-essential', // Priority A: Essential (Error Prevention)
     'plugin:vue/vue3-strongly-recommended', // Priority B: Strongly Recommended (Improving Readability)
     // 'plugin:vue/vue3-recommended', // Priority C: Recommended (Minimizing Arbitrary Choices and Cognitive Overhead)
-
-    // https://github.com/prettier/eslint-config-prettier#installation
-    // usage with Prettier, provided by 'eslint-config-prettier'.
-    'prettier'
   ],
 
-  plugins: [
-    'vue',
-  ],
+  plugins: ['vue',],
 
   globals: {
     __statics: 'readonly',
@@ -46,27 +40,104 @@ module.exports = {
 
   // custom rules here
   rules: {
+    'indent': [
+      'error',
+      2,
+      { 'offsetTernaryExpressions': true }
+    ],
     'prefer-promise-reject-errors': 'off',
     // allow debugger during development only
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     'vue/no-unused-vars': 'error',
-    "vue/first-attribute-linebreak": ["error", {
-      "singleline": "ignore",
-      "multiline": "below"
-    }],
-    "vue/multiline-html-element-content-newline": ["error", {
-      "ignoreWhenEmpty": true,
-      "allowEmptyLines": true
-    }],
-    "vue/html-indent": ["error", 2, {
-      "attribute": 1,
-      "baseIndent": 1,
-      "closeBracket": 0,
-      "alignAttributesVertically": true,
-      "ignores": []
-    }],
+    'vue/no-mutating-props': 'off',
+    'vue/first-attribute-linebreak': [
+      'error',
+      {
+        'singleline': 'ignore',
+        'multiline': 'below'
+      }
+    ],
+    'vue/multiline-html-element-content-newline': [
+      'error',
+      {
+        'ignoreWhenEmpty': true,
+        'allowEmptyLines': true
+      }
+    ],
+    'vue/max-attributes-per-line': [
+      'error',
+      {
+        'singleline': {
+          'max': 1
+        },
+        'multiline': {
+          'max': 1
+        }
+      }
+    ],
+    'vue/html-closing-bracket-newline': [
+      'error',
+      {
+        'singleline': 'never',
+        'multiline': 'always'
+      }
+    ],
+    'vue/html-indent': [
+      'error',
+      2,
+      {
+        'attribute': 1,
+        'baseIndent': 1,
+        'closeBracket': 0,
+        'alignAttributesVertically': true,
+        'ignores': []
+      }
+    ],
+    'vue/html-self-closing': [
+      'error',
+      {
+        html: {
+          void: 'always',
+          normal: 'always',
+          component: 'always'
+        },
+        svg: 'always',
+        math: 'always'
+      }
+    ],
+    'vue/mustache-interpolation-spacing': [
+      'error',
+      'always'
+    ],
+    'vue/v-bind-style': [
+      'error',
+      'shorthand'
+    ],
+    'vue/v-on-style': [
+      'error',
+      'shorthand'
+    ],
+    'vue/no-spaces-around-equal-signs-in-attribute': ['error'],
     'comma-spacing': 'error',
+    'curly': 'error',
     'handle-callback-err': 'off',
     'array-callback-return': 'off',
+    'array-bracket-newline': [
+      'error',
+      {
+        'multiline': true
+      }
+    ],
+    'array-element-newline': [
+      'error',
+      {
+        'ArrayExpression': 'always',
+        'ArrayPattern': { 'minItems': 1 },
+      }
+    ],
+    'quotes': [
+      'error',
+      'single'
+    ]
   }
 }

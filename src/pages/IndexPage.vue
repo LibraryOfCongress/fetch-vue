@@ -1,10 +1,6 @@
 <template>
   <q-page class="flex flex-center">
-    <img
-      alt="Quasar logo"
-      src="~assets/quasar-logo-vertical.svg"
-      style="width: 200px; height: 200px"
-    >
+    <h1>Welcome to The Fetch App</h1>
   </q-page>
 </template>
 
@@ -15,3 +11,10 @@ export default defineComponent({
   name: 'IndexPage'
 })
 </script>
+
+<style lang="scss" scoped>
+h1 {
+  font-size: 30px;
+  color: $primary;
+}
+</style>

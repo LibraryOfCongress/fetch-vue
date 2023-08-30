@@ -8,7 +8,7 @@ export const useCounterStore = defineStore('counter', {
     doubleCount: (state) => state.counter * 2,
   },
   actions: {
-    increment() {
+    async increment() {
       this.counter++;
     },
   },

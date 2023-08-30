@@ -1,0 +1,18 @@
+// Text Utilities
+.text {
+  &-red {
+    color: $negative
+  }
+  &-green {
+    color: $positive
+  }
+}
+
+// General Utilities
+.divider {
+  display: block;
+  background-color: $color-black;
+  width: 100%;
+  height: 1px;
+  margin: 12px;
+}

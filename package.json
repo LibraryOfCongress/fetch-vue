@@ -7,7 +7,8 @@
   "private": true,
   "scripts": {
     "lint": "eslint --ext .js,.vue ./",
-    "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore",
+    "lint:fix": "eslint --ext .js,.vue ./ --fix",
+    "lint-staged-commit": "eslint --quiet --ext .js,.vue --fix $(git diff --name-only --diff-filter=d HEAD | xargs)",
     "test": "echo \"No test specified\" && exit 0",
     "dev": "quasar dev",
     "build": "quasar build"
@@ -23,8 +24,6 @@
   "devDependencies": {
     "eslint": "^8.10.0",
     "eslint-plugin-vue": "^9.0.0",
-    "eslint-config-prettier": "^8.1.0",
-    "prettier": "^2.5.1",
     "@quasar/app-vite": "^1.3.0",
     "autoprefixer": "^10.4.2",
     "postcss": "^8.4.14"

@@ -28,14 +28,10 @@ module.exports = configure(function (/* ctx */) {
     // app boot file (/src/boot) (this is your main.js)
     // --> boot files are generated into a "main.js" file
     // https://v2.quasar.dev/quasar-cli/boot-files
-    boot: [
-      'axios',
-    ],
+    boot: ['axios',],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
-    css: [
-      'app.scss'
-    ],
+    css: ['app.scss'],
 
     // https://github.com/quasarframework/quasar/tree/dev/extras
     // setup icons packs, external fonts and other external plugins here
@@ -77,7 +73,13 @@ module.exports = configure(function (/* ctx */) {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
       target: {
-        browser: [ 'es2019', 'edge88', 'firefox78', 'chrome87', 'safari13.1' ],
+        browser: [
+          'es2019',
+          'edge88',
+          'firefox78',
+          'chrome87',
+          'safari13.1' 
+        ],
         node: 'node16'
       },
       alias: {
