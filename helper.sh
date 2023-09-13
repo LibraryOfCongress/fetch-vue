@@ -1,7 +1,7 @@
 #!/bin/bash
 
 start() {
-  npm run dev
+  ./local-build.sh -l;
 }
 
 build() {
