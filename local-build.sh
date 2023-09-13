@@ -27,24 +27,10 @@ if [ "$IMAGE_IDS" != "" ]; then
 fi
 
 # Test if port is clear
-is_port_blocked="$(lsof -i -P -n | grep ${HOST_PORT})"
-if [[ "${#is_port_blocked}" -gt 0 ]]; then
-    echo "Port ${HOST_PORT} already in use"
-    echo "${is_port_blocked}"
-    echo "Kill process id and try again"
-    echo "You may need to restart the docker machine"
-    exit 1
-fi
-
+nc -vz -w 2 localhost ${HOST_PORT}
 
 docker build \
 --file ${IMAGE_LOCATION} --tag ${IMAGE_TAG} .
-
-# docker pod create --name ${POD_NAME}
-
-# docker run -dt --pod ${POD_NAME} ${IMAGE_TAG} -p 8080:80
-
-# docker run -it -p 8080:80 --rm dockerize-quasar
 
 # run the fetch-web container
 docker run --restart=always -it -d \

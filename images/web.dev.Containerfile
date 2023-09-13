@@ -5,7 +5,6 @@ WORKDIR /app
 
 COPY package*.json ./
 
-# RUN yarn global add @quasar/cli
 RUN npm -g install @quasar/cli
 
 COPY . .
