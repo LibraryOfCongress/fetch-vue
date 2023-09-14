@@ -8,7 +8,7 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
-
+const defineEnv = require('./env/envparser')();
 const { configure } = require('quasar/wrappers');
 const path = require('path')
 
@@ -87,11 +87,11 @@ module.exports = configure(function (/* ctx */) {
       },
       vueRouterMode: 'history', // available values: 'hash', 'history'
       vueOptionsAPI: true,
-      publicPath: '/',
+      publicPath: process.env.VITE_BASE_URL,
+      env: defineEnv,
       // vueDevtools,
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
       // analyze: true,
-      // env: {},
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,

@@ -8,7 +8,10 @@
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: 'IndexPage'
+  name: 'IndexPage',
+  mounted () {
+    console.log('vue app environment loaded', process.env.VITE_ENV)
+  } 
 })
 </script>
 
