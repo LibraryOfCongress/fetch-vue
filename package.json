@@ -13,6 +13,7 @@
     "dev:development": "cross-env ENVIRONMENT=dev quasar dev",
     "dev:production": "cross-env ENVIRONMENT=prod quasar dev",
     "build": "cross-env ENVIRONMENT=production quasar build",
+    "build:development": "cross-env ENVIRONMENT=dev quasar build",
     "build:local": "cross-env ENVIRONMENT=local quasar build --debug",
     "test:unit": "vitest",
     "test:unit:ci": "vitest run"
