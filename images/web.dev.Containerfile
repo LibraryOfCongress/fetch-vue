@@ -14,7 +14,8 @@ FROM develop-stage as build-stage
 
 RUN npm install
 
-RUN quasar build
+# if you need to change env reference just change the "ENVIRONMENT=STRING"
+RUN cross-env ENVIRONMENT=dev quasar build
 
 # production stage
 FROM nginx:1.17.5-alpine as production-stage
