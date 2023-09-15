@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -x
 
 IMAGE_LOCATION=images/web.local.Containerfile
@@ -42,7 +41,7 @@ then
 
     npm i
 
-    npm run dev
+    npm run dev:local
 fi
 
 if ! $IS_SERVE_LOCAL_NODE_VERSION
