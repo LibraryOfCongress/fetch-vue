@@ -1,8 +1,10 @@
-# Fetch App (quasar-pwa)
+# Fetch App
 
 Inventory Management Software Development PWA built using the Quasar Framework
 
 See below for quick install (uses docker) or manual install guides
+
+
 
 ## Quick Installation (Uses a dockerized version of the app)
 
@@ -26,7 +28,7 @@ git clone ssh://git@git.loc.gov:7999/fetch/vue.git
 ./helper.sh build
 ```
 
-## Manaul installation Guide
+## Manual installation Guide
 
 ## Clone the repository into your local branch using git (make sure you have ssh access beforehand)
 
