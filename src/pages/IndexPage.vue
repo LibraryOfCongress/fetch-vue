@@ -6,12 +6,13 @@
 
 <script>
 import { defineComponent } from 'vue'
+import inventoryServiceApi from '@/http/InventoryService.js'
 
 export default defineComponent({
   name: 'IndexPage',
   mounted () {
     console.log('vue app environment loaded', process.env.VITE_ENV)
-    this.$api.get('/').then((err) => console.log(err))
+    this.$api.get(inventoryServiceApi.examplesNumbers + 12).then((err) => console.log(err))
   }
 })
 </script>
