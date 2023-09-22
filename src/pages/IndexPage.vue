@@ -11,7 +11,8 @@ export default defineComponent({
   name: 'IndexPage',
   mounted () {
     console.log('vue app environment loaded', process.env.VITE_ENV)
-  } 
+    this.$api.get('/').then((err) => console.log(err))
+  }
 })
 </script>
 

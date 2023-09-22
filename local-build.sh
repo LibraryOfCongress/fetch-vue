@@ -47,7 +47,7 @@ fi
 if ! $IS_SERVE_LOCAL_NODE_VERSION
 then
     # kill any local node.js dev server (taking up port 8080)
-    killall node || echo "node server not running, starting build"
+    # killall node || echo "node server not running, starting build"
 
 
     # stop the container if there is one running
