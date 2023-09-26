@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -x
 
-IMAGE_LOCATION=images/web.local.Containerfile
+IMAGE_LOCATION=images/web.dev.Containerfile
 IMAGE_TAG=fetch-web-image
 CONTAINER_NAME=fetch-web
 INTERNAL_PORT=80
-HOST_PORT=8080
+HOST_PORT=80
 
 export IS_SERVE_LOCAL_NODE_VERSION=false;
 
