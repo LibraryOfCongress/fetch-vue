@@ -13,7 +13,7 @@ const { configure } = require('quasar/wrappers');
 const path = require('path')
 
 
-module.exports = configure(function (/* ctx */) {
+module.exports = configure(function (ctx) {
   return {
     eslint: {
       // include: [],
@@ -50,7 +50,7 @@ module.exports = configure(function (/* ctx */) {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
       open: true, // opens browser window automatically
-      port: 8080
+      port: ctx.mode.spa ? 8080 : 9001
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
