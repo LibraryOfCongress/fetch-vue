@@ -51,8 +51,8 @@ module.exports = {
   ],
 
   // custom rules here
+  ignorePatterns: ["!.*", "dist", "node_modules"],
   rules: {
-    ignorePatterns: ["!.*", "dist", "node_modules"],
     indent: ["error", 2, { offsetTernaryExpressions: true }],
     "prefer-promise-reject-errors": "off",
     // allow debugger during development only
