@@ -51,7 +51,11 @@ module.exports = {
   ],
 
   // custom rules here
-  ignorePatterns: ["!.*", "dist", "node_modules"],
+  ignorePatterns: [
+    '!.*',
+    'dist',
+    'node_modules'
+  ],
   rules: {
     indent: [
       'error',
