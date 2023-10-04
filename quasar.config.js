@@ -50,7 +50,8 @@ module.exports = configure(function (ctx) {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
       open: true, // opens browser window automatically
-      port: ctx.mode.spa ? 8080 : 9001
+      port: ctx.mode.spa ? 8080 : 9001,
+      https: true
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
@@ -111,11 +112,19 @@ module.exports = configure(function (ctx) {
       swFilename: 'sw.js',
       manifestFilename: 'manifest.json',
       useCredentialsForManifestTag: false,
+      extendGenerateSWOptions (cfg) {
+        cfg.skipWaiting = false // these options disable auto reloading when service worker updates
+        cfg.clientsClaim = false
+      }
       // useFilenameHashes: true,
-      // extendGenerateSWOptions (cfg) {}
       // extendInjectManifestOptions (cfg) {},
       // extendManifestJson (json) {}
       // extendPWACustomSWConf (esbuildConf) {}
+    },
+    sourceFiles: {
+      pwaManifestFile: 'src-pwa/manifest.json',
+      pwaRegisterServiceWorker: 'src-pwa/register-service-worker',
+      // pwaServiceWorker: 'src-pwa/custom-service-worker', // only used if workboxMode is injectManifest
     }
   }
 });
