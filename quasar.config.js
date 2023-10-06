@@ -67,7 +67,10 @@ module.exports = configure(function (ctx) {
       // directives: [],
 
       // Quasar plugins
-      plugins: []
+      plugins: [
+        'LocalStorage',
+        'SessionStorage'
+      ]
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
@@ -106,15 +109,11 @@ module.exports = configure(function (ctx) {
 
     // https://v2.quasar.dev/quasar-cli/developing-pwa/configuring-pwa
     pwa: {
-      workboxMode: 'generateSW', // or 'injectManifest'
+      workboxMode: 'injectManifest', // or 'generateSW'
       injectPwaMetaTags: true,
       swFilename: 'sw.js',
       manifestFilename: 'manifest.json',
       useCredentialsForManifestTag: false,
-      extendGenerateSWOptions (cfg) {
-        cfg.skipWaiting = false // these options disable auto reloading when service worker updates
-        cfg.clientsClaim = false
-      }
       // useFilenameHashes: true,
       // extendInjectManifestOptions (cfg) {},
       // extendManifestJson (json) {}
@@ -123,7 +122,7 @@ module.exports = configure(function (ctx) {
     sourceFiles: {
       pwaManifestFile: 'src-pwa/manifest.json',
       pwaRegisterServiceWorker: 'src-pwa/register-service-worker',
-      // pwaServiceWorker: 'src-pwa/custom-service-worker', // only used if workboxMode is injectManifest
+      pwaServiceWorker: 'src-pwa/custom-service-worker', // only used if workboxMode is injectManifest
     }
   }
 });

@@ -93,3 +93,9 @@ quasar build:local
 ### Customize the configuration
 
 See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+
+
+### Testing The PWA App On Mobile
+
+See [Exposing Dev Server to Public](https://quasar.dev/quasar-cli-vite/opening-dev-server-to-public/).
+
