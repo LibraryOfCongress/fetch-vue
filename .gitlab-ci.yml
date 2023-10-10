@@ -1,0 +1,12 @@
+build_image:
+  stage: build
+  variables:
+    IMAGE_DESTINATION: ${CI_REGISTRY_IMAGE}:latest
+  image:
+      name: gcr.io/kaniko-project/executor:debug
+      entrypoint: [""]
+  script:
+      - cp -v images/web.dev.Containerfile Dockerfile
+      - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+      - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $IMAGE_DESTINATION
+      - echo "Image pushed successfully to ${IMAGE_DESTINATION}"
