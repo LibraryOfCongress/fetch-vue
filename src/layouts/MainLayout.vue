@@ -17,6 +17,30 @@
 
         <div>Quasar v{{ $q.version }}</div>
       </q-toolbar>
+
+      <!-- offline banner -->
+      <q-banner
+        v-if="showOfflineBanner"
+        class="offline-banner bg-color-gray-light text-color-black"
+        inline-actions
+        dense
+      >
+        <q-icon
+          name="signal_wifi_off"
+          color="negative"
+          size="25px"
+          class="q-mr-sm"
+        />
+        You are in offline mode.
+        <template #action>
+          <q-btn
+            flat
+            color="black"
+            label="Dismiss"
+            @click="showOfflineBanner = !showOfflineBanner"
+          />
+        </template>
+      </q-banner>
     </q-header>
 
     <q-drawer
@@ -48,7 +72,7 @@
       v-if="showAppInstallBanner"
       class="install-banner bg-primary text-white"
       rounded
-      inline-actions
+      :inline-actions="currentScreenSize < 500 ? false : true"
     >
       Would you like to install the FETCH app?
       <template #action>
@@ -132,17 +156,26 @@ export default defineComponent({
       ],
       leftDrawerOpen: false,
       appInstallPrompt: null,
-      showAppInstallBanner: false
+      showAppInstallBanner: false,
+      showOfflineBanner: false,
+      currentScreenSize: window.innerWidth
     }
   },
   mounted() {
     if (!this.$q.localStorage.getItem('hideAppInstallation')) {
-      // this event only gets fired on devices that suppoer pwa installs
+      // this event only gets fired on devices that support pwa installs
       window.addEventListener('beforeinstallprompt', (event) => {
         this.appInstallPrompt = event
         this.showAppInstallBanner = true
       })
     }
+
+    window.addEventListener('offline', () => {
+      this.showOfflineBanner = true
+    })
+    window.addEventListener('online', () => {
+      this.showOfflineBanner = false
+    })
   },
   methods: {
     toggleLeftDrawer () {
@@ -172,7 +205,7 @@ export default defineComponent({
 .install-banner {
   position: absolute;
   left: 50%;
-  bottom: 1rem;
+  bottom: .5rem;
   width: 98%;
   transform: translateX(-50%);
   z-index: 10000;
