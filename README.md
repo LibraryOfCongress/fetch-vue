@@ -10,19 +10,19 @@ See below for quick install (uses docker) or manual install guides
 
 You will need docker installed for this version to work on your pc
 
-## Clone the repository into your local branch using git (make sure you have ssh access beforehand)
+**1. Clone the repository into your local branch using git (make sure you have ssh access beforehand)**
 
 ```bash
 git clone ssh://git@git.loc.gov:7999/fetch/vue.git
 ```
 
-## Just run the helper.sh script and thats it!
+**2. Just run the helper.sh script and thats it!**
 
 ```bash
 ./helper.sh start
 ```
 
-### To build the app for production with debugging to test
+### build the app for production with debugging to test
 
 ```bash
 ./helper.sh build
@@ -30,13 +30,13 @@ git clone ssh://git@git.loc.gov:7999/fetch/vue.git
 
 ## Manual installation Guide
 
-## Clone the repository into your local branch using git (make sure you have ssh access beforehand)
+**1. Clone the repository into your local branch using git (make sure you have ssh access beforehand)**
 
 ```bash
 git clone ssh://git@git.loc.gov:7999/fetch/vue.git
 ```
 
-## Install the dependencies
+**2. **Install the dependencies**
 
 ```bash
 yarn
@@ -48,9 +48,14 @@ npm install
 
 ```bash
 quasar dev:local
+# or 
+npm run dev:local
+
+// additionally if you'd like to run in pwa mode just add -pwa to then end
+// ex: dev:local-pwa
 ```
 
-### Lint the files
+### Lint the files (uses eslint ruleset along with vue standard rules)
 
 ```bash
 yarn lint
@@ -88,3 +93,9 @@ quasar build:local
 ### Customize the configuration
 
 See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+
+
+### Testing The PWA App On Mobile
+
+See [Exposing Dev Server to Public](https://quasar.dev/quasar-cli-vite/opening-dev-server-to-public/).
+

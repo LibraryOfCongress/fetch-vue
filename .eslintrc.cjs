@@ -11,38 +11,38 @@ module.exports = {
   env: {
     node: true,
     browser: true,
-    "vue/setup-compiler-macros": true,
+    'vue/setup-compiler-macros': true,
   },
 
   // Rules order is important, please avoid shuffling them
   extends: [
-    "eslint:recommended",
+    'eslint:recommended',
     // Uncomment any of the lines below to choose desired strictness,
     // but leave only one uncommented!
     // See https://eslint.vuejs.org/rules/#available-rules
     // 'plugin:vue/vue3-essential', // Priority A: Essential (Error Prevention)
-    "plugin:vue/vue3-strongly-recommended", // Priority B: Strongly Recommended (Improving Readability)
+    'plugin:vue/vue3-strongly-recommended', // Priority B: Strongly Recommended (Improving Readability)
     // 'plugin:vue/vue3-recommended', // Priority C: Recommended (Minimizing Arbitrary Choices and Cognitive Overhead)
   ],
 
-  plugins: ["vue"],
+  plugins: ['vue'],
 
   globals: {
-    __statics: "readonly",
-    __QUASAR_SSR__: "readonly",
-    __QUASAR_SSR_SERVER__: "readonly",
-    __QUASAR_SSR_CLIENT__: "readonly",
-    __QUASAR_SSR_PWA__: "readonly",
-    process: "readonly",
-    Capacitor: "readonly",
-    chrome: "readonly",
+    __statics: 'readonly',
+    __QUASAR_SSR__: 'readonly',
+    __QUASAR_SSR_SERVER__: 'readonly',
+    __QUASAR_SSR_CLIENT__: 'readonly',
+    __QUASAR_SSR_PWA__: 'readonly',
+    process: 'readonly',
+    Capacitor: 'readonly',
+    chrome: 'readonly',
   },
 
   overrides: [
     {
       files: [
-        "**/__tests__/*.{j,t}s?(x)",
-        "**/test/vitest/**/*.test.{j,t}s?(x)",
+        '**/__tests__/*.{j,t}s?(x)',
+        '**/test/vitest/**/*.test.{j,t}s?(x)',
       ],
       env: {
         jest: true,
@@ -51,31 +51,39 @@ module.exports = {
   ],
 
   // custom rules here
-  ignorePatterns: ["!.*", "dist", "node_modules"],
+  ignorePatterns: [
+    '!.*',
+    'dist',
+    'node_modules'
+  ],
   rules: {
-    indent: ["error", 2, { offsetTernaryExpressions: true }],
-    "prefer-promise-reject-errors": "off",
+    indent: [
+      'error',
+      2,
+      { offsetTernaryExpressions: true }
+    ],
+    'prefer-promise-reject-errors': 'off',
     // allow debugger during development only
-    "no-debugger": process.env.NODE_ENV === "production" ? "error" : "off",
-    "no-console": process.env.NODE_ENV === "production" ? "off" : "off",
-    "vue/no-unused-vars": "error",
-    "vue/no-mutating-props": "off",
-    "vue/first-attribute-linebreak": [
-      "error",
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'no-console': process.env.NODE_ENV === 'production' ? 'off' : 'off',
+    'vue/no-unused-vars': 'error',
+    'vue/no-mutating-props': 'off',
+    'vue/first-attribute-linebreak': [
+      'error',
       {
-        singleline: "ignore",
-        multiline: "below",
+        singleline: 'ignore',
+        multiline: 'below',
       },
     ],
-    "vue/multiline-html-element-content-newline": [
-      "error",
+    'vue/multiline-html-element-content-newline': [
+      'error',
       {
         ignoreWhenEmpty: true,
         allowEmptyLines: true,
       },
     ],
-    "vue/max-attributes-per-line": [
-      "error",
+    'vue/max-attributes-per-line': [
+      'error',
       {
         singleline: {
           max: 1,
@@ -85,15 +93,15 @@ module.exports = {
         },
       },
     ],
-    "vue/html-closing-bracket-newline": [
-      "error",
+    'vue/html-closing-bracket-newline': [
+      'error',
       {
-        singleline: "never",
-        multiline: "always",
+        singleline: 'never',
+        multiline: 'always',
       },
     ],
-    "vue/html-indent": [
-      "error",
+    'vue/html-indent': [
+      'error',
       2,
       {
         attribute: 1,
@@ -103,40 +111,58 @@ module.exports = {
         ignores: [],
       },
     ],
-    "vue/html-self-closing": [
-      "error",
+    'vue/html-self-closing': [
+      'error',
       {
         html: {
-          void: "always",
-          normal: "always",
-          component: "always",
+          void: 'always',
+          normal: 'always',
+          component: 'always',
         },
-        svg: "always",
-        math: "always",
+        svg: 'always',
+        math: 'always',
       },
     ],
-    "vue/mustache-interpolation-spacing": ["error", "always"],
-    "vue/v-bind-style": ["error", "shorthand"],
-    "vue/v-on-style": ["error", "shorthand"],
-    "vue/no-spaces-around-equal-signs-in-attribute": ["error"],
-    "comma-spacing": "error",
-    curly: "error",
-    "handle-callback-err": "off",
-    "array-callback-return": "off",
-    "array-bracket-newline": [
-      "error",
+    'vue/mustache-interpolation-spacing': [
+      'error',
+      'always'
+    ],
+    'vue/v-bind-style': [
+      'error',
+      'shorthand'
+    ],
+    'vue/v-on-style': [
+      'error',
+      'shorthand'
+    ],
+    'vue/no-spaces-around-equal-signs-in-attribute': ['error'],
+    'comma-spacing': 'error',
+    curly: 'error',
+    'handle-callback-err': 'off',
+    'array-callback-return': 'off',
+    'array-bracket-newline': [
+      'error',
       {
         multiline: true,
       },
     ],
-    "array-element-newline": [
-      "error",
+    'array-element-newline': [
+      'error',
       {
-        ArrayExpression: "always",
+        ArrayExpression: 'always',
         ArrayPattern: { minItems: 1 },
       },
     ],
-    quotes: ["error", "single", "avoid-escape"],
-    "no-var": "off",
+    quotes: [
+      'error',
+      'single',
+      'avoid-escape'
+    ],
+    'no-var': 'off',
   },
+  ignorePatterns: [
+    '!.*',
+    'dist',
+    'node_modules'
+  ],
 };

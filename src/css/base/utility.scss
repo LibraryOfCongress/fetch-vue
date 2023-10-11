@@ -1,10 +1,18 @@
-// Text Utilities
-.text {
-  &-red {
-    color: $negative
+// Text & Background Color Utilities
+$color-map: (
+  color-white: $color-white,
+  color-black: $color-black,
+  color-gray: $color-gray,
+  color-gray-light: $color-gray-light,
+  color-gray-dark: $color-gray-dark,
+);
+
+@each $colorName, $colorValue in $color-map {
+  .bg-#{$colorName} {
+      background-color: $colorValue;
   }
-  &-green {
-    color: $positive
+  .text-#{$colorName} {
+      color: $colorValue !important;
   }
 }
 
