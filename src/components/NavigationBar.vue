@@ -86,6 +86,7 @@
           v-for="link in essentialLinks"
           :key="link.title"
           v-bind="link"
+          :icon-size="'28px'"
           class="justify-center"
         />
       </q-list>
@@ -144,38 +145,28 @@ export default defineComponent({
     return {
       essentialLinks: [
         {
-          title: 'Placeholder Link 1',
-          icon: 'link',
+          title: 'Accession',
+          icon: 'mdi-barcode-scan',
           link: '/'
         },
         {
-          title: 'Placeholder Link 2',
-          icon: 'link',
+          title: 'Verfication',
+          icon: 'done_all',
           link: '/'
         },
         {
-          title: 'Placeholder Link 3',
-          icon: 'link',
+          title: 'Shelving',
+          icon: 'subject',
           link: '/'
         },
         {
-          title: 'Placeholder Link 4',
-          icon: 'link',
+          title: 'Request',
+          icon: 'manage_search',
           link: '/'
         },
         {
-          title: 'Placeholder Link 5',
-          icon: 'link',
-          link: '/'
-        },
-        {
-          title: 'Placeholder Link 6',
-          icon: 'link',
-          link: '/'
-        },
-        {
-          title: 'Placeholder Link 7',
-          icon: 'link',
+          title: 'Refile',
+          icon: 'list',
           link: '/'
         },
       ],

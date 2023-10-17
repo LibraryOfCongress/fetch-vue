@@ -20,7 +20,7 @@ RUN ENVIRONMENT=dev quasar build -m pwa
 # production stage
 FROM nginx:1.17.5-alpine as production-stage
 
-COPY --from=build-stage /app/dist/spa /usr/share/nginx/html
+COPY --from=build-stage /app/dist/pwa /usr/share/nginx/html
 
 EXPOSE 80
 

@@ -8,7 +8,10 @@
       v-if="icon"
       avatar
     >
-      <q-icon :name="icon" />
+      <q-icon
+        :name="icon"
+        :size="iconSize"
+      />
     </q-item-section>
 
     <q-item-section>
@@ -44,6 +47,10 @@ export default defineComponent({
     icon: {
       type: String,
       default: ''
+    },
+    iconSize: {
+      type: String,
+      default: '24px'
     }
   }
 })
