@@ -14,7 +14,7 @@
     "dev:development": "ENVIRONMENT=dev quasar dev",
     "dev:production": "ENVIRONMENT=prod quasar dev",
     "build": "ENVIRONMENT=production quasar build",
-    "build:development": "ENVIRONMENT=dev quasar build",
+    "build:development": "ENVIRONMENT=dev quasar build -m pwa",
     "build:local": "ENVIRONMENT=local quasar build --debug",
     "test:unit": "vitest",
     "test:unit:ci": "vitest run"
