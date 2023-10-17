@@ -13,9 +13,9 @@
 // Tip: Use the "Theme Builder" on Quasar's documentation website.
 
 // quasar color variables
-$primary   : #1976D2;
-$secondary : #26A69A;
-$accent    : #9C27B0;
+$primary   : #000068;
+$secondary : #9999C2;
+$accent    : #3385FF;
 $dark      : #1D1D1D;
 $dark-page : #121212;
 $positive  : #21BA45;
@@ -29,3 +29,11 @@ $color-black: #000000;
 $color-gray: #bbbbbb;
 $color-gray-light: #f7f6f6;
 $color-gray-dark: #9e9e9e;
+
+// quasar breakpoints
+// Window Size    Name    Min-Width Thresholld in pixels    Max-Width Thresholld in pixels
+// Extra Small    xs      0px	                              599.99px
+// Small	        sm	    600px	                            1023.99px
+// Medium	        md	    1024px	                          1439.99px
+// Large	        lg	    1440px	                          1919.99px
+// Extra Large	  xl	    1920px	                          Infinity
