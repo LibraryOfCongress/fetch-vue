@@ -21,13 +21,13 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'IndexPage',
-  data() {
+  data () {
     return {
       testData: [],
       scannedBarCode: [],
     };
   },
-  mounted() {
+  mounted () {
     console.log('vue app environment loaded', process.env.VITE_ENV);
     document.addEventListener('keypress', this.keypressHandler);
   },
@@ -42,7 +42,7 @@ export default defineComponent({
     //     console.log(err);
     //   }
     // },
-    keypressHandler(event) { 
+    keypressHandler (event) { 
       if (event.key == '!') {
         // if the appended key ! is passed we know the barcode key events are completed
         // so will add the scannedBarCode to the test data

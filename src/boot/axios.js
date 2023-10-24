@@ -7,7 +7,7 @@ const api = axios.create({
     Accept: ['application/json'],
     'Access-Control-Allow-Origin': '*'
   }
-})
+});
 
 // TODO: setup interceptor to handle token/security authorization
 

@@ -4,4 +4,4 @@ export default {
   // this.$api.get(inventoryService.examples, { id: entryId })
   examples: '/examples',
   examplesNumbers: '/examples/numbers/'
-}
+};

@@ -138,7 +138,11 @@ module.exports = {
     'vue/no-spaces-around-equal-signs-in-attribute': ['error'],
     'semi': 'error',
     'comma-spacing': 'error',
-    curly: 'error',
+    'object-shorthand': 'error',
+    'space-before-function-paren': 'error',
+    'keyword-spacing': 'error',
+    'brace-style': 'error',
+    'curly': 'error',
     'handle-callback-err': 'off',
     'array-callback-return': 'off',
     'array-bracket-newline': [
@@ -156,14 +160,7 @@ module.exports = {
     ],
     quotes: [
       'error',
-      'single',
-      'avoid-escape'
-    ],
-    'no-var': 'off',
-  },
-  ignorePatterns: [
-    '!.*',
-    'dist',
-    'node_modules'
-  ],
+      'single'
+    ]
+  }
 };
