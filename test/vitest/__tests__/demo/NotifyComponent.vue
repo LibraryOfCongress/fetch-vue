@@ -7,7 +7,7 @@
 <script setup>
 import { Notify } from 'quasar';
 
-function onClick() {
+function onClick () {
   Notify.create('Hello there!');
 }
 </script>

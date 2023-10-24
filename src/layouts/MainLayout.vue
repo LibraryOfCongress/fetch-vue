@@ -87,7 +87,7 @@ export default defineComponent({
       this.$q.localStorage.set('hideAppInstallation', true)
     }
   }
-})
+});
 </script>
 
 <style lang="scss" scoped>

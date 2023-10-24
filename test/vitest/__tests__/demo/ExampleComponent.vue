@@ -28,7 +28,7 @@ const props = defineProps({
   },
   todos: {
     type: Array,
-    default() {
+    default () {
       return [];
     },
   },
@@ -40,7 +40,7 @@ const props = defineProps({
 });
 
 const clickCount = ref(0);
-function increment() {
+function increment () {
   clickCount.value += 1;
   return clickCount.value;
 }

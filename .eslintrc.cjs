@@ -136,6 +136,7 @@ module.exports = {
       'shorthand'
     ],
     'vue/no-spaces-around-equal-signs-in-attribute': ['error'],
+    'semi': 'error',
     'comma-spacing': 'error',
     curly: 'error',
     'handle-callback-err': 'off',
