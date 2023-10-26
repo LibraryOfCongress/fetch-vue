@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue';
+import { defineComponent } from 'vue'
 // import inventoryServiceApi from '@/http/InventoryService.js';
 
 export default defineComponent({
@@ -24,12 +24,12 @@ export default defineComponent({
   data () {
     return {
       testData: [],
-      scannedBarCode: [],
-    };
+      scannedBarCode: []
+    }
   },
   mounted () {
-    console.log('vue app environment loaded', process.env.VITE_ENV);
-    document.addEventListener('keypress', this.keypressHandler);
+    console.log('vue app environment loaded', process.env.VITE_ENV)
+    document.addEventListener('keypress', this.keypressHandler)
   },
   methods: {
     // async testApiCall() {
@@ -42,19 +42,19 @@ export default defineComponent({
     //     console.log(err);
     //   }
     // },
-    keypressHandler (event) { 
+    keypressHandler (event) {
       if (event.key == '!') {
         // if the appended key ! is passed we know the barcode key events are completed
         // so will add the scannedBarCode to the test data
-        const barcode = this.scannedBarCode.join('');
-        this.testData.push(barcode);
-        this.scannedBarCode = [];
+        const barcode = this.scannedBarCode.join('')
+        this.testData.push(barcode)
+        this.scannedBarCode = []
       } else {
-        this.scannedBarCode.push(event.key);
+        this.scannedBarCode.push(event.key)
       }
-    },
-  },
-});
+    }
+  }
+})
 </script>
 
 <style lang="scss" scoped>

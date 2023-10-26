@@ -8,9 +8,9 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
-const defineEnv = require('./env/envparser')();
-const { configure } = require('quasar/wrappers');
-const path = require('path');
+const defineEnv = require('./env/envparser')()
+const { configure } = require('quasar/wrappers')
+const path = require('path')
 
 
 module.exports = configure(function (ctx) {
@@ -82,7 +82,7 @@ module.exports = configure(function (ctx) {
           'edge88',
           'firefox78',
           'chrome87',
-          'safari13.1' 
+          'safari13.1'
         ],
         node: 'node16'
       },
@@ -92,7 +92,7 @@ module.exports = configure(function (ctx) {
       vueRouterMode: 'history', // available values: 'hash', 'history'
       vueOptionsAPI: true,
       publicPath: process.env.VITE_BASE_URL,
-      env: defineEnv,
+      env: defineEnv
       // vueDevtools,
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
       // analyze: true,
@@ -114,7 +114,7 @@ module.exports = configure(function (ctx) {
       injectPwaMetaTags: true,
       swFilename: 'sw.js',
       manifestFilename: 'manifest.json',
-      useCredentialsForManifestTag: false,
+      useCredentialsForManifestTag: false
       // useFilenameHashes: true,
       // extendInjectManifestOptions (cfg) {},
       // extendManifestJson (json) {}
@@ -123,7 +123,7 @@ module.exports = configure(function (ctx) {
     sourceFiles: {
       pwaManifestFile: 'src-pwa/manifest.json',
       pwaRegisterServiceWorker: 'src-pwa/register-service-worker',
-      pwaServiceWorker: 'src-pwa/custom-service-worker', // only used if workboxMode is injectManifest
+      pwaServiceWorker: 'src-pwa/custom-service-worker' // only used if workboxMode is injectManifest
     }
-  };
-});
+  }
+})

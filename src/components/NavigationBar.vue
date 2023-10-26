@@ -124,10 +124,10 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue';
-import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js';
-import EssentialLink from '@/components/EssentialLink.vue';
-import SearchInput from '@/components/SearchInput.vue';
+import { defineComponent } from 'vue'
+import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import EssentialLink from '@/components/EssentialLink.vue'
+import SearchInput from '@/components/SearchInput.vue'
 
 export default defineComponent({
   name: 'NavigationBar',
@@ -136,10 +136,10 @@ export default defineComponent({
     SearchInput
   },
   setup () {
-    const { currentScreenSize } = useCurrentScreenSize();
+    const { currentScreenSize } = useCurrentScreenSize()
     return {
       currentScreenSize
-    };
+    }
   },
   data () {
     return {
@@ -168,7 +168,7 @@ export default defineComponent({
           title: 'Refile',
           icon: 'list',
           link: '/'
-        },
+        }
       ],
       mobileNavLinks: [
         {
@@ -194,22 +194,22 @@ export default defineComponent({
       ],
       leftDrawerOpen: false,
       showOfflineBanner: false
-    };
+    }
   },
   mounted () {
     window.addEventListener('offline', () => {
-      this.showOfflineBanner = true;
-    });
+      this.showOfflineBanner = true
+    })
     window.addEventListener('online', () => {
-      this.showOfflineBanner = false;
-    });
+      this.showOfflineBanner = false
+    })
   },
   methods: {
     toggleLeftDrawer () {
-      this.leftDrawerOpen = !this.leftDrawerOpen;
+      this.leftDrawerOpen = !this.leftDrawerOpen
     }
   }
-});
+})
 </script>
 
 <style lang="scss" scoped>

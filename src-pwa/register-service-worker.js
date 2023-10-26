@@ -1,4 +1,4 @@
-import { register } from 'register-service-worker';
+import { register } from 'register-service-worker'
 
 // The ready(), registered(), cached(), updatefound() and updated()
 // events passes a ServiceWorkerRegistration instance in their arguments.
@@ -12,30 +12,30 @@ register(process.env.SERVICE_WORKER_FILE, {
   // registrationOptions: { scope: './' },
 
   ready (registration) {
-    console.log('Service worker is active.', registration);
+    console.log('Service worker is active.', registration)
   },
 
   registered (registration) {
-    console.log('Service worker has been registered.', registration);
+    console.log('Service worker has been registered.', registration)
   },
 
   cached (registration) {
-    console.log('Content has been cached for offline use.', registration);
+    console.log('Content has been cached for offline use.', registration)
   },
 
   updatefound (registration) {
-    console.log('New content is downloading.', registration);
+    console.log('New content is downloading.', registration)
   },
 
   updated (registration) {
-    console.log('New content is available; please refresh.', registration);
+    console.log('New content is available; please refresh.', registration)
   },
 
   offline () {
-    console.log('No internet connection found. App is running in offline mode.');
+    console.log('No internet connection found. App is running in offline mode.')
   },
 
   error (err) {
-    console.error('Error during service worker registration:', err);
+    console.error('Error during service worker registration:', err)
   }
-});
+})

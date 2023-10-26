@@ -5,13 +5,13 @@ module.exports = {
   root: true,
 
   parserOptions: {
-    ecmaVersion: 2021, // Allows for the parsing of modern ECMAScript features
+    ecmaVersion: 2021 // Allows for the parsing of modern ECMAScript features
   },
 
   env: {
     node: true,
     browser: true,
-    'vue/setup-compiler-macros': true,
+    'vue/setup-compiler-macros': true
   },
 
   // Rules order is important, please avoid shuffling them
@@ -21,7 +21,7 @@ module.exports = {
     // but leave only one uncommented!
     // See https://eslint.vuejs.org/rules/#available-rules
     // 'plugin:vue/vue3-essential', // Priority A: Essential (Error Prevention)
-    'plugin:vue/vue3-strongly-recommended', // Priority B: Strongly Recommended (Improving Readability)
+    'plugin:vue/vue3-strongly-recommended' // Priority B: Strongly Recommended (Improving Readability)
     // 'plugin:vue/vue3-recommended', // Priority C: Recommended (Minimizing Arbitrary Choices and Cognitive Overhead)
   ],
 
@@ -35,19 +35,19 @@ module.exports = {
     __QUASAR_SSR_PWA__: 'readonly',
     process: 'readonly',
     Capacitor: 'readonly',
-    chrome: 'readonly',
+    chrome: 'readonly'
   },
 
   overrides: [
     {
       files: [
         '**/__tests__/*.{j,t}s?(x)',
-        '**/test/vitest/**/*.test.{j,t}s?(x)',
+        '**/test/vitest/**/*.test.{j,t}s?(x)'
       ],
       env: {
-        jest: true,
-      },
-    },
+        jest: true
+      }
+    }
   ],
 
   // custom rules here
@@ -72,33 +72,33 @@ module.exports = {
       'error',
       {
         singleline: 'ignore',
-        multiline: 'below',
-      },
+        multiline: 'below'
+      }
     ],
     'vue/multiline-html-element-content-newline': [
       'error',
       {
         ignoreWhenEmpty: true,
-        allowEmptyLines: true,
-      },
+        allowEmptyLines: true
+      }
     ],
     'vue/max-attributes-per-line': [
       'error',
       {
         singleline: {
-          max: 1,
+          max: 1
         },
         multiline: {
-          max: 1,
-        },
-      },
+          max: 1
+        }
+      }
     ],
     'vue/html-closing-bracket-newline': [
       'error',
       {
         singleline: 'never',
-        multiline: 'always',
-      },
+        multiline: 'always'
+      }
     ],
     'vue/html-indent': [
       'error',
@@ -108,8 +108,8 @@ module.exports = {
         baseIndent: 1,
         closeBracket: 0,
         alignAttributesVertically: true,
-        ignores: [],
-      },
+        ignores: []
+      }
     ],
     'vue/html-self-closing': [
       'error',
@@ -117,11 +117,11 @@ module.exports = {
         html: {
           void: 'always',
           normal: 'always',
-          component: 'always',
+          component: 'always'
         },
         svg: 'always',
-        math: 'always',
-      },
+        math: 'always'
+      }
     ],
     'vue/mustache-interpolation-spacing': [
       'error',
@@ -136,31 +136,51 @@ module.exports = {
       'shorthand'
     ],
     'vue/no-spaces-around-equal-signs-in-attribute': ['error'],
-    'semi': 'error',
+    'semi': [
+      'error',
+      'never'
+    ],
+    'no-var': 'error',
+    'no-trailing-spaces': 'error',
+    'no-return-assign': 'error',
     'comma-spacing': 'error',
+    'comma-dangle': [
+      'error',
+      'never'
+    ],
     'object-shorthand': 'error',
     'space-before-function-paren': 'error',
     'keyword-spacing': 'error',
     'brace-style': 'error',
+    'object-curly-spacing': [
+      'error',
+      'always'
+    ],
     'curly': 'error',
+    'no-dupe-args': 'error',
+    'no-unreachable': 'error',
     'handle-callback-err': 'off',
     'array-callback-return': 'off',
+    'array-bracket-spacing': [
+      'error',
+      'never'
+    ],
     'array-bracket-newline': [
       'error',
       {
-        multiline: true,
-      },
+        multiline: true
+      }
     ],
     'array-element-newline': [
       'error',
       {
         ArrayExpression: 'always',
-        ArrayPattern: { minItems: 1 },
-      },
+        ArrayPattern: { minItems: 1 }
+      }
     ],
     quotes: [
       'error',
       'single'
     ]
   }
-};
+}
