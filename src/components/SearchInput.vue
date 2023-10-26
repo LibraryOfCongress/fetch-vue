@@ -35,7 +35,7 @@ export default defineComponent({
       default: ''
     }
   },
-  data() {
+  data () {
     return {
       searchText: ''
     }

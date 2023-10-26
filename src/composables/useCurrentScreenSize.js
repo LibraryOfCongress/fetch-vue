@@ -1,7 +1,7 @@
 import { useQuasar } from 'quasar'
 import { computed } from 'vue'
 
-export function useCurrentScreenSize() {
+export function useCurrentScreenSize () {
   const $q = useQuasar()
 
   const currentScreenSize = computed(() => {

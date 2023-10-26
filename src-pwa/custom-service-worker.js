@@ -19,13 +19,13 @@ precacheAndRoute(self.__WB_MANIFEST)
 
 // caches api specific request data to indexDB
 registerRoute(
-  ({url}) => url.href.startsWith(process.env.VITE_INV_SERVCE_API),
+  ({ url }) => url.href.startsWith(process.env.VITE_INV_SERVCE_API),
   new NetworkFirst()
 )
 
 // caches all app related requests to cache storage
 registerRoute(
-  ({url}) => url.href.startsWith('http') && !url.href.includes('__vite_ping'),
+  ({ url }) => url.href.startsWith('http') && !url.href.includes('__vite_ping'),
   new StaleWhileRevalidate()
 )
 

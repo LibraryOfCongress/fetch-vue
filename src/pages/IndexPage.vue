@@ -16,34 +16,33 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue';
-import inventoryServiceApi from '@/http/InventoryService.js';
+import { defineComponent } from 'vue'
+// import inventoryServiceApi from '@/http/InventoryService.js';
 
 export default defineComponent({
   name: 'IndexPage',
-  data() {
+  data () {
     return {
       testData: [],
       scannedBarCode: []
-    };
+    }
   },
-  mounted() {
-    console.log('vue app environment loaded', process.env.VITE_ENV);
-    this.testApiCall();
-    document.addEventListener('keypress', this.keypressHandler);
+  mounted () {
+    console.log('vue app environment loaded', process.env.VITE_ENV)
+    document.addEventListener('keypress', this.keypressHandler)
   },
   methods: {
-    async testApiCall() {
-      try {
-        const res = await this.$api.get(
-          inventoryServiceApi.examplesNumbers + 12
-        );
-        this.testData = [res.data];
-      } catch (err) {
-        console.log(err);
-      }
-    },
-    keypressHandler(event) {
+    // async testApiCall() {
+    //   try {
+    //     const res = await this.$api.get(
+    //       inventoryServiceApi.examplesNumbers + 12
+    //     );
+    //     this.testData = [res.data];
+    //   } catch (err) {
+    //     console.log(err);
+    //   }
+    // },
+    keypressHandler (event) {
       if (event.key == '!') {
         // if the appended key ! is passed we know the barcode key events are completed
         // so will add the scannedBarCode to the test data
@@ -53,9 +52,9 @@ export default defineComponent({
       } else {
         this.scannedBarCode.push(event.key)
       }
-    },
-  },
-});
+    }
+  }
+})
 </script>
 
 <style lang="scss" scoped>
@@ -71,6 +70,6 @@ h1 {
   list-style: none;
   background-color: $color-gray;
   border-radius: 4px;
-  padding: .5rem;
+  padding: 0.5rem;
 }
 </style>

@@ -44,26 +44,26 @@
 <script>
 import { defineComponent } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
-import NavigationBar from '@/components/NavigationBar.vue' 
+import NavigationBar from '@/components/NavigationBar.vue'
 
 export default defineComponent({
   name: 'MainLayout',
   components: {
     NavigationBar
   },
-  setup() {
+  setup () {
     const { currentScreenSize } = useCurrentScreenSize()
     return {
       currentScreenSize
     }
   },
-  data() {
+  data () {
     return {
       appInstallPrompt: null,
       showAppInstallBanner: false
     }
   },
-  mounted() {
+  mounted () {
     if (!this.$q.localStorage.getItem('hideAppInstallation')) {
       // this event only gets fired on devices that support pwa installs
       window.addEventListener('beforeinstallprompt', (event) => {
@@ -73,7 +73,7 @@ export default defineComponent({
     }
   },
   methods: {
-    installApp() {
+    installApp () {
       this.showAppInstallBanner = false
       this.appInstallPrompt.prompt()
       this.appInstallPrompt.userChoice.then(result => {
@@ -82,7 +82,7 @@ export default defineComponent({
         }
       })
     },
-    neverShowAppInstallBanner() {
+    neverShowAppInstallBanner () {
       this.showAppInstallBanner = false
       this.$q.localStorage.set('hideAppInstallation', true)
     }

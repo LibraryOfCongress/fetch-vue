@@ -135,13 +135,13 @@ export default defineComponent({
     EssentialLink,
     SearchInput
   },
-  setup() {
+  setup () {
     const { currentScreenSize } = useCurrentScreenSize()
     return {
       currentScreenSize
     }
   },
-  data() {
+  data () {
     return {
       essentialLinks: [
         {
@@ -168,7 +168,7 @@ export default defineComponent({
           title: 'Refile',
           icon: 'list',
           link: '/'
-        },
+        }
       ],
       mobileNavLinks: [
         {
@@ -196,7 +196,7 @@ export default defineComponent({
       showOfflineBanner: false
     }
   },
-  mounted() {
+  mounted () {
     window.addEventListener('offline', () => {
       this.showOfflineBanner = true
     })

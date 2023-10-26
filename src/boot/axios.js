@@ -1,7 +1,7 @@
 import { boot } from 'quasar/wrappers'
 import axios from 'axios'
 
-const api = axios.create({ 
+const api = axios.create({
   baseURL: process.env.VITE_INV_SERVCE_API,
   headers: {
     Accept: ['application/json'],
