@@ -3,7 +3,7 @@
     class="search-input"
     dark
     outlined
-    color="secondary"
+    color="primary"
     dense
     v-model="searchText"
     :placeholder="placeholder"

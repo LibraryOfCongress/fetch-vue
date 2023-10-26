@@ -2,9 +2,9 @@
   <div class="nav">
     <!-- main nav -->
     <q-header elevated>
-      <q-toolbar class="bg-primary justify-between">
+      <q-toolbar class="bg-secondary justify-between">
         <q-btn
-          color="secondary"
+          color="white"
           flat
           dense
           icon="menu"
@@ -21,8 +21,8 @@
             rounded
             size="md"
             icon="person"
-            color="accent"
-            class="text-primary"
+            color="secondary"
+            class="text-white"
             font-size="25px"
           />
         </div>
@@ -57,8 +57,7 @@
     <q-drawer
       v-model="leftDrawerOpen"
       show-if-above
-      bordered
-      class="bg-color-gray-light"
+      class="bg-primary"
     >
       <q-list>
         <q-item
@@ -70,13 +69,13 @@
           <q-item-section>
             <q-icon
               name="image"
-              color="accent"
+              color="secondary"
               size="120px"
             />
           </q-item-section>
 
           <q-item-section>
-            <q-item-label class="text-primary text-bold">
+            <q-item-label class="text-secondary text-bold">
               FETCH LOGO
             </q-item-label>
           </q-item-section>
@@ -87,7 +86,7 @@
           :key="link.title"
           v-bind="link"
           :icon-size="'28px'"
-          class="justify-center"
+          class="justify-center text-white"
         />
       </q-list>
     </q-drawer>
@@ -96,7 +95,7 @@
     <q-footer
       v-if="currentScreenSize <= 600"
       elevated
-      class="bg-grey-8 text-white"
+      class="text-white"
     >
       <q-toolbar class="bg-primary justify-between">
         <q-item
@@ -105,18 +104,16 @@
           clickable
           tag="a"
           :to="link.link"
-          class="column items-center text-secondary"
+          class="column items-center text-white"
         >
-          <q-item-section>
-            <q-icon
-              :name="link.icon"
-              size="20px"
-            />
-          </q-item-section>
+          <q-icon
+            :name="link.icon"
+            size="20px"
+          />
 
-          <q-item-section>
-            <q-item-label>{{ link.title }}</q-item-label>
-          </q-item-section>
+          <q-item-label class="text-subcaption q-mt-xs">
+            {{ link.title }}
+          </q-item-label>
         </q-item>
       </q-toolbar>
     </q-footer>
@@ -172,23 +169,28 @@ export default defineComponent({
       ],
       mobileNavLinks: [
         {
-          title: 'Link 1',
-          icon: 'link',
+          title: 'Accession',
+          icon: 'mdi-barcode-scan',
           link: '/'
         },
         {
-          title: 'Link 2',
-          icon: 'link',
+          title: 'Verfication',
+          icon: 'done_all',
           link: '/'
         },
         {
-          title: 'Link 3',
-          icon: 'link',
+          title: 'Shelving',
+          icon: 'subject',
           link: '/'
         },
         {
-          title: 'Link 4',
-          icon: 'link',
+          title: 'Request',
+          icon: 'manage_search',
+          link: '/'
+        },
+        {
+          title: 'Refile',
+          icon: 'list',
           link: '/'
         }
       ],
