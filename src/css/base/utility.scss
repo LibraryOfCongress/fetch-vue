@@ -1,5 +1,14 @@
 // Text & Background Color Utilities
 $color-map: (
+  primary: $primary,
+  secondary: $secondary,
+  accent: $accent, 
+  dark: $dark,     
+  dark-page: $dark-page,
+  positive: $positive, 
+  negative: $negative, 
+  info: $info,     
+  warning: $warning,
   color-white: $color-white,
   color-black: $color-black,
   color-gray: $color-gray,
@@ -14,6 +23,9 @@ $color-map: (
   .text-#{$colorName} {
       color: $colorValue !important;
   }
+  .border-#{$colorName} {
+    border-color: $colorValue !important;
+  }
 }
 
 // General Utilities
@@ -23,4 +35,10 @@ $color-map: (
   width: 100%;
   height: 1px;
   margin: 12px;
+}
+
+.outline {
+  border: 1px solid $color-gray;
+  border-radius: 3px;
+  padding: 1px 5px;
 }

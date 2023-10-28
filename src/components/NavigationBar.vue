@@ -97,7 +97,7 @@
       elevated
       class="text-white"
     >
-      <q-toolbar class="bg-primary justify-between">
+      <q-toolbar class="nav-bar-bottom bg-primary justify-between">
         <q-item
           v-for="(link, i) in mobileNavLinks"
           :key="i"
@@ -223,6 +223,13 @@ export default defineComponent({
 
     @media (max-width: $breakpoint-sm-min) {
       width: 75%;
+    }
+  }
+
+  &-bar-bottom {
+    .q-item {
+      padding-left: 12px;
+      padding-right: 12px;
     }
   }
 }

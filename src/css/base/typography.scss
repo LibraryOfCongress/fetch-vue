@@ -1,9 +1,20 @@
 // add custom typography classes here
 // see quasar.dev/style/typography for the default classes
+.text-h4 {
+  @media (max-width: $breakpoint-sm-min) {
+    font-size: 1.8rem;
+  }
+}
 
 .text-subcaption {
   font-size: .58rem;
   font-weight: 400;
   line-height: 1.2rem;
   letter-spacing: 0.03333em;
+}
+
+.text-highlight {
+  padding: 1px 5px;
+  color: $positive;
+  background-color: rgba($positive, .2);
 }
