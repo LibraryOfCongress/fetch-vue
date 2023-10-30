@@ -68,6 +68,8 @@ module.exports = {
     'no-console': process.env.NODE_ENV === 'production' ? 'off' : 'off',
     'vue/no-unused-vars': 'error',
     'vue/no-mutating-props': 'off',
+    'vue/no-v-for-template-key': 'off',
+    'vue/no-v-for-template-key-on-child': 'off',
     'vue/first-attribute-linebreak': [
       'error',
       {

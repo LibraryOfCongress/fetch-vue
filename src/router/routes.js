@@ -3,7 +3,16 @@ const routes = [
   {
     path: '/',
     component: () => import('@/layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('@/pages/IndexPage.vue') }]
+    children: [
+      {
+        path: '',
+        component: () => import('@/pages/IndexPage.vue')
+      },
+      {
+        path: 'item-managment', // child path reads as "parent path + / + child_path" ex: /item-managment
+        component: () => import('@/pages/ItemManagement.vue')
+      }
+    ]
   },
 
   // Always leave this as last one,
