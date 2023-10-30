@@ -17,9 +17,9 @@ RUN npm install
 # if you need to change env reference just change the "ENVIRONMENT=STRING"
 RUN ENVIRONMENT=dev quasar build -m pwa
 
-ADD local/ca-bundle.crt /usr/local/share/ca-certificates/ca-bundle.crt
-ADD local/ca-bundle.trust.crt /usr/local/share/ca-certificates/ca-bundle.trust.crt
-ADD local/LOC-INTERMEDIATE-CA-2.crt /usr/share/ca-certificates/LOC-INTERMEDIATE-CA-2.crt
+ADD certificates/ca-bundle.crt /usr/local/share/ca-certificates/ca-bundle.crt
+ADD certificates/ca-bundle.trust.crt /usr/local/share/ca-certificates/ca-bundle.trust.crt
+ADD certificates/LOC-INTERMEDIATE-CA-2.crt /usr/share/ca-certificates/LOC-INTERMEDIATE-CA-2.crt
 RUN chmod 644 /usr/local/share/ca-certificates/ca-bundle.crt
 RUN chmod 644 /usr/local/share/ca-certificates/ca-bundle.trust.crt && update-ca-certificates
 ENV REQUESTS_CA_BUNDLE=/usr/local/share/ca-certificates/ca-bundle.crt
