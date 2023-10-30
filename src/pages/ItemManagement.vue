@@ -10,44 +10,44 @@
 
     <div class="row">
       <div class="col-xs-12 col-sm-4 col-md-3 q-pr-xl q-pr-xs-none q-pr-sm-md q-pb-xs-sm q-pb-sm-none">
-        <div class="item-barcode text-h4 q-py-xs-md">
+        <div class="tray-barcode text-h4 q-py-xs-md">
           {{ trayData.id }}
         </div>
       </div>
       <div class="col-xs-6 col-sm-4 col-md-3">
         <div class="column no-wrap">
-          <div class="item-details">
-            <label class="item-details-label text-h6">
+          <div class="tray-details">
+            <label class="tray-details-label text-h6">
               Facility
             </label>
-            <p class="item-details-text outline">
+            <p class="tray-details-text outline">
               {{ trayData.facility }}
             </p>
           </div>
 
-          <div class="item-details">
-            <label class="item-details-label text-h6">
+          <div class="tray-details">
+            <label class="tray-details-label text-h6">
               Shelf Location
             </label>
-            <p class="item-details-text">
+            <p class="tray-details-text">
               {{ trayData.shelf_location }}
             </p>
           </div>
 
-          <div class="item-details">
-            <label class="item-details-label text-h6">
+          <div class="tray-details">
+            <label class="tray-details-label text-h6">
               Media Type
             </label>
-            <p class="item-details-text text-highlight">
+            <p class="tray-details-text text-highlight">
               {{ trayData.media_type }}
             </p>
           </div>
 
-          <div class="item-details">
-            <label class="item-details-label text-h6">
+          <div class="tray-details">
+            <label class="tray-details-label text-h6">
               Container Type
             </label>
-            <p class="item-details-text outline">
+            <p class="tray-details-text outline">
               {{ trayData.container_type }}
             </p>
           </div>
@@ -58,29 +58,29 @@
         class="col-sm-3 col-md-3"
       >
         <div class="column no-wrap">
-          <div class="item-details">
-            <label class="item-details-label text-h6">
+          <div class="tray-details">
+            <label class="tray-details-label text-h6">
               Accession Date
             </label>
-            <p class="item-details-text">
+            <p class="tray-details-text">
               {{ trayData.accession_date }}
             </p>
           </div>
 
-          <div class="item-details">
-            <label class="item-details-label text-h6">
+          <div class="tray-details">
+            <label class="tray-details-label text-h6">
               Shelved Date
             </label>
-            <p class="item-details-text">
+            <p class="tray-details-text">
               {{ trayData.shelf_date }}
             </p>
           </div>
 
-          <div class="item-details">
-            <label class="item-details-label text-h6">
+          <div class="tray-details">
+            <label class="tray-details-label text-h6">
               Withdrawal Date
             </label>
-            <p class="item-details-text">
+            <p class="tray-details-text">
               {{ trayData.widthdraw_date }}
             </p>
           </div>
@@ -88,29 +88,29 @@
       </div>
       <div class="col-xs-6 col-sm-4 col-md-3">
         <div class="column no-wrap">
-          <div class="item-details">
-            <label class="item-details-label text-h6">
+          <div class="tray-details">
+            <label class="tray-details-label text-h6">
               Item Count
             </label>
-            <p class="item-details-text outline">
+            <p class="tray-details-text outline">
               {{ trayData.items.length }}
             </p>
           </div>
 
-          <div class="item-details">
-            <label class="item-details-label text-h6">
+          <div class="tray-details">
+            <label class="tray-details-label text-h6">
               # of Items Out
             </label>
-            <p class="item-details-text outline">
+            <p class="tray-details-text outline">
               {{ trayData.items_out_count }}
             </p>
           </div>
 
-          <div class="item-details">
-            <label class="item-details-label text-h6">
+          <div class="tray-details">
+            <label class="tray-details-label text-h6">
               Delete Count
             </label>
-            <p class="item-details-text outline">
+            <p class="tray-details-text outline">
               {{ trayData.items_delete_count }}
             </p>
           </div>
@@ -167,10 +167,13 @@
           :wrap-cells="true"
           :hide-pagination="true"
           column-sort-order="ad"
-          class="item-table"
+          class="tray-table"
         >
           <template #body="props">
-            <q-tr :props="props">
+            <q-tr
+              :props="props"
+              @click="selectedItemData = props.row"
+            >
               <template
                 v-for="(value, key) in props.row"
                 :key="key"
@@ -198,15 +201,26 @@
         </q-table>
       </div>
     </div>
+
+    <ItemDataOverlay
+      v-if="selectedItemData !== null"
+      :item-data="selectedItemData"
+      :facility="trayData.facility"
+      @close="selectedItemData = null"
+    />
   </q-page>
 </template>
 
 <script>
 import { defineComponent } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import ItemDataOverlay from '@/components/ItemManagement/ItemDataOverlay.vue'
 
 export default defineComponent({
   name: 'ItemManagement',
+  components: {
+    ItemDataOverlay
+  },
   setup () {
     const { currentScreenSize } = useCurrentScreenSize()
     return {
@@ -229,6 +243,7 @@ export default defineComponent({
         items: [
           {
             id: '00924891289',
+            title: 'Some Book by Arthur McAuthor',
             media_type: 'Archival Material',
             size: 'C High',
             temp_location: 'A22L L9 SH12 T2',
@@ -238,10 +253,14 @@ export default defineComponent({
             arrival_date: '12/31/1999',
             accession_date: '01/01/2001',
             withdraw_date: '10/22/2023',
-            container_type: 'Book Tray'
+            container_type: 'Book Tray',
+            dimensions: '11.5" x 8.5".',
+            condition: 'Do Not Send',
+            owner: 'George Clinton'
           },
           {
             id: '00924891290',
+            title: 'Another Book by Arthur McAuthor',
             media_type: 'Archival Material',
             size: 'C High',
             temp_location: 'A22L L9 SH12 T3',
@@ -251,10 +270,14 @@ export default defineComponent({
             arrival_date: '12/31/1999',
             accession_date: '01/11/2001',
             withdraw_date: '10/27/2023',
-            container_type: 'Book Tray'
+            container_type: 'Book Tray',
+            dimensions: '11.5" x 8.5".',
+            condition: 'Do Not Send',
+            owner: 'George Clinton'
           },
           {
             id: '00924891291',
+            title: 'Third Book by Arthur McAuthor',
             media_type: 'Archival Material',
             size: 'C Low',
             temp_location: 'B22L L9 SH12 T4',
@@ -264,7 +287,10 @@ export default defineComponent({
             arrival_date: '12/31/1999',
             accession_date: '01/21/2001',
             withdraw_date: '10/27/2023',
-            container_type: 'Book Tray'
+            container_type: 'Book Tray',
+            dimensions: '11.5" x 8.5".',
+            condition: 'Do Not Send',
+            owner: 'George Clinton'
           }
         ],
         items_out_count: 9,
@@ -360,7 +386,8 @@ export default defineComponent({
           sortable: true,
           required: true
         }
-      ]
+      ],
+      selectedItemData: null
     }
   },
   watch: {
@@ -395,7 +422,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.item {
+.tray {
   &-barcode {
     display: flex;
     justify-content: center;
@@ -415,15 +442,17 @@ export default defineComponent({
     align-items: flex-start;
     width: 100%;
     margin-bottom: 1rem;
-
-    &-text {
-      margin: 0;
-    }
   }
 
   &-table {
     :deep(th) {
       border-bottom-color: $primary;
+    }
+
+    :deep(tbody) {
+      & tr {
+        cursor: pointer;
+      }
     }
   }
 }
