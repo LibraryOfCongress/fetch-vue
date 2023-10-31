@@ -6,7 +6,10 @@
     :class="$style.overlay"
   >
     <q-card class="item-content">
-      <q-card-section class="row items-center justify-end q-pb-none">
+      <q-card-section
+        v-if="currentScreenSize > 600"
+        class="row items-center justify-end q-pb-none"
+      >
         <q-btn
           icon="close"
           flat
@@ -22,8 +25,8 @@
         </div>
       </q-card-section>
 
-      <q-card-section class="column">
-        <h1 class="text-h4 q-mb-md">
+      <q-card-section class="column q-pt-xs-none q-pt-sm-md">
+        <h1 class="text-h4 q-mb-xs-sm q-mb-sm-md">
           {{ itemData.title }}
         </h1>
 
@@ -83,7 +86,7 @@
       </q-card-section>
 
       <q-card-section class="column q-pt-none">
-        <h1 class="text-h4 q-mb-md">
+        <h1 class="text-h4 q-mb-xs-sm q-mb-sm-md">
           Owner
         </h1>
 
@@ -95,7 +98,7 @@
       </q-card-section>
 
       <q-card-section class="column q-pt-none">
-        <h1 class="text-h4 q-mb-md">
+        <h1 class="text-h4 q-mb-xs-sm q-mb-sm-md">
           Dates
         </h1>
 
@@ -128,7 +131,7 @@
       </q-card-section>
 
       <q-card-section class="column q-pt-none">
-        <h1 class="text-h4 q-mb-md">
+        <h1 class="text-h4 q-mb-xs-sm q-mb-sm-md">
           Location
         </h1>
 
@@ -144,12 +147,25 @@
           </p>
         </div>
       </q-card-section>
+
+      <q-card-section
+        v-if="currentScreenSize <= 600"
+        class="row items-center q-pt-sm"
+      >
+        <q-btn
+          class="full-width"
+          color="primary"
+          label="Close"
+          v-close-popup
+        />
+      </q-card-section>
     </q-card>
   </q-dialog>
 </template>
 
 <script>
 import { defineComponent } from 'vue'
+import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 
 export default defineComponent({
   name: 'ItemDataOverlay',
@@ -164,6 +180,12 @@ export default defineComponent({
     }
   },
   emits: ['close'],
+  setup () {
+    const { currentScreenSize } = useCurrentScreenSize()
+    return {
+      currentScreenSize
+    }
+  },
   data () {
     return {
       showItemOverlay: true
@@ -186,6 +208,11 @@ export default defineComponent({
 .item {
   &-content {
     width: 600px;
+
+    @media (max-width: $breakpoint-sm-min) {
+      width: 100vw;
+      border-radius: 0;
+    }
   }
 
   &-barcode {
@@ -197,6 +224,10 @@ export default defineComponent({
     background-color: $secondary;
     color: $color-white;
     border-radius: 3px;
+
+    @media (max-width: $breakpoint-sm-min) {
+      height: 5rem;
+    }
   }
 
   &-details {
@@ -206,6 +237,10 @@ export default defineComponent({
     align-items: center;
     width: 100%;
     margin-bottom: .5rem;
+
+    @media (max-width: $breakpoint-sm-min) {
+      margin-bottom: 5px;
+    }
 
     &:last-child {
       margin-bottom: 0;
