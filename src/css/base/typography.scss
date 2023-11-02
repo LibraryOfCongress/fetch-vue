@@ -17,4 +17,12 @@
   padding: 1px 5px;
   color: $positive;
   background-color: rgba($positive, .2);
+  border-radius: 2px;
+
+  &-red {
+    padding: 1px 5px;
+    color: $negative;
+    background-color: rgba($negative, .2);
+    border-radius: 2px;
+  }
 }
