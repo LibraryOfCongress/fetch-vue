@@ -3,13 +3,14 @@ const routes = [
   {
     path: '/',
     component: () => import('@/layouts/MainLayout.vue'),
+    // We build our routes based on the containing layout component so all pages that will live under MainLayout need to be child paths
     children: [
       {
         path: '',
         component: () => import('@/pages/IndexPage.vue')
       },
       {
-        path: 'item-management', // child path reads as "parent path + / + child_path" ex: /item-managment
+        path: 'item-management/:type?', // child path reads as "parent path + / + child_path" ex: /item-managment
         component: () => import('@/pages/ItemManagement.vue')
       }
     ]

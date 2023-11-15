@@ -26,7 +26,10 @@
       </q-card-section>
 
       <q-card-section class="column q-pt-xs-none q-pt-sm-md">
-        <h1 class="text-h4 q-mb-xs-sm q-mb-sm-md">
+        <h1
+          v-if="itemData.title"
+          class="text-h4 q-mb-xs-sm q-mb-sm-md"
+        >
           {{ itemData.title }}
         </h1>
 
@@ -48,7 +51,10 @@
           </p>
         </div>
 
-        <div class="item-details">
+        <div
+          v-if="itemData.size"
+          class="item-details"
+        >
           <label class="item-details-label">
             Size Class:
           </label>
@@ -57,12 +63,39 @@
           </p>
         </div>
 
-        <div class="item-details">
+        <div
+          v-if="itemData.volume"
+          class="item-details"
+        >
           <label class="item-details-label">
             Volume:
           </label>
           <p class="item-details-text">
             {{ itemData.volume }}
+          </p>
+        </div>
+
+        <div
+          v-if="itemData.container_type"
+          class="item-details"
+        >
+          <label class="item-details-label">
+            Container Type:
+          </label>
+          <p class="item-details-text outline">
+            {{ itemData.container_type }}
+          </p>
+        </div>
+
+        <div
+          v-if="itemData.subcollection"
+          class="item-details"
+        >
+          <label class="item-details-label">
+            Subcollection:
+          </label>
+          <p class="item-details-text">
+            {{ itemData.subcollection }}
           </p>
         </div>
 
@@ -75,7 +108,10 @@
           </p>
         </div>
 
-        <div class="item-details">
+        <div
+          v-if="itemData.condition"
+          class="item-details"
+        >
           <label class="item-details-label">
             Condition:
           </label>
@@ -111,7 +147,10 @@
           </p>
         </div>
 
-        <div class="item-details">
+        <div
+          v-if="itemData.withdraw_date"
+          class="item-details"
+        >
           <label class="item-details-label">
             Withdrawal Date:
           </label>
@@ -120,7 +159,10 @@
           </p>
         </div>
 
-        <div class="item-details">
+        <div
+          v-if="itemData.arrival_date"
+          class="item-details"
+        >
           <label class="item-details-label">
             Arrival Date:
           </label>
@@ -130,7 +172,10 @@
         </div>
       </q-card-section>
 
-      <q-card-section class="column q-pt-none">
+      <q-card-section
+        v-if="itemData.temp_location"
+        class="column q-pt-none"
+      >
         <h1 class="text-h4 q-mb-xs-sm q-mb-sm-md">
           Location
         </h1>
@@ -144,6 +189,24 @@
           </p>
           <p class="item-details-text outline">
             {{ itemData.temp_location }}
+          </p>
+        </div>
+      </q-card-section>
+
+      <q-card-section
+        v-if="itemData.shelf_position"
+        class="column q-pt-none"
+      >
+        <h1 class="text-h4 q-mb-xs-sm q-mb-sm-md">
+          Shelf Position
+        </h1>
+
+        <div class="item-details">
+          <p class="item-details-text text-highlight-yellow q-mr-sm">
+            Requested
+          </p>
+          <p class="item-details-text outline">
+            {{ itemData.shelf_location }}
           </p>
         </div>
       </q-card-section>

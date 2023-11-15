@@ -25,4 +25,11 @@
     background-color: rgba($negative, .2);
     border-radius: 2px;
   }
+
+  &-yellow {
+    padding: 1px 5px;
+    color: $warning;
+    background-color: rgba($warning, .2);
+    border-radius: 2px;
+  }
 }
