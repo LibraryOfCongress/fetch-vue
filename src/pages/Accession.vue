@@ -15,7 +15,9 @@
           flat
           icon="mdi-plus"
           @click="showAccessionModal = !showAccessionModal"
-        />
+        >
+          <span>Start Accession</span>
+        </q-btn>
       </div>
     </div>
 
@@ -253,6 +255,7 @@ export default defineComponent({
 <style lang="scss" scoped>
 .accession {
   &-btn {
+    position: relative;
     display: flex;
     width: 100%;
     aspect-ratio: 1 / 1;
@@ -265,6 +268,19 @@ export default defineComponent({
     &:hover:not(:disabled) {
       color: $accent;
       border-color: $accent;
+    }
+
+    & span {
+      position: absolute;
+      bottom: 15%;
+      font-size: 1.25rem;
+      text-transform: none;
+
+      @media (max-width: $breakpoint-sm-min) {
+        bottom: 12%;
+        width: 9rem;
+        line-height: normal;
+      }
     }
   }
 
