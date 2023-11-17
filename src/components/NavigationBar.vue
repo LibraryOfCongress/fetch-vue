@@ -144,7 +144,7 @@ export default defineComponent({
         {
           title: 'Accession',
           icon: 'mdi-barcode-scan',
-          link: '/'
+          link: '/accession'
         },
         {
           title: 'Verfication',
@@ -171,7 +171,7 @@ export default defineComponent({
         {
           title: 'Accession',
           icon: 'mdi-barcode-scan',
-          link: '/'
+          link: '/accession'
         },
         {
           title: 'Verfication',
