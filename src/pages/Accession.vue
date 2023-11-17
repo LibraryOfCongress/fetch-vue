@@ -9,7 +9,7 @@
     </div>
 
     <div class="row">
-      <div class="col">
+      <div class="col-xs-6 col-sm-3 col-md-2 q-pa-xs-xs q-pa-lg-sm q-pa-xl-md">
         <q-btn
           class="accession-btn text-h4"
           flat
@@ -19,7 +19,10 @@
       </div>
     </div>
 
-    <q-dialog v-model="showAccessionModal">
+    <q-dialog
+      :persistent="true"
+      v-model="showAccessionModal"
+    >
       <q-card class="accession-modal">
         <q-card-section class="row items-center justify-between q-pb-none">
           <h2
@@ -250,13 +253,16 @@ export default defineComponent({
 <style lang="scss" scoped>
 .accession {
   &-btn {
+    display: flex;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    padding: 0;
     border: 1px dashed $color-black;
     border-width: 2px;
     border-radius: 4px;
-    padding: 5rem;
-    transition: .3s ease;
+    transition: 0.3s ease;
 
-    &:hover {
+    &:hover:not(:disabled) {
       color: $accent;
       border-color: $accent;
     }
