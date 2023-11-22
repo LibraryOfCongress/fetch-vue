@@ -200,7 +200,7 @@ export default defineComponent({
           name: 'A Low'
         },
         {
-          id: 4,
+          id: 3,
           name: 'B High'
         },
         {
@@ -223,7 +223,7 @@ export default defineComponent({
           name: 'Music'
         },
         {
-          id: 2,
+          id: 3,
           name: 'Video'
         }
       ]
