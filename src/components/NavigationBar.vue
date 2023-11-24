@@ -154,7 +154,7 @@ export default defineComponent({
         {
           title: 'Shelving',
           icon: 'subject',
-          link: '/'
+          link: '/shelving'
         },
         {
           title: 'Request',
@@ -181,7 +181,7 @@ export default defineComponent({
         {
           title: 'Shelving',
           icon: 'subject',
-          link: '/'
+          link: '/shelving'
         },
         {
           title: 'Request',

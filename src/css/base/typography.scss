@@ -17,12 +17,14 @@
   padding: 1px 5px;
   color: $positive;
   background-color: rgba($positive, .2);
+  border-color: $positive !important;
   border-radius: 2px;
 
   &-red {
     padding: 1px 5px;
     color: $negative;
     background-color: rgba($negative, .2);
+    border-color: $negative !important;
     border-radius: 2px;
   }
 
@@ -30,6 +32,7 @@
     padding: 1px 5px;
     color: $warning;
     background-color: rgba($warning, .2);
+    border-color: $warning !important;
     border-radius: 2px;
   }
 }

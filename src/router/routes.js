@@ -10,12 +10,16 @@ const routes = [
         component: () => import('@/pages/IndexPage.vue')
       },
       {
+        path: 'accession',
+        component: () => import('@/pages/Accession.vue')
+      },
+      {
         path: 'item-management/:type?', // child path reads as "parent path + / + child_path" ex: /item-managment
         component: () => import('@/pages/ItemManagement.vue')
       },
       {
-        path: 'accession',
-        component: () => import('@/pages/Accession.vue')
+        path: 'shelving',
+        component: () => import('@/pages/Shelving.vue')
       }
     ]
   },
