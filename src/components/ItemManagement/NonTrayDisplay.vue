@@ -260,10 +260,6 @@ export default defineComponent({
   }
 
   &-table {
-    :deep(th) {
-      border-bottom-color: $primary;
-    }
-
     :deep(tbody) {
       & tr {
         cursor: pointer;

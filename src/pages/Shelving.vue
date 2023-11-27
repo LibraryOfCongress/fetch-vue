@@ -84,6 +84,7 @@
       </div>
 
       <div class="col-auto mobile-only">
+        <!-- mobile only button make sure to modify the desktop one if you change this one -->
         <q-btn
           no-caps
           unelevated
@@ -91,6 +92,7 @@
           color="accent"
           label="Add Shelf"
           class="btn-no-wrap text-body1"
+          @click="showShelfModal = !showShelfModal"
         />
       </div>
 
@@ -117,7 +119,7 @@
             option-label="label"
             class="full-width"
           >
-            <template #before-options>
+            <!-- <template #before-options>
               <q-item>
                 <q-item-section>
                   <q-item-label>Rearrange Columns</q-item-label>
@@ -128,7 +130,7 @@
               </q-item>
 
               <q-space class="divider" />
-            </template>
+            </template> -->
 
             <template #option="{ itemProps, opt, selected, toggleOption }">
               <q-item v-bind="itemProps">
@@ -152,6 +154,7 @@
             color="accent"
             label="Add Shelf"
             class="btn-no-wrap text-body1 q-ml-sm mobile-hide"
+            @click="showShelfModal = !showShelfModal"
           />
         </div>
       </div>
@@ -195,6 +198,144 @@
         </q-table>
       </div>
     </div>
+
+    <!-- Create Shelf Modal -->
+    <q-dialog
+      :persistent="true"
+      v-model="showShelfModal"
+    >
+      <q-card class="shelving-modal">
+        <q-card-section class="row items-center justify-between q-pb-none">
+          <h2 class="text-h6">
+            Create New Shelf
+          </h2>
+
+          <q-btn
+            icon="close"
+            flat
+            round
+            dense
+            @click="resetModal"
+          />
+        </q-card-section>
+
+        <q-card-section class="column no-wrap items-center">
+          <div class="form-group q-mb-md">
+            <label class="form-group-label">
+              Owner
+            </label>
+            <q-select
+              :dense="currentScreenSize <= 600"
+              outlined
+              v-model="newShelf.owner"
+              :options="ownerOptions"
+              option-value="id"
+              option-label="name"
+              emit-value
+              map-options
+              use-input
+              hide-selected
+              fill-input
+              input-debounce="0"
+              @filter="filterOwners"
+              class="full-width"
+              placeholder="Select Owner"
+            />
+          </div>
+
+          <div class="form-group q-mb-md">
+            <label class="form-group-label">
+              Shelf Number
+            </label>
+            <q-input
+              outlined
+              placeholder="Enter Shelf Number"
+              :dense="currentScreenSize <= 600"
+              v-model="newShelf.shelf_number"
+              class="full-width"
+            />
+          </div>
+
+          <div class="form-group q-mb-md">
+            <label class="form-group-label">
+              Shelf Width
+            </label>
+            <q-input
+              outlined
+              placeholder="Enter Shelf Width"
+              :dense="currentScreenSize <= 600"
+              v-model="newShelf.shelf_width"
+              class="full-width"
+            />
+          </div>
+
+          <div class="form-group q-mb-md">
+            <label class="form-group-label">
+              Shelf Height
+            </label>
+            <q-input
+              outlined
+              placeholder="Enter Shelf Height"
+              :dense="currentScreenSize <= 600"
+              v-model="newShelf.shelf_height"
+              class="full-width"
+            />
+          </div>
+
+          <div class="form-group q-mb-md">
+            <label class="form-group-label">
+              Shelf Depth
+            </label>
+            <q-input
+              outlined
+              placeholder="Enter Shelf Depth"
+              :dense="currentScreenSize <= 600"
+              v-model="newShelf.shelf_depthr"
+              class="full-width"
+            />
+          </div>
+
+          <div class="form-group q-mb-md">
+            <label class="form-group-label">
+              Allowed Container Type
+            </label>
+            <q-select
+              :dense="currentScreenSize <= 600"
+              outlined
+              v-model="newShelf.container_type"
+              :options="containerTypeOptions"
+              option-value="id"
+              option-label="name"
+              emit-value
+              map-options
+              class="full-width"
+              :class="newShelf.container_type == null ? 'form-placeholder' : null"
+            />
+          </div>
+        </q-card-section>
+
+        <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
+          <q-btn
+            no-caps
+            unelevated
+            color="accent"
+            label="Create Shelf"
+            class="text-body1 full-width"
+            @click="resetModal"
+          />
+
+          <q-space class="q-mx-xs" />
+
+          <q-btn
+            outline
+            no-caps
+            label="Cancel"
+            class="shelving-modal-btn text-body1 full-width"
+            @click="resetModal"
+          />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -364,7 +505,33 @@ export default defineComponent({
           sortable: true
         }
       ],
-      allowTableReorder: false
+      allowTableReorder: false,
+      showShelfModal: false,
+      newShelf: {
+        owner: null,
+        container_type: null,
+        shelf_number: '',
+        shelf_width: '',
+        shelf_height: '',
+        shelf_depth: ''
+      },
+      ownerOptions: [
+        {
+          id: 1,
+          name: 'John Doe'
+        },
+        {
+          id: 2,
+          name: 'George Washington'
+        }
+      ],
+      containerTypeOptions: [
+        {
+          id: null,
+          name: 'Select Type',
+          disable: true
+        }
+      ]
     }
   },
   setup () {
@@ -406,6 +573,34 @@ export default defineComponent({
         ]
       }
     }
+  },
+  methods: {
+    resetModal () {
+      this.newShelf = {
+        owner: null,
+        container_type: null,
+        shelf_number: '',
+        shelf_width: '',
+        shelf_height: '',
+        shelf_depth: ''
+      },
+      this.showShelfModal = false
+    },
+    filterOwners (val, update) {
+      update(() => {
+        const options = [
+          {
+            id: 1,
+            name: 'John Doe'
+          },
+          {
+            id: 2,
+            name: 'George Washington'
+          }
+        ]
+        this.ownerOptions = options.filter(opt => opt.name.toLowerCase().indexOf(val.toLowerCase()) > -1)
+      })
+    }
   }
 })
 </script>
@@ -425,13 +620,26 @@ export default defineComponent({
   }
 
   &-table {
-    :deep(th) {
-      border-bottom-color: $primary;
-    }
-
     :deep(tbody) {
       & tr {
         cursor: pointer;
+      }
+    }
+  }
+
+  &-modal {
+    width: 500px;
+
+    @media (max-width: $breakpoint-sm-min) {
+      width: 90vw;
+    }
+
+    &-btn {
+      transition: .3s ease;
+
+      &:hover {
+        color: $accent;
+        border-color: $accent;
       }
     }
   }

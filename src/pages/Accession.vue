@@ -94,6 +94,7 @@
                 emit-value
                 map-options
                 class="full-width"
+                :class="accessionJob.owner == null ? 'form-placeholder' : null"
               />
             </div>
 
@@ -111,6 +112,7 @@
                 emit-value
                 map-options
                 class="full-width"
+                :class="accessionJob.container_size == null ? 'form-placeholder' : null"
               />
             </div>
 
@@ -128,6 +130,7 @@
                 emit-value
                 map-options
                 class="full-width"
+                :class="accessionJob.media_type == null ? 'form-placeholder' : null"
               />
             </div>
           </q-card-section>

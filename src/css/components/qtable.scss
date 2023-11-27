@@ -4,6 +4,7 @@
     vertical-align: baseline;
     font-size: $font-default;
     padding: 7px 10px;
+    border-bottom-color: $primary;
 
     @media (max-width: $breakpoint-sm-min) {
       font-size: 14px;
