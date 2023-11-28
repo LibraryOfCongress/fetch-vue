@@ -118,7 +118,9 @@
       </div>
     </div>
 
-    <div class="row justify-between items-center q-mb-md q-mt-lg">
+    <q-space class="divider q-my-lg" />
+
+    <div class="row justify-between items-center q-mb-lg">
       <div class="col-auto">
         <h2 class="text-h4 text-bold">
           Items in Tray
@@ -128,8 +130,8 @@
       <div class="col-xs-4 col-sm-3 col-md-2">
         <q-select
           outlined
-          dense
           multiple
+          :dense="currentScreenSize <= 600"
           :display-value="currentScreenSize > 600 ? 'Filter Columns' : 'Filter'"
           v-model="trayItemsTableVisibleColumns"
           :options="trayItemsTableColumns.filter(opt => opt.required == null)"
@@ -144,7 +146,7 @@
                 <q-item-label>{{ opt.label }}</q-item-label>
               </q-item-section>
               <q-item-section side>
-                <q-toggle
+                <q-checkbox
                   :model-value="selected"
                   @update:model-value="toggleOption(opt)"
                 />
@@ -169,34 +171,27 @@
           column-sort-order="ad"
           class="tray-table"
         >
-          <template #body="props">
-            <q-tr
+          <template #body-cell="props">
+            <q-td
               :props="props"
               @click="$emit('selected-item', props.row)"
             >
-              <template
-                v-for="(value, key) in props.row"
-                :key="key"
+              <span
+                v-if="props.col.name == 'media_type'"
+                class="text-highlight outline"
               >
-                <q-td :props="props">
-                  <span
-                    v-if="key == 'media_type'"
-                    class="text-highlight"
-                  >
-                    {{ value }}
-                  </span>
-                  <span
-                    v-else-if="key == 'size'"
-                    class="outline"
-                  >
-                    {{ value }}
-                  </span>
-                  <span v-else>
-                    {{ value }}
-                  </span>
-                </q-td>
-              </template>
-            </q-tr>
+                {{ props.value }}
+              </span>
+              <span
+                v-else-if="props.col.name == 'size'"
+                class="outline"
+              >
+                {{ props.value }}
+              </span>
+              <span v-else>
+                {{ props.value }}
+              </span>
+            </q-td>
           </template>
         </q-table>
       </div>
@@ -249,6 +244,7 @@ export default defineComponent({
         },
         {
           name: 'size',
+          field: 'size',
           label: 'Size Class',
           align: 'left',
           sortable: true
@@ -374,10 +370,6 @@ export default defineComponent({
   }
 
   &-table {
-    :deep(th) {
-      border-bottom-color: $primary;
-    }
-
     :deep(tbody) {
       & tr {
         cursor: pointer;

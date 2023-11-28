@@ -31,10 +31,9 @@ $color-map: (
 // General Utilities
 .divider {
   display: block;
-  background-color: $color-black;
+  background-color: $secondary;
   width: 100%;
   height: 1px;
-  margin: 12px;
 }
 
 .outline {

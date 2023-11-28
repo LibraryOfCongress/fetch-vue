@@ -27,7 +27,7 @@ import NonTrayDisplay from '@/components/ItemManagement/NonTrayDisplay.vue'
 import ItemDataOverlay from '@/components/ItemManagement/ItemDataOverlay.vue'
 
 export default defineComponent({
-  name: 'ItemManagement',
+  name: 'ItemManagementPage',
   components: {
     TrayDisplay,
     NonTrayDisplay,

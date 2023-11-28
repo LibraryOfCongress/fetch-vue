@@ -85,6 +85,7 @@
                 Owner (Required)
               </label>
               <q-select
+                :dense="currentScreenSize <= 600"
                 outlined
                 v-model="accessionJob.owner"
                 :options="ownerOptions"
@@ -93,6 +94,7 @@
                 emit-value
                 map-options
                 class="full-width"
+                :class="accessionJob.owner == null ? 'form-placeholder' : null"
               />
             </div>
 
@@ -101,6 +103,7 @@
                 Container Size (Required)
               </label>
               <q-select
+                :dense="currentScreenSize <= 600"
                 outlined
                 v-model="accessionJob.container_size"
                 :options="containerOptions"
@@ -109,6 +112,7 @@
                 emit-value
                 map-options
                 class="full-width"
+                :class="accessionJob.container_size == null ? 'form-placeholder' : null"
               />
             </div>
 
@@ -117,6 +121,7 @@
                 Media Type (Optional)
               </label>
               <q-select
+                :dense="currentScreenSize <= 600"
                 outlined
                 v-model="accessionJob.media_type"
                 :options="mediaOptions"
@@ -125,6 +130,7 @@
                 emit-value
                 map-options
                 class="full-width"
+                :class="accessionJob.media_type == null ? 'form-placeholder' : null"
               />
             </div>
           </q-card-section>
@@ -158,6 +164,7 @@
 
 <script>
 import { defineComponent } from 'vue'
+import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 
 export default defineComponent({
   name: 'AccessionPage',
@@ -227,6 +234,12 @@ export default defineComponent({
           name: 'Video'
         }
       ]
+    }
+  },
+  setup () {
+    const { currentScreenSize } = useCurrentScreenSize()
+    return {
+      currentScreenSize
     }
   },
   computed: {
