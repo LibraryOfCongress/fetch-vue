@@ -1,5 +1,8 @@
 <template>
-  <q-page class="flex flex-center column">
+  <q-page
+    padding
+    class="flex flex-center column"
+  >
     <h1>Scanned Bar Codes</h1>
     <ul class="demo">
       <li v-if="testData.length == 0">
@@ -12,6 +15,9 @@
         {{ barcode }}
       </li>
     </ul>
+    <h2 class="text-body1 q-mt-md text-center">
+      Currently using {{ storageUsed }}MB of {{ storageAvailable }}MB Available storage
+    </h2>
   </q-page>
 </template>
 
@@ -24,12 +30,18 @@ export default defineComponent({
   data () {
     return {
       testData: [],
-      scannedBarCode: []
+      scannedBarCode: [],
+      storageUsed: 0,
+      storageAvailable: 0
     }
   },
   mounted () {
     console.log('vue app environment loaded', process.env.VITE_ENV)
     document.addEventListener('keypress', this.keypressHandler)
+    navigator.storage.estimate().then((estimate) => {
+      this.storageUsed = (estimate.usage / 1024 / 1024).toFixed(2)
+      this.storageAvailable = (estimate.quota / 1024 / 1024).toFixed(2)
+    })
   },
   methods: {
     // async testApiCall() {

@@ -96,7 +96,7 @@
         />
       </div>
 
-      <div class="col-xs-12 col-sm-6 col-md-4 q-mt-xs-lg q-mt-sm-none">
+      <div class="col-xs-12 col-sm-8 col-md-7 col-lg-5 col-xl-4 q-mt-xs-lg q-mt-sm-none">
         <div class="row no-wrap">
           <q-btn
             no-caps
@@ -107,6 +107,7 @@
           />
 
           <q-select
+            ref="tableSortFilter"
             outlined
             multiple
             :dense="currentScreenSize <= 600"
@@ -119,7 +120,7 @@
             option-label="label"
             class="full-width"
           >
-            <!-- <template #before-options>
+            <template #before-options>
               <q-item>
                 <q-item-section>
                   <q-item-label>Rearrange Columns</q-item-label>
@@ -130,7 +131,7 @@
               </q-item>
 
               <q-space class="divider" />
-            </template> -->
+            </template>
 
             <template #option="{ itemProps, opt, selected, toggleOption }">
               <q-item v-bind="itemProps">
@@ -166,7 +167,7 @@
           flat
           :dense="currentScreenSize <= 600"
           :rows="shelfData.items"
-          :columns="shelfItemsTableColumns"
+          :columns="allowTableReorder ? shelfItemsTableColumns.map(item => ({...item, sortable: false})) : shelfItemsTableColumns"
           :visible-columns="shelfItemsTableVisibleColumns"
           row-key="name"
           :wrap-cells="true"
@@ -174,6 +175,33 @@
           column-sort-order="ad"
           class="shelving-table"
         >
+          <template
+            v-if="allowTableReorder"
+            #header-cell="props"
+          >
+            <q-th
+              :id="`thead_${props.col.name}`"
+              :props="props"
+              @click="setTableFocus($event)"
+              @keyup="changeTableOrder(props, $event.key)"
+              tabindex="-1"
+              class="set-focus"
+            >
+              <q-icon
+                name="arrow_left"
+                color="primary"
+                size="25px"
+                @click="changeTableOrder(props, 'ArrowLeft')"
+              />
+              {{ props.col.label }}
+              <q-icon
+                name="arrow_right"
+                color="primary"
+                size="25px"
+                @click="changeTableOrder(props, 'ArrowRight')"
+              />
+            </q-th>
+          </template>
           <template #body-cell="props">
             <q-td :props="props">
               <span
@@ -600,6 +628,32 @@ export default defineComponent({
         ]
         this.ownerOptions = options.filter(opt => opt.name.toLowerCase().indexOf(val.toLowerCase()) > -1)
       })
+    },
+    setTableFocus (e) {
+      e.target.focus()
+    },
+    changeTableOrder (tableItem, direction) {
+      const tableItemIndex = this.shelfItemsTableColumns.findIndex(item => item.label == tableItem.col.label)
+
+      if (direction == 'ArrowRight') {
+        this.shelfItemsTableColumns.splice(tableItemIndex, 1)
+        this.shelfItemsTableColumns.splice((tableItemIndex == this.shelfItemsTableVisibleColumns.length - 1 ? 0 : tableItemIndex + 1), 0, tableItem.col)
+
+        // set focus to the current items index in the dom to handle any other keyboard direction changes
+        const newTableItemIndex = this.shelfItemsTableColumns.findIndex(item => item.label == tableItem.col.label)
+        this.$nextTick(() => {
+          document.querySelector(`#thead_${this.shelfItemsTableColumns[newTableItemIndex].name}`).focus()
+        })
+      } else if (direction == 'ArrowLeft') {
+        this.shelfItemsTableColumns.splice(tableItemIndex, 1)
+        this.shelfItemsTableColumns.splice((tableItemIndex == 0 ? this.shelfItemsTableVisibleColumns.length - 1 : tableItemIndex - 1), 0, tableItem.col)
+
+        // set focus to the current items index in the dom to handle any other keyboard direction changes
+        const newTableItemIndex = this.shelfItemsTableColumns.findIndex(item => item.label == tableItem.col.label)
+        this.$nextTick(() => {
+          document.querySelector(`#thead_${this.shelfItemsTableColumns[newTableItemIndex].name}`).focus()
+        })
+      }
     }
   }
 })
@@ -642,6 +696,21 @@ export default defineComponent({
         border-color: $accent;
       }
     }
+  }
+}
+
+.set-focus {
+  &:hover {
+    cursor: pointer;
+  }
+
+  &:focus {
+    color: $accent;
+    background: rgba($accent, .1);
+  }
+
+  &:focus-visible {
+    outline: none;
   }
 }
 </style>
