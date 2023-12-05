@@ -76,155 +76,70 @@
 
     <q-space class="divider q-my-xs-lg q-my-sm-xl" />
 
-    <div class="row items-center q-mb-lg">
-      <div class="col-auto q-mr-auto">
-        <label class="text-h4 text-bold">
-          Shelf:
-        </label>
-      </div>
-
-      <div class="col-auto mobile-only">
-        <!-- mobile only button make sure to modify the desktop one if you change this one -->
-        <q-btn
-          no-caps
-          unelevated
-          icon="mdi-plus"
-          color="accent"
-          label="Add Shelf"
-          class="btn-no-wrap text-body1"
-          @click="showShelfModal = !showShelfModal"
-        />
-      </div>
-
-      <div class="col-xs-12 col-sm-8 col-md-7 col-lg-5 col-xl-4 q-mt-xs-lg q-mt-sm-none">
-        <div class="row no-wrap">
-          <q-btn
-            no-caps
-            flat
-            color="accent"
-            label="Export Report"
-            class="btn-no-wrap text-body1 q-mr-sm"
-          />
-
-          <q-select
-            ref="tableSortFilter"
-            outlined
-            multiple
-            :dense="currentScreenSize <= 600"
-            :display-value="'Filter'"
-            v-model="shelfItemsTableVisibleColumns"
-            :options="shelfItemsTableColumns"
-            emit-value
-            map-options
-            option-value="name"
-            option-label="label"
-            class="full-width"
-          >
-            <template #before-options>
-              <q-item>
-                <q-item-section>
-                  <q-item-label>Rearrange Columns</q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <q-toggle v-model="allowTableReorder" />
-                </q-item-section>
-              </q-item>
-
-              <q-space class="divider" />
-            </template>
-
-            <template #option="{ itemProps, opt, selected, toggleOption }">
-              <q-item v-bind="itemProps">
-                <q-item-section>
-                  <q-item-label>{{ opt.label }}</q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <q-checkbox
-                    :model-value="selected"
-                    @update:model-value="toggleOption(opt)"
-                  />
-                </q-item-section>
-              </q-item>
-            </template>
-          </q-select>
-
-          <q-btn
-            no-caps
-            unelevated
-            icon="mdi-plus"
-            color="accent"
-            label="Add Shelf"
-            class="btn-no-wrap text-body1 q-ml-sm mobile-hide"
-            @click="showShelfModal = !showShelfModal"
-          />
-        </div>
-      </div>
-    </div>
-
     <div class="row">
       <div class="col-grow">
-        <q-table
-          flat
-          :dense="currentScreenSize <= 600"
-          :rows="shelfData.items"
-          :columns="allowTableReorder ? shelfItemsTableColumns.map(item => ({...item, sortable: false})) : shelfItemsTableColumns"
-          :visible-columns="shelfItemsTableVisibleColumns"
-          row-key="name"
-          :wrap-cells="true"
-          :hide-pagination="true"
-          column-sort-order="ad"
-          class="shelving-table"
+        <EssentialTable
+          :table-columns="shelfItemsTableColumns"
+          :table-visible-columns="shelfItemsTableVisibleColumns"
+          :table-data="shelfData.items"
+          :table-filter-options="shelfItemsTableColumns"
+          :disable-table-reorder="currentScreenSize <= 600 ? true : false"
         >
-          <template
-            v-if="allowTableReorder"
-            #header-cell="props"
-          >
-            <q-th
-              :id="`thead_${props.col.name}`"
-              :props="props"
-              @click="setTableFocus($event)"
-              @keyup="changeTableOrder(props, $event.key)"
-              tabindex="-1"
-              class="set-focus"
+          <template #heading-row>
+            <div class="col-auto self-center q-mr-auto">
+              <label class="text-h4 text-bold">
+                Shelf:
+              </label>
+            </div>
+
+            <div
+              class="col-auto flex"
+              :class="currentScreenSize <= 600 ? 'order-1 q-mt-lg' : null"
             >
-              <q-icon
-                name="arrow_left"
-                color="primary"
-                size="25px"
-                @click="changeTableOrder(props, 'ArrowLeft')"
+              <q-btn
+                no-caps
+                flat
+                color="accent"
+                label="Export Report"
+                class="btn-no-wrap text-body1 q-mr-sm"
               />
-              {{ props.col.label }}
-              <q-icon
-                name="arrow_right"
-                color="primary"
-                size="25px"
-                @click="changeTableOrder(props, 'ArrowRight')"
+            </div>
+
+            <div
+              class="col-auto flex"
+              :class="currentScreenSize <= 600 ? 'order-2 q-ml-auto q-mt-lg' : 'order-1'"
+            >
+              <q-btn
+                no-caps
+                unelevated
+                icon="mdi-plus"
+                color="accent"
+                label="Add Shelf"
+                class="btn-no-wrap text-body1 q-ml-sm"
+                @click="showShelfModal = !showShelfModal"
               />
-            </q-th>
+            </div>
           </template>
-          <template #body-cell="props">
-            <q-td :props="props">
-              <span
-                v-if="props.col.name == 'vacancy'"
-                class="outline"
-                :class="props.value > 66 ? 'text-highlight' : props.value < 33 ? 'text-highlight-red' : 'text-highlight-yellow'"
-              >
-                {{ props.value }}%
-              </span>
-              <span
-                v-else-if="props.col.name == 'available_capacity'"
-                class="outline"
-                :class="props.value > 66 ? 'text-highlight' : props.value < 33 ? 'text-highlight-red' : 'text-highlight-yellow'"
-              >
-                {{ props.value }} Containers Left
-              </span>
-              <span v-else>
-                {{ props.value }}
-              </span>
-            </q-td>
+
+          <template #table-td="{ colName, value }">
+            <span
+              v-if="colName == 'vacancy'"
+              class="outline"
+              :class="value > 66 ? 'text-highlight' : value < 33 ? 'text-highlight-red' : 'text-highlight-yellow'"
+            >
+              {{ value }}%
+            </span>
+            <span
+              v-else-if="colName == 'available_capacity'"
+              class="outline"
+              :class="value > 66 ? 'text-highlight' : value < 33 ? 'text-highlight-red' : 'text-highlight-yellow'"
+            >
+              {{ value }} Containers Left
+            </span>
           </template>
-        </q-table>
+        </EssentialTable>
       </div>
+
     </div>
 
     <!-- Create Shelf Modal -->
@@ -370,9 +285,13 @@
 <script>
 import { defineComponent } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import EssentialTable from 'src/components/EssentialTable.vue'
 
 export default defineComponent({
   name: 'ShelvingPage',
+  components: {
+    EssentialTable
+  },
   data () {
     return {
       shelfData: {
@@ -533,7 +452,6 @@ export default defineComponent({
           sortable: true
         }
       ],
-      allowTableReorder: false,
       showShelfModal: false,
       newShelf: {
         owner: null,
@@ -568,7 +486,7 @@ export default defineComponent({
       currentScreenSize
     }
   },
-  mounted () {
+  beforeMount () {
     if (this.currentScreenSize <= 600) {
       this.shelfItemsTableVisibleColumns = [
         'shelf_width',
@@ -628,32 +546,6 @@ export default defineComponent({
         ]
         this.ownerOptions = options.filter(opt => opt.name.toLowerCase().indexOf(val.toLowerCase()) > -1)
       })
-    },
-    setTableFocus (e) {
-      e.target.focus()
-    },
-    changeTableOrder (tableItem, direction) {
-      const tableItemIndex = this.shelfItemsTableColumns.findIndex(item => item.label == tableItem.col.label)
-
-      if (direction == 'ArrowRight') {
-        this.shelfItemsTableColumns.splice(tableItemIndex, 1)
-        this.shelfItemsTableColumns.splice((tableItemIndex == this.shelfItemsTableVisibleColumns.length - 1 ? 0 : tableItemIndex + 1), 0, tableItem.col)
-
-        // set focus to the current items index in the dom to handle any other keyboard direction changes
-        const newTableItemIndex = this.shelfItemsTableColumns.findIndex(item => item.label == tableItem.col.label)
-        this.$nextTick(() => {
-          document.querySelector(`#thead_${this.shelfItemsTableColumns[newTableItemIndex].name}`).focus()
-        })
-      } else if (direction == 'ArrowLeft') {
-        this.shelfItemsTableColumns.splice(tableItemIndex, 1)
-        this.shelfItemsTableColumns.splice((tableItemIndex == 0 ? this.shelfItemsTableVisibleColumns.length - 1 : tableItemIndex - 1), 0, tableItem.col)
-
-        // set focus to the current items index in the dom to handle any other keyboard direction changes
-        const newTableItemIndex = this.shelfItemsTableColumns.findIndex(item => item.label == tableItem.col.label)
-        this.$nextTick(() => {
-          document.querySelector(`#thead_${this.shelfItemsTableColumns[newTableItemIndex].name}`).focus()
-        })
-      }
     }
   }
 })
@@ -673,14 +565,6 @@ export default defineComponent({
     }
   }
 
-  &-table {
-    :deep(tbody) {
-      & tr {
-        cursor: pointer;
-      }
-    }
-  }
-
   &-modal {
     width: 500px;
 
@@ -696,21 +580,6 @@ export default defineComponent({
         border-color: $accent;
       }
     }
-  }
-}
-
-.set-focus {
-  &:hover {
-    cursor: pointer;
-  }
-
-  &:focus {
-    color: $accent;
-    background: rgba($accent, .1);
-  }
-
-  &:focus-visible {
-    outline: none;
   }
 }
 </style>

@@ -99,51 +99,39 @@
 
     <q-space class="divider q-my-lg" />
 
-    <div class="row justify-between items-center q-mb-lg">
-      <div class="col-auto">
-        <h2 class="text-h4 text-bold">
-          Items
-        </h2>
-      </div>
-    </div>
-
     <div class="row">
       <div class="col-grow">
-        <q-table
-          flat
-          :dense="currentScreenSize <= 600"
-          :rows="nonTrayData.items"
-          :columns="nonTrayItemsTableColumns"
-          :visible-columns="nonTrayItemsTableVisibleColumns"
-          row-key="name"
-          :wrap-cells="true"
-          :hide-pagination="true"
-          column-sort-order="ad"
-          class="non-tray-table"
+        <EssentialTable
+          :table-columns="nonTrayItemsTableColumns"
+          :table-visible-columns="nonTrayItemsTableVisibleColumns"
+          :table-data="nonTrayData.items"
+          :disable-table-reorder="true"
+          :hide-table-filter="true"
+          @selected-table-row="$emit('selected-item', $event)"
         >
-          <template #body-cell="props">
-            <q-td
-              :props="props"
-              @click="$emit('selected-item', props.row)"
-            >
-              <span
-                v-if="props.col.name == 'media_type'"
-                class="text-highlight outline"
-              >
-                {{ props.value }}
-              </span>
-              <span
-                v-else-if="props.col.name == 'size'"
-                class="outline"
-              >
-                {{ props.value }}
-              </span>
-              <span v-else>
-                {{ props.value }}
-              </span>
-            </q-td>
+          <template #heading-row>
+            <div class="col-auto self-center q-mr-auto">
+              <h2 class="text-h4 text-bold">
+                Items
+              </h2>
+            </div>
           </template>
-        </q-table>
+
+          <template #table-td="{ colName, value }">
+            <span
+              v-if="colName == 'media_type'"
+              class="text-highlight outline"
+            >
+              {{ value }}
+            </span>
+            <span
+              v-else-if="colName == 'size'"
+              class="outline"
+            >
+              {{ value }}
+            </span>
+          </template>
+        </EssentialTable>
       </div>
     </div>
   </div>
@@ -152,6 +140,7 @@
 <script>
 import { defineComponent } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import EssentialTable from 'src/components/EssentialTable.vue'
 
 export default defineComponent({
   name: 'NonTrayDisplay',
@@ -162,6 +151,9 @@ export default defineComponent({
     }
   },
   emits: ['selected-item'],
+  components: {
+    EssentialTable
+  },
   setup () {
     const { currentScreenSize } = useCurrentScreenSize()
     return {

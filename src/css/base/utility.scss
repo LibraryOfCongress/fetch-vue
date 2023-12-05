@@ -41,3 +41,11 @@ $color-map: (
   border-radius: 3px;
   padding: 1px 5px;
 }
+
+// generates .order-1 through .order-10
+@for $i from 1 through 10 {
+  $order: $i;
+  .order-#{$i} { 
+    order: $order;
+  }
+}
