@@ -120,80 +120,39 @@
 
     <q-space class="divider q-my-lg" />
 
-    <div class="row justify-between items-center q-mb-lg">
-      <div class="col-auto">
-        <h2 class="text-h4 text-bold">
-          Items in Tray
-        </h2>
-      </div>
-
-      <div class="col-xs-4 col-sm-3 col-md-2">
-        <q-select
-          outlined
-          multiple
-          :dense="currentScreenSize <= 600"
-          :display-value="currentScreenSize > 600 ? 'Filter Columns' : 'Filter'"
-          v-model="trayItemsTableVisibleColumns"
-          :options="trayItemsTableColumns.filter(opt => opt.required == null)"
-          emit-value
-          map-options
-          option-value="name"
-          option-label="label"
-        >
-          <template #option="{ itemProps, opt, selected, toggleOption }">
-            <q-item v-bind="itemProps">
-              <q-item-section>
-                <q-item-label>{{ opt.label }}</q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-checkbox
-                  :model-value="selected"
-                  @update:model-value="toggleOption(opt)"
-                />
-              </q-item-section>
-            </q-item>
-          </template>
-        </q-select>
-      </div>
-    </div>
-
     <div class="row">
       <div class="col-grow">
-        <q-table
-          flat
-          :dense="currentScreenSize <= 600"
-          :rows="trayData.items"
-          :columns="trayItemsTableColumns"
-          :visible-columns="trayItemsTableVisibleColumns"
-          row-key="name"
-          :wrap-cells="true"
-          :hide-pagination="true"
-          column-sort-order="ad"
-          class="tray-table"
+        <EssentialTable
+          :table-columns="trayItemsTableColumns"
+          :table-visible-columns="trayItemsTableVisibleColumns"
+          :table-data="trayData.items"
+          :table-filter-options="trayItemsTableColumns"
+          :disable-table-reorder="true"
+          @selected-table-row="$emit('selected-item', $event)"
         >
-          <template #body-cell="props">
-            <q-td
-              :props="props"
-              @click="$emit('selected-item', props.row)"
-            >
-              <span
-                v-if="props.col.name == 'media_type'"
-                class="text-highlight outline"
-              >
-                {{ props.value }}
-              </span>
-              <span
-                v-else-if="props.col.name == 'size'"
-                class="outline"
-              >
-                {{ props.value }}
-              </span>
-              <span v-else>
-                {{ props.value }}
-              </span>
-            </q-td>
+          <template #heading-row>
+            <div class="col-auto self-center q-mr-auto">
+              <h2 class="text-h4 text-bold">
+                Items in Tray
+              </h2>
+            </div>
           </template>
-        </q-table>
+
+          <template #table-td="{ colName, value }">
+            <span
+              v-if="colName == 'media_type'"
+              class="text-highlight outline"
+            >
+              {{ value }}
+            </span>
+            <span
+              v-else-if="colName == 'size'"
+              class="outline"
+            >
+              {{ value }}
+            </span>
+          </template>
+        </EssentialTable>
       </div>
     </div>
   </div>
@@ -202,6 +161,7 @@
 <script>
 import { defineComponent } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import EssentialTable from 'src/components/EssentialTable.vue'
 
 export default defineComponent({
   name: 'TrayDisplay',
@@ -212,6 +172,9 @@ export default defineComponent({
     }
   },
   emits: ['selected-item'],
+  components: {
+    EssentialTable
+  },
   setup () {
     const { currentScreenSize } = useCurrentScreenSize()
     return {
@@ -333,7 +296,7 @@ export default defineComponent({
       }
     }
   },
-  mounted () {
+  beforeMount () {
     if (this.currentScreenSize <= 600) {
       this.trayItemsTableVisibleColumns = [
         'id',
@@ -367,14 +330,6 @@ export default defineComponent({
     align-items: flex-start;
     width: 100%;
     margin-bottom: 1rem;
-  }
-
-  &-table {
-    :deep(tbody) {
-      & tr {
-        cursor: pointer;
-      }
-    }
   }
 }
 </style>
