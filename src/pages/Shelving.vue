@@ -82,18 +82,17 @@
           :table-columns="shelfItemsTableColumns"
           :table-visible-columns="shelfItemsTableVisibleColumns"
           :table-data="shelfData.items"
-          :table-filter-options="shelfItemsTableColumns"
           :disable-table-reorder="currentScreenSize <= 600 ? true : false"
         >
           <template #heading-row>
-            <div class="col-auto self-center q-mr-auto">
+            <div class="col-sm-auto col-xs-5 self-center q-mr-auto">
               <label class="text-h4 text-bold">
                 Shelf:
               </label>
             </div>
 
             <div
-              class="col-auto flex"
+              class="col-sm-auto col-xs-6 flex"
               :class="currentScreenSize <= 600 ? 'order-1 q-mt-lg' : null"
             >
               <q-btn
@@ -393,63 +392,72 @@ export default defineComponent({
           field: 'shelf_width',
           label: 'Shelf Width',
           align: 'left',
-          sortable: true
+          sortable: true,
+          order: 0
         },
         {
           name: 'shelf_height',
           field: 'shelf_height',
           label: 'Shelf Height',
           align: 'left',
-          sortable: true
+          sortable: true,
+          order: 1
         },
         {
           name: 'shelf_depth',
           field: 'shelf_depth',
           label: 'Shelf Depth',
           align: 'left',
-          sortable: true
+          sortable: true,
+          order: 2
         },
         {
           name: 'vacancy',
           field: 'vacancy',
           label: 'Vacancy',
           align: 'left',
-          sortable: true
+          sortable: true,
+          order: 3
         },
         {
           name: 'max_capacity',
           field: 'max_capacity',
           label: 'Max Capacity',
           align: 'left',
-          sortable: true
+          sortable: true,
+          order: 4
         },
         {
           name: 'current_capacity',
           field: 'current_capacity',
           label: 'Current Capacity',
           align: 'left',
-          sortable: true
+          sortable: true,
+          order: 5
         },
         {
           name: 'available_capacity',
           field: 'available_capacity',
           label: 'Available Capacity',
           align: 'left',
-          sortable: true
+          sortable: true,
+          order: 6
         },
         {
           name: 'size_class',
           field: 'size_class',
           label: 'Size Class',
           align: 'left',
-          sortable: true
+          sortable: true,
+          order: 7
         },
         {
           name: 'id',
           field: 'id',
           label: 'Shelf Barcode',
           align: 'left',
-          sortable: true
+          sortable: true,
+          order: 8
         }
       ],
       showShelfModal: false,
