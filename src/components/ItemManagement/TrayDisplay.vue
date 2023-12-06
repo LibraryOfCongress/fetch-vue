@@ -126,7 +126,6 @@
           :table-columns="trayItemsTableColumns"
           :table-visible-columns="trayItemsTableVisibleColumns"
           :table-data="trayData.items"
-          :table-filter-options="trayItemsTableColumns"
           :disable-table-reorder="true"
           @selected-table-row="$emit('selected-item', $event)"
         >

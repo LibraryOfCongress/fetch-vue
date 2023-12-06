@@ -15,12 +15,14 @@
           :dense="currentScreenSize <= 600"
           :display-value="'Filter'"
           v-model="localTableVisibleColumns"
-          :options="tableFilterOptions.filter(opt => opt.required == null)"
+          :options="localTableColumns.filter(opt => opt.required == null)"
           emit-value
           map-options
           option-value="name"
           option-label="label"
           class="table-component-filter full-width"
+          :popup-content-class="$style['filter-menu']"
+          @popup-hide="allowTableReorder = false"
         >
           <template
             v-if="!disableTableReorder"
@@ -39,7 +41,24 @@
           </template>
 
           <template #option="{ itemProps, opt, selected, toggleOption }">
-            <q-item v-bind="itemProps">
+            <q-item
+              v-bind="itemProps"
+              :style="{'order': opt.order}"
+              :draggable="allowTableReorder"
+              @dragstart="startDrag($event)"
+              @dragend="endDrag($event)"
+              @dragover="reorderTableItemDOM($event)"
+            >
+              <q-item-section
+                v-if="allowTableReorder"
+                side
+              >
+                <q-icon
+                  name="drag_indicator"
+                  color="primary"
+                  size="25px"
+                />
+              </q-item-section>
               <q-item-section>
                 <q-item-label>{{ opt.label }}</q-item-label>
               </q-item-section>
@@ -70,33 +89,6 @@
           column-sort-order="ad"
           class="table-component-table"
         >
-          <template
-            v-if="allowTableReorder"
-            #header-cell="props"
-          >
-            <q-th
-              :id="`thead_${props.col.name}`"
-              :props="props"
-              @click="setTableFocus($event)"
-              @keyup="changeTableOrder(props, $event.key)"
-              tabindex="-1"
-              class="set-focus"
-            >
-              <q-icon
-                name="arrow_left"
-                color="primary"
-                size="25px"
-                @click="changeTableOrder(props, 'ArrowLeft')"
-              />
-              {{ props.col.label }}
-              <q-icon
-                name="arrow_right"
-                color="primary"
-                size="25px"
-                @click="changeTableOrder(props, 'ArrowRight')"
-              />
-            </q-th>
-          </template>
           <template #body-cell="props">
             <q-td
               :props="props"
@@ -121,7 +113,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 
 // Props
@@ -133,12 +125,6 @@ const mainProps = defineProps({
   disableTableReorder: {
     type: Boolean,
     default: false
-  },
-  tableFilterOptions: {
-    type: Array,
-    default () {
-      return []
-    }
   },
   tableVisibleColumns: {
     type: Array,
@@ -172,6 +158,7 @@ const { currentScreenSize } = useCurrentScreenSize()
 const localTableVisibleColumns = ref(mainProps.tableVisibleColumns)
 const localTableColumns = ref(mainProps.tableColumns)
 const allowTableReorder = ref(false)
+const draggedItemElement = ref(null)
 
 // Logic
 onMounted(() => {
@@ -181,29 +168,37 @@ onMounted(() => {
   }
 })
 
-const setTableFocus = (e) => {
-  e.target.focus()
+const startDrag = (e) => {
+  e.target.classList.add('dragging')
+  draggedItemElement.value= e.target
 }
+const endDrag = (e) => {
+  e.target.classList.remove('dragging')
+  draggedItemElement.value= null
 
-const changeTableOrder = async (tableItem, direction) => {
-  const tableItemIndex = localTableColumns.value.findIndex(item => item.label == tableItem.col.label)
+  // get all the child element order values that are in our select filter list
+  const filterMenuElements = [...document.querySelector('.q-menu .q-virtual-scroll__content').children].map(el => ({ order: el.style.order }))
 
-  if (direction == 'ArrowRight') {
-    localTableColumns.value.splice(tableItemIndex, 1)
-    localTableColumns.value.splice((tableItemIndex == localTableVisibleColumns.value.length - 1 ? 0 : tableItemIndex + 1), 0, tableItem.col)
+  // update the localTableColumn order values to match the filterMenuElements order
+  localTableColumns.value = localTableColumns.value.map((item, i) => {
+    return {
+      ...item,
+      order: filterMenuElements[i].order
+    }
+  })
 
-    // set focus to the current items index in the dom to handle any other keyboard direction changes
-    const newTableItemIndex = localTableColumns.value.findIndex(item => item.label == tableItem.col.label)
-    await nextTick()
-    document.querySelector(`#thead_${localTableColumns.value[newTableItemIndex].name}`).focus()
-  } else if (direction == 'ArrowLeft') {
-    localTableColumns.value.splice(tableItemIndex, 1)
-    localTableColumns.value.splice((tableItemIndex == 0 ? localTableVisibleColumns.value.length - 1 : tableItemIndex - 1), 0, tableItem.col)
+  // lastly sort the localTableColumn data which will re render the qtable to the new order
+  localTableColumns.value = localTableColumns.value.sort((a, b) => a.order - b.order)
+}
+const reorderTableItemDOM = (e) => {
+  e.preventDefault()
 
-    const newTableItemIndex = localTableColumns.value.findIndex(item => item.label == tableItem.col.label)
-    await nextTick()
-    document.querySelector(`#thead_${localTableColumns.value[newTableItemIndex].name}`).focus()
-  }
+  // swap the hovered child elements style order property with the draggedItemElements style order property
+  const hoveredItemElement = e.target.closest('.q-virtual-scroll__content .q-item')
+  const currentHoveredOrderValue = hoveredItemElement.style.order
+  const draggedItemOrderValue = draggedItemElement.value.style.order
+  hoveredItemElement.style.order = draggedItemOrderValue
+  draggedItemElement.value.style.order = currentHoveredOrderValue
 }
 </script>
 
@@ -216,6 +211,14 @@ const changeTableOrder = async (tableItem, direction) => {
 
     @media (max-width: $breakpoint-sm-min) {
       min-width: 100px;
+    }
+
+    &-menu {
+      background: blue;
+      :deep(div.q-virtual-scroll__content) {
+        display: flex;
+        flex-flow: column nowrap;
+      }
     }
   }
 
@@ -240,6 +243,19 @@ const changeTableOrder = async (tableItem, direction) => {
 
   &:focus-visible {
     outline: none;
+  }
+}
+
+.dragging {
+  opacity: .4;
+}
+</style>
+
+<style lang="scss" module>
+.filter-menu {
+  :global(div.q-virtual-scroll__content) {
+    display: flex;
+    flex-flow: column nowrap;
   }
 }
 </style>
