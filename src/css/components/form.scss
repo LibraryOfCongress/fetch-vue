@@ -16,11 +16,4 @@
       margin-bottom: 4px;
     }
   }
-
-  &-placeholder {
-    // used to create a placeholder effect on null q-select input values
-    .q-field__native > span {
-      opacity: .7;
-    }
-  }
 }

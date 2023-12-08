@@ -10,17 +10,11 @@
           >
             Aisle:
           </label>
-          <q-select
-            id="aisle"
-            outlined
-            :dense="currentScreenSize <= 600"
+          <SelectInput
             v-model="shelfData.aisle"
             :options="aisleOptions"
             option-value="id"
             option-label="name"
-            emit-value
-            map-options
-            class="full-width"
           />
         </div>
       </div>
@@ -34,17 +28,11 @@
           >
             Side:
           </label>
-          <q-select
-            id="side"
-            outlined
-            :dense="currentScreenSize <= 600"
+          <SelectInput
             v-model="shelfData.side"
             :options="sideOptions"
             option-value="id"
             option-label="name"
-            emit-value
-            map-options
-            class="full-width"
           />
         </div>
       </div>
@@ -58,17 +46,11 @@
           >
             Ladder:
           </label>
-          <q-select
-            id="ladder"
-            outlined
-            :dense="currentScreenSize <= 600"
+          <SelectInput
             v-model="shelfData.ladder"
             :options="ladderOptions"
             option-value="id"
             option-label="name"
-            emit-value
-            map-options
-            class="full-width"
           />
         </div>
       </div>
@@ -166,22 +148,12 @@
             <label class="form-group-label">
               Owner
             </label>
-            <q-select
-              :dense="currentScreenSize <= 600"
-              outlined
+            <SelectInput
               v-model="newShelf.owner"
               :options="ownerOptions"
               option-value="id"
               option-label="name"
-              emit-value
-              map-options
-              use-input
-              hide-selected
-              fill-input
-              input-debounce="0"
-              @filter="filterOwners"
-              class="full-width"
-              placeholder="Select Owner"
+              :placeholder="'Select Owner'"
             />
           </div>
 
@@ -241,17 +213,12 @@
             <label class="form-group-label">
               Allowed Container Type
             </label>
-            <q-select
-              :dense="currentScreenSize <= 600"
-              outlined
+            <SelectInput
               v-model="newShelf.container_type"
               :options="containerTypeOptions"
               option-value="id"
               option-label="name"
-              emit-value
-              map-options
-              class="full-width"
-              :class="newShelf.container_type == null ? 'form-placeholder' : null"
+              :placeholder="'Select Type'"
             />
           </div>
         </q-card-section>
@@ -285,11 +252,13 @@
 import { defineComponent } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from 'src/components/EssentialTable.vue'
+import SelectInput from 'src/components/SelectInput.vue'
 
 export default defineComponent({
   name: 'ShelvingPage',
   components: {
-    EssentialTable
+    EssentialTable,
+    SelectInput
   },
   data () {
     return {
@@ -479,13 +448,7 @@ export default defineComponent({
           name: 'George Washington'
         }
       ],
-      containerTypeOptions: [
-        {
-          id: null,
-          name: 'Select Type',
-          disable: true
-        }
-      ]
+      containerTypeOptions: []
     }
   },
   setup () {
@@ -542,17 +505,7 @@ export default defineComponent({
     },
     filterOwners (val, update) {
       update(() => {
-        const options = [
-          {
-            id: 1,
-            name: 'John Doe'
-          },
-          {
-            id: 2,
-            name: 'George Washington'
-          }
-        ]
-        this.ownerOptions = options.filter(opt => opt.name.toLowerCase().indexOf(val.toLowerCase()) > -1)
+        this.ownerOptions = this.ownerOptions.filter(opt => opt.name.toLowerCase().indexOf(val.toLowerCase()) > -1)
       })
     }
   }
