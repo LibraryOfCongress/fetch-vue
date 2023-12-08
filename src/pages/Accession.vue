@@ -84,17 +84,12 @@
               <label class="form-group-label">
                 Owner (Required)
               </label>
-              <q-select
-                :dense="currentScreenSize <= 600"
-                outlined
+              <SelectInput
                 v-model="accessionJob.owner"
                 :options="ownerOptions"
                 option-value="id"
                 option-label="name"
-                emit-value
-                map-options
-                class="full-width"
-                :class="accessionJob.owner == null ? 'form-placeholder' : null"
+                :placeholder="'Select Owner'"
               />
             </div>
 
@@ -102,17 +97,12 @@
               <label class="form-group-label">
                 Container Size (Required)
               </label>
-              <q-select
-                :dense="currentScreenSize <= 600"
-                outlined
+              <SelectInput
                 v-model="accessionJob.container_size"
                 :options="containerOptions"
                 option-value="id"
                 option-label="name"
-                emit-value
-                map-options
-                class="full-width"
-                :class="accessionJob.container_size == null ? 'form-placeholder' : null"
+                :placeholder="'Select Size'"
               />
             </div>
 
@@ -120,17 +110,12 @@
               <label class="form-group-label">
                 Media Type (Optional)
               </label>
-              <q-select
-                :dense="currentScreenSize <= 600"
-                outlined
+              <SelectInput
                 v-model="accessionJob.media_type"
                 :options="mediaOptions"
                 option-value="id"
                 option-label="name"
-                emit-value
-                map-options
-                class="full-width"
-                :class="accessionJob.media_type == null ? 'form-placeholder' : null"
+                :placeholder="'Select Media Type'"
               />
             </div>
           </q-card-section>
@@ -165,9 +150,13 @@
 <script>
 import { defineComponent } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import SelectInput from 'src/components/SelectInput.vue'
 
 export default defineComponent({
   name: 'AccessionPage',
+  components: {
+    SelectInput
+  },
   data () {
     return {
       showAccessionModal: false,
@@ -179,11 +168,6 @@ export default defineComponent({
       },
       ownerOptions: [
         {
-          id: null,
-          name: 'Select Owner',
-          disable: true
-        },
-        {
           id: 1,
           name: 'John Doe'
         },
@@ -193,11 +177,6 @@ export default defineComponent({
         }
       ],
       containerOptions: [
-        {
-          id: null,
-          name: 'Select Size',
-          disable: true
-        },
         {
           id: 1,
           name: 'A High'
@@ -216,11 +195,6 @@ export default defineComponent({
         }
       ],
       mediaOptions: [
-        {
-          id: null,
-          name: 'Select Media Type',
-          disable: true
-        },
         {
           id: 1,
           name: 'Document'
