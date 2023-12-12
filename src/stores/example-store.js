@@ -1,15 +1,15 @@
 import { defineStore } from 'pinia'
 
-export const useCounterStore = defineStore('counter', {
+export const useTemplateStore = defineStore('store-name', {
   state: () => ({
-    counter: 0
+    stateProp: 0
   }),
   getters: {
-    doubleCount: (state) => state.counter * 2
+    stateValue: (state) => state.stateProp
   },
   actions: {
-    async increment () {
-      this.counter++
+    async incrementStateProp () {
+      this.stateProp++
     }
   }
 })

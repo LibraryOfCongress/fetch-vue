@@ -1,5 +1,5 @@
 <template>
-  <q-page padding>
+  <div class="accession-container">
     <div class="row">
       <div class="col">
         <h1 class="text-h4 text-bold q-mb-lg">
@@ -9,7 +9,7 @@
     </div>
 
     <div class="row">
-      <div class="col-xs-6 col-sm-3 col-md-2 q-pa-xs-xs q-pa-lg-sm q-pa-xl-md">
+      <div class="col-auto q-pa-xs-xs q-pa-lg-sm q-pa-xl-md">
         <q-btn
           class="accession-btn text-h4"
           flat
@@ -21,6 +21,7 @@
       </div>
     </div>
 
+    <!-- start accession process modal -->
     <q-dialog
       :persistent="true"
       v-model="showAccessionModal"
@@ -128,7 +129,7 @@
               label="Submit"
               class="text-body1 full-width"
               :disable="!canSubmitAccessionJob"
-              @click="reset"
+              @click="submitAccessionJob"
             />
 
             <q-space class="q-mx-xs" />
@@ -144,99 +145,96 @@
         </template>
       </q-card>
     </q-dialog>
-  </q-page>
+  </div>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
-import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
-import SelectInput from 'src/components/SelectInput.vue'
+<script setup>
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useAccessionStore } from 'src/stores/accession-store'
+import SelectInput from '@/components/SelectInput.vue'
 
-export default defineComponent({
-  name: 'AccessionPage',
-  components: {
-    SelectInput
+const router = useRouter()
+const store = useAccessionStore()
+
+// Store Data
+const { accessionJob } = storeToRefs(store)
+
+// Local Data
+const showAccessionModal = ref(false)
+const ownerOptions = ref([
+  {
+    id: 1,
+    name: 'John Doe'
   },
-  data () {
-    return {
-      showAccessionModal: false,
-      accessionJob: {
-        type: null,
-        owner: null,
-        container_size: null,
-        media_type: null
-      },
-      ownerOptions: [
-        {
-          id: 1,
-          name: 'John Doe'
-        },
-        {
-          id: 2,
-          name: 'George Washington'
-        }
-      ],
-      containerOptions: [
-        {
-          id: 1,
-          name: 'A High'
-        },
-        {
-          id: 2,
-          name: 'A Low'
-        },
-        {
-          id: 3,
-          name: 'B High'
-        },
-        {
-          id: 4,
-          name: 'B Low'
-        }
-      ],
-      mediaOptions: [
-        {
-          id: 1,
-          name: 'Document'
-        },
-        {
-          id: 2,
-          name: 'Music'
-        },
-        {
-          id: 3,
-          name: 'Video'
-        }
-      ]
-    }
+  {
+    id: 2,
+    name: 'George Washington'
+  }
+])
+const containerOptions = ref([
+  {
+    id: 1,
+    name: 'A High'
   },
-  setup () {
-    const { currentScreenSize } = useCurrentScreenSize()
-    return {
-      currentScreenSize
-    }
+  {
+    id: 2,
+    name: 'A Low'
   },
-  computed: {
-    canSubmitAccessionJob () {
-      if (this.accessionJob.owner !== null && this.accessionJob.container_size !== null) {
-        return true
-      } else {
-        return false
-      }
-    }
+  {
+    id: 3,
+    name: 'B High'
   },
-  methods: {
-    reset () {
-      this.accessionJob = {
-        type: null,
-        owner: null,
-        container_size: null,
-        media_type: null
-      },
-      this.showAccessionModal = false
-    }
+  {
+    id: 4,
+    name: 'B Low'
+  }
+])
+const mediaOptions = ref([
+  {
+    id: 1,
+    name: 'Document'
+  },
+  {
+    id: 2,
+    name: 'Music'
+  },
+  {
+    id: 3,
+    name: 'Video'
+  }
+])
+const canSubmitAccessionJob = computed(() => {
+  if (accessionJob.value.owner !== null && accessionJob.value.container_size !== null) {
+    return true
+  } else {
+    return false
   }
 })
+
+// Logic
+const reset = () => {
+  store.resetAccessionStore()
+  showAccessionModal.value = false
+}
+const submitAccessionJob = async () => {
+  // TODO: send the accessionJob data to api to start the proccess and get an associated job id
+  try {
+    await store.postAccessionJob()
+
+    router.push({
+      name: 'accession',
+      params: {
+        id: accessionJob.value.id
+      }
+    })
+  } catch (error) {
+    console.log(error)
+  } finally {
+    showAccessionModal.value = false
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -244,6 +242,7 @@ export default defineComponent({
   &-btn {
     position: relative;
     display: flex;
+    min-width: 225px;
     width: 100%;
     aspect-ratio: 1 / 1;
     padding: 0;
@@ -251,6 +250,10 @@ export default defineComponent({
     border-width: 2px;
     border-radius: 4px;
     transition: 0.3s ease;
+
+    @media (max-width: $breakpoint-sm-min) {
+      min-width: 164px;
+    }
 
     &:hover:not(:disabled) {
       color: $accent;

@@ -21,52 +21,44 @@
   </q-page>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
+<script setup>
+import { ref, onMounted, watch } from 'vue'
+import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 // import inventoryServiceApi from '@/http/InventoryService.js';
 
-export default defineComponent({
-  name: 'IndexPage',
-  data () {
-    return {
-      testData: [],
-      scannedBarCode: [],
-      storageUsed: 0,
-      storageAvailable: 0
-    }
-  },
-  mounted () {
-    console.log('vue app environment loaded', process.env.VITE_ENV)
-    document.addEventListener('keypress', this.keypressHandler)
-    navigator.storage.estimate().then((estimate) => {
-      this.storageUsed = (estimate.usage / 1024 / 1024).toFixed(2)
-      this.storageAvailable = (estimate.quota / 1024 / 1024).toFixed(2)
-    })
-  },
-  methods: {
-    // async testApiCall() {
-    //   try {
-    //     const res = await this.$api.get(
-    //       inventoryServiceApi.examplesNumbers + 12
-    //     );
-    //     this.testData = [res.data];
-    //   } catch (err) {
-    //     console.log(err);
-    //   }
-    // },
-    keypressHandler (event) {
-      if (event.key == '!') {
-        // if the appended key ! is passed we know the barcode key events are completed
-        // so will add the scannedBarCode to the test data
-        const barcode = this.scannedBarCode.join('')
-        this.testData.push(barcode)
-        this.scannedBarCode = []
-      } else {
-        this.scannedBarCode.push(event.key)
-      }
-    }
+// Composables
+const { compiledBarCode } = useBarcodeScanHandler()
+
+// Local Data
+const testData = ref([])
+const storageUsed = ref(0)
+const storageAvailable = ref(0)
+
+// Logic
+onMounted(() => {
+  console.log('vue app environment loaded', process.env.VITE_ENV)
+  navigator.storage.estimate().then((estimate) => {
+    storageUsed.value = (estimate.usage / 1024 / 1024).toFixed(2)
+    storageAvailable.value = (estimate.quota / 1024 / 1024).toFixed(2)
+  })
+})
+
+watch(compiledBarCode, (newValue) => {
+  if (newValue !== '') {
+    testData.value.push(newValue)
   }
 })
+
+// const testApiCall = async () => {
+//   try {
+//     const res = await this.$api.get(
+//       inventoryServiceApi.examplesNumbers + 12
+//     )
+//     testData.value = [res.data]
+//   } catch (err) {
+//     console.log(err)
+//   }
+// }
 </script>
 
 <style lang="scss" scoped>
