@@ -127,6 +127,7 @@
           :table-visible-columns="trayItemsTableVisibleColumns"
           :table-data="trayData.items"
           :disable-table-reorder="true"
+          :heading-row-class="'q-mb-lg'"
           @selected-table-row="$emit('selected-item', $event)"
         >
           <template #heading-row>

@@ -65,6 +65,7 @@
           :table-visible-columns="shelfItemsTableVisibleColumns"
           :table-data="shelfData.items"
           :disable-table-reorder="currentScreenSize <= 600 ? true : false"
+          :heading-row-class="'q-mb-lg'"
         >
           <template #heading-row>
             <div class="col-sm-auto col-xs-5 self-center q-mr-auto">
@@ -93,7 +94,7 @@
               <q-btn
                 no-caps
                 unelevated
-                icon="mdi-plus"
+                icon="add"
                 color="accent"
                 label="Add Shelf"
                 class="btn-no-wrap text-body1 q-ml-sm"

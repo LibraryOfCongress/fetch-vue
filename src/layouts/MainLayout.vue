@@ -22,18 +22,21 @@
           flat
           color="white"
           label="Yes"
+          class="text-body1"
           @click="installApp"
         />
         <q-btn
           flat
           color="white"
           label="Later"
+          class="text-body1"
           @click="showAppInstallBanner = !showAppInstallBanner"
         />
         <q-btn
           flat
           color="white"
           label="Never"
+          class="text-body1"
           @click="neverShowAppInstallBanner"
         />
       </template>

@@ -13,8 +13,8 @@
         <q-btn
           class="accession-btn text-h4"
           flat
-          icon="mdi-plus"
-          @click="showAccessionModal = !showAccessionModal"
+          icon="add"
+          @click="startAccessionProcess"
         >
           <span>Start Accession</span>
         </q-btn>
@@ -217,6 +217,10 @@ const canSubmitAccessionJob = computed(() => {
 const reset = () => {
   store.resetAccessionStore()
   showAccessionModal.value = false
+}
+const startAccessionProcess = () => {
+  store.resetAccessionStore()
+  showAccessionModal.value = !showAccessionModal.value
 }
 const submitAccessionJob = async () => {
   // TODO: send the accessionJob data to api to start the proccess and get an associated job id

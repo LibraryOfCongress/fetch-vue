@@ -107,6 +107,7 @@
           :table-data="nonTrayData.items"
           :disable-table-reorder="true"
           :hide-table-filter="true"
+          :heading-row-class="'q-mb-lg'"
           @selected-table-row="$emit('selected-item', $event)"
         >
           <template #heading-row>

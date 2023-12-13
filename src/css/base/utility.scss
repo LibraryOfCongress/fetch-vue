@@ -42,6 +42,14 @@ $color-map: (
   padding: 1px 5px;
 }
 
+.flex-grow {
+  flex-grow: 1 !important;
+}
+
+.flex-shrink {
+  flex-shrink: 1 !important;
+}
+
 // generates .order-1 through .order-10
 @for $i from 1 through 10 {
   $order: $i;

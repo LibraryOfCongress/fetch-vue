@@ -47,6 +47,7 @@
             flat
             color="black"
             label="Dismiss"
+            class="text-body1"
             @click="showOfflineBanner = !showOfflineBanner"
           />
         </template>

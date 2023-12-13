@@ -11,9 +11,8 @@
         />
       </div>
     </div>
+    <q-space class="divider" />
   </div>
-
-  <q-space class="divider" />
 </template>
 
 <script setup>

@@ -1,7 +1,7 @@
 <template>
   <q-page
     :padding="!$route.params.id"
-    class="accession"
+    class="accession column no-wrap"
   >
     <BreadCrumb v-if="$route.params.id" />
 

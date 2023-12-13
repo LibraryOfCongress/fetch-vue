@@ -1,7 +1,10 @@
 <template>
   <div class="table-component">
     <!-- header section -->
-    <div class="row q-mb-lg">
+    <div
+      class="row"
+      :class="headingRowClass !== '' ? headingRowClass : ''"
+    >
       <slot name="heading-row" />
 
       <div
@@ -81,7 +84,7 @@
           flat
           :dense="currentScreenSize <= 600"
           :rows="tableData"
-          :columns="allowTableReorder ? localTableColumns.map(item => ({...item, sortable: false})) : localTableColumns.map(item => ({...item, sortable: true}))"
+          :columns="allowTableReorder ? localTableColumns.map(item => ({...item, sortable: false})) : localTableColumns.map(item => ({...item, sortable: item.sortable}))"
           :visible-columns="localTableVisibleColumns"
           row-key="name"
           :wrap-cells="true"
@@ -145,6 +148,10 @@ const mainProps = defineProps({
       return []
     },
     required: true
+  },
+  headingRowClass: {
+    type: String,
+    default: ''
   }
 })
 

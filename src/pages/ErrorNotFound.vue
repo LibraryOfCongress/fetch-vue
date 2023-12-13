@@ -13,7 +13,7 @@
       </div>
 
       <q-btn
-        class="q-mt-xl"
+        class="text-body1 q-mt-xl"
         color="white"
         text-color="blue"
         unelevated

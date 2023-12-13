@@ -29,6 +29,15 @@ export const useAccessionStore = defineStore('accession', {
         container_size: null,
         media_type: null
       }
+      this.accessionTray = {
+        id: null,
+        title: '',
+        owner: '',
+        container_type: '',
+        container_size: '',
+        media_type: '',
+        items: []
+      }
     },
     async postAccessionJob () {
       try {
