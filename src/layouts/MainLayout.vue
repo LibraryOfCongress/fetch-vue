@@ -14,7 +14,7 @@
       v-if="showAppInstallBanner"
       class="install-banner bg-primary text-white"
       rounded
-      :inline-actions="currentScreenSize <= 600 ? false : true"
+      :inline-actions="currentScreenSize == 'xs' ? false : true"
     >
       Would you like to install the FETCH app?
       <template #action>

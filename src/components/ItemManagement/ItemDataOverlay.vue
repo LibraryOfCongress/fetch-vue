@@ -7,7 +7,7 @@
   >
     <q-card class="item-content">
       <q-card-section
-        v-if="currentScreenSize > 600"
+        v-if="currentScreenSize !== 'xs'"
         class="row items-center justify-end q-pb-none"
       >
         <q-btn
@@ -212,7 +212,7 @@
       </q-card-section>
 
       <q-card-section
-        v-if="currentScreenSize <= 600"
+        v-if="currentScreenSize == 'xs'"
         class="row items-center q-pt-sm"
       >
         <q-btn

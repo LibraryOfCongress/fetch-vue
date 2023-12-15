@@ -15,7 +15,7 @@
           ref="tableSortFilter"
           outlined
           multiple
-          :dense="currentScreenSize <= 600"
+          :dense="currentScreenSize == 'xs'"
           :display-value="'Filter'"
           v-model="localTableVisibleColumns"
           :options="localTableColumns.filter(opt => opt.required == null)"
@@ -82,7 +82,7 @@
       <div class="col-grow">
         <q-table
           flat
-          :dense="currentScreenSize <= 600"
+          :dense="currentScreenSize == 'xs'"
           :rows="tableData"
           :columns="allowTableReorder ? localTableColumns.map(item => ({...item, sortable: false})) : localTableColumns.map(item => ({...item, sortable: item.sortable}))"
           :visible-columns="localTableVisibleColumns"

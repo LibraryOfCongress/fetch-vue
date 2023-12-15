@@ -1,6 +1,6 @@
 <template>
   <q-select
-    :dense="currentScreenSize <= 600"
+    :dense="currentScreenSize == 'xs'"
     outlined
     :model-value="modelValue"
     @update:model-value="updateModelValue"

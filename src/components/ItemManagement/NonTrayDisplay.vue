@@ -55,7 +55,7 @@
         </div>
       </div>
       <div
-        v-if="currentScreenSize > 1024"
+        v-if="currentScreenSize !== 'xs' && currentScreenSize !== 'sm'"
         class="col-sm-3 col-md-3"
       >
         <div class="column no-wrap">
@@ -199,7 +199,7 @@ export default defineComponent({
           label: 'Shelf Position',
           align: 'left',
           sortable: true,
-          required: this.currentScreenSize > 600 ? true : false
+          required: this.currentScreenSize !== 'xs' ? true : false
         },
         {
           name: 'accession_date',
@@ -207,7 +207,7 @@ export default defineComponent({
           label: 'Accession Date',
           align: 'left',
           sortable: true,
-          required: this.currentScreenSize > 600 ? true : false
+          required: this.currentScreenSize !== 'xs' ? true : false
         },
         {
           name: 'subcollection',
@@ -215,7 +215,7 @@ export default defineComponent({
           label: 'Subcollection',
           align: 'left',
           sortable: true,
-          required: this.currentScreenSize > 600 ? true : false
+          required: this.currentScreenSize !== 'xs' ? true : false
         },
         {
           name: 'container_type',

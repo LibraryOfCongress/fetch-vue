@@ -195,7 +195,7 @@
             color="accent"
             label="Pause Job"
             class="btn-no-wrap text-body1"
-            :class="currentScreenSize <= 600 ? 'full-width q-mb-md' : ''"
+            :class="currentScreenSize == 'xs' ? 'full-width q-mb-md' : ''"
             @click="updateAccessionJobStatus('Paused')"
           />
           <q-btn
@@ -207,7 +207,7 @@
             color="accent"
             label="Resume Job"
             class="btn-no-wrap text-body1"
-            :class="currentScreenSize <= 600 ? 'full-width q-mb-md' : ''"
+            :class="currentScreenSize == 'xs' ? 'full-width q-mb-md' : ''"
             @click="updateAccessionJobStatus('Running')"
           />
           <q-btn
@@ -217,7 +217,7 @@
             color="positive"
             label="Complete Job"
             class="btn-no-wrap text-body1 q-ml-sm"
-            :class="currentScreenSize <= 600 ? 'full-width' : ''"
+            :class="currentScreenSize == 'xs' ? 'full-width' : ''"
             :outline="!accessionStore.allTrayItemsVerified || accessionJob.status == 'Paused'"
             :disabled="!accessionStore.allTrayItemsVerified || accessionJob.status == 'Paused'"
           />

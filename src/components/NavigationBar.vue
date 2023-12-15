@@ -94,7 +94,7 @@
 
     <!-- bottom nav (mobile only) -->
     <q-footer
-      v-if="currentScreenSize <= 600"
+      v-if="currentScreenSize == 'xs'"
       elevated
       class="text-white"
     >
