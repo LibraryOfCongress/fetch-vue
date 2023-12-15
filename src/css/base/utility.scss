@@ -42,6 +42,64 @@ $color-map: (
   padding: 1px 5px;
 }
 
+.flex-grow {
+  flex-grow: 1 !important;
+}
+.flex-xs-grow {
+  @media (min-width: 0) {
+    flex-grow: 1 !important;
+  }
+}
+.flex-sm-grow {
+  @media (min-width: $breakpoint-sm-min) {
+    flex-grow: 1 !important;
+  }
+}
+.flex-md-grow {
+  @media (min-width: $breakpoint-md-min) {
+    flex-grow: 1 !important;
+  }
+}
+.flex-lg-grow {
+  @media (min-width: $breakpoint-lg-min) {
+    flex-grow: 1 !important;
+  }
+}
+.flex-xl-grow {
+  @media (min-width: $breakpoint-xl-min) {
+    flex-grow: 1 !important;
+  }
+}
+
+.flex-shrink {
+  flex-shrink: 1 !important;
+}
+.flex-xs-shrink {
+  @media (min-width: 0) {
+    flex-shrink: 1 !important;
+  }
+}
+.flex-sm-shrink {
+  @media (min-width: $breakpoint-sm-min) {
+    flex-shrink: 1 !important;
+  }
+}
+.flex-md-shrink {
+  @media (min-width: $breakpoint-md-min) {
+    flex-shrink: 1 !important;
+  }
+}
+.flex-lg-shrink {
+  @media (min-width: $breakpoint-lg-min) {
+    flex-shrink: 1 !important;
+  }
+}
+.flex-xl-shrink {
+  @media (min-width: $breakpoint-xl-min) {
+    flex-grow: 1 !important;
+  }
+}
+
 // generates .order-1 through .order-10
 @for $i from 1 through 10 {
   $order: $i;

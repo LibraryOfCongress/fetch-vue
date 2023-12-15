@@ -64,7 +64,8 @@
           :table-columns="shelfItemsTableColumns"
           :table-visible-columns="shelfItemsTableVisibleColumns"
           :table-data="shelfData.items"
-          :disable-table-reorder="currentScreenSize <= 600 ? true : false"
+          :disable-table-reorder="currentScreenSize == 'xs' ? true : false"
+          :heading-row-class="'q-mb-lg'"
         >
           <template #heading-row>
             <div class="col-sm-auto col-xs-5 self-center q-mr-auto">
@@ -75,7 +76,7 @@
 
             <div
               class="col-sm-auto col-xs-6 flex"
-              :class="currentScreenSize <= 600 ? 'order-1 q-mt-lg' : null"
+              :class="currentScreenSize == 'xs' ? 'order-1 q-mt-lg' : null"
             >
               <q-btn
                 no-caps
@@ -88,12 +89,12 @@
 
             <div
               class="col-auto flex"
-              :class="currentScreenSize <= 600 ? 'order-2 q-ml-auto q-mt-lg' : 'order-1'"
+              :class="currentScreenSize == 'xs' ? 'order-2 q-ml-auto q-mt-lg' : 'order-1'"
             >
               <q-btn
                 no-caps
                 unelevated
-                icon="mdi-plus"
+                icon="add"
                 color="accent"
                 label="Add Shelf"
                 class="btn-no-wrap text-body1 q-ml-sm"
@@ -164,7 +165,7 @@
             <q-input
               outlined
               placeholder="Enter Shelf Number"
-              :dense="currentScreenSize <= 600"
+              :dense="currentScreenSize == 'xs'"
               v-model="newShelf.shelf_number"
               class="full-width"
             />
@@ -177,7 +178,7 @@
             <q-input
               outlined
               placeholder="Enter Shelf Width"
-              :dense="currentScreenSize <= 600"
+              :dense="currentScreenSize == 'xs'"
               v-model="newShelf.shelf_width"
               class="full-width"
             />
@@ -190,7 +191,7 @@
             <q-input
               outlined
               placeholder="Enter Shelf Height"
-              :dense="currentScreenSize <= 600"
+              :dense="currentScreenSize == 'xs'"
               v-model="newShelf.shelf_height"
               class="full-width"
             />
@@ -203,7 +204,7 @@
             <q-input
               outlined
               placeholder="Enter Shelf Depth"
-              :dense="currentScreenSize <= 600"
+              :dense="currentScreenSize == 'xs'"
               v-model="newShelf.shelf_depthr"
               class="full-width"
             />
@@ -458,7 +459,7 @@ export default defineComponent({
     }
   },
   beforeMount () {
-    if (this.currentScreenSize <= 600) {
+    if (this.currentScreenSize == 'xs') {
       this.shelfItemsTableVisibleColumns = [
         'shelf_width',
         'shelf_height',
@@ -468,8 +469,8 @@ export default defineComponent({
     }
   },
   watch: {
-    currentScreenSize (res) {
-      if (res <= 600) {
+    currentScreenSize (value) {
+      if (value == 'xs') {
         this.shelfItemsTableVisibleColumns = [
           'shelf_width',
           'shelf_height',

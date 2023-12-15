@@ -1,7 +1,10 @@
 <template>
   <div class="table-component">
     <!-- header section -->
-    <div class="row q-mb-lg">
+    <div
+      class="row"
+      :class="headingRowClass !== '' ? headingRowClass : ''"
+    >
       <slot name="heading-row" />
 
       <div
@@ -12,7 +15,7 @@
           ref="tableSortFilter"
           outlined
           multiple
-          :dense="currentScreenSize <= 600"
+          :dense="currentScreenSize == 'xs'"
           :display-value="'Filter'"
           v-model="localTableVisibleColumns"
           :options="localTableColumns.filter(opt => opt.required == null)"
@@ -79,14 +82,17 @@
       <div class="col-grow">
         <q-table
           flat
-          :dense="currentScreenSize <= 600"
+          :dense="currentScreenSize == 'xs'"
           :rows="tableData"
-          :columns="allowTableReorder ? localTableColumns.map(item => ({...item, sortable: false})) : localTableColumns.map(item => ({...item, sortable: true}))"
+          :columns="allowTableReorder ? localTableColumns.map(item => ({...item, sortable: false})) : localTableColumns.map(item => ({...item, sortable: item.sortable}))"
           :visible-columns="localTableVisibleColumns"
-          row-key="name"
+          :row-key="rowKey"
           :wrap-cells="true"
           :hide-pagination="true"
+          :hide-selected-banner="true"
           column-sort-order="ad"
+          :selection="enableSelection ? 'multiple' : 'none'"
+          v-model:selected="selectedTableData"
           class="table-component-table"
         >
           <template #body-cell="props">
@@ -113,11 +119,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 
 // Props
 const mainProps = defineProps({
+  enableSelection: {
+    type: Boolean,
+    default: false
+  },
   hideTableFilter: {
     type: Boolean,
     default: false
@@ -145,11 +155,22 @@ const mainProps = defineProps({
       return []
     },
     required: true
+  },
+  headingRowClass: {
+    type: String,
+    default: ''
+  },
+  rowKey: {
+    type: String,
+    default: 'id' // if tableData doesnt include an 'id' param we need to specifiy this
   }
 })
 
 // Emits
-const emit = defineEmits(['selected-table-row'])
+const emit = defineEmits([
+  'selected-table-row',
+  'selected-data'
+])
 
 // Compasables
 const { currentScreenSize } = useCurrentScreenSize()
@@ -159,6 +180,7 @@ const localTableVisibleColumns = ref(mainProps.tableVisibleColumns)
 const localTableColumns = ref(mainProps.tableColumns)
 const allowTableReorder = ref(false)
 const draggedItemElement = ref(null)
+const selectedTableData = ref([])
 
 // Logic
 onMounted(() => {
@@ -166,6 +188,10 @@ onMounted(() => {
   if (mainProps.tableVisibleColumns.length == 0) {
     localTableVisibleColumns.value = mainProps.tableColumns.map(col => col.name)
   }
+})
+
+watch(selectedTableData, () => {
+  emit('selected-data', selectedTableData.value)
 })
 
 const startDrag = (e) => {

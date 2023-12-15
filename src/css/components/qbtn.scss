@@ -1,6 +1,6 @@
 // custom default styling for q-btn component
 .q-btn {
-  &.disabled {
+  &.disabled, &:disabled {
     opacity: 0.3 !important;
   }
 

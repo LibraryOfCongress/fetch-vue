@@ -47,6 +47,7 @@
             flat
             color="black"
             label="Dismiss"
+            class="text-body1"
             @click="showOfflineBanner = !showOfflineBanner"
           />
         </template>
@@ -93,7 +94,7 @@
 
     <!-- bottom nav (mobile only) -->
     <q-footer
-      v-if="currentScreenSize <= 600"
+      v-if="currentScreenSize == 'xs'"
       elevated
       class="text-white"
     >

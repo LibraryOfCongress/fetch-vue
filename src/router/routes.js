@@ -6,20 +6,39 @@ const routes = [
     // We build our routes based on the containing layout component so all pages that will live under MainLayout need to be child paths
     children: [
       {
+        name: 'home',
         path: '',
         component: () => import('@/pages/IndexPage.vue')
       },
       {
-        path: 'accession',
-        component: () => import('@/pages/Accession.vue')
+        name: 'accession',
+        path: 'accession/:jobId?', // child path reads as "parent path + / + child_path" ex: /accession
+        component: () => import('@/pages/AccessionPage.vue')
       },
       {
-        path: 'item-management/:type?', // child path reads as "parent path + / + child_path" ex: /item-managment
-        component: () => import('@/pages/ItemManagement.vue')
+        name: 'accession-tray',
+        path: 'accession/:jobId?/scan-items/:trayId?',
+        component: () => import('@/pages/AccessionPage.vue'),
+        beforeEnter ({ params }) {
+          if (!params.trayId) {
+            return {
+              name: 'accession',
+              params: {
+                jobId: params.jobId
+              }
+            }
+          }
+        }
       },
       {
+        name: 'itme-management',
+        path: 'item-management/:type?',
+        component: () => import('@/pages/ItemManagementPage.vue')
+      },
+      {
+        name: 'shelving',
         path: 'shelving',
-        component: () => import('@/pages/Shelving.vue')
+        component: () => import('@/pages/ShelvingPage.vue')
       }
     ]
   },
