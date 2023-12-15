@@ -56,13 +56,6 @@ export const useOptionStore = defineStore('options', {
         // const res = await this.$api.get(
         //   inventoryServiceApi.examplesNumbers + 12
         // )
-        // this.accessionJob = res.data
-        this.accessionJob = {
-          ...this.accessionJob,
-          status: 'Running', // status from api will match whatever the status is from the job
-          type: 2,
-          id: 1
-        }
       } catch (error) {
         return error
       }
