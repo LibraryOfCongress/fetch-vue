@@ -8,7 +8,8 @@ export const useAccessionStore = defineStore('accession', {
       type: null,
       owner: null,
       container_size: null,
-      media_type: null
+      media_type: null,
+      status: ''
     },
     accessionTray: {
       id: null,
@@ -20,24 +21,12 @@ export const useAccessionStore = defineStore('accession', {
       items: []
     }
   }),
+  getters: {
+    allTrayItemsVerified: (state) => state.accessionTray.items.some(item => item.verified == false) ? false : true
+  },
   actions: {
     resetAccessionStore () {
-      this.accessionJob = {
-        id: null,
-        type: null,
-        owner: null,
-        container_size: null,
-        media_type: null
-      }
-      this.accessionTray = {
-        id: null,
-        title: '',
-        owner: '',
-        container_type: '',
-        container_size: '',
-        media_type: '',
-        items: []
-      }
+      this.$reset()
     },
     async postAccessionJob () {
       try {
@@ -48,7 +37,22 @@ export const useAccessionStore = defineStore('accession', {
         // this.accessionJob = res.data
         this.accessionJob = {
           ...this.accessionJob,
+          status: 'Created',
           id: 1
+        }
+      } catch (error) {
+        return error
+      }
+    },
+    async patchAccessionJob () {
+      try {
+        // TODO: setup api call to update an accession job
+        // const res = await this.$api.patch(
+        //   inventoryServiceApi.examplesNumbers + 12
+        // )
+        // this.accessionJob = res.data
+        this.accessionJob = {
+          ...this.accessionJob
         }
       } catch (error) {
         return error
@@ -63,6 +67,7 @@ export const useAccessionStore = defineStore('accession', {
         // this.accessionJob = res.data
         this.accessionJob = {
           ...this.accessionJob,
+          status: 'Running', // status from api will match whatever the status is from the job
           type: 2,
           id: 1
         }
@@ -70,16 +75,15 @@ export const useAccessionStore = defineStore('accession', {
         return error
       }
     },
-    async verifyTrayBarcode (barcode) {
+    async getAccessionTray (barcode) {
       try {
         // TODO: setup api call to check the scanned barcode and get its tray data
         // const res = await this.$api.patch(
         //   inventoryServiceApi.examplesNumbers + 12, barcode
         // )
         // this.accessionTray = res.data
-        console.log('validating tray', barcode)
         this.accessionTray = {
-          id: 'CH220987',
+          id: barcode,
           title: 'Tray Title',
           owner: 'Colonel Sanders',
           container_type: 'Trayed',
@@ -95,6 +99,20 @@ export const useAccessionStore = defineStore('accession', {
               verified: false
             }
           ]
+        }
+      } catch (error) {
+        return error
+      }
+    },
+    async patchAccessionTray () {
+      try {
+        // TODO: setup api call to update an accession tray
+        // const res = await this.$api.patch(
+        //   inventoryServiceApi.examplesNumbers + 12
+        // )
+        // this.accessionTray = res.data
+        this.accessionTray = {
+          ...this.accessionTray
         }
       } catch (error) {
         return error

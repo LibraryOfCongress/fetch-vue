@@ -4,6 +4,7 @@
     tag="a"
     :to="link"
     class="essential-link"
+    @click="emit('click')"
   >
     <q-item-section
       v-if="icon"
@@ -34,17 +35,14 @@ defineProps({
     type: String,
     required: true
   },
-
   caption: {
     type: String,
     default: ''
   },
-
   link: {
     type: String,
-    default: '#'
+    default: null
   },
-
   icon: {
     type: String,
     default: ''
@@ -58,6 +56,8 @@ defineProps({
     default: '0px 16px 0px 0px'
   }
 })
+
+const emit = defineEmits(['click'])
 </script>
 
 <style lang="scss" scoped>

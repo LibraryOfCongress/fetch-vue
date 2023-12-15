@@ -10,9 +10,10 @@
 
     <div class="row">
       <div class="col-xs-12 col-sm-4 col-md-3 q-pr-xl q-pr-xs-none q-pr-sm-md q-pb-xs-sm q-pb-sm-none">
-        <div class="non-tray-barcode text-h4 q-py-xs-md">
-          {{ nonTrayData.id }}
-        </div>
+        <BarcodeBox
+          :barcode="nonTrayData.id"
+          class="q-py-xs-md"
+        />
       </div>
       <div class="col-xs-6 col-sm-4 col-md-3">
         <div class="column no-wrap">
@@ -142,6 +143,7 @@
 import { defineComponent } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from 'src/components/EssentialTable.vue'
+import BarcodeBox from '@/components/BarcodeBox.vue'
 
 export default defineComponent({
   name: 'NonTrayDisplay',
@@ -153,7 +155,8 @@ export default defineComponent({
   },
   emits: ['selected-item'],
   components: {
-    EssentialTable
+    EssentialTable,
+    BarcodeBox
   },
   setup () {
     const { currentScreenSize } = useCurrentScreenSize()
@@ -230,18 +233,6 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .non-tray {
-  &-barcode {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    min-height: 100px;
-    background-color: $secondary;
-    color: $color-white;
-    border-radius: 3px;
-  }
-
   &-details {
     position: relative;
     display: flex;
@@ -250,14 +241,6 @@ export default defineComponent({
     align-items: flex-start;
     width: 100%;
     margin-bottom: 1rem;
-  }
-
-  &-table {
-    :deep(tbody) {
-      & tr {
-        cursor: pointer;
-      }
-    }
   }
 }
 </style>

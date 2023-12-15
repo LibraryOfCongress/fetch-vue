@@ -87,7 +87,7 @@
               </label>
               <SelectInput
                 v-model="accessionJob.owner"
-                :options="ownerOptions"
+                :options="optionStore.ownerOptions"
                 option-value="id"
                 option-label="name"
                 :placeholder="'Select Owner'"
@@ -100,7 +100,7 @@
               </label>
               <SelectInput
                 v-model="accessionJob.container_size"
-                :options="containerOptions"
+                :options="optionStore.containerOptions"
                 option-value="id"
                 option-label="name"
                 :placeholder="'Select Size'"
@@ -113,7 +113,7 @@
               </label>
               <SelectInput
                 v-model="accessionJob.media_type"
-                :options="mediaOptions"
+                :options="optionStore.mediaOptions"
                 option-value="id"
                 option-label="name"
                 :placeholder="'Select Media Type'"
@@ -153,58 +153,18 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAccessionStore } from 'src/stores/accession-store'
+import { useOptionStore } from 'src/stores/option-store'
 import SelectInput from '@/components/SelectInput.vue'
 
 const router = useRouter()
-const store = useAccessionStore()
 
 // Store Data
-const { accessionJob } = storeToRefs(store)
+const accessionStore = useAccessionStore()
+const optionStore = useOptionStore()
+const { accessionJob } = storeToRefs(accessionStore)
 
 // Local Data
 const showAccessionModal = ref(false)
-const ownerOptions = ref([
-  {
-    id: 1,
-    name: 'John Doe'
-  },
-  {
-    id: 2,
-    name: 'George Washington'
-  }
-])
-const containerOptions = ref([
-  {
-    id: 1,
-    name: 'A High'
-  },
-  {
-    id: 2,
-    name: 'A Low'
-  },
-  {
-    id: 3,
-    name: 'B High'
-  },
-  {
-    id: 4,
-    name: 'B Low'
-  }
-])
-const mediaOptions = ref([
-  {
-    id: 1,
-    name: 'Document'
-  },
-  {
-    id: 2,
-    name: 'Music'
-  },
-  {
-    id: 3,
-    name: 'Video'
-  }
-])
 const canSubmitAccessionJob = computed(() => {
   if (accessionJob.value.owner !== null && accessionJob.value.container_size !== null) {
     return true
@@ -215,25 +175,26 @@ const canSubmitAccessionJob = computed(() => {
 
 // Logic
 const reset = () => {
-  store.resetAccessionStore()
+  accessionStore.resetAccessionStore()
   showAccessionModal.value = false
 }
 const startAccessionProcess = () => {
-  store.resetAccessionStore()
+  accessionStore.resetAccessionStore()
   showAccessionModal.value = !showAccessionModal.value
 }
 const submitAccessionJob = async () => {
   // TODO: send the accessionJob data to api to start the proccess and get an associated job id
   try {
-    await store.postAccessionJob()
+    await accessionStore.postAccessionJob()
 
     router.push({
       name: 'accession',
       params: {
-        id: accessionJob.value.id
+        jobId: accessionJob.value.id
       }
     })
   } catch (error) {
+    // TODO: replace error with popup alert
     console.log(error)
   } finally {
     showAccessionModal.value = false

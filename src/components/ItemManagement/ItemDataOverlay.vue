@@ -20,9 +20,9 @@
       </q-card-section>
 
       <q-card-section>
-        <div class="item-barcode text-h4">
-          {{ itemData.id }}
-        </div>
+        <BarcodeBox
+          :barcode="itemData.id"
+        />
       </q-card-section>
 
       <q-card-section class="column q-pt-xs-none q-pt-sm-md">
@@ -229,6 +229,7 @@
 <script>
 import { defineComponent } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import BarcodeBox from '@/components/BarcodeBox.vue'
 
 export default defineComponent({
   name: 'ItemDataOverlay',
@@ -241,6 +242,9 @@ export default defineComponent({
       type: String,
       required: true
     }
+  },
+  components: {
+    BarcodeBox
   },
   emits: ['close'],
   setup () {
@@ -275,21 +279,6 @@ export default defineComponent({
     @media (max-width: $breakpoint-sm-min) {
       width: 100vw;
       border-radius: 0;
-    }
-  }
-
-  &-barcode {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 18rem;
-    background-color: $secondary;
-    color: $color-white;
-    border-radius: 3px;
-
-    @media (max-width: $breakpoint-sm-min) {
-      height: 5rem;
     }
   }
 

@@ -2,7 +2,8 @@
   <q-select
     :dense="currentScreenSize <= 600"
     outlined
-    v-model="modelValue"
+    :model-value="modelValue"
+    @update:model-value="updateModelValue"
     :options="localOptions"
     :option-value="optionValue"
     :option-label="optionLabel"
@@ -19,12 +20,12 @@
 </template>
 
 <script setup>
-import { defineModel, ref } from 'vue'
+import { ref } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 
 // Props
-const modelValue = defineModel()
 const mainProps = defineProps({
+  modelValue: undefined,
   options: {
     type: Array,
     default () {
@@ -46,6 +47,9 @@ const mainProps = defineProps({
   }
 })
 
+// Emits
+const emit = defineEmits(['update:modelValue'])
+
 // Compasables
 const { currentScreenSize } = useCurrentScreenSize()
 
@@ -53,6 +57,9 @@ const { currentScreenSize } = useCurrentScreenSize()
 const localOptions = ref(mainProps.options)
 
 // Logic
+const updateModelValue = (value) => {
+  emit('update:modelValue', value)
+}
 const filterOptions = (val, update) => {
   update(() => {
     localOptions.value = mainProps.options.filter(opt => opt[mainProps.optionLabel].toString().toLowerCase().indexOf(val.toLowerCase()) > -1)

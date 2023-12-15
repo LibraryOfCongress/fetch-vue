@@ -3,11 +3,11 @@
     <div class="col-auto">
       <div class="breadcrumb">
         <EssentialLink
-          :link="router.options.history.state.back"
           :title="'Back'"
           :icon="'chevron_left'"
           :icon-size="'28px'"
           :icon-padding="'0px'"
+          @click="router.back"
         />
       </div>
     </div>

@@ -12,8 +12,23 @@ const routes = [
       },
       {
         name: 'accession',
-        path: 'accession/:id?', // child path reads as "parent path + / + child_path" ex: /accession
+        path: 'accession/:jobId?', // child path reads as "parent path + / + child_path" ex: /accession
         component: () => import('@/pages/AccessionPage.vue')
+      },
+      {
+        name: 'accession-tray',
+        path: 'accession/:jobId?/scan-items/:trayId?',
+        component: () => import('@/pages/AccessionPage.vue'),
+        beforeEnter ({ params }) {
+          if (!params.trayId) {
+            return {
+              name: 'accession',
+              params: {
+                jobId: params.jobId
+              }
+            }
+          }
+        }
       },
       {
         name: 'itme-management',

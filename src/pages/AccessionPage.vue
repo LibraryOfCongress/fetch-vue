@@ -1,13 +1,13 @@
 <template>
   <q-page
-    :padding="!$route.params.id"
+    :padding="!$route.params.jobId"
     class="accession column no-wrap"
   >
-    <BreadCrumb v-if="$route.params.id" />
+    <BreadCrumb v-if="$route.params.jobId" />
 
-    <AccessionInit v-if="!$route.params.id" />
+    <AccessionInit v-if="!$route.params.jobId" />
 
-    <AccessionTrayDisplay v-if="$route.params.id && store.accessionJob.type == 2" />
+    <AccessionTrayDisplay v-if="$route.params.jobId && store.accessionJob.type == 2" />
   </q-page>
 </template>
 
@@ -24,7 +24,7 @@ const store = useAccessionStore()
 
 onBeforeMount( async () => {
   // if there is an id in the url we need to load that tray/non-tray
-  if (route.params.id) {
+  if (route.params.jobId) {
     await store.getAccessionJob()
   }
 })
