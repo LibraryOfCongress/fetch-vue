@@ -17,8 +17,15 @@
 // Extra Small    xs      0px	                              599.99px
 // Small	        sm	    600px	                            1023.99px
 // Medium	        md	    1024px	                          1439.99px
-// Large	        lg	    1440px	                          1919.99px
-// Extra Large	  xl	    1920px	                          Infinity
+// Large	        lg	    1440px	                          1920px
+// Extra Large	  xl	    1921px	                          Infinity
+
+// Max width at which point
+// current size ends
+$breakpoint-xs: 599px !default;
+$breakpoint-sm: 1023px !default;
+$breakpoint-md: 1439px !default;
+$breakpoint-lg: 1920px !default;
 
 // quasar default variable overides
 $input-font-size: .95rem;

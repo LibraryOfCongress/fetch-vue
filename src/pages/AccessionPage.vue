@@ -25,7 +25,11 @@ const store = useAccessionStore()
 onBeforeMount( async () => {
   // if there is an id in the url we need to load that tray/non-tray
   if (route.params.jobId) {
-    await store.getAccessionJob()
+    await store.getAccessionJob(route.params.jobId)
+  }
+
+  if (route.params.trayId) {
+    await store.getAccessionTray(route.params.trayId)
   }
 })
 </script>

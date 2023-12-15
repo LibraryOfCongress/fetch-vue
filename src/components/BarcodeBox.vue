@@ -19,13 +19,14 @@ defineProps({
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 18rem;
+  height: 100%;
+  min-height: 18rem;
   background-color: $secondary;
   color: $color-white;
   border-radius: 3px;
 
   @media (max-width: $breakpoint-sm-min) {
-    height: 5rem;
+    min-height: 5rem;
   }
 }
 </style>

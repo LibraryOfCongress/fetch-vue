@@ -19,7 +19,8 @@ export const useAccessionStore = defineStore('accession', {
       container_size: '',
       media_type: '',
       items: []
-    }
+    },
+    originalAccessionTray: null
   }),
   getters: {
     allTrayItemsVerified: (state) => state.accessionTray.items.some(item => item.verified == false) ? false : true
@@ -58,7 +59,7 @@ export const useAccessionStore = defineStore('accession', {
         return error
       }
     },
-    async getAccessionJob () {
+    async getAccessionJob (id) {
       try {
         // TODO: setup api call to retrieve an accession job
         // const res = await this.$api.get(
@@ -69,7 +70,7 @@ export const useAccessionStore = defineStore('accession', {
           ...this.accessionJob,
           status: 'Running', // status from api will match whatever the status is from the job
           type: 2,
-          id: 1
+          id
         }
       } catch (error) {
         return error
@@ -92,14 +93,15 @@ export const useAccessionStore = defineStore('accession', {
           items: [
             {
               id: '00924891289',
-              verified: false
+              verified: true
             },
             {
               id: '00924891290',
-              verified: false
+              verified: true
             }
           ]
         }
+        this.originalAccessionTray = { ...this.accessionTray }
       } catch (error) {
         return error
       }
@@ -114,6 +116,7 @@ export const useAccessionStore = defineStore('accession', {
         this.accessionTray = {
           ...this.accessionTray
         }
+        this.originalAccessionTray = { ...this.accessionTray }
       } catch (error) {
         return error
       }
