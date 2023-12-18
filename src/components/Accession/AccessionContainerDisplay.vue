@@ -1,12 +1,12 @@
 <template>
   <!-- scan tray display -->
   <div
-    v-if="!route.params.trayId"
-    class="absolute-center accession-tray"
+    v-if="!route.params.containerId"
+    class="absolute-center accession-container"
   >
     <div class="column items-center">
       <h1 class="text-h4 text-bold text-center q-mb-lg">
-        Scan Tray Barcode
+        {{ accessionJob.type == 2 ? 'Scan Tray Barcode' : 'Scan Non-Tray Barcode' }}
       </h1>
 
       <q-btn
@@ -15,7 +15,7 @@
         unelevated
         color="secondary"
         label="Scan Barcode"
-        @click="triggerTrayScan('CH220987')"
+        @click="accessionJob.type == 2 ? triggerBarcodeScan('CH220987') : triggerBarcodeScan('NT555923')"
       />
     </div>
   </div>
@@ -23,43 +23,43 @@
   <!-- tray display -->
   <div
     v-else
-    class="row accession-tray flex-lg-grow"
+    class="row accession-container flex-lg-grow"
   >
-    <div class="col-12 col-lg-4 col-xl-3 accession-tray-info">
+    <div class="col-12 col-lg-4 col-xl-3 accession-container-info">
       <div class="row">
         <div class="col-12">
           <h1 class="text-h4 text-bold q-mb-xs-md q-mb-sm-lg">
-            {{ accessionTray.title }}
+            {{ accessionContainer.title }}
           </h1>
         </div>
 
         <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12 q-mb-xs-md q-mb-sm-none q-mb-lg-lg">
           <BarcodeBox
-            :barcode="accessionTray.id"
+            :barcode="accessionContainer.id"
             class="q-mb-md-xl q-mb-lg-none"
           />
         </div>
 
         <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12">
-          <div class="accession-tray-info-details q-mb-xs-sm q-mb-lg-lg">
+          <div class="accession-container-info-details q-mb-xs-sm q-mb-lg-lg">
             <label class="text-h6 q-mb-xs">
               Owner
             </label>
             <p class="outline">
-              {{ accessionTray.owner }}
+              {{ accessionContainer.owner }}
             </p>
           </div>
 
-          <div class="accession-tray-info-details q-mb-xs-sm q-mb-lg-lg">
+          <div class="accession-container-info-details q-mb-xs-sm q-mb-lg-lg">
             <label class="text-h6 q-mb-xs">
               Container Type
             </label>
             <p>
-              {{ accessionTray.container_type }}
+              {{ accessionContainer.container_type }}
             </p>
           </div>
 
-          <div class="accession-tray-info-details q-mb-xs-sm q-mb-lg-lg">
+          <div class="accession-container-info-details q-mb-xs-sm q-mb-lg-lg">
             <label class="text-h6 q-mb-xs">
               Container Size
               <q-btn
@@ -76,18 +76,18 @@
               v-if="!editContainerSize"
               class="outline"
             >
-              {{ accessionTray.container_size }}
+              {{ accessionContainer.container_size }}
             </p>
             <SelectInput
               v-else
-              v-model="accessionTray.container_size"
+              v-model="accessionContainer.container_size"
               :options="optionStore.containerOptions"
               option-value="name"
               option-label="name"
             />
           </div>
 
-          <div class="accession-tray-info-details">
+          <div class="accession-container-info-details">
             <label class="text-h6 q-mb-xs">
               Media Type
               <q-btn
@@ -104,11 +104,11 @@
               v-if="!editMediaType"
               class="outline text-highlight"
             >
-              {{ accessionTray.media_type }}
+              {{ accessionContainer.media_type }}
             </p>
             <SelectInput
               v-else
-              v-model="accessionTray.media_type"
+              v-model="accessionContainer.media_type"
               :options="optionStore.mediaOptions"
               option-value="name"
               option-label="name"
@@ -128,7 +128,7 @@
                 color="accent"
                 label="Save Edits"
                 class="full-width text-body1"
-                @click="updateAccessionTray"
+                @click="updateAccessionContainer"
                 :disabled="accessionJob.status == 'Paused'"
               />
             </div>
@@ -140,7 +140,7 @@
                 color="accent"
                 label="Cancel"
                 class="full-width text-body1"
-                @click="cancelTrayEdit"
+                @click="cancelContainerEdit"
               />
             </div>
           </div>
@@ -148,7 +148,7 @@
       </div>
     </div>
 
-    <div class="col-12 col-lg-8 col-xl-9 accession-tray-scan">
+    <div class="col-12 col-lg-8 col-xl-9 accession-container-scan">
       <div class="row items-center q-mb-xs-md q-mb-sm-lg">
         <div class="col-auto">
           <h2 class="text-h4 text-bold">
@@ -158,20 +158,21 @@
 
         <div class="col-auto q-ml-sm">
           <span class="outline text-h6">
-            {{ accessionTray.items.length }} Items
+            {{ accessionContainer.items.length }} Items
           </span>
         </div>
       </div>
 
       <div class="row q-mb-xs-lg">
         <div class="col-xs-12 col-md-auto flex no-wrap justify-between q-mb-xs-md q-mb-md-none q-mr-md-auto">
-          <q-btn
+          <q-btn'
+            v-if="accessionJob.type == 2"
             no-caps
             unelevated
             icon="add"
             color="accent"
             label="Add Item"
-            class="btn-no-wrap text-body1"
+            class="btn-no-wrap text-body1 q-mr-sm-md"
             :disabled="accessionJob.status == 'Paused'"
           />
           <q-btn
@@ -180,8 +181,8 @@
             icon="mdi-delete"
             color="negative"
             label="Delete"
-            class="btn-no-wrap text-body1 q-ml-sm-md"
-            :disabled="selectedTrayItems.length == 0 || accessionJob.status == 'Paused'"
+            class="btn-no-wrap text-body1"
+            :disabled="selectedContainerItems.length == 0 || accessionJob.status == 'Paused'"
           />
         </div>
 
@@ -218,8 +219,8 @@
             label="Complete Job"
             class="btn-no-wrap text-body1 q-ml-sm"
             :class="currentScreenSize == 'xs' ? 'full-width' : ''"
-            :outline="!accessionStore.allTrayItemsVerified || accessionJob.status == 'Paused'"
-            :disabled="!accessionStore.allTrayItemsVerified || accessionJob.status == 'Paused'"
+            :outline="!accessionStore.allContainerItemsVerified || accessionJob.status == 'Paused'"
+            :disabled="!accessionStore.allContainerItemsVerified || accessionJob.status == 'Paused'"
           />
         </div>
       </div>
@@ -227,12 +228,12 @@
       <div class="row">
         <div class="col-12">
           <EssentialTable
-            :table-columns="accessionTrayTableColumns"
-            :table-data="accessionTray.items"
+            :table-columns="accessionTableColumns"
+            :table-data="accessionContainer.items"
             :disable-table-reorder="true"
             :hide-table-filter="true"
             :enable-selection="true"
-            @selected-data="selectedTrayItems = $event"
+            @selected-data="selectedContainerItems = $event"
           >
             <template #table-td="{ colName, value }">
               <span
@@ -283,10 +284,10 @@ const { currentScreenSize } = useCurrentScreenSize()
 // Store Data
 const optionStore = useOptionStore()
 const accessionStore = useAccessionStore()
-const { accessionJob, accessionTray, originalAccessionTray } = storeToRefs(accessionStore)
+const { accessionJob, accessionContainer, originalAccessionContainer } = storeToRefs(accessionStore)
 
 // Local Data
-const accessionTrayTableColumns = ref([
+const accessionTableColumns = ref([
   {
     name: 'id',
     field: 'id',
@@ -302,46 +303,55 @@ const accessionTrayTableColumns = ref([
     sortable: false
   }
 ])
-const selectedTrayItems = ref([])
+const selectedContainerItems = ref([])
 const editContainerSize = ref(false)
 const editMediaType = ref(false)
 
 // Logic
 watch(compiledBarCode, (newBarcode) => {
-  if (newBarcode !== '' && accessionTray.value.id == null) {
-    // if a barcode scan is detected and the user hasnt scanned a tray yet we set that barcode as the trays barcode
-    triggerTrayScan(newBarcode)
-  } else if (newBarcode !== '' && accessionTray.value.id !== null) {
-    // user is scanning barcodes for items related to the scanned tray so we need to validate them
-    validateTrayItemBarcode(newBarcode)
+  if (newBarcode !== '' && accessionContainer.value.id == null) {
+    // if a barcode scan is detected and the user hasnt scanned a tray/nontray yet we trigger a scan and get that scanned containers data
+    triggerBarcodeScan(newBarcode)
+  } else if (newBarcode !== '' && accessionContainer.value.id !== null) {
+    // user is scanning barcodes for items related to the scanned container so we need to validate them
+    validateContainerItemBarcode(newBarcode)
   }
 })
 
-const triggerTrayScan = (barcode) => {
+const triggerBarcodeScan = (barcode) => {
   // TODO: manually trigger a scan on the mobile device
-  accessionStore.getAccessionTray(barcode)
+  if (accessionJob.value.type == 2) {
+    accessionStore.getAccessionTray(barcode)
+  } else {
+    accessionStore.getAccessionNonTray(barcode)
+  }
 
   router.push({
-    name: 'accession-tray',
+    name: 'accession-container',
     params: {
       jobId: accessionJob.value.id,
-      trayId: accessionTray.value.id
+      containerId: accessionContainer.value.id
     }
   })
 }
 
-const cancelTrayEdit = () => {
-  accessionTray.value = { ...toRaw(originalAccessionTray.value) }
+const cancelContainerEdit = () => {
+  accessionContainer.value = { ...toRaw(originalAccessionContainer.value) }
   editContainerSize.value = false
   editMediaType.value = false
 }
 
-const validateTrayItemBarcode = (barcode) => {
-  // check if barcode exists in the tray, if not add it as a new barcode
-  if (accessionTray.value.items.some(item => item.barcode == barcode)) {
-    accessionStore.verifyTrayItemBarcode(barcode)
+const validateContainerItemBarcode = (barcode) => {
+  // check if barcode exists in the tray/nontray, if not add it as a new barcode
+  if (accessionContainer.value.items.some(item => item.barcode == barcode)) {
+    // check what type of container type were in (tray/nontray)
+    if (accessionJob.value.type == 2) {
+      accessionStore.verifyTrayItemBarcode(barcode)
+    } else {
+      accessionStore.verifyNonTrayItemBarcode(barcode)
+    }
   } else {
-    accessionTray.value.items.push({ id: barcode, verified: false })
+    accessionContainer.value.items.push({ id: barcode, verified: false })
   }
 }
 const updateAccessionJobStatus = async (status) => {
@@ -355,9 +365,13 @@ const updateAccessionJobStatus = async (status) => {
     console.log(error)
   }
 }
-const updateAccessionTray = async () => {
+const updateAccessionContainer = async () => {
   try {
-    await accessionStore.patchAccessionTray()
+    if (accessionJob.value.type == 2) {
+      await accessionStore.patchAccessionTray()
+    } else {
+      await accessionStore.patchAccessionNonTray()
+    }
 
     //TODO: display success alert
   } catch (error) {
@@ -371,7 +385,7 @@ const updateAccessionTray = async () => {
 </script>
 
 <style lang="scss" scoped>
-.accession-tray {
+.accession-container {
   &-info {
     border-right: 1px solid;
     border-color: $secondary;

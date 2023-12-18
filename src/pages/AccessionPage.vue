@@ -7,7 +7,7 @@
 
     <AccessionInit v-if="!$route.params.jobId" />
 
-    <AccessionTrayDisplay v-if="$route.params.jobId && store.accessionJob.type == 2" />
+    <AccessionContainerDisplay v-if="$route.params.jobId && store.accessionJob.type !== null" />
   </q-page>
 </template>
 
@@ -16,7 +16,7 @@ import { onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAccessionStore } from 'src/stores/accession-store'
 import AccessionInit from '@/components/Accession/AccessionInit.vue'
-import AccessionTrayDisplay from '@/components/Accession/AccessionTrayDisplay.vue'
+import AccessionContainerDisplay from '@/components/Accession/AccessionContainerDisplay.vue'
 import BreadCrumb from '@/components/BreadCrumb.vue'
 
 const route = useRoute()
@@ -28,8 +28,8 @@ onBeforeMount( async () => {
     await store.getAccessionJob(route.params.jobId)
   }
 
-  if (route.params.trayId) {
-    await store.getAccessionTray(route.params.trayId)
+  if (route.params.containerId) {
+    await store.getAccessionTray(route.params.containerId)
   }
 })
 </script>
