@@ -11,7 +11,7 @@ export const useAccessionStore = defineStore('accession', {
       media_type: null,
       status: ''
     },
-    accessionTray: {
+    accessionContainer: {
       id: null,
       title: '',
       owner: '',
@@ -20,10 +20,10 @@ export const useAccessionStore = defineStore('accession', {
       media_type: '',
       items: []
     },
-    originalAccessionTray: null
+    originalAccessionContainer: null
   }),
   getters: {
-    allTrayItemsVerified: (state) => state.accessionTray.items.some(item => item.verified == false) ? false : true
+    allItemsVerified: (state) => state.accessionContainer.items.some(item => item.verified == false) ? false : true
   },
   actions: {
     resetAccessionStore () {
@@ -82,8 +82,8 @@ export const useAccessionStore = defineStore('accession', {
         // const res = await this.$api.patch(
         //   inventoryServiceApi.examplesNumbers + 12, barcode
         // )
-        // this.accessionTray = res.data
-        this.accessionTray = {
+        // this.accessionContainer = res.data
+        this.accessionContainer = {
           id: barcode,
           title: 'Tray Title',
           owner: 'Colonel Sanders',
@@ -101,7 +101,7 @@ export const useAccessionStore = defineStore('accession', {
             }
           ]
         }
-        this.originalAccessionTray = { ...this.accessionTray }
+        this.originalAccessionContainer = { ...this.accessionContainer }
       } catch (error) {
         return error
       }
@@ -112,11 +112,11 @@ export const useAccessionStore = defineStore('accession', {
         // const res = await this.$api.patch(
         //   inventoryServiceApi.examplesNumbers + 12
         // )
-        // this.accessionTray = res.data
-        this.accessionTray = {
-          ...this.accessionTray
+        // this.accessionContainer = res.data
+        this.accessionContainer = {
+          ...this.accessionContainer
         }
-        this.originalAccessionTray = { ...this.accessionTray }
+        this.originalAccessionContainer = { ...this.accessionContainer }
       } catch (error) {
         return error
       }
@@ -127,8 +127,65 @@ export const useAccessionStore = defineStore('accession', {
         // const res = await this.$api.patch(
         //   inventoryServiceApi.examplesNumbers + 12, barcode
         // )
-        // this.accessionTray = res.data
-        this.accessionTray.items[this.accessionTray.items.findIndex(item => item.barcode == barcode)].verified = true
+        // this.accessionContainer = res.data
+        this.accessionContainer.items[this.accessionContainer.items.findIndex(item => item.barcode == barcode)].verified = true
+      } catch (error) {
+        return error
+      }
+    },
+    async getAccessionNonTray (barcode) {
+      try {
+        // TODO: setup api call to check the scanned barcode and get its nontray data
+        // const res = await this.$api.patch(
+        //   inventoryServiceApi.examplesNumbers + 12, barcode
+        // )
+        // this.accessionContainer = res.data
+        this.accessionContainer = {
+          id: barcode,
+          title: 'Non Tray Title',
+          owner: 'Colonel Sanders',
+          container_type: 'Non-Trayed',
+          container_size: 'B Low',
+          media_type: 'Vinyl Recording',
+          items: [
+            {
+              id: '00924891289',
+              verified: true
+            },
+            {
+              id: '00924891290',
+              verified: true
+            }
+          ]
+        }
+        this.originalAccessionContainer = { ...this.accessionContainer }
+      } catch (error) {
+        return error
+      }
+    },
+    async patchAccessionNonTray () {
+      try {
+        // TODO: setup api call to update an accession nontray
+        // const res = await this.$api.patch(
+        //   inventoryServiceApi.examplesNumbers + 12
+        // )
+        // this.accessionContainer = res.data
+        this.accessionContainer = {
+          ...this.accessionContainer
+        }
+        this.originalAccessionContainer = { ...this.accessionContainer }
+      } catch (error) {
+        return error
+      }
+    },
+    async verifyNonTrayItemBarcode (barcode) {
+      try {
+        // TODO: setup api call to verify the scanned nontray item barcode
+        // const res = await this.$api.patch(
+        //   inventoryServiceApi.examplesNumbers + 12, barcode
+        // )
+        // this.accessionContainer = res.data
+        this.accessionContainer.items[this.accessionContainer.items.findIndex(item => item.barcode == barcode)].verified = true
       } catch (error) {
         return error
       }

@@ -16,11 +16,11 @@ const routes = [
         component: () => import('@/pages/AccessionPage.vue')
       },
       {
-        name: 'accession-tray',
-        path: 'accession/:jobId?/scan-items/:trayId?',
+        name: 'accession-container',
+        path: 'accession/:jobId?/scan-items/:containerId?',
         component: () => import('@/pages/AccessionPage.vue'),
         beforeEnter ({ params }) {
-          if (!params.trayId) {
+          if (!params.containerId) {
             return {
               name: 'accession',
               params: {
