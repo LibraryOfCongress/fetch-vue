@@ -1,5 +1,5 @@
 <template>
-  <!-- scan tray display -->
+  <!-- scan container display -->
   <div
     v-if="!route.params.containerId"
     class="absolute-center accession-container"
@@ -20,7 +20,7 @@
     </div>
   </div>
 
-  <!-- tray display -->
+  <!-- container display -->
   <div
     v-else
     class="row accession-container flex-lg-grow"
@@ -165,7 +165,7 @@
 
       <div class="row q-mb-xs-lg">
         <div class="col-xs-12 col-md-auto flex no-wrap justify-between q-mb-xs-md q-mb-md-none q-mr-md-auto">
-          <q-btn'
+          <q-btn
             v-if="accessionJob.type == 2"
             no-caps
             unelevated
@@ -174,6 +174,7 @@
             label="Add Item"
             class="btn-no-wrap text-body1 q-mr-sm-md"
             :disabled="accessionJob.status == 'Paused'"
+            @click="showConfirmation = 'Are you sure you want to add an item?'"
           />
           <q-btn
             no-caps
@@ -183,34 +184,37 @@
             label="Delete"
             class="btn-no-wrap text-body1"
             :disabled="selectedContainerItems.length == 0 || accessionJob.status == 'Paused'"
+            @click="showConfirmation = 'Are you sure you want to delete selected items?'"
           />
         </div>
 
         <div class="col-xs-12 col-md-auto flex justify-between">
-          <q-btn
-            v-if="accessionJob.status !== 'Paused'"
-            no-caps
-            unelevated
-            outline
-            icon="mdi-pause"
-            color="accent"
-            label="Pause Job"
-            class="btn-no-wrap text-body1"
-            :class="currentScreenSize == 'xs' ? 'full-width q-mb-md' : ''"
-            @click="updateAccessionJobStatus('Paused')"
-          />
-          <q-btn
-            v-else
-            no-caps
-            unelevated
-            outline
-            icon="mdi-play"
-            color="accent"
-            label="Resume Job"
-            class="btn-no-wrap text-body1"
-            :class="currentScreenSize == 'xs' ? 'full-width q-mb-md' : ''"
-            @click="updateAccessionJobStatus('Running')"
-          />
+          <template v-if="accessionJob.type == 2">
+            <q-btn
+              v-if="accessionJob.status !== 'Paused'"
+              no-caps
+              unelevated
+              outline
+              icon="mdi-pause"
+              color="accent"
+              label="Pause Job"
+              class="btn-no-wrap text-body1"
+              :class="currentScreenSize == 'xs' ? 'full-width q-mb-md' : ''"
+              @click="updateAccessionJobStatus('Paused')"
+            />
+            <q-btn
+              v-else
+              no-caps
+              unelevated
+              outline
+              icon="mdi-play"
+              color="accent"
+              label="Resume Job"
+              class="btn-no-wrap text-body1"
+              :class="currentScreenSize == 'xs' ? 'full-width q-mb-md' : ''"
+              @click="updateAccessionJobStatus('Running')"
+            />
+          </template>
           <q-btn
             no-caps
             unelevated
@@ -219,8 +223,9 @@
             label="Complete Job"
             class="btn-no-wrap text-body1 q-ml-sm"
             :class="currentScreenSize == 'xs' ? 'full-width' : ''"
-            :outline="!accessionStore.allContainerItemsVerified || accessionJob.status == 'Paused'"
-            :disabled="!accessionStore.allContainerItemsVerified || accessionJob.status == 'Paused'"
+            :outline="!accessionStore.allItemsVerified || accessionJob.status == 'Paused'"
+            :disabled="!accessionStore.allItemsVerified || accessionJob.status == 'Paused'"
+            @click="showConfirmation = 'Are you sure you want to complete the job?'"
           />
         </div>
       </div>
@@ -260,19 +265,28 @@
       </div>
     </div>
   </div>
+
+  <!-- confirmation modal -->
+  <PopupModal
+    v-if="showConfirmation !== null"
+    :title="'Confirm'"
+    :text="showConfirmation"
+    @reset="showConfirmation = null"
+  />
 </template>
 
 <script setup>
 import { ref, toRaw, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { useAccessionStore } from 'src/stores/accession-store'
-import { useOptionStore } from 'src/stores/option-store'
+import { useAccessionStore } from '@/stores/accession-store'
+import { useOptionStore } from '@/stores/option-store'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import BarcodeBox from '@/components/BarcodeBox.vue'
-import EssentialTable from 'src/components/EssentialTable.vue'
+import EssentialTable from '@/components/EssentialTable.vue'
 import SelectInput from '@/components/SelectInput.vue'
+import PopupModal from '@/components/PopupModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -306,6 +320,7 @@ const accessionTableColumns = ref([
 const selectedContainerItems = ref([])
 const editContainerSize = ref(false)
 const editMediaType = ref(false)
+const showConfirmation = ref(null)
 
 // Logic
 watch(compiledBarCode, (newBarcode) => {
@@ -319,7 +334,6 @@ watch(compiledBarCode, (newBarcode) => {
 })
 
 const triggerBarcodeScan = (barcode) => {
-  // TODO: manually trigger a scan on the mobile device
   if (accessionJob.value.type == 2) {
     accessionStore.getAccessionTray(barcode)
   } else {

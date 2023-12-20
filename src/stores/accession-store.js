@@ -150,7 +150,7 @@ export const useAccessionStore = defineStore('accession', {
           items: [
             {
               id: '00924891289',
-              verified: false
+              verified: true
             },
             {
               id: '00924891290',

@@ -1,11 +1,13 @@
 import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
+import path from 'path'
 import { quasar, transformAssetUrls } from '@quasar/vite-plugin'
 import jsconfigPaths from 'vite-jsconfig-paths'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   test: {
+    globals: true,
     environment: 'happy-dom',
     setupFiles: 'test/vitest/setup-file.js',
     include: [
@@ -23,5 +25,10 @@ export default defineConfig({
       sassVariables: 'src/quasar-variables.scss'
     }),
     jsconfigPaths()
-  ]
+  ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    }
+  }
 })
