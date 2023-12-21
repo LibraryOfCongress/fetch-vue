@@ -13,8 +13,9 @@ body {
   font-family: Arial, sans-serif;
 	font-weight: 400;
 	font-size: $font-default;
-	box-sizing: border-box;
-  line-height: 1.5;
+  line-height: 1.5rem;
+  letter-spacing: 0.03125em;
+  box-sizing: border-box;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }

@@ -150,7 +150,7 @@ export default defineComponent({
         {
           title: 'Verfication',
           icon: 'done_all',
-          link: '/'
+          link: '/verification'
         },
         {
           title: 'Shelving',
@@ -177,7 +177,7 @@ export default defineComponent({
         {
           title: 'Verfication',
           icon: 'done_all',
-          link: '/'
+          link: '/verification'
         },
         {
           title: 'Shelving',

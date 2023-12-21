@@ -31,14 +31,19 @@ const routes = [
         }
       },
       {
-        name: 'itme-management',
-        path: 'item-management/:type?',
-        component: () => import('@/pages/ItemManagementPage.vue')
+        name: 'verification',
+        path: 'verification/:jobId?',
+        component: () => import('@/pages/VerificationPage.vue')
       },
       {
         name: 'shelving',
         path: 'shelving',
         component: () => import('@/pages/ShelvingPage.vue')
+      },
+      {
+        name: 'itme-management',
+        path: 'item-management/:type?',
+        component: () => import('@/pages/ItemManagementPage.vue')
       }
     ]
   },
