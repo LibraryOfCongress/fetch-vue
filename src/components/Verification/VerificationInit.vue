@@ -22,7 +22,7 @@
         <div
           v-for="job in jobsInProgress"
           :key="job.id"
-          class="col-auto q-pa-xs-xs q-pa-lg-sm q-pa-xl-md"
+          class="col-xs-12 col-sm-auto q-pa-xs-xs q-pa-lg-sm q-pa-xl-md"
         >
           <q-card
             flat
@@ -87,7 +87,7 @@
         <div
           v-for="job in jobsInQueue"
           :key="job.id"
-          class="col-auto q-pa-xs-xs q-pa-lg-sm q-pa-xl-md"
+          class="col-xs-12 col-sm-auto q-pa-xs-xs q-pa-lg-sm q-pa-xl-md"
         >
           <q-card
             flat
@@ -195,7 +195,7 @@ const loadVerificationJob = async (jobId) => {
     transition: 0.3s ease;
 
     @media (max-width: $breakpoint-sm-min) {
-      min-width: 164px;
+      flex-flow: row nowrap;
     }
 
     &:hover:not(:disabled) {
@@ -213,6 +213,10 @@ const loadVerificationJob = async (jobId) => {
       padding: 2.5rem .5rem;
       background-color: $secondary;
       color: $color-white;
+
+      @media (max-width: $breakpoint-sm-min) {
+        padding: 1rem .75rem;
+      }
     }
 
     &-details {
