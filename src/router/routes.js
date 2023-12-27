@@ -36,6 +36,21 @@ const routes = [
         component: () => import('@/pages/VerificationPage.vue')
       },
       {
+        name: 'verification-container',
+        path: 'verification/:jobId?/scan-items/:containerId?',
+        component: () => import('@/pages/VerificationPage.vue'),
+        beforeEnter ({ params }) {
+          if (!params.containerId) {
+            return {
+              name: 'verification',
+              params: {
+                jobId: params.jobId
+              }
+            }
+          }
+        }
+      },
+      {
         name: 'shelving',
         path: 'shelving',
         component: () => import('@/pages/ShelvingPage.vue')

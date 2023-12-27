@@ -3,6 +3,16 @@ import { defineStore } from 'pinia'
 
 export const useOptionStore = defineStore('options', {
   state: () => ({
+    containerTypes: [
+      {
+        id: 1,
+        name: 'Non-Trayed'
+      },
+      {
+        id: 2,
+        name: 'Trayed'
+      }
+    ],
     containerOptions: [
       {
         id: 1,

@@ -42,6 +42,10 @@ $color-map: (
   padding: 1px 5px;
 }
 
+.disabled, [disabled] {
+  opacity: 0.4 !important;
+}
+
 .flex-grow {
   flex-grow: 1 !important;
 }
