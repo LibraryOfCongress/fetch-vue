@@ -29,7 +29,7 @@
       <div class="row">
         <div class="col-12">
           <h1 class="text-h4 text-bold q-mb-xs-md q-mb-sm-lg">
-            {{ verificationContainer.title }}
+            {{ verificationJob.type == 2 ? verificationContainer.title : `Job: ${verificationJob.id}` }}
           </h1>
         </div>
 
@@ -58,8 +58,15 @@
               v-if="!editOwner"
               class="outline"
             >
-              {{ verificationContainer.owner }}
+              {{ verificationContainer.id == null ? verificationJob.owner : verificationContainer.owner }}
             </p>
+            <SelectInput
+              v-else-if="verificationContainer.id == null"
+              v-model="verificationJob.owner"
+              :options="optionStore.ownerOptions"
+              option-value="name"
+              option-label="name"
+            />
             <SelectInput
               v-else
               v-model="verificationContainer.owner"
@@ -71,25 +78,34 @@
 
           <div class="verification-container-info-details q-mb-xs-sm q-mb-lg-lg">
             <label class="text-h6 q-mb-xs">
-              Container Type
+              Media Type
               <q-btn
-                v-if="verificationJob.type == 2"
                 no-caps
                 flat
                 icon="mdi-square-edit-outline"
                 color="accent"
                 label="Edit"
                 class="btn-no-wrap text-caption"
-                @click="editContainerType = true"
+                @click="editMediaType = true"
               />
             </label>
-            <p v-if="!editContainerType">
-              {{ verificationContainer.container_type }}
+            <p
+              v-if="!editMediaType"
+              class="outline text-highlight"
+            >
+              {{ verificationContainer.id == null ? verificationJob.media_type : verificationContainer.media_type }}
             </p>
             <SelectInput
+              v-else-if="verificationContainer.id == null"
+              v-model="verificationJob.media_type"
+              :options="optionStore.mediaOptions"
+              option-value="name"
+              option-label="name"
+            />
+            <SelectInput
               v-else
-              v-model="verificationContainer.container_type"
-              :options="optionStore.containerTypes"
+              v-model="verificationContainer.media_type"
+              :options="optionStore.mediaOptions"
               option-value="name"
               option-label="name"
             />
@@ -112,8 +128,15 @@
               v-if="!editContainerSize"
               class="outline"
             >
-              {{ verificationContainer.container_size }}
+              {{ verificationContainer.id == null ? verificationJob.container_size : verificationContainer.container_size }}
             </p>
+            <SelectInput
+              v-else-if="verificationContainer.id == null"
+              v-model="verificationJob.container_size"
+              :options="optionStore.containerOptions"
+              option-value="name"
+              option-label="name"
+            />
             <SelectInput
               v-else
               v-model="verificationContainer.container_size"
@@ -125,27 +148,25 @@
 
           <div class="verification-container-info-details">
             <label class="text-h6 q-mb-xs">
-              Media Type
+              Container Type
               <q-btn
+                v-if="verificationJob.type == 2"
                 no-caps
                 flat
                 icon="mdi-square-edit-outline"
                 color="accent"
                 label="Edit"
                 class="btn-no-wrap text-caption"
-                @click="editMediaType = true"
+                @click="editContainerType = true"
               />
             </label>
-            <p
-              v-if="!editMediaType"
-              class="outline text-highlight"
-            >
-              {{ verificationContainer.media_type }}
+            <p v-if="!editContainerType">
+              {{ verificationContainer.id == null ? verificationJob.container_type : verificationContainer.container_type }}
             </p>
             <SelectInput
               v-else
-              v-model="verificationContainer.media_type"
-              :options="optionStore.mediaOptions"
+              v-model="verificationContainer.container_type"
+              :options="optionStore.containerTypes"
               option-value="name"
               option-label="name"
             />
@@ -164,7 +185,7 @@
                 color="accent"
                 label="Save Edits"
                 class="full-width text-body1"
-                @click="updateVerificationContainer"
+                @click="verificationContainer.id == null ? updateVerificationJob() : updateVerificationContainer()"
                 :disabled="verificationJob.status == 'Paused'"
               />
             </div>
@@ -176,7 +197,7 @@
                 color="accent"
                 label="Cancel"
                 class="full-width text-body1"
-                @click="cancelContainerEdit"
+                @click="verificationContainer.id == null ? cancelJobEdit() : cancelContainerEdit()"
               />
             </div>
           </div>
@@ -213,9 +234,10 @@
             no-caps
             unelevated
             color="accent"
-            label="Next Item"
+            label="Scan Item"
             class="text-body1"
             :disabled="verificationJob.status == 'Paused' || allItemsVerified"
+            @click="showScanOverlay = !showScanOverlay"
           />
         </div>
       </div>
@@ -288,7 +310,7 @@
         <div class="col-12">
           <EssentialTable
             :table-columns="verificationTableColumns"
-            :table-data="verificationContainer.items"
+            :table-data="verificationJob.type == 2 ? verificationContainer.items : verificationJob.items"
             :disable-table-reorder="true"
             :hide-table-filter="true"
             :enable-selection="true"
@@ -336,6 +358,28 @@
     :text="showConfirmation"
     @reset="showConfirmation = null"
   />
+
+  <!-- scan overlay (NON TRAY ONLY) -->
+  <PopupModal
+    v-if="showScanOverlay"
+    ref="scanOverlayModal"
+    :title="'Scan Item'"
+    :show-actions="false"
+    @reset="showScanOverlay = false"
+  >
+    <template #modal-content>
+      <div class="flex justify-center q-pb-lg">
+        <q-btn
+          class="text-h3 q-pa-xl"
+          no-caps
+          unelevated
+          color="secondary"
+          label="Scan Barcode"
+          @click="triggerBarcodeScan('00924891234')"
+        />
+      </div>
+    </template>
+  </PopupModal>
 </template>
 
 <script setup>
@@ -363,14 +407,13 @@ const { currentScreenSize } = useCurrentScreenSize()
 const optionStore = useOptionStore()
 const {
   getVerificationTray,
-  getVerificationNonTray,
+  getVerificationNonTrayAndVerify,
   verifyTrayItemBarcode,
-  verifyNonTrayItemBarcode,
   patchVerificationJob,
   patchVerificationTray,
   patchVerificationNonTray
 } = useVerificationStore()
-const { allItemsVerified, verificationJob, verificationContainer, originalVerificationContainer } = storeToRefs(useVerificationStore())
+const { allItemsVerified, verificationJob, originalVerificationJob, verificationContainer, originalVerificationContainer } = storeToRefs(useVerificationStore())
 
 // Local Data
 const verificationTableColumns = ref([
@@ -395,6 +438,8 @@ const editContainerType = ref(false)
 const editContainerSize = ref(false)
 const editMediaType = ref(false)
 const showConfirmation = ref(null)
+const showScanOverlay = ref(false)
+const scanOverlayModal = ref(null)
 const editContainerMode = computed(() => {
   if (editOwner.value || editContainerType.value || editContainerSize.value || editMediaType.value) {
     return true
@@ -405,31 +450,58 @@ const editContainerMode = computed(() => {
 
 // Logic
 watch(compiledBarCode, (newBarcode) => {
-  if (newBarcode !== '' && verificationContainer.value.id == null) {
-    // if a barcode scan is detected and the user hasnt scanned a tray/nontray yet we trigger a scan and get that scanned containers data
-    triggerBarcodeScan(newBarcode)
-  } else if (newBarcode !== '' && verificationContainer.value.id !== null) {
-    // user is scanning barcodes for items related to the scanned container so we need to validate them
-    validateContainerItemBarcode(newBarcode)
-  }
+  triggerBarcodeScan(newBarcode)
 })
-
 const triggerBarcodeScan = (barcode) => {
-  if (verificationJob.value.type == 2) {
+  // if a barcode scan is triggered and the user hasnt scanned a tray yet we get that scanned containers data
+  if (verificationJob.value.type == 2  && verificationContainer.value.id == null) {
     getVerificationTray(barcode)
-  } else {
-    getVerificationNonTray(barcode)
-  }
 
-  router.push({
-    name: 'verification-container',
-    params: {
-      jobId: verificationJob.value.id,
-      containerId: verificationContainer.value.id
+    router.push({
+      name: 'verification-container',
+      params: {
+        jobId: verificationJob.value.id,
+        containerId: verificationContainer.value.id
+      }
+    })
+  } else {
+    // scan is related to tray/non tray item verification
+    validateItemBarcode(barcode)
+  }
+}
+const validateItemBarcode = async (barcode) => {
+  try {
+    // if were in a tray job then we check if the barcode exists in the tray container otherwise we add it as a new barcode
+    if (verificationJob.value.type == 2) {
+      if (verificationContainer.value.items.some(item => item.id == barcode)) {
+        await verifyTrayItemBarcode(barcode)
+      } else {
+        verificationContainer.value.items.push({ id: barcode, verified: false })
+      }
+    } else {
+    // if were in a nontray job then we check if the barcode exists in the nontray job items otherwise we add it as a new barcode
+      if (verificationJob.value.items.some(item => item.id == barcode)) {
+        await getVerificationNonTrayAndVerify(barcode)
+      } else {
+        verificationJob.value.items.push({ id: barcode, verified: false })
+      }
+
+      // close the overlay modal using a component reference
+      scanOverlayModal.value.hideModal()
     }
-  })
+  } catch (error) {
+    // TODO: replace error with popup alert
+    console.log(error)
+  }
 }
 
+const cancelJobEdit = () => {
+  verificationJob.value = { ...toRaw(originalVerificationJob.value) }
+  editOwner.value = false
+  editContainerType.value = false
+  editContainerSize.value = false
+  editMediaType.value = false
+}
 const cancelContainerEdit = () => {
   verificationContainer.value = { ...toRaw(originalVerificationContainer.value) }
   editOwner.value = false
@@ -438,19 +510,6 @@ const cancelContainerEdit = () => {
   editMediaType.value = false
 }
 
-const validateContainerItemBarcode = (barcode) => {
-  // check if barcode exists in the tray/nontray, if not add it as a new barcode
-  if (verificationContainer.value.items.some(item => item.barcode == barcode)) {
-    // check what type of container type were in (tray/nontray)
-    if (verificationJob.value.type == 2) {
-      verifyTrayItemBarcode(barcode)
-    } else {
-      verifyNonTrayItemBarcode(barcode)
-    }
-  } else {
-    verificationContainer.value.items.push({ id: barcode, verified: false })
-  }
-}
 const updateVerificationJobStatus = async (status) => {
   try {
     verificationJob.value.status = status
@@ -460,6 +519,21 @@ const updateVerificationJobStatus = async (status) => {
   } catch (error) {
     // TODO: replace error with popup alert
     console.log(error)
+  }
+}
+const updateVerificationJob = async () => {
+  try {
+    await patchVerificationJob()
+
+    //TODO: display success alert
+  } catch (error) {
+    // TODO: replace error with popup alert
+    console.log(error)
+  } finally {
+    editOwner.value = false
+    editContainerType.value = false
+    editContainerSize.value = false
+    editMediaType.value = false
   }
 }
 const updateVerificationContainer = async () => {

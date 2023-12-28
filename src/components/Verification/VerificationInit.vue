@@ -3,7 +3,7 @@
     <!-- jobs in progress list -->
     <div class="row">
       <div class="col">
-        <h1 class="text-h4 text-bold q-mb-lg">
+        <h1 class="text-h4 text-bold q-mb-xs-md q-mb-sm-lg">
           Jobs In Progress
         </h1>
       </div>
@@ -68,7 +68,7 @@
     <!-- jobs in queue list -->
     <div class="row q-mt-xl">
       <div class="col">
-        <h1 class="text-h4 text-bold q-mb-lg">
+        <h1 class="text-h4 text-bold q-mb-xs-md q-mb-sm-lg">
           Jobs In Queue
         </h1>
       </div>
@@ -148,6 +148,7 @@ const jobsInQueue = ref([])
 
 // Logic
 onMounted(() => {
+  verificationStore.resetVerificationStore()
   loadVerificationJobs()
 })
 

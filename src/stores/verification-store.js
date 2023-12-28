@@ -11,6 +11,7 @@ export const useVerificationStore = defineStore('verification', {
       media_type: null,
       status: ''
     },
+    originalVerificationJob: null,
     verificationContainer: {
       id: null,
       title: '',
@@ -23,7 +24,13 @@ export const useVerificationStore = defineStore('verification', {
     originalVerificationContainer: null
   }),
   getters: {
-    allItemsVerified: (state) => state.verificationContainer.items.some(item => item.verified == false) ? false : true
+    allItemsVerified: (state) => {
+      if (state.verificationJob.type == 1) {
+        return state.verificationJob.items.some(item => item.verified == false) ? false : true
+      } else {
+        return state.verificationContainer.items.some(item => item.verified == false) ? false : true
+      }
+    }
   },
   actions: {
     resetVerificationStore () {
@@ -93,13 +100,22 @@ export const useVerificationStore = defineStore('verification', {
         } else {
           this.verificationJob = {
             ...this.verificationJob,
+            owner: 'John Doe',
+            container_size: 'B Low',
+            container_type: 'Non-Trayed',
+            media_type: 'Vinyl Recording',
             status: 'Running',
             type: 1,
-            id
+            id,
+            items: [
+              {
+                id: '00924891234',
+                verified: false
+              }
+            ]
           }
-
-          this.getVerificationNonTray(id)
         }
+        this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {
         return error
       }
@@ -114,6 +130,7 @@ export const useVerificationStore = defineStore('verification', {
         this.verificationJob = {
           ...this.verificationJob
         }
+        this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {
         return error
       }
@@ -163,9 +180,9 @@ export const useVerificationStore = defineStore('verification', {
         return error
       }
     },
-    async getVerificationNonTray (barcode) {
+    async getVerificationNonTrayAndVerify (barcode) {
       try {
-        // TODO: setup api call to check the scanned barcode and get its nontray data
+        // TODO: setup api call to verify the scanned nontray item barcode and get its data to display
         // const res = await this.$api.patch(
         //   inventoryServiceApi.examplesNumbers + 12, barcode
         // )
@@ -185,6 +202,7 @@ export const useVerificationStore = defineStore('verification', {
           ]
         }
         this.originalVerificationContainer = { ...this.verificationContainer }
+        this.verificationJob.items[this.verificationJob.items.findIndex(item => item.id == barcode)].verified = true
       } catch (error) {
         return error
       }
@@ -211,19 +229,7 @@ export const useVerificationStore = defineStore('verification', {
         //   inventoryServiceApi.examplesNumbers + 12, barcode
         // )
         // this.verificationContainer = res.data
-        this.verificationContainer.items[this.verificationContainer.items.findIndex(item => item.barcode == barcode)].verified = true
-      } catch (error) {
-        return error
-      }
-    },
-    async verifyNonTrayItemBarcode (barcode) {
-      try {
-        // TODO: setup api call to verify the scanned nontray item barcode
-        // const res = await this.$api.patch(
-        //   inventoryServiceApi.examplesNumbers + 12, barcode
-        // )
-        // this.verificationContainer = res.data
-        this.verificationContainer.items[this.verificationContainer.items.findIndex(item => item.barcode == barcode)].verified = true
+        this.verificationContainer.items[this.verificationContainer.items.findIndex(item => item.id == barcode)].verified = true
       } catch (error) {
         return error
       }

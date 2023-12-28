@@ -357,7 +357,7 @@ const cancelContainerEdit = () => {
 
 const validateContainerItemBarcode = (barcode) => {
   // check if barcode exists in the tray/nontray, if not add it as a new barcode
-  if (accessionContainer.value.items.some(item => item.barcode == barcode)) {
+  if (accessionContainer.value.items.some(item => item.id == barcode)) {
     // check what type of container type were in (tray/nontray)
     if (accessionJob.value.type == 2) {
       accessionStore.verifyTrayItemBarcode(barcode)

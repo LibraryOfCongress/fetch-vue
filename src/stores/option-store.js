@@ -43,6 +43,10 @@ export const useOptionStore = defineStore('options', {
       {
         id: 3,
         name: 'Video'
+      },
+      {
+        id: 4,
+        name: 'Vinyl Recording'
       }
     ],
     ownerOptions: [

@@ -21,9 +21,17 @@
 
       <q-card-section>
         <p>{{ text }}</p>
+
+        <slot
+          name="modal-content"
+          :hide-modal="hideModal"
+        />
       </q-card-section>
 
-      <q-card-actions class="row no-wrap justify-between items-center">
+      <q-card-actions
+        v-if="showActions"
+        class="row no-wrap justify-between items-center"
+      >
         <q-btn
           no-caps
           unelevated
@@ -59,6 +67,10 @@ defineProps({
   text: {
     type: String,
     default: ''
+  },
+  showActions: {
+    type: Boolean,
+    default: true
   }
 })
 
@@ -70,6 +82,12 @@ const emit = defineEmits([
 
 // Local Data
 const showPopupModal = ref(true)
+
+// Logic
+const hideModal = () => {
+  showPopupModal.value = false
+}
+defineExpose({ hideModal })
 </script>
 
 <style lang="scss" scoped>
