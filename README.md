@@ -95,7 +95,40 @@ quasar build:local
 See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
 
 
-### Testing The PWA App On Mobile
+### Testing The PWA App On Mobile / Desktop
 
+The best way to handle testing the PWA portion of the application will require an external hosting server/service which is needed so our dev url can have an ssl cert (pwa's can only run on https). For this guide we will use ngrok. (there are other services and ways which can be found in quasar's documentation link below)
+
+**1. **Run the local build script**
+
+```bash
+quasar build:local
+```
+
+This will build the app in pwa mode and store the built files under ./dist/pwa
+
+**2. **Serve the built files using quasars CLI**
+
+```bash
+quasar serve ./dist/pwa/ --history
+```
+
+This should start a local server at http://127.0.0.1:4000 (sometimes the pwa will load on desktop with just this url even though its not https, however to load the app on mobile we still need an external url)
+
+**3. **Start Ngrok and create a proxy url at port 4000 or whichever port your local server is using**
+
+```bash
+ngrok http 4000
+```
+
+You should now see a proxy url generated in ngrok which should look something like the following:
+'https://b92a-47-221-215-243.ngrok-free.app'
+
+Using that url you can now load the application on mobile or desktop and pwa service workers should be active and running.
+
+You should now be able to test out any pwa related functionality within the application!
+
+Helpful Related Quasar PWA Links:
 See [Exposing Dev Server to Public](https://quasar.dev/quasar-cli-vite/opening-dev-server-to-public/).
+See [Quasar PWA With Vite](https://quasar.dev/quasar-cli-vite/developing-pwa/introduction).
 

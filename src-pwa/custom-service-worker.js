@@ -9,10 +9,12 @@
 import { clientsClaim } from 'workbox-core'
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching'
 import { registerRoute } from 'workbox-routing'
-import { NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies'
+import { NetworkFirst } from 'workbox-strategies'
 
 self.skipWaiting()
 clientsClaim()
+
+console.log('custom service worker active')
 
 // Use with precache injection (caches all local files needed to run app offline)
 precacheAndRoute(self.__WB_MANIFEST)
@@ -23,10 +25,10 @@ registerRoute(
   new NetworkFirst()
 )
 
-// caches all app related requests to cache storage
-registerRoute(
-  ({ url }) => url.href.startsWith('http') && !url.href.includes('__vite_ping'),
-  new StaleWhileRevalidate()
-)
+// caches all app related requests to cache storage that dont change often
+// registerRoute(
+//   ({ url }) => url.href.startsWith('http') && !url.href.includes('__vite_ping'),
+//   new StaleWhileRevalidate()
+// )
 
 cleanupOutdatedCaches()

@@ -13,9 +13,9 @@
     "dev:local-pwa": "ENVIRONMENT=local quasar dev -m pwa",
     "dev:development": "ENVIRONMENT=dev quasar dev",
     "dev:production": "ENVIRONMENT=prod quasar dev",
-    "build": "ENVIRONMENT=production quasar build",
+    "build": "ENVIRONMENT=production quasar build -m pwa",
     "build:development": "ENVIRONMENT=dev quasar build -m pwa",
-    "build:local": "ENVIRONMENT=local quasar build --debug",
+    "build:local": "ENVIRONMENT=local quasar build -m pwa --debug",
     "test:unit": "vitest",
     "test:unit:ci": "vitest run"
   },
