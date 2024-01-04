@@ -3,5 +3,7 @@ export default {
   // can be called with the api filter like so
   // this.$api.get(inventoryService.examples, { id: entryId })
   examples: '/examples',
-  examplesNumbers: '/examples/numbers/'
+  examplesNumbers: '/examples/numbers/',
+
+  owners: '/owners'
 }
