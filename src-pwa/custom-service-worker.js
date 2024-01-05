@@ -9,7 +9,7 @@
 import { clientsClaim } from 'workbox-core'
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching'
 import { registerRoute } from 'workbox-routing'
-import { NetworkFirst, NetworkOnly } from 'workbox-strategies'
+import { NetworkFirst } from 'workbox-strategies'
 import { Queue } from 'workbox-background-sync'
 
 self.skipWaiting()
@@ -20,27 +20,19 @@ console.log('custom service worker active')
 // Use with precache injection (caches all local files needed to run app offline)
 precacheAndRoute(self.__WB_MANIFEST)
 
-// caches api specific requests data to indexDB
-registerRoute(
-  ({ url }) => url.href.startsWith(process.env.VITE_INV_SERVCE_API),
-  new NetworkFirst()
-)
-
-// caches all app related requests to cache storage that dont change often
-// registerRoute(
-//   ({ url }) => url.href.startsWith('http') && !url.href.includes('__vite_ping'),
-//   new StaleWhileRevalidate()
-// )
-
-// queue for testing page (stores testing pages offline api requests)
+// queue (stores offline api requests)
 const offlineQueue = new Queue('offlineQueue', {
   onSync: async ({ queue }) => {
     let entry
     while ((entry = await queue.shiftRequest())) {
       try {
-        await fetch(entry.request)
-        // Data successfully synchronized
-        console.log('Queued Request Successfully Sent', entry.request)
+        const res = await fetch(entry.request).then(response => response.json())
+        // Data successfully synchronized send response data back to client
+        console.log('Queued Request Successfully Sent', res)
+        const clients = await self.clients.matchAll()
+        for (const client of clients) {
+          client.postMessage(res)
+        }
       } catch (error) {
         // Handle synchronization errors
         console.log('Queued Request Failed', entry.request, error)
@@ -54,18 +46,25 @@ const offlineQueue = new Queue('offlineQueue', {
 })
 
 // if a test page api call fails due to absense of network connection we send that request to the offline queue
+self.addEventListener('fetch', (event) => {
+  if (event.request.url.startsWith(process.env.VITE_INV_SERVCE_API) && event.request.url.includes('/owners/tiers')) {
+    if (!self.navigator.onLine) {
+      const promiseChain = fetch(event.request.clone()).catch(() => {
+        console.log('Request failed to send no internet available storing in queue')
+        return offlineQueue.pushRequest({ request: event.request })
+      })
+
+      event.waitUntil(promiseChain)
+    }
+  }
+})
+
+// caches all other api specific request data
 registerRoute(
-  ({ url }) => url.href.startsWith(process.env.VITE_INV_SERVCE_API) && url.pathname == '/test',
-  new NetworkOnly({
-    plugins: [
-      {
-        fetchDidFail: async ({ request }) => {
-          console.log('Request failed to send no internet available storing in queue')
-          await offlineQueue.pushRequest({ request })
-        }
-      }
-    ]
-  })
+  ({ url }) => {
+    url.href.startsWith(process.env.VITE_INV_SERVCE_API)
+  },
+  new NetworkFirst()
 )
 
 cleanupOutdatedCaches()

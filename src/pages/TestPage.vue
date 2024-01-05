@@ -3,7 +3,7 @@
     padding
     class="flex flex-center column"
   >
-    <h1>List of Owners</h1>
+    <h1>List of Owner Tiers</h1>
     <ul class="owner-list">
       <div
         v-if="loadingData"
@@ -16,15 +16,15 @@
         />
       </div>
 
-      <li v-if="ownerOptions.length == 0 && !loadingData">
-        No Owners found...
+      <li v-if="ownerTierOptions.length == 0 && !loadingData">
+        No Owner Tiers found...
       </li>
       <li
-        v-for="(owner, i) in ownerOptions"
+        v-for="(data, i) in ownerTierOptions"
         :key="i"
-        :class="owner.temporary ? 'text-negative' : ''"
+        :class="data.temporary ? 'text-negative' : ''"
       >
-        {{ owner.temporary ? `${owner.name} (stored offline)` : owner.name }}
+        {{ data.temporary ? `${data.name} (stored offline)` : data.name }}
       </li>
     </ul>
 
@@ -33,21 +33,21 @@
       unelevated
       class="text-body1 q-mt-lg"
       color="primary"
-      label="Create New Owner"
+      label="Create New Owner Tier"
       :disabled="loadingData"
-      @click="showOwnerCreation = !showOwnerCreation"
+      @click="showOwnerTierCreation = !showOwnerTierCreation"
     />
 
     <q-dialog
       :persistent="true"
-      v-model="showOwnerCreation"
+      v-model="showOwnerTierCreation"
     >
       <q-card class="test-modal">
         <q-card-section class="row items-center justify-between q-pb-none">
           <h2
             class="text-h6"
           >
-            Create A New Owner
+            Create A New Owner Tier
           </h2>
 
           <q-btn
@@ -66,8 +66,8 @@
             outlined
             color="primary"
             dense
-            v-model="newOwner"
-            :placeholder="'Enter Owner Name'"
+            v-model="newOwnerTier"
+            :placeholder="'Enter Owner Tier Name'"
             class="full-width"
           />
         </q-card-section>
@@ -79,7 +79,7 @@
             color="accent"
             label="Confirm"
             class="text-body1 full-width"
-            @click="createNewOwner"
+            @click="createNewOwnerTier"
           />
 
           <q-space class="q-mx-xs" />
@@ -103,36 +103,39 @@ import { useOptionStore } from 'src/stores/option-store'
 import { ref, onMounted } from 'vue'
 
 // Store Data
-const { getOwnersList, postOwner } = useOptionStore()
-const { ownerOptions } = storeToRefs(useOptionStore())
+const { getOwnerTierList, postOwnerTier } = useOptionStore()
+const { ownerTierOptions } = storeToRefs(useOptionStore())
 
 // Local Data
 const loadingData = ref(true)
-const showOwnerCreation = ref(false)
-const newOwner = ref('')
+const showOwnerTierCreation = ref(false)
+const newOwnerTier = ref('')
 
 // Logic
 onMounted(async () => {
-  await getOwnersList()
+  await getOwnerTierList()
   loadingData.value = false
+
+  // when user comes back online we listen for the stored api calls to sync and update the ownerTiers
+  navigator.serviceWorker.addEventListener('message', updateOwnerTierList)
 })
 
 const reset = () => {
-  showOwnerCreation.value = false
-  newOwner.value = ''
+  showOwnerTierCreation.value = false
+  newOwnerTier.value = ''
 }
 
-const createNewOwner = async () => {
+const createNewOwnerTier = async () => {
   try {
     const payload = {
-      name: newOwner.value,
-      owner_tier_id: 1
+      name: newOwnerTier.value,
+      level: ownerTierOptions.value[ownerTierOptions.value.length - 1].level + 1
     }
-    await postOwner(payload)
+    await postOwnerTier(payload)
 
     if (!window.navigator.onLine) {
-      ownerOptions.value = [
-        ...ownerOptions.value,
+      ownerTierOptions.value = [
+        ...ownerTierOptions.value,
         {
           ...payload,
           temporary: true
@@ -144,6 +147,12 @@ const createNewOwner = async () => {
   } finally {
     reset()
   }
+}
+const updateOwnerTierList = (requestdata) => {
+  ownerTierOptions.value = [
+    ...ownerTierOptions.value,
+    requestdata.data
+  ].filter(tier => !tier.temporary)
 }
 </script>
 

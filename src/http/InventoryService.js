@@ -5,5 +5,6 @@ export default {
   examples: '/examples',
   examplesNumbers: '/examples/numbers/',
 
-  owners: '/owners'
+  owners: '/owners',
+  ownersTiers: '/owners/tiers'
 }

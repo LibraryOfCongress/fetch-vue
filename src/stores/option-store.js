@@ -44,7 +44,8 @@ export const useOptionStore = defineStore('options', {
         id: 2,
         name: 'George Washington'
       }
-    ]
+    ],
+    ownerTierOptions: []
   }),
   actions: {
     resetOptionStore () {
@@ -60,20 +61,22 @@ export const useOptionStore = defineStore('options', {
         return error
       }
     },
-    async getOwnersList () {
+    async getOwnerTierList () {
       try {
-        this.ownerOptions = []
-        const res = await this.$api.get(inventoryServiceApi.owners)
-        this.ownerOptions = res.data
+        const res = await this.$api.get(inventoryServiceApi.ownersTiers)
+        this.ownerTierOptions = res.data.items
       } catch (error) {
         return error
       }
     },
-    async postOwner (payload) {
+    async postOwnerTier (payload) {
       try {
-        const res = await this.$api.post(inventoryServiceApi.owners, payload)
+        const res = await this.$api.post(inventoryServiceApi.ownersTiers, payload)
 
-        console.log(res)
+        this.ownerTierOptions = [
+          ...this.ownerTierOptions,
+          res.data
+        ]
       } catch (error) {
         return error
       }
