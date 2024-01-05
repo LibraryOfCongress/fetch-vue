@@ -52,6 +52,39 @@
           />
         </template>
       </q-banner>
+
+      <!-- online banner if user has pending api requests -->
+      <q-banner
+        v-if="showOnlineBanner"
+        class="offline-banner bg-color-gray-light text-color-black"
+        inline-actions
+        dense
+      >
+        <q-icon
+          name="wifi"
+          color="positive"
+          size="25px"
+          class="q-mr-sm"
+        />
+        You are back online! There are pending requests to be sent.
+        <template #action>
+          <q-btn
+            unelevated
+            :loading="syncInProgress == 'In Progress'"
+            color="positive"
+            :label="syncInProgress == 'Complete' ? 'Sync Completed' : 'Send Requests'"
+            class="text-body1"
+            @click="syncInProgress == '' ? triggerBackgroundSync : null"
+          >
+            <template #loading>
+              <q-spinner-bars
+                color="white"
+                size="1rem"
+              />
+            </template>
+          </q-btn>
+        </template>
+      </q-banner>
     </q-header>
 
     <!-- side nav -->
@@ -121,7 +154,112 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { onMounted, ref } from 'vue'
+import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import EssentialLink from '@/components/EssentialLink.vue'
+import SearchInput from '@/components/SearchInput.vue'
+
+// Composables
+const { currentScreenSize } = useCurrentScreenSize()
+
+// Local Data
+const essentialLinks = ref([
+  {
+    title: 'Accession',
+    icon: 'mdi-barcode-scan',
+    link: '/accession'
+  },
+  {
+    title: 'Verfication',
+    icon: 'done_all',
+    link: '/'
+  },
+  {
+    title: 'Shelving',
+    icon: 'subject',
+    link: '/shelving'
+  },
+  {
+    title: 'Request',
+    icon: 'manage_search',
+    link: '/'
+  },
+  {
+    title: 'Refile',
+    icon: 'list',
+    link: '/'
+  }
+])
+const mobileNavLinks = ref([
+  {
+    title: 'Accession',
+    icon: 'mdi-barcode-scan',
+    link: '/accession'
+  },
+  {
+    title: 'Verfication',
+    icon: 'done_all',
+    link: '/'
+  },
+  {
+    title: 'Shelving',
+    icon: 'subject',
+    link: '/shelving'
+  },
+  {
+    title: 'Request',
+    icon: 'manage_search',
+    link: '/'
+  },
+  {
+    title: 'Refile',
+    icon: 'list',
+    link: '/'
+  }
+])
+const leftDrawerOpen = ref(false)
+const showOfflineBanner = ref(false)
+const showOnlineBanner = ref(false)
+const syncInProgress = ref('')
+
+// Logic
+onMounted(() => {
+  window.addEventListener('offline', () => {
+    showOnlineBanner.value = false
+    showOfflineBanner.value = true
+  })
+  window.addEventListener('online', () => {
+    showOfflineBanner.value = false
+  })
+
+  // when user triggers an offline sync, we need to wait for the syncComplete message from the serviceworker queue
+  navigator.serviceWorker.addEventListener('message', event => {
+    if (event.data.message == 'pending sync') {
+      // show online banner only if we have requests pending in queue
+      showOnlineBanner.value = true
+    } else if (event.data.message == 'sync complete') {
+      syncInProgress.value = 'Complete'
+
+      setTimeout(() => {
+        showOnlineBanner.value = false
+        syncInProgress.value = ''
+      }, 3000)
+    }
+  })
+})
+
+const toggleLeftDrawer = () => {
+  leftDrawerOpen.value = !leftDrawerOpen.value
+}
+const triggerBackgroundSync = () => {
+  // send a trigger backgroundsync message to the sertvice workers
+  navigator.serviceWorker.controller.postMessage('triggerBackgroundSync')
+  syncInProgress.value = 'In Progress'
+}
+</script>
+
+<!-- <script>
 import { defineComponent } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialLink from '@/components/EssentialLink.vue'
@@ -213,7 +351,7 @@ export default defineComponent({
     }
   }
 })
-</script>
+</script> -->
 
 <style lang="scss" scoped>
 .nav {

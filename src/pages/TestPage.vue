@@ -22,9 +22,9 @@
       <li
         v-for="(data, i) in ownerTierOptions"
         :key="i"
-        :class="data.temporary ? 'text-negative' : ''"
+        :class="data.storedOffline ? 'text-negative' : ''"
       >
-        {{ data.temporary ? `${data.name} (stored offline)` : data.name }}
+        {{ data.storedOffline ? `${data.name} (stored offline)` : data.name }}
       </li>
     </ul>
 
@@ -116,8 +116,12 @@ onMounted(async () => {
   await getOwnerTierList()
   loadingData.value = false
 
-  // when user comes back online we listen for the stored api calls to sync and update the ownerTiers
-  navigator.serviceWorker.addEventListener('message', updateOwnerTierList)
+  // when user comes back online we listen for the stored owner api calls to sync and update the ownerTiers
+  navigator.serviceWorker.addEventListener('message', event => {
+    if (event.data.url && event.data.url.includes('/owners/tiers')) {
+      updateOwnerTierList(event.data.response)
+    }
+  })
 })
 
 const reset = () => {
@@ -138,7 +142,7 @@ const createNewOwnerTier = async () => {
         ...ownerTierOptions.value,
         {
           ...payload,
-          temporary: true
+          storedOffline: true
         }
       ]
     }
@@ -151,8 +155,8 @@ const createNewOwnerTier = async () => {
 const updateOwnerTierList = (requestdata) => {
   ownerTierOptions.value = [
     ...ownerTierOptions.value,
-    requestdata.data
-  ].filter(tier => !tier.temporary)
+    requestdata
+  ].filter(tier => !tier.storedOffline)
 }
 </script>
 
