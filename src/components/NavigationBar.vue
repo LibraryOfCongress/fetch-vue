@@ -74,7 +74,7 @@
             color="positive"
             :label="syncInProgress == 'Complete' ? 'Sync Completed' : 'Send Requests'"
             class="text-body1"
-            @click="syncInProgress == '' ? triggerBackgroundSync : null"
+            @click="triggerBackgroundSync"
           >
             <template #loading>
               <q-spinner-bars
@@ -155,13 +155,15 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { useBackgroundSyncHandler } from '@/composables/useBackgroundSyncHandler.js'
 import EssentialLink from '@/components/EssentialLink.vue'
 import SearchInput from '@/components/SearchInput.vue'
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
+const { bgSyncData, syncInProgress, triggerBackgroundSync } = useBackgroundSyncHandler()
 
 // Local Data
 const essentialLinks = ref([
@@ -221,7 +223,6 @@ const mobileNavLinks = ref([
 const leftDrawerOpen = ref(false)
 const showOfflineBanner = ref(false)
 const showOnlineBanner = ref(false)
-const syncInProgress = ref('')
 
 // Logic
 onMounted(() => {
@@ -233,12 +234,12 @@ onMounted(() => {
     showOfflineBanner.value = false
   })
 
-  // when user triggers an offline sync, we need to wait for the syncComplete message from the serviceworker queue
   navigator.serviceWorker.addEventListener('message', event => {
     if (event.data.message == 'pending sync') {
       // show online banner only if we have requests pending in queue
       showOnlineBanner.value = true
     } else if (event.data.message == 'sync complete') {
+      // when user triggers an offline sync, we need to wait for the syncComplete message from the serviceworker queue
       syncInProgress.value = 'Complete'
 
       setTimeout(() => {
@@ -249,109 +250,17 @@ onMounted(() => {
   })
 })
 
+// watch the bgSyncData and if we detect any requests that are still pending display the online banner
+watch(bgSyncData, () => {
+  if (bgSyncData.value.length > 0 && navigator.onLine) {
+    showOnlineBanner.value = true
+  }
+})
+
 const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
-const triggerBackgroundSync = () => {
-  // send a trigger backgroundsync message to the sertvice workers
-  navigator.serviceWorker.controller.postMessage('triggerBackgroundSync')
-  syncInProgress.value = 'In Progress'
-}
 </script>
-
-<!-- <script>
-import { defineComponent } from 'vue'
-import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
-import EssentialLink from '@/components/EssentialLink.vue'
-import SearchInput from '@/components/SearchInput.vue'
-
-export default defineComponent({
-  name: 'NavigationBar',
-  components: {
-    EssentialLink,
-    SearchInput
-  },
-  setup () {
-    const { currentScreenSize } = useCurrentScreenSize()
-    return {
-      currentScreenSize
-    }
-  },
-  data () {
-    return {
-      essentialLinks: [
-        {
-          title: 'Accession',
-          icon: 'mdi-barcode-scan',
-          link: '/accession'
-        },
-        {
-          title: 'Verfication',
-          icon: 'done_all',
-          link: '/'
-        },
-        {
-          title: 'Shelving',
-          icon: 'subject',
-          link: '/shelving'
-        },
-        {
-          title: 'Request',
-          icon: 'manage_search',
-          link: '/'
-        },
-        {
-          title: 'Refile',
-          icon: 'list',
-          link: '/'
-        }
-      ],
-      mobileNavLinks: [
-        {
-          title: 'Accession',
-          icon: 'mdi-barcode-scan',
-          link: '/accession'
-        },
-        {
-          title: 'Verfication',
-          icon: 'done_all',
-          link: '/'
-        },
-        {
-          title: 'Shelving',
-          icon: 'subject',
-          link: '/shelving'
-        },
-        {
-          title: 'Request',
-          icon: 'manage_search',
-          link: '/'
-        },
-        {
-          title: 'Refile',
-          icon: 'list',
-          link: '/'
-        }
-      ],
-      leftDrawerOpen: false,
-      showOfflineBanner: false
-    }
-  },
-  mounted () {
-    window.addEventListener('offline', () => {
-      this.showOfflineBanner = true
-    })
-    window.addEventListener('online', () => {
-      this.showOfflineBanner = false
-    })
-  },
-  methods: {
-    toggleLeftDrawer () {
-      this.leftDrawerOpen = !this.leftDrawerOpen
-    }
-  }
-})
-</script> -->
 
 <style lang="scss" scoped>
 .nav {
