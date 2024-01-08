@@ -52,6 +52,39 @@
           />
         </template>
       </q-banner>
+
+      <!-- online banner if user has pending api requests -->
+      <q-banner
+        v-if="showOnlineBanner"
+        class="offline-banner bg-color-gray-light text-color-black"
+        inline-actions
+        dense
+      >
+        <q-icon
+          name="wifi"
+          color="positive"
+          size="25px"
+          class="q-mr-sm"
+        />
+        You are back online! There are pending requests to be sent.
+        <template #action>
+          <q-btn
+            unelevated
+            :loading="syncInProgress == 'In Progress'"
+            color="positive"
+            :label="syncInProgress == 'Complete' ? 'Sync Completed' : 'Send Requests'"
+            class="text-body1"
+            @click="triggerBackgroundSync"
+          >
+            <template #loading>
+              <q-spinner-bars
+                color="white"
+                size="1rem"
+              />
+            </template>
+          </q-btn>
+        </template>
+      </q-banner>
     </q-header>
 
     <!-- side nav -->
@@ -121,98 +154,112 @@
   </div>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
+<script setup>
+import { onMounted, ref, watch } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { useBackgroundSyncHandler } from '@/composables/useBackgroundSyncHandler.js'
 import EssentialLink from '@/components/EssentialLink.vue'
 import SearchInput from '@/components/SearchInput.vue'
 
-export default defineComponent({
-  name: 'NavigationBar',
-  components: {
-    EssentialLink,
-    SearchInput
+// Composables
+const { currentScreenSize } = useCurrentScreenSize()
+const { bgSyncData, syncInProgress, triggerBackgroundSync } = useBackgroundSyncHandler()
+
+// Local Data
+const essentialLinks = ref([
+  {
+    title: 'Accession',
+    icon: 'mdi-barcode-scan',
+    link: '/accession'
   },
-  setup () {
-    const { currentScreenSize } = useCurrentScreenSize()
-    return {
-      currentScreenSize
+  {
+    title: 'Verfication',
+    icon: 'done_all',
+    link: '/'
+  },
+  {
+    title: 'Shelving',
+    icon: 'subject',
+    link: '/shelving'
+  },
+  {
+    title: 'Request',
+    icon: 'manage_search',
+    link: '/'
+  },
+  {
+    title: 'Refile',
+    icon: 'list',
+    link: '/'
+  }
+])
+const mobileNavLinks = ref([
+  {
+    title: 'Accession',
+    icon: 'mdi-barcode-scan',
+    link: '/accession'
+  },
+  {
+    title: 'Verfication',
+    icon: 'done_all',
+    link: '/'
+  },
+  {
+    title: 'Shelving',
+    icon: 'subject',
+    link: '/shelving'
+  },
+  {
+    title: 'Request',
+    icon: 'manage_search',
+    link: '/'
+  },
+  {
+    title: 'Refile',
+    icon: 'list',
+    link: '/'
+  }
+])
+const leftDrawerOpen = ref(false)
+const showOfflineBanner = ref(false)
+const showOnlineBanner = ref(false)
+
+// Logic
+onMounted(() => {
+  window.addEventListener('offline', () => {
+    showOnlineBanner.value = false
+    showOfflineBanner.value = true
+  })
+  window.addEventListener('online', () => {
+    showOfflineBanner.value = false
+  })
+
+  navigator.serviceWorker.addEventListener('message', event => {
+    if (event.data.message == 'pending sync') {
+      // show online banner only if we have requests pending in queue
+      showOnlineBanner.value = true
+    } else if (event.data.message == 'sync complete') {
+      // when user triggers an offline sync, we need to wait for the syncComplete message from the serviceworker queue
+      syncInProgress.value = 'Complete'
+
+      setTimeout(() => {
+        showOnlineBanner.value = false
+        syncInProgress.value = ''
+      }, 3000)
     }
-  },
-  data () {
-    return {
-      essentialLinks: [
-        {
-          title: 'Accession',
-          icon: 'mdi-barcode-scan',
-          link: '/accession'
-        },
-        {
-          title: 'Verfication',
-          icon: 'done_all',
-          link: '/'
-        },
-        {
-          title: 'Shelving',
-          icon: 'subject',
-          link: '/shelving'
-        },
-        {
-          title: 'Request',
-          icon: 'manage_search',
-          link: '/'
-        },
-        {
-          title: 'Refile',
-          icon: 'list',
-          link: '/'
-        }
-      ],
-      mobileNavLinks: [
-        {
-          title: 'Accession',
-          icon: 'mdi-barcode-scan',
-          link: '/accession'
-        },
-        {
-          title: 'Verfication',
-          icon: 'done_all',
-          link: '/'
-        },
-        {
-          title: 'Shelving',
-          icon: 'subject',
-          link: '/shelving'
-        },
-        {
-          title: 'Request',
-          icon: 'manage_search',
-          link: '/'
-        },
-        {
-          title: 'Refile',
-          icon: 'list',
-          link: '/'
-        }
-      ],
-      leftDrawerOpen: false,
-      showOfflineBanner: false
-    }
-  },
-  mounted () {
-    window.addEventListener('offline', () => {
-      this.showOfflineBanner = true
-    })
-    window.addEventListener('online', () => {
-      this.showOfflineBanner = false
-    })
-  },
-  methods: {
-    toggleLeftDrawer () {
-      this.leftDrawerOpen = !this.leftDrawerOpen
-    }
+  })
+})
+
+// watch the bgSyncData and if we detect any requests that are still pending display the online banner
+watch(bgSyncData, () => {
+  if (bgSyncData.value.length > 0 && navigator.onLine) {
+    showOnlineBanner.value = true
   }
 })
+
+const toggleLeftDrawer = () => {
+  leftDrawerOpen.value = !leftDrawerOpen.value
+}
 </script>
 
 <style lang="scss" scoped>
