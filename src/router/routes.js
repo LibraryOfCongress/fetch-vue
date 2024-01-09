@@ -11,6 +11,11 @@ const routes = [
         component: () => import('@/pages/IndexPage.vue')
       },
       {
+        name: 'test',
+        path: '/test',
+        component: () => import('@/pages/TestPage.vue')
+      },
+      {
         name: 'accession',
         path: 'accession/:jobId?', // child path reads as "parent path + / + child_path" ex: /accession
         component: () => import('@/pages/AccessionPage.vue')

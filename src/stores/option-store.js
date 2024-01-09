@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-// import inventoryServiceApi from '@/http/InventoryService.js';
+import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useOptionStore = defineStore('options', {
   state: () => ({
@@ -62,7 +62,8 @@ export const useOptionStore = defineStore('options', {
         id: 3,
         name: 'Colonel Sanders'
       }
-    ]
+    ],
+    ownerTierOptions: []
   }),
   actions: {
     resetOptionStore () {
@@ -74,6 +75,26 @@ export const useOptionStore = defineStore('options', {
         // const res = await this.$api.get(
         //   inventoryServiceApi.examplesNumbers + 12
         // )
+      } catch (error) {
+        return error
+      }
+    },
+    async getOwnerTierList () {
+      try {
+        const res = await this.$api.get(inventoryServiceApi.ownersTiers)
+        this.ownerTierOptions = res.data.items
+      } catch (error) {
+        return error
+      }
+    },
+    async postOwnerTier (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.ownersTiers, payload)
+
+        this.ownerTierOptions = [
+          ...this.ownerTierOptions,
+          res.data
+        ]
       } catch (error) {
         return error
       }
