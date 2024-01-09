@@ -9,9 +9,10 @@
         <q-item
           v-for="(opt, i) in options"
           :key="i"
-          clickable
+          :clickable="!opt.disabled"
           v-close-popup
           @click="emit('click', opt)"
+          :class="opt.disabled ? 'disabled' : ''"
         >
           <q-item-section>
             {{ opt.text }}

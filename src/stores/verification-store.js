@@ -111,6 +111,14 @@ export const useVerificationStore = defineStore('verification', {
               {
                 id: '00924891234',
                 verified: false
+              },
+              {
+                id: '00924891235',
+                verified: false
+              },
+              {
+                id: '00924891236',
+                verified: false
               }
             ]
           }
@@ -120,7 +128,7 @@ export const useVerificationStore = defineStore('verification', {
         return error
       }
     },
-    async patchVerificationJob () {
+    async patchVerificationJob (payload) {
       try {
         // TODO: setup api call to update an verification job
         // const res = await this.$api.patch(
@@ -128,7 +136,8 @@ export const useVerificationStore = defineStore('verification', {
         // )
         // this.verificationJob = res.data
         this.verificationJob = {
-          ...this.verificationJob
+          ...this.verificationJob,
+          ...payload
         }
         this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {
@@ -180,7 +189,7 @@ export const useVerificationStore = defineStore('verification', {
         return error
       }
     },
-    async getVerificationNonTrayAndVerify (barcode) {
+    async getVerificationNonTray (barcode) {
       try {
         // TODO: setup api call to verify the scanned nontray item barcode and get its data to display
         // const res = await this.$api.patch(
@@ -192,17 +201,10 @@ export const useVerificationStore = defineStore('verification', {
           title: 'Non Tray Title',
           owner: 'Colonel Sanders',
           container_type: 'Non-Trayed',
-          container_size: 'C High',
-          media_type: 'Vinyl Recording',
-          items: [
-            {
-              id: '00924891234',
-              verified: true
-            }
-          ]
+          container_size: 'B High',
+          media_type: 'Vinyl Recording'
         }
         this.originalVerificationContainer = { ...this.verificationContainer }
-        this.verificationJob.items[this.verificationJob.items.findIndex(item => item.id == barcode)].verified = true
       } catch (error) {
         return error
       }
@@ -230,6 +232,18 @@ export const useVerificationStore = defineStore('verification', {
         // )
         // this.verificationContainer = res.data
         this.verificationContainer.items[this.verificationContainer.items.findIndex(item => item.id == barcode)].verified = true
+      } catch (error) {
+        return error
+      }
+    },
+    async verifyNonTrayItemBarcode (barcode) {
+      try {
+        // TODO: setup api call to verify the scanned nontray item barcode
+        // const res = await this.$api.patch(
+        //   inventoryServiceApi.examplesNumbers + 12, barcode
+        // )
+        // this.verificationContainer = res.data
+        this.verificationJob.items[this.verificationJob.items.findIndex(item => item.id == barcode)].verified = true
       } catch (error) {
         return error
       }

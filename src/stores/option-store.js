@@ -57,6 +57,10 @@ export const useOptionStore = defineStore('options', {
       {
         id: 2,
         name: 'George Washington'
+      },
+      {
+        id: 3,
+        name: 'Colonel Sanders'
       }
     ]
   }),
