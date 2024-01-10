@@ -128,7 +128,7 @@ export const useAccessionStore = defineStore('accession', {
         //   inventoryServiceApi.examplesNumbers + 12, barcode
         // )
         // this.accessionContainer = res.data
-        this.accessionContainer.items[this.accessionContainer.items.findIndex(item => item.barcode == barcode)].verified = true
+        this.accessionContainer.items[this.accessionContainer.items.findIndex(item => item.id == barcode)].verified = true
       } catch (error) {
         return error
       }
@@ -185,7 +185,7 @@ export const useAccessionStore = defineStore('accession', {
         //   inventoryServiceApi.examplesNumbers + 12, barcode
         // )
         // this.accessionContainer = res.data
-        this.accessionContainer.items[this.accessionContainer.items.findIndex(item => item.barcode == barcode)].verified = true
+        this.accessionContainer.items[this.accessionContainer.items.findIndex(item => item.id == barcode)].verified = true
       } catch (error) {
         return error
       }

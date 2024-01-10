@@ -36,14 +36,34 @@ const routes = [
         }
       },
       {
-        name: 'itme-management',
-        path: 'item-management/:type?',
-        component: () => import('@/pages/ItemManagementPage.vue')
+        name: 'verification',
+        path: 'verification/:jobId?',
+        component: () => import('@/pages/VerificationPage.vue')
+      },
+      {
+        name: 'verification-container',
+        path: 'verification/:jobId?/scan-items/:containerId?',
+        component: () => import('@/pages/VerificationPage.vue'),
+        beforeEnter ({ params }) {
+          if (!params.containerId) {
+            return {
+              name: 'verification',
+              params: {
+                jobId: params.jobId
+              }
+            }
+          }
+        }
       },
       {
         name: 'shelving',
         path: 'shelving',
         component: () => import('@/pages/ShelvingPage.vue')
+      },
+      {
+        name: 'itme-management',
+        path: 'item-management/:type?',
+        component: () => import('@/pages/ItemManagementPage.vue')
       }
     ]
   },

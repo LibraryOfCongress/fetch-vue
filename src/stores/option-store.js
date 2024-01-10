@@ -3,6 +3,16 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useOptionStore = defineStore('options', {
   state: () => ({
+    containerTypes: [
+      {
+        id: 1,
+        name: 'Non-Trayed'
+      },
+      {
+        id: 2,
+        name: 'Trayed'
+      }
+    ],
     containerOptions: [
       {
         id: 1,
@@ -33,6 +43,10 @@ export const useOptionStore = defineStore('options', {
       {
         id: 3,
         name: 'Video'
+      },
+      {
+        id: 4,
+        name: 'Vinyl Recording'
       }
     ],
     ownerOptions: [
@@ -43,6 +57,10 @@ export const useOptionStore = defineStore('options', {
       {
         id: 2,
         name: 'George Washington'
+      },
+      {
+        id: 3,
+        name: 'Colonel Sanders'
       }
     ],
     ownerTierOptions: []

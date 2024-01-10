@@ -1,7 +1,7 @@
 <template>
-  <div class="row">
+  <div class="breadcrumb row items-center">
     <div class="col-auto">
-      <div class="breadcrumb">
+      <div class="breadcrumb-list">
         <EssentialLink
           :title="'Back'"
           :icon="'chevron_left'"
@@ -11,6 +11,9 @@
         />
       </div>
     </div>
+
+    <slot name="actions" />
+
     <q-space class="divider" />
   </div>
 </template>
@@ -21,3 +24,12 @@ import EssentialLink from '@/components/EssentialLink.vue'
 
 const router = useRouter()
 </script>
+
+<style lang="scss" scoped>
+.breadcrumb {
+  position: sticky;
+  top: 50px; // this offsets the main nav
+  background-color: $color-white;
+  z-index: 2000;
+}
+</style>

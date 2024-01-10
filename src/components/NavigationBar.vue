@@ -175,7 +175,7 @@ const essentialLinks = ref([
   {
     title: 'Verfication',
     icon: 'done_all',
-    link: '/'
+    link: '/verification'
   },
   {
     title: 'Shelving',
@@ -202,7 +202,7 @@ const mobileNavLinks = ref([
   {
     title: 'Verfication',
     icon: 'done_all',
-    link: '/'
+    link: '/verification'
   },
   {
     title: 'Shelving',

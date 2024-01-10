@@ -21,8 +21,6 @@ describe('useCurrentScreenSize', () => {
   it('should return the current window size for a user', () => {
     const wrapper = mount(TestComponent)
 
-    console.log('test', wrapper.vm.currentScreenSize)
-
     expect(wrapper.vm.currentScreenSize).toBe('sm')
   })
 })

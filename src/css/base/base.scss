@@ -9,12 +9,20 @@
   box-sizing: border-box;
 }
 
+html {
+  font-size: 100%; /* browser default 1rem = 16px */
+
+  @media (max-width: $breakpoint-sm-min) {
+    font-size: 87.5%; /* scales down text on mobile screens to be 1rem = 14px */
+  }
+}
+
 body {
   font-family: Arial, sans-serif;
 	font-weight: 400;
 	font-size: $font-default;
-	box-sizing: border-box;
-  line-height: 1.5;
+  line-height: 1.5rem;
+  box-sizing: border-box;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
