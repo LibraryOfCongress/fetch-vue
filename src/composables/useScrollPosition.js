@@ -21,6 +21,7 @@ export function useScrollPosition () {
 
   return {
     scrollPosition,
-    scrollToTop
+    scrollToTop,
+    updateScrollPosition
   }
 }
