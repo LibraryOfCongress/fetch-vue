@@ -127,6 +127,7 @@
           :table-columns="trayItemsTableColumns"
           :table-visible-columns="trayItemsTableVisibleColumns"
           :table-data="trayData.items"
+          :filter-options="trayItemTableFilters"
           :disable-table-reorder="true"
           :heading-row-class="'q-mb-lg'"
           @selected-table-row="$emit('selected-item', $event)"
@@ -276,6 +277,34 @@ export default defineComponent({
           align: 'left',
           sortable: true,
           required: true
+        }
+      ],
+      trayItemTableFilters: [
+        {
+          field: 'media_type',
+          options: [
+            {
+              text: 'Document',
+              value: false
+            },
+            {
+              text: 'Archival Material',
+              value: false
+            }
+          ]
+        },
+        {
+          field: 'size',
+          options: [
+            {
+              text: 'C High',
+              value: false
+            },
+            {
+              text: 'C Low',
+              value: false
+            }
+          ]
         }
       ]
     }

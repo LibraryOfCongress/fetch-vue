@@ -8,7 +8,63 @@
       <slot name="heading-row" />
 
       <div
-        v-if="!hideTableFilter"
+        v-if="localFilterOptions.length > 0"
+        class="col-auto"
+      >
+        <q-btn
+          flat
+          icon="mdi-filter"
+          class="table-component-filter"
+        >
+          <q-menu
+            :transition-show="currentScreenSize == 'xs' ? 'scale' : 'fade'"
+            :transition-hide="currentScreenSize == 'xs' ? 'scale' : 'fade'"
+            :class="currentScreenSize == 'xs' ? $style['mobile-menu'] : ''"
+          >
+            <q-item-label class="text-h6 q-pa-md">
+              Filter Options
+            </q-item-label>
+            <q-space class="divider" />
+            <q-list class="table-component-filter-list q-mt-sm">
+              <q-item
+                v-for="(data, i) in localFilterOptions"
+                :key="i"
+              >
+                <q-item-section>
+                  <q-item-label header>
+                    {{ localTableColumns.find(obj => obj.field == data.field)?.label }}
+                  </q-item-label>
+
+                  <q-item
+                    v-for="opt in data.options"
+                    :key="opt.text"
+                    tag="label"
+                    v-ripple
+                    :class="opt.value ? 'active' : ''"
+                  >
+                    <q-item-section
+                      side
+                      top
+                    >
+                      <q-checkbox
+                        v-model="opt.value"
+                        @update:model-value="filterTableData(opt)"
+                      />
+                    </q-item-section>
+
+                    <q-item-section>
+                      <q-item-label>{{ opt.text }}</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
+      </div>
+
+      <div
+        v-if="!hideTableRearrange"
         class="col-auto"
       >
         <q-select
@@ -16,15 +72,15 @@
           outlined
           multiple
           :dense="currentScreenSize == 'xs'"
-          :display-value="'Filter'"
+          :display-value="'Rearrange'"
           v-model="localTableVisibleColumns"
           :options="localTableColumns.filter(opt => opt.required == null)"
           emit-value
           map-options
           option-value="name"
           option-label="label"
-          class="table-component-filter full-width"
-          :popup-content-class="$style['filter-menu']"
+          class="table-component-rearrange full-width"
+          :popup-content-class="$style['rearrange-menu']"
           @popup-hide="allowTableReorder = false"
         >
           <template
@@ -83,7 +139,7 @@
         <q-table
           flat
           :dense="currentScreenSize == 'xs'"
-          :rows="tableData"
+          :rows="localTableData"
           :columns="allowTableReorder ? localTableColumns.map(item => ({...item, sortable: false})) : localTableColumns.map(item => ({...item, sortable: item.sortable}))"
           :visible-columns="localTableVisibleColumns"
           :row-key="rowKey"
@@ -119,7 +175,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, toRaw } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 
 // Props
@@ -128,7 +184,7 @@ const mainProps = defineProps({
     type: Boolean,
     default: false
   },
-  hideTableFilter: {
+  hideTableRearrange: {
     type: Boolean,
     default: false
   },
@@ -156,6 +212,37 @@ const mainProps = defineProps({
     },
     required: true
   },
+  filterOptions: {
+    type: Array,
+    default () {
+      return []
+      // example of how filterOptions need to be structured
+      // [
+      //   {
+      //     field: 'media_type',
+      //     options: [
+      //       {
+      //         text: 'Document',
+      //         value: false
+      //       },
+      //       {
+      //         text: 'Archival Material',
+      //         value: false
+      //       }
+      //     ]
+      //   },
+      //   {
+      //     field: 'container_type',
+      //     options: [
+      //       {
+      //         text: 'Book Tray',
+      //         value: false
+      //       }
+      //     ]
+      //   }
+      // ]
+    }
+  },
   headingRowClass: {
     type: String,
     default: ''
@@ -178,6 +265,8 @@ const { currentScreenSize } = useCurrentScreenSize()
 // Local Data
 const localTableVisibleColumns = ref(mainProps.tableVisibleColumns)
 const localTableColumns = ref(mainProps.tableColumns)
+const localTableData = ref(structuredClone(toRaw(mainProps.tableData))) // Creates a copy of the prop so we dont mutate our passed in data
+const localFilterOptions = ref(mainProps.filterOptions)
 const allowTableReorder = ref(false)
 const draggedItemElement = ref(null)
 const selectedTableData = ref([])
@@ -193,6 +282,32 @@ onMounted(() => {
 watch(selectedTableData, () => {
   emit('selected-data', selectedTableData.value)
 })
+
+const filterTableData = () => {
+  // get all user selected filters
+  const activeFilters = localFilterOptions.value.flatMap(opt => {
+    if (opt.options.some(obj => obj.value == true)) {
+      return {
+        [opt.field]: opt.options.filter(obj => obj.value == true).map(obj => obj.text)
+      }
+    } else {
+      return []
+    }
+  })
+  // convert the filters array to a single object
+  const activeFiltersObj = Object.assign({}, ...activeFilters)
+
+  // filters the original table data based on the active filters obj
+  const filteredData = mainProps.tableData.filter(entry => {
+    // iterate through every active filter by field and selected filter values and check if the value exists under the table data entrys field
+    return Object.entries(activeFiltersObj).every(([
+      field,
+      val
+    ]) => val.includes(entry[field]))
+  })
+
+  localTableData.value = [...toRaw(filteredData)]
+}
 
 const startDrag = (e) => {
   e.target.classList.add('dragging')
@@ -233,18 +348,28 @@ const reorderTableItemDOM = (e) => {
   position: relative;
 
   &-filter {
+    height: 100%;
+
+    &-list {
+      & > .q-item {
+        padding: 0;
+
+        & > .q-item__section > .q-item__label {
+          padding: 8px 16px;
+        }
+
+        & .active {
+          color: $primary;
+        }
+      }
+    }
+  }
+
+  &-rearrange {
     min-width: 231px;
 
     @media (max-width: $breakpoint-sm-min) {
       min-width: 100px;
-    }
-
-    &-menu {
-      background: blue;
-      :deep(div.q-virtual-scroll__content) {
-        display: flex;
-        flex-flow: column nowrap;
-      }
     }
   }
 
@@ -278,10 +403,21 @@ const reorderTableItemDOM = (e) => {
 </style>
 
 <style lang="scss" module>
-.filter-menu {
+.rearrange-menu {
   :global(div.q-virtual-scroll__content) {
     display: flex;
     flex-flow: column nowrap;
+  }
+}
+
+.mobile-menu {
+  @media (max-width: $breakpoint-sm-min) {
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%);
+    min-width: 85vw;
+    max-height: 80vh !important;
+    box-shadow: 0 0 0 100vh rgba(0,0,0,.4);
   }
 }
 </style>

@@ -50,7 +50,7 @@ export default defineComponent({
           {
             id: '00924891289',
             title: 'Some Book by Arthur McAuthor',
-            media_type: 'Archival Material',
+            media_type: 'Document',
             size: 'C High',
             temp_location: 'A22L L9 SH12 T2',
             permanent_location: 'Conveyance',
