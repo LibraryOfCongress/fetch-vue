@@ -236,7 +236,7 @@
             :table-columns="accessionTableColumns"
             :table-data="accessionContainer.items"
             :disable-table-reorder="true"
-            :hide-table-filter="true"
+            :hide-table-rearrange="true"
             :enable-selection="true"
             @selected-data="selectedContainerItems = $event"
           >
