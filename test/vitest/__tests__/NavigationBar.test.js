@@ -1,10 +1,23 @@
 import { installQuasarPlugin } from '@quasar/quasar-app-extension-testing-unit-vitest'
 import { mount } from '@vue/test-utils'
+import { beforeEach, vi } from 'vitest'
 import NavigationBar from '@/components/NavigationBar.vue'
 
 installQuasarPlugin()
 
+// mocks the navigator.serviceWorker
+Object.defineProperty(global.navigator, 'serviceWorker', {
+  value: {
+    register: vi.fn()
+  }
+})
+
 describe('Navigation Bar Component', () => {
+  beforeEach(() => {
+    // mocks the servieworker message listenter
+    navigator.serviceWorker.addEventListener = vi.fn()
+  })
+
   it('should mount component with a top and side nav', () => {
     const wrapper = mount(NavigationBar)
 
