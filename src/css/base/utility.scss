@@ -14,6 +14,8 @@ $color-map: (
   color-gray: $color-gray,
   color-gray-light: $color-gray-light,
   color-gray-dark: $color-gray-dark,
+  color-pink: $color-pink,
+  color-green-light: $color-green-light
 );
 
 @each $colorName, $colorValue in $color-map {
@@ -57,7 +59,7 @@ $color-map: (
     right: 0;
     bottom: 0;
     background-color: rgba($color-gray, 0.4);
-    z-index: 100000;
+    z-index: 2000;
   }
 
   &-loading {
