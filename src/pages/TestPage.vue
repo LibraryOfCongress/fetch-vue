@@ -16,7 +16,7 @@
         />
       </div>
 
-      <li v-if="ownerTierOptions.length == 0 && !loadingData">
+      <li v-if="ownerTierOptions && ownerTierOptions.length == 0 && !loadingData">
         No Owner Tiers found...
       </li>
       <li
