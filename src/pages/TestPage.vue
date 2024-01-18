@@ -38,6 +38,28 @@
       @click="showOwnerTierCreation = !showOwnerTierCreation"
     />
 
+    <div class="row no-wrap justify-between items-center q-mt-xl">
+      <q-btn
+        no-caps
+        outline
+        color="negative"
+        label="Show Generic Alert"
+        class="text-body1 full-width btn-no-wrap"
+        @click="generateTestAlert(1)"
+      />
+
+      <q-space class="q-mx-xs" />
+
+      <q-btn
+        unelevated
+        no-caps
+        color="negative"
+        label="Show Persistent Alert"
+        class="text-body1 full-width btn-no-wrap"
+        @click="generateTestAlert(2)"
+      />
+    </div>
+
     <q-dialog
       :persistent="true"
       v-model="showOwnerTierCreation"
@@ -99,8 +121,8 @@
 
 <script setup>
 import { storeToRefs } from 'pinia'
-import { useOptionStore } from 'src/stores/option-store'
-import { ref, onMounted } from 'vue'
+import { useOptionStore } from '@/stores/option-store'
+import { ref, onMounted, inject } from 'vue'
 
 // Store Data
 const { getOwnerTierList, postOwnerTier } = useOptionStore()
@@ -157,6 +179,23 @@ const updateOwnerTierList = (requestdata) => {
     ...ownerTierOptions.value,
     requestdata
   ].filter(tier => !tier.storedOffline)
+}
+
+const handleAlert = inject('handle-alert')
+const generateTestAlert = (val) => {
+  if (val == 1) {
+    handleAlert({
+      type: 'error',
+      text: 'This is a user generated error message',
+      autoClose: true
+    })
+  } else {
+    handleAlert({
+      type: 'error',
+      text: 'This is a user generated error message with audio',
+      persistent: true
+    })
+  }
 }
 </script>
 

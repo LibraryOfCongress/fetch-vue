@@ -1,0 +1,169 @@
+<template>
+  <div class="alert row items-center">
+    <!-- regular alert notifications -->
+    <q-banner
+      v-if="!mainProps.persistent"
+      inline-actions
+      dense
+      rounded
+      class="alert-banner"
+      :class="renderAlertType"
+    >
+      <p class="text-body1">
+        {{ mainProps.alertText }}
+      </p>
+      <template #action>
+        <q-btn
+          icon="close"
+          flat
+          round
+          dense
+          @click="emit('reset')"
+        />
+      </template>
+    </q-banner>
+
+    <!-- hard alert notifications (user is required to acknowledge always is an error) -->
+    <q-dialog
+      v-else
+      v-model="showAlertModal"
+      persistent
+      @hide="emit('reset')"
+    >
+      <q-card
+        class="alert-modal"
+      >
+        <q-card-section class="column items-center text-negative">
+          <q-icon
+            :name="'error'"
+            size="150px"
+          />
+
+          <p class="text-body1">
+            {{ mainProps.alertText }}
+          </p>
+        </q-card-section>
+
+        <q-card-actions
+          class="row items-center"
+        >
+          <q-btn
+            outline
+            no-caps
+            label="Cancel"
+            color="negative"
+            class="text-body1 full-width"
+            @click="showAlertModal = false"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+
+// Props
+const mainProps = defineProps({
+  alertType: {
+    type: String,
+    default: 'error',
+    required: true
+  },
+  alertText: {
+    type: String,
+    default: 'some alert text',
+    required: true
+  },
+  persistent: {
+    type: Boolean,
+    default: false
+  },
+  autoClose: {
+    type: Boolean,
+    default: false
+  }
+})
+
+// Emits
+const emit = defineEmits(['reset'])
+
+// Local Data
+const showAlertModal = ref(false)
+const renderAlertType = computed(() => {
+  // defined style classes based on the passed in alert type
+  if (mainProps.alertType == 'success') {
+    return [
+      'text-positive',
+      'bg-color-green-light'
+    ]
+  } else {
+    return [
+      'text-negative',
+      'bg-color-pink'
+    ]
+  }
+})
+
+// Logic
+onMounted(() => {
+  if (mainProps.persistent) {
+    showAlertModal.value = true
+    audioAlert()
+  }
+
+  if (mainProps.autoClose && !mainProps.persistent) {
+    setTimeout(() => {
+      emit('reset')
+    }, 5000)
+  }
+})
+
+const audioAlert = () => {
+  const beep = new AudioContext()
+
+  let oscillatorNode = beep.createOscillator()
+  let gainNode = beep.createGain()
+  oscillatorNode.connect(gainNode)
+
+  // Set the oscillator frequency in hertz
+  oscillatorNode.frequency.value = 280
+
+  // Set the type of oscillator
+  oscillatorNode.type= 'square'
+  gainNode.connect(beep.destination)
+
+  // Set the gain to the volume
+  gainNode.gain.value = 100 * 0.01
+
+  // Start audio with the desired duration
+  oscillatorNode.start(beep.currentTime)
+  oscillatorNode.stop(beep.currentTime + 250 * 0.001)
+}
+</script>
+
+<style lang="scss" scoped>
+.alert {
+  &-banner {
+    position: relative;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 96%;
+    z-index: 2000;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
+    transition: all .3s ease-in-out;
+  }
+
+  &-modal {
+    min-width: 250px;
+    max-width: 500px;
+    z-index: 2000;
+
+    @media (max-width: $breakpoint-sm-min) {
+      width: 90vw;
+    }
+  }
+}
+</style>
