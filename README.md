@@ -12,6 +12,21 @@ See [Pinia Docs](https://pinia.vuejs.org/getting-started.html)
 
 # Getting Started
 
+### Main File Structure Overview
+- . : Configuration files
+- package.json: base project settings and packages
+- quasar. : files related to quasar configuration/plugins
+- vitest. : files for vitest configuration
+- dist/ : Build files related to deployment
+- env/ : Environment variable files and Environment Parse _(only an example file exists here since we handle this in CI/CD Pipelines)_
+- images/ : Docker Container Files to build the application
+- nginx/ : Handles ssl and proxying needs for deployment
+- public/ : Static files or files that dont change often
+- test/ : Contains (unit) tests
+- src/ : FETCH Frontend Source Code
+- src-pwa/ : Service Worker Setup Files and Manifest
+
+
 ## 1. Installing the application
 
 You can either install the application using the quick install (uses docker and brew) or the manual install guides.
