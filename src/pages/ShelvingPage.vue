@@ -216,7 +216,7 @@
             </label>
             <SelectInput
               v-model="newShelf.container_type"
-              :options="containerTypeOptions"
+              :options="containerTypes"
               option-value="id"
               option-label="name"
               :placeholder="'Select Type'"
@@ -249,270 +249,245 @@
   </q-page>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
+<script setup>
+import { onBeforeMount, ref, watch } from 'vue'
+import { useOptionStore } from '@/stores/option-store'
+import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from 'src/components/EssentialTable.vue'
 import SelectInput from 'src/components/SelectInput.vue'
 
-export default defineComponent({
-  name: 'ShelvingPage',
-  components: {
-    EssentialTable,
-    SelectInput
-  },
-  data () {
-    return {
-      shelfData: {
-        aisle: null,
-        side: null,
-        ladder: null,
-        items: [
-          {
-            id: '00924891289',
-            shelf_width: '12 ft',
-            shelf_height: '3 ft',
-            shelf_depth: '22 ft',
-            vacancy: 47,
-            max_capacity: 15,
-            current_capacity: 7,
-            available_capacity: 8,
-            size_class: 'Trayed'
-          },
-          {
-            id: '00924891290',
-            shelf_width: '22.2 ft',
-            shelf_height: '3 ft',
-            shelf_depth: '22 ft',
-            vacancy: 93,
-            max_capacity: 60,
-            current_capacity: 4,
-            available_capacity: 56,
-            size_class: 'Trayed'
-          },
-          {
-            id: '00924891291',
-            shelf_width: '24 ft',
-            shelf_height: '4.4 ft',
-            shelf_depth: '22 ft',
-            vacancy: 0,
-            max_capacity: 100,
-            current_capacity: 100,
-            available_capacity: 0,
-            size_class: 'Non-Trayed'
-          }
-        ]
-      },
-      aisleOptions: [
-        {
-          id: 1,
-          name: '56'
-        },
-        {
-          id: 2,
-          name: '57'
-        },
-        {
-          id: 3,
-          name: '58'
-        }
-      ],
-      sideOptions: [
-        {
-          id: 1,
-          name: 'Left'
-        },
-        {
-          id: 2,
-          name: 'Right'
-        }
-      ],
-      ladderOptions: [
-        {
-          id: 1,
-          name: '11A'
-        },
-        {
-          id: 2,
-          name: '11B'
-        },
-        {
-          id: 3,
-          name: '12A'
-        },
-        {
-          id: 4,
-          name: '12B'
-        }
-      ],
-      shelfItemsTableVisibleColumns: [
-        'shelf_width',
-        'shelf_height',
-        'shelf_depth',
-        'vacancy',
-        'max_capacity',
-        'current_capacity',
-        'available_capacity',
-        'size_class',
-        'id'
-      ],
-      shelfItemsTableColumns: [
-        {
-          name: 'shelf_width',
-          field: 'shelf_width',
-          label: 'Shelf Width',
-          align: 'left',
-          sortable: true,
-          order: 0
-        },
-        {
-          name: 'shelf_height',
-          field: 'shelf_height',
-          label: 'Shelf Height',
-          align: 'left',
-          sortable: true,
-          order: 1
-        },
-        {
-          name: 'shelf_depth',
-          field: 'shelf_depth',
-          label: 'Shelf Depth',
-          align: 'left',
-          sortable: true,
-          order: 2
-        },
-        {
-          name: 'vacancy',
-          field: 'vacancy',
-          label: 'Vacancy',
-          align: 'left',
-          sortable: true,
-          order: 3
-        },
-        {
-          name: 'max_capacity',
-          field: 'max_capacity',
-          label: 'Max Capacity',
-          align: 'left',
-          sortable: true,
-          order: 4
-        },
-        {
-          name: 'current_capacity',
-          field: 'current_capacity',
-          label: 'Current Capacity',
-          align: 'left',
-          sortable: true,
-          order: 5
-        },
-        {
-          name: 'available_capacity',
-          field: 'available_capacity',
-          label: 'Available Capacity',
-          align: 'left',
-          sortable: true,
-          order: 6
-        },
-        {
-          name: 'size_class',
-          field: 'size_class',
-          label: 'Size Class',
-          align: 'left',
-          sortable: true,
-          order: 7
-        },
-        {
-          name: 'id',
-          field: 'id',
-          label: 'Shelf Barcode',
-          align: 'left',
-          sortable: true,
-          order: 8
-        }
-      ],
-      showShelfModal: false,
-      newShelf: {
-        owner: null,
-        container_type: null,
-        shelf_number: '',
-        shelf_width: '',
-        shelf_height: '',
-        shelf_depth: ''
-      },
-      ownerOptions: [
-        {
-          id: 1,
-          name: 'John Doe'
-        },
-        {
-          id: 2,
-          name: 'George Washington'
-        }
-      ],
-      containerTypeOptions: []
-    }
-  },
-  setup () {
-    const { currentScreenSize } = useCurrentScreenSize()
-    return {
-      currentScreenSize
-    }
-  },
-  beforeMount () {
-    if (this.currentScreenSize == 'xs') {
-      this.shelfItemsTableVisibleColumns = [
-        'shelf_width',
-        'shelf_height',
-        'shelf_depth',
-        'vacancy'
-      ]
-    }
-  },
-  watch: {
-    currentScreenSize (value) {
-      if (value == 'xs') {
-        this.shelfItemsTableVisibleColumns = [
-          'shelf_width',
-          'shelf_height',
-          'shelf_depth',
-          'vacancy'
-        ]
-      } else {
-        this.shelfItemsTableVisibleColumns = [
-          'shelf_width',
-          'shelf_height',
-          'shelf_depth',
-          'vacancy',
-          'max_capacity',
-          'current_capacity',
-          'available_capacity',
-          'size_class',
-          'id'
-        ]
-      }
-    }
-  },
-  methods: {
-    resetModal () {
-      this.newShelf = {
-        owner: null,
-        container_type: null,
-        shelf_number: '',
-        shelf_width: '',
-        shelf_height: '',
-        shelf_depth: ''
-      },
-      this.showShelfModal = false
+// Composables
+const { currentScreenSize } = useCurrentScreenSize()
+
+// Store Data
+const { containerTypes, ownerOptions } = storeToRefs(useOptionStore())
+
+// Local Data
+const shelfData = ref({
+  aisle: null,
+  side: null,
+  ladder: null,
+  items: [
+    {
+      id: '00924891289',
+      shelf_width: '12 ft',
+      shelf_height: '3 ft',
+      shelf_depth: '22 ft',
+      vacancy: 47,
+      max_capacity: 15,
+      current_capacity: 7,
+      available_capacity: 8,
+      size_class: 'Trayed'
     },
-    filterOwners (val, update) {
-      update(() => {
-        this.ownerOptions = this.ownerOptions.filter(opt => opt.name.toLowerCase().indexOf(val.toLowerCase()) > -1)
-      })
+    {
+      id: '00924891290',
+      shelf_width: '22.2 ft',
+      shelf_height: '3 ft',
+      shelf_depth: '22 ft',
+      vacancy: 93,
+      max_capacity: 60,
+      current_capacity: 4,
+      available_capacity: 56,
+      size_class: 'Trayed'
+    },
+    {
+      id: '00924891291',
+      shelf_width: '24 ft',
+      shelf_height: '4.4 ft',
+      shelf_depth: '22 ft',
+      vacancy: 0,
+      max_capacity: 100,
+      current_capacity: 100,
+      available_capacity: 0,
+      size_class: 'Non-Trayed'
     }
+  ]
+})
+const aisleOptions = ref([
+  {
+    id: 1,
+    name: '56'
+  },
+  {
+    id: 2,
+    name: '57'
+  },
+  {
+    id: 3,
+    name: '58'
+  }
+])
+const sideOptions = ref([
+  {
+    id: 1,
+    name: 'Left'
+  },
+  {
+    id: 2,
+    name: 'Right'
+  }
+])
+const ladderOptions = ref([
+  {
+    id: 1,
+    name: '11A'
+  },
+  {
+    id: 2,
+    name: '11B'
+  },
+  {
+    id: 3,
+    name: '12A'
+  },
+  {
+    id: 4,
+    name: '12B'
+  }
+])
+const shelfItemsTableVisibleColumns = ref([
+  'shelf_width',
+  'shelf_height',
+  'shelf_depth',
+  'vacancy',
+  'max_capacity',
+  'current_capacity',
+  'available_capacity',
+  'size_class',
+  'id'
+])
+const shelfItemsTableColumns = ref([
+  {
+    name: 'shelf_width',
+    field: 'shelf_width',
+    label: 'Shelf Width',
+    align: 'left',
+    sortable: true,
+    order: 0
+  },
+  {
+    name: 'shelf_height',
+    field: 'shelf_height',
+    label: 'Shelf Height',
+    align: 'left',
+    sortable: true,
+    order: 1
+  },
+  {
+    name: 'shelf_depth',
+    field: 'shelf_depth',
+    label: 'Shelf Depth',
+    align: 'left',
+    sortable: true,
+    order: 2
+  },
+  {
+    name: 'vacancy',
+    field: 'vacancy',
+    label: 'Vacancy',
+    align: 'left',
+    sortable: true,
+    order: 3
+  },
+  {
+    name: 'max_capacity',
+    field: 'max_capacity',
+    label: 'Max Capacity',
+    align: 'left',
+    sortable: true,
+    order: 4
+  },
+  {
+    name: 'current_capacity',
+    field: 'current_capacity',
+    label: 'Current Capacity',
+    align: 'left',
+    sortable: true,
+    order: 5
+  },
+  {
+    name: 'available_capacity',
+    field: 'available_capacity',
+    label: 'Available Capacity',
+    align: 'left',
+    sortable: true,
+    order: 6
+  },
+  {
+    name: 'size_class',
+    field: 'size_class',
+    label: 'Size Class',
+    align: 'left',
+    sortable: true,
+    order: 7
+  },
+  {
+    name: 'id',
+    field: 'id',
+    label: 'Shelf Barcode',
+    align: 'left',
+    sortable: true,
+    order: 8
+  }
+])
+const showShelfModal = ref(false)
+const newShelf = ref({
+  owner: null,
+  container_type: null,
+  shelf_number: '',
+  shelf_width: '',
+  shelf_height: '',
+  shelf_depth: ''
+})
+
+// Logic
+onBeforeMount(() => {
+  if (currentScreenSize.value == 'xs') {
+    shelfItemsTableVisibleColumns.value = [
+      'shelf_width',
+      'shelf_height',
+      'shelf_depth',
+      'vacancy'
+    ]
   }
 })
-</script>
 
+watch(currentScreenSize, () => {
+  if (currentScreenSize.value == 'xs') {
+    shelfItemsTableVisibleColumns.value = [
+      'shelf_width',
+      'shelf_height',
+      'shelf_depth',
+      'vacancy'
+    ]
+  } else {
+    shelfItemsTableVisibleColumns.value = [
+      'shelf_width',
+      'shelf_height',
+      'shelf_depth',
+      'vacancy',
+      'max_capacity',
+      'current_capacity',
+      'available_capacity',
+      'size_class',
+      'id'
+    ]
+  }
+})
+
+const resetModal = () => {
+  newShelf.value = {
+    owner: null,
+    container_type: null,
+    shelf_number: '',
+    shelf_width: '',
+    shelf_height: '',
+    shelf_depth: ''
+  },
+  showShelfModal.value = false
+}
+</script>
 <style lang="scss" scoped>
 .shelving {
   &-details {

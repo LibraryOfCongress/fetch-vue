@@ -6,9 +6,7 @@
   >
     <NavigationBar />
 
-    <q-page-container
-      class="main-content"
-    >
+    <q-page-container class="main-content">
       <router-view />
 
       <!-- global alert component -->
