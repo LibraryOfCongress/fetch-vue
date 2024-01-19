@@ -4,6 +4,10 @@ start() {
   ./local-build.sh -l;
 }
 
+web() {
+  docker exec -it $1 /bin/sh;
+}
+
 build() {
   if [[ "$1" == "local" ]]; then
     ./local-build.sh;
