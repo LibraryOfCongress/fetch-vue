@@ -15,6 +15,9 @@ build() {
   if [[ "$1" == "dev" ]]; then
     ./dev-build.sh;
   fi
+  if [[ "$1" == "test" ]]; then
+    ./test-build.sh;
+  fi
 }
 
 "$@"
