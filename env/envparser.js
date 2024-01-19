@@ -13,7 +13,8 @@ if (process.env.ENVIRONMENT == 'local') {
     VITE_BASE_URL: process.env.VITE_BASE_URL,
     VITE_API_BASE_URI: process.env.VITE_API_BASE_URI,
     VITE_INV_SERVCE_API: process.env.VITE_INV_SERVCE_API,
-    VITE_ENV: process.env.VITE_ENV
+    VITE_ENV: process.env.VITE_ENV,
+    VITE_TEST: 'env is processing directly from process.env'
   }
 }
 
