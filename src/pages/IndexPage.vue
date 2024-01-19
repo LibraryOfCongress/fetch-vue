@@ -36,7 +36,7 @@ const storageAvailable = ref(0)
 
 // Logic
 onMounted(() => {
-  console.log('vue app environment loaded', process.env.VITE_ENV)
+  console.log('vue app environment loaded', process.env, process.env.VITE_ENV)
   navigator.storage.estimate().then((estimate) => {
     storageUsed.value = (estimate.usage / 1024 / 1024).toFixed(2)
     storageAvailable.value = (estimate.quota / 1024 / 1024).toFixed(2)
