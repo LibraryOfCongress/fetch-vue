@@ -38,6 +38,16 @@
       @click="showOwnerTierCreation = !showOwnerTierCreation"
     />
 
+    <q-btn
+      no-caps
+      unelevated
+      class="text-body1 q-mt-lg"
+      color="primary"
+      label="Save Owner Tier List For Offline Use"
+      :disabled="loadingData"
+      @click="saveOwnerTierList"
+    />
+
     <div class="row no-wrap justify-between items-center q-mt-xl">
       <q-btn
         no-caps
@@ -122,11 +132,17 @@
 <script setup>
 import { storeToRefs } from 'pinia'
 import { useOptionStore } from '@/stores/option-store'
-import { ref, onMounted, inject } from 'vue'
+import { useGlobalStore } from '@/stores/global-store'
+import { ref, toRaw, onMounted, inject, watch } from 'vue'
+import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
+
+// Composables
+const { indexDb, getDataInIndexDb, addDataToIndexDb } = useIndexDbHandler()
 
 // Store Data
 const { getOwnerTierList, postOwnerTier } = useOptionStore()
 const { ownerTierOptions } = storeToRefs(useOptionStore())
+const { appIsOffline } = storeToRefs(useGlobalStore())
 
 // Local Data
 const loadingData = ref(true)
@@ -144,6 +160,19 @@ onMounted(async () => {
       updateOwnerTierList(event.data.response)
     }
   })
+})
+
+watch(indexDb, async () => {
+  // watch for indexDb to get mounted in the compasable then get the data we need
+  await getDataInIndexDb('ownerTiers')
+})
+
+watch(appIsOffline, async () => {
+  if (appIsOffline.value && ownerTierOptions.value.length == 0) {
+    // get saved indexDb ownerTierOptions if were offline and page was reloaded/refreshed
+    const res = await getDataInIndexDb('ownerTiers')
+    ownerTierOptions.value = res.data
+  }
 })
 
 const reset = () => {
@@ -179,6 +208,23 @@ const updateOwnerTierList = (requestdata) => {
     ...ownerTierOptions.value,
     requestdata
   ].filter(tier => !tier.storedOffline)
+}
+const saveOwnerTierList = async () => {
+  try {
+    await addDataToIndexDb('ownerTiers', toRaw(ownerTierOptions.value))
+
+    handleAlert({
+      type: 'success',
+      text: 'Owner Tiers saved for offline usage',
+      autoClose: true
+    })
+  } catch (err) {
+    handleAlert({
+      type: 'error',
+      text: err,
+      autoClose: true
+    })
+  }
 }
 
 const handleAlert = inject('handle-alert')

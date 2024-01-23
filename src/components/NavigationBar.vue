@@ -156,6 +156,8 @@
 
 <script setup>
 import { onMounted, ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useGlobalStore } from '@/stores/global-store'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBackgroundSyncHandler } from '@/composables/useBackgroundSyncHandler.js'
 import EssentialLink from '@/components/EssentialLink.vue'
@@ -164,6 +166,9 @@ import SearchInput from '@/components/SearchInput.vue'
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
 const { bgSyncData, syncInProgress, triggerBackgroundSync } = useBackgroundSyncHandler()
+
+// Store Data
+const { appIsOffline } = storeToRefs(useGlobalStore())
 
 // Local Data
 const essentialLinks = ref([
@@ -229,9 +234,13 @@ onMounted(() => {
   window.addEventListener('offline', () => {
     showOnlineBanner.value = false
     showOfflineBanner.value = true
+
+    // set offline state in store
+    appIsOffline.value = true
   })
   window.addEventListener('online', () => {
     showOfflineBanner.value = false
+    appIsOffline.value = false
   })
 
   navigator.serviceWorker.addEventListener('message', event => {

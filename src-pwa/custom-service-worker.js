@@ -15,7 +15,7 @@ import { Queue } from 'workbox-background-sync'
 self.skipWaiting()
 clientsClaim()
 
-console.log('custom service worker active')
+console.log('Custom service worker active')
 
 // Use with precache injection (caches all local files needed to run app offline)
 precacheAndRoute(self.__WB_MANIFEST)
@@ -108,10 +108,10 @@ self.addEventListener('fetch', (event) => {
   }
 })
 
-// Caches all other api specific request data
+// Caches all other api specific request data except the /tiers endpoint
 registerRoute(
   ({ url }) => {
-    url.href.startsWith(process.env.VITE_INV_SERVCE_API)
+    return url.href.startsWith(process.env.VITE_INV_SERVCE_API) && !url.href.includes('/tiers')
   },
   new NetworkFirst()
 )

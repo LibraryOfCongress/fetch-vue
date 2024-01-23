@@ -15,13 +15,13 @@ export function useBackgroundSyncHandler () {
   async function getBackgroundSyncDb (db_name) {
     return new Promise((resolve, reject) => {
 
-      let request = window.indexedDB.open(db_name)
+      const request = window.indexedDB.open(db_name)
 
-      request.onsuccess = event => {
+      request.onsuccess = (event) => {
         resolve(event.target.result)
       }
 
-      request.onerror = err => {
+      request.onerror = (err) => {
         console.log('Error opening db', err)
         reject('Error')
       }
@@ -30,19 +30,19 @@ export function useBackgroundSyncHandler () {
 
   async function getDataInBackgroundSyncDb (dataName) {
     return new Promise((resolve, reject) => {
-      let trans = indexDb.value.transaction([dataName], 'readonly')
-      let store = trans.objectStore(dataName)
+      const trans = indexDb.value.transaction([dataName], 'readonly')
+      const store = trans.objectStore(dataName)
       let data = []
       trans.oncomplete = () => {
         resolve(data)
       }
 
-      trans.onerror = err => {
+      trans.onerror = (err) => {
         console.log('Error getting data from db', err)
         reject('Error')
       }
 
-      store.openCursor().onsuccess = e => {
+      store.openCursor().onsuccess = (e) => {
         let cursor = e.target.result
         if (cursor) {
           data.push(cursor.value)
