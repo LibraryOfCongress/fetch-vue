@@ -1,8 +1,13 @@
 <template>
   <div class="fullscreen bg-blue text-white text-center q-pa-md flex flex-center">
     <div>
-      <div style="font-size: 30vh">
-        404
+      <div
+        class="flex flex-center"
+        style="height: 30vh"
+      >
+        <span style="font-size: 30vh">
+          404
+        </span>
       </div>
 
       <div
@@ -25,10 +30,5 @@
   </div>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
-
-export default defineComponent({
-  name: 'ErrorNotFoundPage'
-})
+<script setup>
 </script>

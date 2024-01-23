@@ -6,7 +6,7 @@
     color="primary"
     dense
     v-model="searchText"
-    :placeholder="placeholder"
+    :placeholder="mainProps.placeholder"
   >
     <template #append>
       <q-icon
@@ -24,23 +24,18 @@
   </q-input>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
-
-export default defineComponent({
-  name: 'SearchInput',
-  props: {
-    placeholder: {
-      type: String,
-      default: ''
-    }
-  },
-  data () {
-    return {
-      searchText: ''
-    }
+<script setup>
+import { ref } from 'vue'
+// Props
+const mainProps = defineProps({
+  placeholder: {
+    type: String,
+    default: ''
   }
 })
+
+// Local Data
+const searchText = ref('')
 </script>
 
 <style lang="scss" scoped>
