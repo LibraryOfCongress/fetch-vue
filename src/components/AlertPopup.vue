@@ -72,7 +72,7 @@ const mainProps = defineProps({
     required: true
   },
   alertText: {
-    type: String,
+    type: null,
     default: 'some alert text',
     required: true
   },
