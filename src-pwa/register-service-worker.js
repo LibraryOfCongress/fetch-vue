@@ -32,10 +32,12 @@ register(process.env.SERVICE_WORKER_FILE, {
     console.log('New content is available; please refresh.', registration)
     // Display Update Notification
     Notify.create({
-      type: 'warning',
+      type: 'info',
+      color: 'primary',
+      textColor: 'white',
       progress: true,
       message: 'New content is available. Please click on \'Ok\' to apply changes, or \'Cancel\' and refresh the page yourself later.',
-      position: 'bottom',
+      position: 'top',
       multiline: true,
       actions: [
         { label: 'Cancel', color: 'white', handler: () => { /**/ } },

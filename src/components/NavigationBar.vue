@@ -259,15 +259,6 @@ onMounted(() => {
         }, 3000)
       }
     })
-
-    // display a content update notification whenever the app recieves updates
-    navigator.serviceWorker.addEventListener('installed', event => {
-      if (event.isUpdate) {
-        if (confirm('New content is available!. Click OK to refresh')) {
-          window.location.reload()
-        }
-      }
-    })
   }
 })
 
