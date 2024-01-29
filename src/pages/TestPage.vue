@@ -3,7 +3,7 @@
     padding
     class="flex flex-center column"
   >
-    <h1>List of Owner Tiers Test</h1>
+    <h1>List of Owner Tiers</h1>
     <ul class="owner-list">
       <div
         v-if="loadingData"
