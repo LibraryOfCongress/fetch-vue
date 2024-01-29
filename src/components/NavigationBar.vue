@@ -243,20 +243,32 @@ onMounted(() => {
     appIsOffline.value = false
   })
 
-  navigator.serviceWorker.addEventListener('message', event => {
-    if (event.data.message == 'pending sync') {
+  if ('serviceWorker' in navigator) {
+    // listen for messages from the serviceworker scripts
+    navigator.serviceWorker.addEventListener('message', event => {
+      if (event.data.message == 'pending sync') {
       // show online banner only if we have requests pending in queue
-      showOnlineBanner.value = true
-    } else if (event.data.message == 'sync complete') {
+        showOnlineBanner.value = true
+      } else if (event.data.message == 'sync complete') {
       // when user triggers an offline sync, we need to wait for the syncComplete message from the serviceworker queue
-      syncInProgress.value = 'Complete'
+        syncInProgress.value = 'Complete'
 
-      setTimeout(() => {
-        showOnlineBanner.value = false
-        syncInProgress.value = ''
-      }, 3000)
-    }
-  })
+        setTimeout(() => {
+          showOnlineBanner.value = false
+          syncInProgress.value = ''
+        }, 3000)
+      }
+    })
+
+    // display a content update notification whenever the app recieves updates
+    navigator.serviceWorker.addEventListener('installed', event => {
+      if (event.isUpdate) {
+        if (confirm('New content is available!. Click OK to refresh')) {
+          window.location.reload()
+        }
+      }
+    })
+  }
 })
 
 // watch the bgSyncData and if we detect any requests that are still pending display the online banner

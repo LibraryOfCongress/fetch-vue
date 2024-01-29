@@ -155,11 +155,13 @@ onMounted(async () => {
   loadingData.value = false
 
   // when user comes back online we listen for the stored owner api calls to sync and update the ownerTiers
-  navigator.serviceWorker.addEventListener('message', event => {
-    if (event.data.url && event.data.url.includes('/owners/tiers')) {
-      updateOwnerTierList(event.data.response)
-    }
-  })
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', event => {
+      if (event.data.url && event.data.url.includes('/owners/tiers')) {
+        updateOwnerTierList(event.data.response)
+      }
+    })
+  }
 })
 
 watch(indexDb, async () => {
