@@ -3,7 +3,7 @@
     padding
     class="flex flex-center column"
   >
-    <h1>Scanned Bar Codes</h1>
+    <h1>Scanned Bar Codes List</h1>
     <ul class="demo">
       <li v-if="testData.length == 0">
         No barcodes found...
