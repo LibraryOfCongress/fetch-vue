@@ -95,6 +95,14 @@ _Please do not call api requests from a component/view_
 
 ## 4. Linting files (this is automatically handled during pre-commit)
 
+Make sure you have pre-commit installed or the auto linting wont work.
+To install pre-commit run the following:
+```bash
+brew install pre-commit
+# then run this at the vue root folder
+pre-commit install
+```
+
 If you'd like to manually lint and format you can use these commands.
 
 **Lint the files (uses eslint ruleset along with vue standard rules)**
