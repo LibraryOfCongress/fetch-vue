@@ -108,15 +108,6 @@ self.addEventListener('fetch', (event) => {
   }
 })
 
-self.addEventListener('installed', event => {
-  console.log('custom service worker installed hook', event)
-  if (event.isUpdate) {
-    if (confirm('New content is available from service worker!. Click OK to refresh')) {
-      window.location.reload()
-    }
-  }
-})
-
 // Caches all other api specific request data except the /tiers endpoint
 registerRoute(
   ({ url }) => {

@@ -123,7 +123,6 @@ const neverShowAppInstallBanner = () => {
 const checkForServiceWorkerUpdates = () => {
   navigator.serviceWorker.getRegistrations().then(async (registrations) => {
     for (let registration of registrations) {
-      console.log('checking for updates', registration)
       // update the service workers and get latest content
       await registration.update()
     }
