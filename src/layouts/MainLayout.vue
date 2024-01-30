@@ -104,10 +104,7 @@ onMounted(() => {
   if ('serviceWorker' in navigator) {
     setInterval(() => {
       checkForServiceWorkerUpdates()
-    }, 120000)
-    // setInterval(() => {
-    //   checkForServiceWorkerUpdates()
-    // }, 28800000)
+    }, 28800000)
   }
 })
 const installApp = () => {
@@ -126,7 +123,6 @@ const neverShowAppInstallBanner = () => {
 const checkForServiceWorkerUpdates = () => {
   navigator.serviceWorker.getRegistrations().then(async (registrations) => {
     for (let registration of registrations) {
-      console.log('checking for updates', registration)
       // update the service workers and get latest content
       await registration.update()
     }
