@@ -8,7 +8,7 @@ build_image:
     name: git.loc.gov:4567/fetch/build/kaniko-project/executor:1.0.0
     entrypoint: [""]
   variables:
-    IMAGE_FULL_TAG: $CI_REGISTRY_IMAGE:$SEMVER.$CI_MERGE_REQUEST_IID
+    IMAGE_FULL_TAG: $CI_REGISTRY_IMAGE:latest
   script:
     - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
     - cp -v images/web.dev.Containerfile Dockerfile
