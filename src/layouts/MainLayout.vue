@@ -104,10 +104,7 @@ onMounted(() => {
   if ('serviceWorker' in navigator) {
     setInterval(() => {
       checkForServiceWorkerUpdates()
-    }, 120000)
-    // setInterval(() => {
-    //   checkForServiceWorkerUpdates()
-    // }, 28800000)
+    }, 28800000)
   }
 })
 const installApp = () => {
