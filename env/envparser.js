@@ -8,7 +8,8 @@ if (process.env.ENVIRONMENT == 'local') {
     ...dotenv.config({ path: `env/.env.${process.env.ENVIRONMENT}` }).parsed
   }
 }
-// } else {
+
+// else {
 //   // load directly from process.env on server
 //   files = {
 //     VITE_BASE_URL: process.env.VITE_BASE_URL,
