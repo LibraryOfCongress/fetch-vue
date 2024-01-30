@@ -17,6 +17,11 @@ export function useBackgroundSyncHandler () {
 
       const request = window.indexedDB.open(db_name)
 
+      request.onupgradeneeded = () => {
+        const db = request.result
+        db.createObjectStore('requests', { keyPath: 'id' })
+      }
+
       request.onsuccess = (event) => {
         resolve(event.target.result)
       }
