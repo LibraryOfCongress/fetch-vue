@@ -12,6 +12,8 @@ build_image:
   script:
     - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
     - cp -v images/web.dev.Containerfile Dockerfile
+    - echo $DEVELOP_ENV > .env
+    - cat .env
     - /kaniko/executor
       --context $CI_PROJECT_DIR
       --build-arg DEVELOP_VITE_ENV=$DEVELOP_VITE_ENV
@@ -31,6 +33,8 @@ build_mr:
     - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
     - echo CI_COMMIT_BRANCH $CI_COMMIT_BRANCH
     - cp -v images/web.dev.Containerfile Dockerfile
+    - echo $DEVELOP_ENV > .env
+    - cat .env
     - /kaniko/executor
       --context $CI_PROJECT_DIR
       --build-arg VITE_ENV=$DEVELOP_VITE_ENV
