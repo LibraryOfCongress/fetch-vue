@@ -23,4 +23,5 @@ export default boot(({ app }) => {
   //       so you can easily perform requests against your app's API
 })
 
+// exposes our api reference to areas outside of the vue files such as pinia
 export { api }
