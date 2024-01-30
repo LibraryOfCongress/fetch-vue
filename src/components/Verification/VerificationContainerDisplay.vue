@@ -470,6 +470,59 @@
       </div>
     </template>
   </PopupModal>
+
+  <!-- print component used to handle printing the template -->
+  <PrintTemplate ref="printTemplate">
+    <template #print-html>
+      <div class="q-pa-lg">
+        <EssentialTable
+          :table-columns="verificationTableColumns"
+          :table-data="verificationJob.type == 2 ? verificationContainer.items : verificationJob.items"
+          :disable-table-reorder="true"
+          :hide-table-rearrange="true"
+          :enable-selection="false"
+          @selected-data="selectedContainerItems = $event"
+        >
+          <template #table-td="{ props, colName, value }">
+            <span
+              v-if="colName == 'id' && verificationJob.type == 2"
+              :class="props.row.verified == false ? 'disabled' : ''"
+            >
+              {{ value }}
+            </span>
+            <span
+              v-else-if="colName == 'id' && verificationJob.type == 1"
+              :class="props.row.verified == true || verificationContainer.id == props.row.id ? '' : 'disabled'"
+            >
+              {{ value }}
+            </span>
+
+            <span
+              v-if="colName == 'verified'"
+              class="text-bold"
+              :class="value == true ? 'text-positive' : value == 'not found' ? 'text-negative' : ''"
+            >
+              {{ value == true ? 'Item Verified' : value == 'not found' ? 'Item Not Found' : '' }}
+              <q-icon
+                v-if="value == true"
+                name="mdi-check-circle"
+                color="positive"
+                size="25px"
+                class="text-bold q-ml-xs"
+              />
+              <q-icon
+                v-else-if="value == 'not found'"
+                name="close"
+                color="negative"
+                size="25px"
+                class="text-bold q-ml-xs"
+              />
+            </span>
+          </template>
+        </EssentialTable>
+      </div>
+    </template>
+  </PrintTemplate>
 </template>
 
 <script setup>
@@ -486,6 +539,7 @@ import EssentialTable from '@/components/EssentialTable.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
+import PrintTemplate from 'src/components/PrintTemplate.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -509,6 +563,7 @@ const {
 const { allItemsVerified, verificationJob, originalVerificationJob, verificationContainer, originalVerificationContainer } = storeToRefs(useVerificationStore())
 
 // Local Data
+const printTemplate = ref(null)
 const verificationTableColumns = ref([
   {
     name: 'id',
@@ -619,7 +674,7 @@ const handleOptionMenu = (option) => {
 
     editMode.value = true
   } else if (option.text == 'Print Job') {
-    return
+    printTemplate.value.print()
   } else if (option.text == 'Add Items') {
     showConfirmation.value = 'Are you sure you want to add an item?'
   } else if (option.text == 'Delete Items') {

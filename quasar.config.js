@@ -28,7 +28,10 @@ module.exports = configure(function (ctx) {
     // app boot file (/src/boot) (this is your main.js)
     // --> boot files are generated into a "main.js" file
     // https://v2.quasar.dev/quasar-cli/boot-files
-    boot: ['axios'],
+    boot: [
+      'axios',
+      'htmlToPaper'
+    ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
     css: ['app.scss'],
