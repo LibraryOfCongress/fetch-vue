@@ -99,6 +99,13 @@ onMounted(() => {
       showAppInstallBanner.value = true
     })
   }
+
+  // trigger a service worker / app content check every 8 hours
+  if ('serviceWorker' in navigator) {
+    setInterval(() => {
+      checkForServiceWorkerUpdates()
+    }, 120000)
+  }
 })
 const installApp = () => {
   showAppInstallBanner.value = false
@@ -112,6 +119,15 @@ const installApp = () => {
 const neverShowAppInstallBanner = () => {
   showAppInstallBanner.value = false
   $q.localStorage.set('hideAppInstallation', true)
+}
+const checkForServiceWorkerUpdates = () => {
+  navigator.serviceWorker.getRegistrations().then(async (registrations) => {
+    for (let registration of registrations) {
+      console.log('updating', registration)
+      // update the service workers and get latest content
+      await registration.update()
+    }
+  })
 }
 </script>
 
