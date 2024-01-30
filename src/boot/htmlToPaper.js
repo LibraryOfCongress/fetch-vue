@@ -11,7 +11,7 @@ export default boot(({ app }) => {
     ],
     styles: [],
     timeout: 1000, // default timeout before the print window appears
-    autoClose: true, // if false, the window will not close after printing
+    autoClose: false, // if false, the window will not close after printing
     windowTitle: window.document.title // override the window title
   }
 
