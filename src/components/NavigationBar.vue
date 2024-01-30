@@ -98,7 +98,7 @@
           class="q-mb-lg align-center"
           clickable
           tag="a"
-          :to="'/'"
+          :to="'/test'"
         >
           <q-item-section>
             <q-icon
