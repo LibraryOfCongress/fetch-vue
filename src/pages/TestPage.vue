@@ -1,75 +1,151 @@
 <template>
-  <q-page
-    padding
-    class="flex flex-center column"
-  >
-    <h1>List of Owner Tiers</h1>
-    <ul class="owner-list">
-      <div
-        v-if="loadingData"
-        class="overlay"
-      >
-        <q-spinner-bars
+  <q-page padding>
+    <div class="row">
+      <div class="col-12">
+        <h1 class="text-h2">
+          List of Owner Tiers
+        </h1>
+        <ul class="owner-list">
+          <div
+            v-if="loadingData"
+            class="overlay"
+          >
+            <q-spinner-bars
+              color="primary"
+              size="2rem"
+              class="overlay-loading"
+            />
+          </div>
+
+          <li v-if="ownerTierOptions && ownerTierOptions.length == 0 && !loadingData">
+            No Owner Tiers found...
+          </li>
+          <li
+            v-for="(data, i) in ownerTierOptions"
+            :key="i"
+            :class="data.storedOffline ? 'text-negative' : ''"
+          >
+            {{ data.storedOffline ? `${data.name} (stored offline)` : data.name }}
+          </li>
+        </ul>
+      </div>
+
+      <div class="col-12 q-mt-md">
+        <q-btn
+          no-caps
+          unelevated
+          class="text-body1 q-mr-sm"
           color="primary"
-          size="2rem"
-          class="overlay-loading"
+          label="Create New Owner Tier"
+          :disabled="loadingData"
+          @click="showOwnerTierCreation = !showOwnerTierCreation"
+        />
+
+        <q-btn
+          no-caps
+          unelevated
+          class="text-body1"
+          color="primary"
+          label="Save Owner Tier List For Offline Use"
+          :disabled="loadingData"
+          @click="saveOwnerTierList"
+        />
+      </div>
+    </div>
+
+    <q-space class="divider q-my-xs-lg q-my-sm-xl" />
+
+    <div class="row">
+      <div class="col-12">
+        <h1 class="text-h2">
+          Alert Examples
+        </h1>
+
+        <div class="row no-wrap items-center q-mt-md">
+          <q-btn
+            no-caps
+            outline
+            color="negative"
+            label="Show Generic Alert"
+            class="text-body1 q-mr-sm"
+            @click="generateTestAlert(1)"
+          />
+
+          <q-btn
+            unelevated
+            no-caps
+            color="negative"
+            label="Show Persistent Alert"
+            class="text-body1"
+            @click="generateTestAlert(2)"
+          />
+        </div>
+      </div>
+    </div>
+
+    <q-space class="divider q-my-xs-lg q-my-sm-xl" />
+
+    <div class="row">
+      <div class="col-12">
+        <h1 class="text-h2">
+          File System Access Api Examples
+        </h1>
+      </div>
+
+      <div class="col-12 q-mb-sm">
+        <textarea
+          name="text-contents"
+          id="text-contents"
+          cols="30"
+          rows="4"
+          placeholder="Select a file to read it contents here or add some text and save a new text file to your system..."
+          v-model="fileContent"
         />
       </div>
 
-      <li v-if="ownerTierOptions && ownerTierOptions.length == 0 && !loadingData">
-        No Owner Tiers found...
-      </li>
-      <li
-        v-for="(data, i) in ownerTierOptions"
-        :key="i"
-        :class="data.storedOffline ? 'text-negative' : ''"
-      >
-        {{ data.storedOffline ? `${data.name} (stored offline)` : data.name }}
-      </li>
-    </ul>
+      <div class="col-12">
+        <q-btn
+          no-caps
+          unelevated
+          color="primary"
+          label="Select & Read Text File"
+          class="text-body1 q-mr-sm"
+          @click="selectTextFile()"
+        />
 
-    <q-btn
-      no-caps
-      unelevated
-      class="text-body1 q-mt-lg"
-      color="primary"
-      label="Create New Owner Tier"
-      :disabled="loadingData"
-      @click="showOwnerTierCreation = !showOwnerTierCreation"
-    />
+        <q-btn
+          no-caps
+          unelevated
+          color="primary"
+          label="Save To Selected Text File"
+          class="text-body1 q-mr-sm"
+          :disabled="fileReference == null"
+          @click="saveChangesToText"
+        />
 
-    <q-btn
-      no-caps
-      unelevated
-      class="text-body1 q-mt-lg"
-      color="primary"
-      label="Save Owner Tier List For Offline Use"
-      :disabled="loadingData"
-      @click="saveOwnerTierList"
-    />
+        <q-btn
+          no-caps
+          unelevated
+          color="primary"
+          label="Save New Text File"
+          class="text-body1 q-mr-sm"
+          :disabled="fileContent == null || fileContent == ''"
+          @click="saveTextFileToDevice"
+        />
 
-    <div class="row no-wrap justify-between items-center q-mt-xl">
-      <q-btn
-        no-caps
-        outline
-        color="negative"
-        label="Show Generic Alert"
-        class="text-body1 full-width btn-no-wrap"
-        @click="generateTestAlert(1)"
-      />
-
-      <q-space class="q-mx-xs" />
-
-      <q-btn
-        unelevated
-        no-caps
-        color="negative"
-        label="Show Persistent Alert"
-        class="text-body1 full-width btn-no-wrap"
-        @click="generateTestAlert(2)"
-      />
+        <q-btn
+          unelevated
+          no-caps
+          color="negative"
+          label="Reset Content"
+          class="text-body1"
+          :disabled="fileContent == null || fileContent == ''"
+          @click="fileContent = null; fileReference = null;"
+        />
+      </div>
     </div>
 
+    <!-- owner tier create modal -->
     <q-dialog
       :persistent="true"
       v-model="showOwnerTierCreation"
@@ -135,9 +211,11 @@ import { useOptionStore } from '@/stores/option-store'
 import { useGlobalStore } from '@/stores/global-store'
 import { ref, toRaw, onMounted, inject, watch } from 'vue'
 import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
+import { useFileSystemAccessHandler } from '@/composables/useFileSystemAccessHandler.js'
 
 // Composables
 const { indexDb, getDataInIndexDb, addDataToIndexDb } = useIndexDbHandler()
+const { fileReference, fileContent, selectTextFile, saveAsTextFile, updateTextFile } = useFileSystemAccessHandler()
 
 // Store Data
 const { getOwnerTierList, postOwnerTier } = useOptionStore()
@@ -244,6 +322,25 @@ const generateTestAlert = (val) => {
       persistent: true
     })
   }
+}
+
+const saveTextFileToDevice = async () => {
+  await saveAsTextFile(fileContent.value)
+
+  handleAlert({
+    type: 'success',
+    text: 'A new text file has been saved to the device',
+    autoClose: true
+  })
+}
+const saveChangesToText = async () => {
+  await updateTextFile(fileContent.value)
+
+  handleAlert({
+    type: 'success',
+    text: 'The selected text file has been updated on the device',
+    autoClose: true
+  })
 }
 </script>
 
