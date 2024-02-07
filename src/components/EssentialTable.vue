@@ -10,11 +10,15 @@
       <div
         v-if="localFilterOptions.length > 0"
         class="col-auto"
+        :class="headingFilterClass !== '' ? headingFilterClass : ''"
       >
         <q-btn
           flat
-          icon="mdi-filter"
+          no-caps
+          :icon="currentScreenSize == 'xs' ? 'none' : 'mdi-filter'"
+          :label="currentScreenSize == 'xs' ? 'Filter' : ''"
           class="table-component-filter"
+          :class="currentScreenSize == 'xs' ? 'text-accent' : ''"
         >
           <q-menu
             :transition-show="currentScreenSize == 'xs' ? 'scale' : 'fade'"
@@ -66,6 +70,7 @@
       <div
         v-if="!hideTableRearrange"
         class="col-auto"
+        :class="headingRearrangeClass !== '' ? headingRearrangeClass : ''"
       >
         <q-select
           ref="tableSortFilter"
@@ -244,6 +249,14 @@ const mainProps = defineProps({
     }
   },
   headingRowClass: {
+    type: String,
+    default: ''
+  },
+  headingFilterClass: {
+    type: String,
+    default: ''
+  },
+  headingRearrangeClass: {
     type: String,
     default: ''
   },

@@ -12,7 +12,14 @@
     }
   }
 
-  td {
-    padding: 7px 10px;
+  tbody {
+    td {
+      padding: 7px 10px;
+      font-size: 1rem;
+  
+      @media (max-width: $breakpoint-sm-min) {
+        font-size: 13px;
+      }
+    }
   }
 }
