@@ -93,12 +93,12 @@
       show-if-above
       class="bg-primary"
     >
-      <q-list>
+      <q-list class="nav-list">
         <q-item
           class="q-mb-lg align-center"
           clickable
           tag="a"
-          :to="'/test'"
+          :to="'/'"
         >
           <q-item-section>
             <q-icon
@@ -120,37 +120,17 @@
           :key="link.title"
           v-bind="link"
           :icon-size="'28px'"
-          class="justify-center text-white"
+          class="nav-list-link text-white"
+        />
+
+        <!-- admin level link -->
+        <EssentialLink
+          v-bind="adminLink"
+          :icon-size="'28px'"
+          class="nav-list-link-admin text-white"
         />
       </q-list>
     </q-drawer>
-
-    <!-- bottom nav (mobile only) -->
-    <q-footer
-      v-if="currentScreenSize == 'xs'"
-      elevated
-      class="text-white"
-    >
-      <q-toolbar class="nav-bar-bottom bg-primary justify-between">
-        <q-item
-          v-for="(link, i) in mobileNavLinks"
-          :key="i"
-          clickable
-          tag="a"
-          :to="link.link"
-          class="column items-center text-white"
-        >
-          <q-icon
-            :name="link.icon"
-            size="20px"
-          />
-
-          <q-item-label class="text-subcaption q-mt-xs">
-            {{ link.title }}
-          </q-item-label>
-        </q-item>
-      </q-toolbar>
-    </q-footer>
   </div>
 </template>
 
@@ -158,13 +138,11 @@
 import { onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
-import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBackgroundSyncHandler } from '@/composables/useBackgroundSyncHandler.js'
 import EssentialLink from '@/components/EssentialLink.vue'
 import SearchInput from '@/components/SearchInput.vue'
 
 // Composables
-const { currentScreenSize } = useCurrentScreenSize()
 const { bgSyncData, syncInProgress, triggerBackgroundSync } = useBackgroundSyncHandler()
 
 // Store Data
@@ -195,36 +173,14 @@ const essentialLinks = ref([
   {
     title: 'Refile',
     icon: 'list',
-    link: '/'
+    link: '/test'
   }
 ])
-const mobileNavLinks = ref([
-  {
-    title: 'Accession',
-    icon: 'mdi-barcode-scan',
-    link: '/accession'
-  },
-  {
-    title: 'Verfication',
-    icon: 'done_all',
-    link: '/verification'
-  },
-  {
-    title: 'Shelving',
-    icon: 'subject',
-    link: '/shelving'
-  },
-  {
-    title: 'Request',
-    icon: 'manage_search',
-    link: '/'
-  },
-  {
-    title: 'Refile',
-    icon: 'list',
-    link: '/'
-  }
-])
+const adminLink = ref({
+  title: 'Admin',
+  icon: 'mdi-shield-account',
+  link: '/admin'
+})
 const leftDrawerOpen = ref(false)
 const showOfflineBanner = ref(false)
 const showOnlineBanner = ref(false)
@@ -286,10 +242,17 @@ const toggleLeftDrawer = () => {
     }
   }
 
-  &-bar-bottom {
-    .q-item {
-      padding-left: 12px;
-      padding-right: 12px;
+  &-list {
+    position: relative;
+    height: 100%;
+
+    &-link {
+      &-admin {
+        position: absolute;
+        bottom: 0px;
+        width: 100%;
+        height: auto;
+      }
     }
   }
 }

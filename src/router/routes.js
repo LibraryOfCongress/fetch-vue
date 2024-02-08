@@ -4,16 +4,12 @@ const routes = [
     path: '/',
     component: () => import('@/layouts/MainLayout.vue'),
     // We build our routes based on the containing layout component so all pages that will live under MainLayout need to be child paths
+    // Keep routes sorted alphabetically by path
     children: [
       {
         name: 'home',
         path: '',
         component: () => import('@/pages/IndexPage.vue')
-      },
-      {
-        name: 'test',
-        path: '/test',
-        component: () => import('@/pages/TestPage.vue')
       },
       {
         name: 'accession',
@@ -34,6 +30,16 @@ const routes = [
             }
           }
         }
+      },
+      {
+        name: 'admin',
+        path: 'admin',
+        component: () => import('@/pages/AdminPage.vue')
+      },
+      {
+        name: 'itme-management',
+        path: 'item-management/:type?',
+        component: () => import('@/pages/ItemManagementPage.vue')
       },
       {
         name: 'verification',
@@ -61,14 +67,13 @@ const routes = [
         component: () => import('@/pages/ShelvingPage.vue')
       },
       {
-        name: 'itme-management',
-        path: 'item-management/:type?',
-        component: () => import('@/pages/ItemManagementPage.vue')
+        name: 'test',
+        path: '/test',
+        component: () => import('@/pages/TestPage.vue')
       }
     ]
   },
   // Always leave this as last one,
-  // but you can also remove it
   // 404 page for unknown links
   {
     path: '/:catchAll(.*)*',

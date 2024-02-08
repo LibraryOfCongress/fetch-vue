@@ -22,17 +22,26 @@
             </div>
 
             <div
-              class="col-xs-12 col-sm-7 col-md-auto flex"
+              class="col-xs-grow col-sm-7 col-md-auto flex"
               :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? 'justify-end q-mb-md' : 'order-1'"
             >
               <q-btn
+                v-if="currentScreenSize !== 'xs'"
                 no-caps
                 unelevated
                 icon="add"
                 color="accent"
                 label="Create Shelving Job"
                 class="btn-no-wrap text-body1 q-ml-sm"
-                :class="currentScreenSize == 'xs' ? 'full-width q-mt-md' : ''"
+                @click="showShelfModal = !showShelfModal"
+              />
+              <q-btn
+                v-else
+                no-caps
+                unelevated
+                color="accent"
+                label="Create Shelving Job"
+                class="btn-no-wrap text-body1"
                 @click="showShelfModal = !showShelfModal"
               />
             </div>
