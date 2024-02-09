@@ -22,11 +22,12 @@
     </div>
 
     <!-- start accession process modal -->
-    <q-dialog
-      :persistent="true"
-      v-model="showAccessionModal"
+    <PopupModal
+      v-if="showAccessionModal"
+      :show-actions="false"
+      @reset="reset"
     >
-      <q-card class="accession-modal">
+      <template #header-content>
         <q-card-section class="row items-center justify-between q-pb-none">
           <h2
             v-if="!accessionJob.type"
@@ -53,7 +54,9 @@
             @click="reset"
           />
         </q-card-section>
+      </template>
 
+      <template #main-content>
         <!-- first step in accession job process -->
         <q-card-section
           v-if="!accessionJob.type"
@@ -120,31 +123,36 @@
               />
             </div>
           </q-card-section>
-
-          <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-            <q-btn
-              no-caps
-              unelevated
-              color="accent"
-              label="Submit"
-              class="text-body1 full-width"
-              :disable="!canSubmitAccessionJob"
-              @click="submitAccessionJob"
-            />
-
-            <q-space class="q-mx-xs" />
-
-            <q-btn
-              outline
-              no-caps
-              label="Cancel"
-              class="accession-modal-btn text-body1 full-width"
-              @click="reset"
-            />
-          </q-card-section>
         </template>
-      </q-card>
-    </q-dialog>
+      </template>
+
+      <template #footer-content>
+        <q-card-section
+          v-if="accessionJob.type !== null"
+          class="row no-wrap justify-between items-center q-pt-sm"
+        >
+          <q-btn
+            no-caps
+            unelevated
+            color="accent"
+            label="Submit"
+            class="text-body1 full-width"
+            :disable="!canSubmitAccessionJob"
+            @click="submitAccessionJob"
+          />
+
+          <q-space class="q-mx-xs" />
+
+          <q-btn
+            outline
+            no-caps
+            label="Cancel"
+            class="accession-modal-btn text-body1 full-width"
+            @click="reset"
+          />
+        </q-card-section>
+      </template>
+    </PopupModal>
   </div>
 </template>
 
@@ -155,6 +163,7 @@ import { storeToRefs } from 'pinia'
 import { useAccessionStore } from 'src/stores/accession-store'
 import { useOptionStore } from 'src/stores/option-store'
 import SelectInput from '@/components/SelectInput.vue'
+import PopupModal from '@/components/PopupModal.vue'
 
 const router = useRouter()
 
@@ -235,23 +244,6 @@ const submitAccessionJob = async () => {
         bottom: 12%;
         width: 9rem;
         line-height: normal;
-      }
-    }
-  }
-
-  &-modal {
-    width: 500px;
-
-    @media (max-width: $breakpoint-sm-min) {
-      width: 90vw;
-    }
-
-    &-btn {
-      transition: .3s ease;
-
-      &:hover {
-        color: $accent;
-        border-color: $accent;
       }
     }
   }

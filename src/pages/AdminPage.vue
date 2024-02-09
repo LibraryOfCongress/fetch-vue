@@ -119,7 +119,7 @@
               <div class="building-card-details q-mb-xs">
                 <label class="text-body1">Modules:</label>
                 <p class="text-body1">
-                  {{ building.modules == 0 ? 'N/A' : building.modules }}
+                  {{ building.modules.length == 0 ? 'N/A' : building.modules.length }}
                 </p>
               </div>
 
@@ -137,67 +137,88 @@
     </div>
 
     <!-- New Building Form Modal -->
-    <q-dialog
-      :persistent="true"
-      v-model="showBuildingForm"
+    <PopupModal
+      v-if="showBuildingForm"
+      :title="buildingFormTitle == '' ? 'Create Location Hierarchy' : `Add New ${buildingFormTitle}`"
+      @reset="resetBuildingForm"
     >
-      <q-card class="building-modal">
-        <q-card-section class="row items-center justify-between q-pb-none">
-          <h2 class="text-h6">
-            {{ buildingFormTitle == '' ? 'Create Location Hierarchy' : `Add New ${buildingFormTitle}` }}
-          </h2>
-
-          <q-btn
-            icon="close"
-            flat
-            round
-            dense
-            @click="resetBuildingForm"
-          />
-        </q-card-section>
-
+      <template #main-content>
         <q-card-section class="row items-end">
-          <div class="form-group q-mb-md">
+          <div
+            v-if="renderBuildingFormField(1)"
+            class="form-group q-mb-md"
+          >
             <label class="form-group-label">
               Building
             </label>
-            <SelectInput
+            <TextInput
+              v-if="buildingFormTitle == 'Building'"
               v-model="buildingForm.building"
-              :options="[]"
+              placeholder="Please Type Building Name"
+            />
+            <SelectInput
+              v-else
+              v-model="buildingForm.building"
+              :options="buildings"
               option-value="id"
               option-label="name"
               :placeholder="'Select Building'"
             />
           </div>
 
-          <div class="form-group q-mb-md">
+          <div
+            v-if="renderBuildingFormField(2)"
+            class="form-group q-mb-md"
+          >
             <label class="form-group-label">
               Module
             </label>
-            <SelectInput
+            <TextInput
+              v-if="buildingFormTitle == 'Module'"
               v-model="buildingForm.module"
-              :options="[]"
+              placeholder="Please Type Module Name"
+              :disabled="buildingForm.building == ''"
+            />
+            <SelectInput
+              v-else
+              v-model="buildingForm.module"
+              :options="selectedBuildingModules"
               option-value="id"
               option-label="name"
-              :placeholder="'Select Modulee'"
+              :placeholder="'Select Module'"
+              :disabled="selectedBuildingModules.length == 0"
             />
           </div>
 
-          <div class="col-xs-12 col-sm-6 q-pr-xs">
+          <div
+            v-if="renderBuildingFormField(3)"
+            class="col-xs-12 col-sm-6 q-pr-xs"
+          >
             <div class="form-group">
               <label class="form-group-label">
                 Aisle
               </label>
-              <SelectInput
+              <TextInput
+                v-if="buildingFormTitle == 'Aisle'"
                 v-model="buildingForm.aisle"
-                :options="[]"
+                placeholder="Please Type Aisle Name"
+                :disabled="buildingForm.module == ''"
+              />
+              <SelectInput
+                v-else
+                v-model="buildingForm.aisle"
+                :options="selectedModuleAisles"
                 option-value="id"
-                option-label="name"
+                option-label="id"
                 :placeholder="'Select Aisle'"
+                :disabled="selectedModuleAisles.length == 0"
               />
             </div>
           </div>
-          <div class="col-xs-12 col-sm-6 q-pl-xs q-mt-xs-md q-mt-sm-none">
+          <div
+            v-if="renderBuildingFormField(4)"
+            class="col-xs-12 col-sm-6 q-pl-xs q-mt-xs-md q-mt-sm-none"
+          >
             <div class="form-group">
               <label class="form-group-label">
                 Side
@@ -220,20 +241,33 @@
             </div>
           </div>
 
-          <div class="form-group q-mt-md">
+          <div
+            v-if="renderBuildingFormField(5)"
+            class="form-group q-mt-md"
+          >
             <label class="form-group-label">
               Ladder
             </label>
-            <SelectInput
+            <TextInput
+              v-if="buildingFormTitle == 'Ladder'"
               v-model="buildingForm.ladder"
-              :options="[]"
+              placeholder="Please Type Ladder Number"
+              :disabled="buildingForm.aisle == ''"
+            />
+            <SelectInput
+              v-else
+              v-model="buildingForm.ladder"
+              :options="selectedAisleLadders"
               option-value="id"
-              option-label="name"
+              option-label="id"
               :placeholder="'Select Ladder'"
+              :disabled="selectedAisleLadders.length == 0"
             />
           </div>
         </q-card-section>
+      </template>
 
+      <template #footer-content>
         <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
           <q-btn
             no-caps
@@ -241,8 +275,8 @@
             color="accent"
             label="Create"
             class="text-body1 full-width"
-            :disable="true"
-            @click="resetBuildingForm"
+            :disabled="!isBuildingFormValid"
+            @click="submitBuildingForm"
           />
 
           <q-space class="q-mx-xs" />
@@ -255,38 +289,27 @@
             @click="resetBuildingForm"
           />
         </q-card-section>
-      </q-card>
-    </q-dialog>
+      </template>
+    </PopupModal>
   </q-page>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { useBuildingStore } from '@/stores/building-store'
+import PopupModal from '@/components/PopupModal.vue'
 import SelectInput from '@/components/SelectInput.vue'
+import TextInput from '@/components/TextInput.vue'
 
 // Compasables
 const { currentScreenSize } = useCurrentScreenSize()
 
-// // Store Data
-// const { templateAction } = useTemplateStore()
-// const { templateState } = storeToRefs(useTemplateStore())
+// Store Data
+const { buildings } = storeToRefs(useBuildingStore())
 
 // Local Data
-const buildings = ref([
-  {
-    id: 1,
-    name: 'Cabin Branch',
-    modules: 12,
-    available_shelves: 120
-  },
-  {
-    id: 2,
-    name: 'Fort Meade',
-    modules: 0,
-    available_shelves: 60
-  }
-])
 const buildingFormTitle = ref('')
 const buildingForm = ref({
   building: '',
@@ -302,8 +325,98 @@ const addNewOptions = ref([
   'Aisle',
   'Ladder'
 ])
+const isBuildingFormValid = computed(() => {
+  // validate that all needed fields are filled out in the building form
+  switch (buildingFormTitle.value) {
+  case 'Building':
+    if (buildingForm.value.building !== '') {
+      return true
+    } else {
+      return false
+    }
+  case 'Module':
+    if (buildingForm.value.building !== '' && buildingForm.value.module !== '') {
+      return true
+    } else {
+      return false
+    }
+  case 'Aisle':
+    if (buildingForm.value.building !== '' && buildingForm.value.module !== '' && buildingForm.value.aisle !== '') {
+      return true
+    } else {
+      return false
+    }
+  case 'Ladder':
+  case '':
+    if (buildingForm.value.building !== '' && buildingForm.value.module !== '' && buildingForm.value.aisle !== '' && buildingForm.value.ladder !== '') {
+      return true
+    } else {
+      return false
+    }
+  default:
+    return false
+  }
+})
+const selectedBuildingModules = computed(() => {
+  let modules = []
+  if (buildingForm.value.building !== '') {
+    modules = buildings.value.find(b => b.id == buildingForm.value.building).modules
+  }
+  return modules
+})
+const selectedModuleAisles = computed(() => {
+  let aisles = []
+  if (buildingForm.value.module !== '') {
+    aisles = selectedBuildingModules.value.find(m => m.id == buildingForm.value.module).aisles
+  }
+  return aisles
+})
+const selectedAisleLadders = computed(() => {
+  let ladders = []
+  if (buildingForm.value.aisle !== '') {
+    const ladderTotal = selectedModuleAisles.value.find(a => a.id == buildingForm.value.aisle).ladders
+    ladders = [...Array(ladderTotal)].map((n, i) => {
+      return { id: i + 1 }
+    })
+  }
+  return ladders
+})
 
 // Logic
+const handleAlert = inject('handle-alert')
+
+const renderBuildingFormField = (section) => {
+  // determines if a building form section can be displayed depending on the building form title
+  // (ex: if user selects add new building, we will only show section 1 aka Building input)
+  switch (buildingFormTitle.value) {
+  case 'Building':
+    if (section == 1) {
+      return true
+    } else {
+      return false
+    }
+  case 'Module':
+    if (section <= 2) {
+      return true
+    } else {
+      return false
+    }
+  case 'Aisle':
+    if (section <= 3) {
+      return true
+    } else {
+      return false
+    }
+  case 'Ladder':
+    if (section <= 5) {
+      return true
+    } else {
+      return false
+    }
+  default:
+    return true
+  }
+}
 const resetBuildingForm = () => {
   buildingFormTitle.value = ''
   buildingForm.value = {
@@ -314,6 +427,20 @@ const resetBuildingForm = () => {
     ladder: ''
   }
   showBuildingForm.value = false
+}
+const submitBuildingForm = async () => {
+  // TODO: Setup endpoints needed to send the different building properties to the location hierarchy
+  try {
+    console.log('creating building/fields', buildingForm.value)
+  } catch (err) {
+    handleAlert({
+      type: 'error',
+      text: err,
+      autoClose: true
+    })
+  } finally {
+    resetBuildingForm()
+  }
 }
 </script>
 
@@ -342,23 +469,6 @@ const resetBuildingForm = () => {
 
       label {
         margin-right: .5rem;
-      }
-    }
-  }
-
-  &-modal {
-    width: 500px;
-
-    @media (max-width: $breakpoint-sm-min) {
-      width: 90vw;
-    }
-
-    &-btn {
-      transition: .3s ease;
-
-      &:hover {
-        color: $accent;
-        border-color: $accent;
       }
     }
   }

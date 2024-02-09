@@ -16,6 +16,7 @@
     @filter="filterOptions"
     class="custom-select full-width"
     :placeholder="placeholder"
+    :disable="disabled"
   />
 </template>
 
@@ -44,6 +45,10 @@ const mainProps = defineProps({
   placeholder: {
     type: String,
     default: ''
+  },
+  disabled: {
+    type: Boolean,
+    default: false
   }
 })
 

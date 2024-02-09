@@ -68,25 +68,13 @@
     </div>
 
     <!-- Create Shelf Modal -->
-    <q-dialog
-      :persistent="true"
-      v-model="showShelfModal"
+    <PopupModal
+      v-if="showShelfModal"
+      title="Create New Shelf"
+      :show-actions="false"
+      @reset="resetModal"
     >
-      <q-card class="shelving-modal">
-        <q-card-section class="row items-center justify-between q-pb-none">
-          <h2 class="text-h6">
-            Create New Shelf
-          </h2>
-
-          <q-btn
-            icon="close"
-            flat
-            round
-            dense
-            @click="resetModal"
-          />
-        </q-card-section>
-
+      <template #main-content>
         <q-card-section class="column no-wrap items-center">
           <div class="form-group q-mb-md">
             <label class="form-group-label">
@@ -166,7 +154,9 @@
             />
           </div>
         </q-card-section>
+      </template>
 
+      <template #footer-content="{ hideModal }">
         <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
           <q-btn
             no-caps
@@ -174,7 +164,7 @@
             color="accent"
             label="Create Shelf"
             class="text-body1 full-width"
-            @click="resetModal"
+            @click="hideModal"
           />
 
           <q-space class="q-mx-xs" />
@@ -184,11 +174,11 @@
             no-caps
             label="Cancel"
             class="shelving-modal-btn text-body1 full-width"
-            @click="resetModal"
+            @click="hideModal"
           />
         </q-card-section>
-      </q-card>
-    </q-dialog>
+      </template>
+    </PopupModal>
   </q-page>
 </template>
 
@@ -199,6 +189,7 @@ import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from 'src/components/EssentialTable.vue'
 import SelectInput from 'src/components/SelectInput.vue'
+import PopupModal from 'src/components/PopupModal.vue'
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
@@ -386,23 +377,6 @@ const resetModal = () => {
     @media (max-width: $breakpoint-sm-min) {
       flex-direction: column;
       align-items: flex-start;
-    }
-  }
-
-  &-modal {
-    width: 500px;
-
-    @media (max-width: $breakpoint-sm-min) {
-      width: 90vw;
-    }
-
-    &-btn {
-      transition: .3s ease;
-
-      &:hover {
-        color: $accent;
-        border-color: $accent;
-      }
     }
   }
 }
