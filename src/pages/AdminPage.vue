@@ -60,7 +60,11 @@
         >
           <q-menu fit>
             <q-list>
-              <q-item>
+              <q-item
+                clickable
+                v-close-popup
+                @click="showBulkUploadForm = !showBulkUploadForm;"
+              >
                 <q-item-section>
                   <q-item-label>
                     <span>
@@ -285,8 +289,162 @@
             outline
             no-caps
             label="Cancel"
-            class="building-modal-btn text-body1 full-width"
+            class="text-body1 full-width"
             @click="resetBuildingForm"
+          />
+        </q-card-section>
+      </template>
+    </PopupModal>
+
+    <!-- Bulk Upload Form Modal -->
+    <PopupModal
+      v-if="showBulkUploadForm"
+      title="Bulk Upload File(s)"
+      @reset="resetBulkUploadForm"
+    >
+      <template #main-content>
+        <q-card-section class="row items-end">
+          <div class="col-grow">
+            <p class="text-body2">
+              Support files: .xls, .xlsx, .uslm, .pdf, .docx
+            </p>
+          </div>
+          <div class="col-auto flex justify-end">
+            <a
+              tabindex="0"
+              class="link text-body2 text-accent"
+              @click="null"
+            >
+              Click to Download Template
+            </a>
+          </div>
+
+          <div class="col-12 q-mt-md">
+            <FileUploadInput
+              :allow-multiple-files="false"
+              :allowed-file-types="['.xls', '.xlsx', '.uslm', '.pdf', '.docx']"
+              input-class="q-py-xs-md q-px-xs-lg q-py-sm-xl q-px-sm-lg"
+              @file-change="setBulkUploadFile"
+            />
+          </div>
+
+          <div class="col-12 q-mt-md q-mb-sm">
+            <p class="text-body1">
+              Select Areas to Upload:
+            </p>
+          </div>
+
+          <div
+            class="form-group q-mb-md"
+          >
+            <label class="form-group-label">
+              Building
+            </label>
+            <SelectInput
+              v-model="buildingForm.building"
+              :options="buildings"
+              option-value="id"
+              option-label="name"
+              :placeholder="'Select Building'"
+            />
+          </div>
+
+          <div
+            class="form-group q-mb-md"
+          >
+            <label class="form-group-label">
+              Module
+            </label>
+            <SelectInput
+              v-model="buildingForm.module"
+              :options="selectedBuildingModules"
+              option-value="id"
+              option-label="name"
+              :placeholder="'Select Module'"
+              :disabled="selectedBuildingModules.length == 0"
+            />
+          </div>
+
+          <div
+            class="col-xs-12 col-sm-6 q-pr-xs"
+          >
+            <div class="form-group">
+              <label class="form-group-label">
+                Aisle
+              </label>
+              <SelectInput
+                v-model="buildingForm.aisle"
+                :options="selectedModuleAisles"
+                option-value="id"
+                option-label="id"
+                :placeholder="'Select Aisle'"
+                :disabled="selectedModuleAisles.length == 0"
+              />
+            </div>
+          </div>
+          <div
+            class="col-xs-12 col-sm-6 q-pl-xs q-mt-xs-md q-mt-sm-none"
+          >
+            <div class="form-group">
+              <label class="form-group-label">
+                Side
+              </label>
+              <q-btn-toggle
+                v-model="buildingForm.side"
+                spread
+                no-caps
+                unelevated
+                toggle-color="accent"
+                color="white"
+                text-color="black"
+                class="form-toggle"
+                :style="[ currentScreenSize == 'xs' ? 'height:40px;' : 'height:56px;' ]"
+                :options="[
+                  {label: 'Left', value: 'left'},
+                  {label: 'Right', value: 'right'}
+                ]"
+              />
+            </div>
+          </div>
+
+          <div
+            class="form-group q-mt-md"
+          >
+            <label class="form-group-label">
+              Ladder
+            </label>
+            <SelectInput
+              v-model="buildingForm.ladder"
+              :options="selectedAisleLadders"
+              option-value="id"
+              option-label="id"
+              :placeholder="'Select Ladder'"
+              :disabled="selectedAisleLadders.length == 0"
+            />
+          </div>
+        </q-card-section>
+      </template>
+
+      <template #footer-content>
+        <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
+          <q-btn
+            no-caps
+            unelevated
+            color="accent"
+            :label="currentScreenSize == 'xs' ? 'Create' : 'Create Hierarchy'"
+            class="text-body1 full-width"
+            :disabled="!isBulkUploadValid"
+            @click="submitBulkUploadForm"
+          />
+
+          <q-space class="q-mx-xs" />
+
+          <q-btn
+            outline
+            no-caps
+            label="Cancel"
+            class="text-body1 full-width"
+            @click="resetBulkUploadForm"
           />
         </q-card-section>
       </template>
@@ -302,6 +460,7 @@ import { useBuildingStore } from '@/stores/building-store'
 import PopupModal from '@/components/PopupModal.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import TextInput from '@/components/TextInput.vue'
+import FileUploadInput from '@/components/FileUploadInput.vue'
 
 // Compasables
 const { currentScreenSize } = useCurrentScreenSize()
@@ -319,6 +478,8 @@ const buildingForm = ref({
   ladder: ''
 })
 const showBuildingForm = ref(false)
+const bulkUploadFile = ref(null)
+const showBulkUploadForm = ref(false)
 const addNewOptions = ref([
   'Building',
   'Module',
@@ -354,6 +515,14 @@ const isBuildingFormValid = computed(() => {
       return false
     }
   default:
+    return false
+  }
+})
+const isBulkUploadValid = computed(() => {
+  // validate that all needed fields are filled out in the bulk upload form
+  if (bulkUploadFile.value !== null && buildingForm.value.building !== '' && buildingForm.value.module !== '' && buildingForm.value.aisle !== '' && buildingForm.value.ladder !== '') {
+    return true
+  } else {
     return false
   }
 })
@@ -417,6 +586,20 @@ const renderBuildingFormField = (section) => {
     return true
   }
 }
+const setBulkUploadFile = (file) => {
+  bulkUploadFile.value = file
+}
+const resetBulkUploadForm = () => {
+  bulkUploadFile.value = null
+  buildingForm.value = {
+    building: '',
+    module: '',
+    aisle: '',
+    side: 'left',
+    ladder: ''
+  }
+  showBulkUploadForm.value = false
+}
 const resetBuildingForm = () => {
   buildingFormTitle.value = ''
   buildingForm.value = {
@@ -440,6 +623,29 @@ const submitBuildingForm = async () => {
     })
   } finally {
     resetBuildingForm()
+  }
+}
+const submitBulkUploadForm = async () => {
+  // TODO: Setup endpoints needed to send the different building properties to the location hierarchy
+  try {
+    console.log('uploading building/fields using file', bulkUploadFile.value, buildingForm.value)
+
+    // mock api request success (remove once api setup)
+    setTimeout(() => {
+      handleAlert({
+        type: 'success',
+        text: 'Bulk Upload Successfully Processed',
+        autoClose: true
+      })
+    }, 2000)
+  } catch (err) {
+    handleAlert({
+      type: 'error',
+      text: err,
+      autoClose: true
+    })
+  } finally {
+    resetBulkUploadForm()
   }
 }
 </script>

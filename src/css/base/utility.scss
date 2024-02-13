@@ -70,6 +70,13 @@ $color-map: (
   }
 }
 
+.link {
+  &:hover {
+    cursor: pointer;
+    text-decoration: underline;
+  }
+}
+
 .flex-grow {
   flex-grow: 1 !important;
 }
