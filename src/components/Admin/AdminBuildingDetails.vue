@@ -1,8 +1,8 @@
 <template>
   <div class="building">
     <div class="row justify-between q-mt-xs-lg q-mt-md-xl q-mx-md">
-      <div class="col-xs-12 col-sm-4 col-md-3">
-        <div class="building-details q-mb-xs-md q-mb-sm-none q-mr-sm-xl">
+      <div class="col-xs-12 col-sm-6 col-md-3">
+        <div class="building-details q-mb-xs-md q-mb-sm-md q-mr-sm-xl">
           <label
             id="moduleSelection"
             for="module"
@@ -28,8 +28,8 @@
         </div>
       </div>
 
-      <div class="col-xs-12 col-sm-4 col-md-3">
-        <div class="building-details q-mb-xs-md q-mb-sm-none q-mr-sm-xl">
+      <div class="col-xs-12 col-sm-6 col-md-3">
+        <div class="building-details q-mb-xs-md q-mb-sm-md q-mr-sm-xl">
           <label
             id="aisleSelection"
             for="aisle"
@@ -55,7 +55,7 @@
         </div>
       </div>
 
-      <div class="col-xs-12 col-sm-4 col-md-3">
+      <div class="col-xs-12 col-sm-6 col-md-3">
         <div class="building-details q-mb-xs-md q-mb-sm-none q-mr-sm-xl">
           <label
             id="sideSelection"
@@ -83,7 +83,7 @@
         </div>
       </div>
 
-      <div class="col-xs-12 col-sm-4 col-md-3">
+      <div class="col-xs-12 col-sm-6 col-md-3">
         <div class="building-details q-mb-xs-sm q-mb-sm-none">
           <label
             id="ladderSelection"
@@ -118,20 +118,26 @@
         <EssentialTable
           :table-columns="shelfItemsTableColumns"
           :table-visible-columns="shelfItemsTableVisibleColumns"
+          :filter-options="shelfItemsTableFilters"
           :table-data="shelfData.items"
           :disable-table-reorder="currentScreenSize == 'xs' ? true : false"
           :heading-row-class="'q-mb-lg'"
+          :heading-filter-class="'q-ml-auto'"
+          :heading-rearrange-class="'q-mr-xs-md q-mr-sm-none'"
         >
           <template #heading-row>
-            <div class="col-sm-auto col-xs-5 self-center q-mr-auto q-ml-sm-md">
+            <div
+              class="col-xs-5 col-sm-auto q-mr-auto q-pl-xs-md"
+              :class="currentScreenSize == 'xs' ? '' : 'self-center'"
+            >
               <label class="text-h4 text-bold">
                 Shelf:
               </label>
             </div>
 
             <div
-              class="col-auto flex q-mr-sm-md"
-              :class="currentScreenSize == 'xs' ? 'order-2 q-ml-auto q-mt-lg' : 'order-1'"
+              class="col-xs-6 col-sm-auto flex q-pr-xs-md"
+              :class="currentScreenSize == 'xs' ? 'justify-end q-mb-md' : 'order-1'"
             >
               <q-btn
                 no-caps
@@ -145,20 +151,21 @@
             </div>
           </template>
 
-          <template #table-td="{ colName, value }">
+          <template #table-td="{ colName, props, value }">
             <span
-              v-if="colName == 'vacancy'"
-              class="outline"
-              :class="value > 66 ? 'text-highlight' : value < 33 ? 'text-highlight-red' : 'text-highlight-yellow'"
+              v-if="colName == 'actions'"
             >
-              {{ value }}%
+              <MoreOptionsMenu
+                :options="[{ text: 'Edit Shelf' }]"
+                class=""
+                @click="handleOptionMenu($event, props.row)"
+              />
             </span>
+
             <span
-              v-else-if="colName == 'available_capacity'"
-              class="outline"
-              :class="value > 66 ? 'text-highlight' : value < 33 ? 'text-highlight-red' : 'text-highlight-yellow'"
+              v-if="colName == 'shelf_width' || colName == 'shelf_height' || colName == 'shelf_depth'"
             >
-              {{ value }} Containers Left
+              {{ value }} ft
             </span>
           </template>
         </EssentialTable>
@@ -174,7 +181,7 @@
       <q-card class="building-modal">
         <q-card-section class="row items-center justify-between q-pb-none">
           <h2 class="text-h6">
-            Add Shelf
+            {{ shelfItemDetails.id ? 'Edit Shelf' : 'Add Shelf' }}
           </h2>
 
           <q-btn
@@ -215,7 +222,7 @@
               Container Size
             </label>
             <SelectInput
-              v-model="shelfItemDetails.container_size"
+              v-model="shelfItemDetails.size_class"
               :options="containerOptions"
               option-value="id"
               option-label="name"
@@ -263,7 +270,7 @@
                 Shelf Depth
               </label>
               <TextInput
-                v-model="shelfItemDetails.shelf_depthr"
+                v-model="shelfItemDetails.shelf_depth"
                 placeholder="Enter Shelf Depth"
               />
             </div>
@@ -288,7 +295,7 @@
             no-caps
             unelevated
             color="accent"
-            label="Create Shelf"
+            :label="shelfItemDetails.id ? 'Update' : 'Create'"
             class="text-body1 full-width"
             @click="resetModal"
           />
@@ -317,6 +324,7 @@ import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from 'src/components/EssentialTable.vue'
 import SelectInput from 'src/components/SelectInput.vue'
 import TextInput from 'src/components/TextInput.vue'
+import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
@@ -335,9 +343,9 @@ const shelfData = ref({
     {
       id: '00924891289',
       shelf_number: 1,
-      shelf_width: '12 ft',
-      shelf_height: '3 ft',
-      shelf_depth: '22 ft',
+      shelf_width: 12,
+      shelf_height: 3,
+      shelf_depth: 22,
       size_class: 'A High',
       max_capacity: 15,
       container_type: 'Trayed',
@@ -346,9 +354,9 @@ const shelfData = ref({
     {
       id: '00924891290',
       shelf_number: 2,
-      shelf_width: '22.2 ft',
-      shelf_height: '3 ft',
-      shelf_depth: '22 ft',
+      shelf_width: 22.2,
+      shelf_height: 3,
+      shelf_depth: 22,
       size_class: 'B Low',
       max_capacity: 60,
       container_type: 'Trayed',
@@ -357,9 +365,9 @@ const shelfData = ref({
     {
       id: '00924891291',
       shelf_number: 15,
-      shelf_width: '24 ft',
-      shelf_height: '4.4 ft',
-      shelf_depth: '22 ft',
+      shelf_width: 24,
+      shelf_height: 4.4,
+      shelf_depth: 22,
       size_class: 'C High',
       max_capacity: 100,
       container_type: 'Non-Trayed',
@@ -368,6 +376,7 @@ const shelfData = ref({
   ]
 })
 const shelfItemsTableVisibleColumns = ref([
+  'actions',
   'shelf_number',
   'shelf_width',
   'shelf_height',
@@ -380,12 +389,21 @@ const shelfItemsTableVisibleColumns = ref([
 ])
 const shelfItemsTableColumns = ref([
   {
+    name: 'actions',
+    field: 'actions',
+    label: '',
+    align: 'center',
+    sortable: false,
+    required: true,
+    order: 0
+  },
+  {
     name: 'shelf_number',
     field: 'shelf_number',
     label: 'Shelf Number',
     align: 'left',
     sortable: true,
-    order: 0
+    order: 1
   },
   {
     name: 'shelf_width',
@@ -393,7 +411,7 @@ const shelfItemsTableColumns = ref([
     label: 'Shelf Width',
     align: 'left',
     sortable: true,
-    order: 1
+    order: 2
   },
   {
     name: 'shelf_height',
@@ -401,7 +419,7 @@ const shelfItemsTableColumns = ref([
     label: 'Shelf Height',
     align: 'left',
     sortable: true,
-    order: 2
+    order: 3
   },
   {
     name: 'shelf_depth',
@@ -409,7 +427,7 @@ const shelfItemsTableColumns = ref([
     label: 'Shelf Depth',
     align: 'left',
     sortable: true,
-    order: 3
+    order: 4
   },
   {
     name: 'size_class',
@@ -417,7 +435,7 @@ const shelfItemsTableColumns = ref([
     label: 'Size Class',
     align: 'left',
     sortable: true,
-    order: 4
+    order: 5
   },
   {
     name: 'max_capacity',
@@ -425,7 +443,7 @@ const shelfItemsTableColumns = ref([
     label: 'Max Capacity',
     align: 'left',
     sortable: true,
-    order: 5
+    order: 6
   },
   {
     name: 'container_type',
@@ -433,7 +451,7 @@ const shelfItemsTableColumns = ref([
     label: 'Container Type',
     align: 'left',
     sortable: true,
-    order: 6
+    order: 7
   },
   {
     name: 'owner',
@@ -441,7 +459,7 @@ const shelfItemsTableColumns = ref([
     label: 'Owner',
     align: 'left',
     sortable: true,
-    order: 7
+    order: 8
   },
   {
     name: 'id',
@@ -449,14 +467,59 @@ const shelfItemsTableColumns = ref([
     label: 'Shelf Barcode',
     align: 'left',
     sortable: true,
-    order: 8
+    order: 9
+  }
+])
+const shelfItemsTableFilters =  ref([
+  {
+    field: 'size_class',
+    options: [
+      {
+        text: 'A High',
+        value: false
+      },
+      {
+        text: 'B Low',
+        value: false
+      },
+      {
+        text: 'C High',
+        value: false
+      }
+    ]
+  },
+  {
+    field: 'container_type',
+    options: [
+      {
+        text: 'Trayed',
+        value: false
+      },
+      {
+        text: 'Non-Trayed',
+        value: false
+      }
+    ]
+  },
+  {
+    field: 'owner',
+    options: [
+      {
+        text: 'John Doe',
+        value: false
+      },
+      {
+        text: 'George Washington',
+        value: false
+      }
+    ]
   }
 ])
 const showShelfModal = ref(false)
 const shelfItemDetails = ref({
   shelf_number: '',
   owner: null,
-  container_size: null,
+  size_class: null,
   max_capacity: '',
   shelf_width: '',
   shelf_height: '',
@@ -489,6 +552,7 @@ const renderladderOptions = computed(() => {
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
     shelfItemsTableVisibleColumns.value = [
+      'actions',
       'shelf_number',
       'shelf_width',
       'shelf_height',
@@ -500,6 +564,7 @@ onBeforeMount(() => {
 watch(currentScreenSize, () => {
   if (currentScreenSize.value == 'xs') {
     shelfItemsTableVisibleColumns.value = [
+      'actions',
       'shelf_number',
       'shelf_width',
       'shelf_height',
@@ -507,6 +572,7 @@ watch(currentScreenSize, () => {
     ]
   } else {
     shelfItemsTableVisibleColumns.value = [
+      'actions',
       'shelf_number',
       'shelf_width',
       'shelf_height',
@@ -536,12 +602,27 @@ const handleShelfDataChange = (valueType) => {
 
   //TODO: load the items for the filtered shelf data
 }
+const handleOptionMenu = (action, rowData) => {
+  // display the shelfItemDetail Modal using the selected rowData
+  shelfItemDetails.value = {
+    shelf_number: rowData.shelf_number,
+    owner: rowData.owner,
+    size_class: rowData.size_class,
+    max_capacity: rowData.max_capacity,
+    shelf_width: rowData.shelf_width,
+    shelf_height: rowData.shelf_height,
+    shelf_depth: rowData.shelf_depth,
+    shelf_barcode: rowData.id,
+    id: rowData.id
+  }
+  showShelfModal.value = true
+}
 
 const resetModal = () => {
   shelfItemDetails.value = {
     shelf_number: '',
     owner: null,
-    container_size: null,
+    size_class: null,
     max_capacity: '',
     shelf_width: '',
     shelf_height: '',
@@ -557,7 +638,7 @@ const resetModal = () => {
     position: relative;
     display: flex;
     align-items: center;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
 
     @media (max-width: $breakpoint-sm-min) {
       flex-direction: column;
