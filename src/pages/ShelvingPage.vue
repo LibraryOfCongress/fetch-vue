@@ -93,12 +93,9 @@
             <label class="form-group-label">
               Shelf Number
             </label>
-            <q-input
-              outlined
-              placeholder="Enter Shelf Number"
-              :dense="currentScreenSize == 'xs'"
+            <TextInput
               v-model="newShelf.shelf_number"
-              class="full-width"
+              placeholder="Enter Shelf Number"
             />
           </div>
 
@@ -106,12 +103,9 @@
             <label class="form-group-label">
               Shelf Width
             </label>
-            <q-input
-              outlined
-              placeholder="Enter Shelf Width"
-              :dense="currentScreenSize == 'xs'"
+            <TextInput
               v-model="newShelf.shelf_width"
-              class="full-width"
+              placeholder="Enter Shelf Width"
             />
           </div>
 
@@ -119,12 +113,9 @@
             <label class="form-group-label">
               Shelf Height
             </label>
-            <q-input
-              outlined
-              placeholder="Enter Shelf Height"
-              :dense="currentScreenSize == 'xs'"
+            <TextInput
               v-model="newShelf.shelf_height"
-              class="full-width"
+              placeholder="Enter Shelf Height"
             />
           </div>
 
@@ -132,12 +123,9 @@
             <label class="form-group-label">
               Shelf Depth
             </label>
-            <q-input
-              outlined
-              placeholder="Enter Shelf Depth"
-              :dense="currentScreenSize == 'xs'"
+            <TextInput
               v-model="newShelf.shelf_depthr"
-              class="full-width"
+              placeholder="Enter Shelf Depth"
             />
           </div>
 
@@ -189,6 +177,7 @@ import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from 'src/components/EssentialTable.vue'
 import SelectInput from 'src/components/SelectInput.vue'
+import TextInput from 'src/components/TextInput.vue'
 import PopupModal from 'src/components/PopupModal.vue'
 
 // Composables

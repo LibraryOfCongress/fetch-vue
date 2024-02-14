@@ -33,11 +33,11 @@ const routes = [
       },
       {
         name: 'admin',
-        path: 'admin',
+        path: 'admin/:buildingId?',
         component: () => import('@/pages/AdminPage.vue')
       },
       {
-        name: 'itme-management',
+        name: 'item-management',
         path: 'item-management/:type?',
         component: () => import('@/pages/ItemManagementPage.vue')
       },

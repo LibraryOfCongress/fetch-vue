@@ -40,7 +40,7 @@
         name="footer-content"
         :hide-modal="hideModal"
       >
-        <q-card-actions
+        <q-card-section
           v-if="showActions"
           class="row no-wrap justify-between items-center"
         >
@@ -62,7 +62,7 @@
             class="popup-modal-btn text-body1 full-width"
             @click="showPopupModal = false"
           />
-        </q-card-actions>
+        </q-card-section>
       </slot>
     </q-card>
   </q-dialog>

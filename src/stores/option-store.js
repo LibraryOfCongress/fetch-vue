@@ -29,6 +29,10 @@ export const useOptionStore = defineStore('options', {
       {
         id: 4,
         name: 'B Low'
+      },
+      {
+        id: 5,
+        name: 'C high'
       }
     ],
     mediaOptions: [

@@ -6,7 +6,7 @@
     @update:model-value="updateModelValue"
     :placeholder="placeholder"
     :disable="disabled"
-    class="full-width"
+    class="custom-text full-width"
   />
 </template>
 
@@ -39,4 +39,19 @@ const updateModelValue = (value) => {
 </script>
 
 <style lang="scss" scoped>
+.custom-text {
+  :deep(.q-field__control) {
+    &::before {
+      border-color: $color-black;
+    }
+  }
+
+  &.q-field--disabled {
+    :deep(.q-field__control) {
+      &::before {
+        border-color: rgba($color-black, .25);
+      }
+    }
+  }
+}
 </style>

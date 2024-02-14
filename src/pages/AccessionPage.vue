@@ -1,13 +1,13 @@
 <template>
   <q-page
-    :padding="!$route.params.jobId"
+    :padding="!route.params.jobId"
     class="accession column no-wrap"
   >
-    <BreadCrumb v-if="$route.params.jobId" />
+    <BreadCrumb v-if="route.params.jobId" />
 
-    <AccessionInit v-if="!$route.params.jobId" />
+    <AccessionInit v-if="!route.params.jobId" />
 
-    <AccessionContainerDisplay v-if="$route.params.jobId && store.accessionJob.type !== null" />
+    <AccessionContainerDisplay v-if="route.params.jobId && store.accessionJob.type !== null" />
   </q-page>
 </template>
 
