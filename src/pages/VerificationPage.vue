@@ -1,9 +1,9 @@
 <template>
   <q-page
-    :padding="!$route.params.jobId"
+    :padding="!route.params.jobId"
     class="verification column no-wrap"
   >
-    <BreadCrumb v-if="$route.params.jobId">
+    <BreadCrumb v-if="route.params.jobId">
       <template #actions>
         <div
           v-if="currentScreenSize == 'xs' && verificationJob.type == 1"
@@ -22,10 +22,10 @@
       </template>
     </BreadCrumb>
 
-    <VerificationInit v-if="!$route.params.jobId" />
+    <VerificationInit v-if="!route.params.jobId" />
 
     <VerificationContainerDisplay
-      v-if="$route.params.jobId"
+      v-if="route.params.jobId"
       ref="verificationContainerComponent"
     />
   </q-page>

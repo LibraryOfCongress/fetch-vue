@@ -44,7 +44,7 @@
           </p>
         </q-card-section>
 
-        <q-card-actions
+        <q-card-section
           class="row items-center"
         >
           <q-btn
@@ -55,7 +55,7 @@
             class="text-body1 full-width"
             @click="showAlertModal = false"
           />
-        </q-card-actions>
+        </q-card-section>
       </q-card>
     </q-dialog>
   </div>

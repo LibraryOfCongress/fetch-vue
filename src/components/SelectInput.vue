@@ -16,7 +16,12 @@
     @filter="filterOptions"
     class="custom-select full-width"
     :placeholder="placeholder"
-  />
+    :disable="disabled"
+  >
+    <template #no-option>
+      <slot name="no-option" />
+    </template>
+  </q-select>
 </template>
 
 <script setup>
@@ -44,6 +49,10 @@ const mainProps = defineProps({
   placeholder: {
     type: String,
     default: ''
+  },
+  disabled: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -71,6 +80,20 @@ const filterOptions = (val, update) => {
 .custom-select {
   :deep(.q-placeholder) {
     width: inherit;
+  }
+
+  :deep(.q-field__control) {
+    &::before {
+      border-color: $color-black;
+    }
+  }
+
+  &.q-field--disabled {
+    :deep(.q-field__control) {
+      &::before {
+        border-color: rgba($color-black, .25);
+      }
+    }
   }
 }
 </style>

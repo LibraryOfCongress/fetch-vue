@@ -5,7 +5,13 @@
   }
 
   & .on-left {
-    margin-right: 6px;
+    margin-right: 4px;
+    margin-left: -7px;
+  }
+
+  & .on-right {
+    margin-left: 4px;
+    margin-right: -7px;
   }
 
   &.btn-no-wrap {

@@ -36,8 +36,9 @@ input, button, textarea, select {
   font: inherit;
 }
 
-h1, h2, h3, h4, h5, h6, p {
+h1, h2, h3, h4, h5, h6, p, span {
   overflow-wrap: break-word;
   margin: 0;
   padding: 0;
+  vertical-align: middle;
 }

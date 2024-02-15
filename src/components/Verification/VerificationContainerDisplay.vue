@@ -457,17 +457,19 @@
     :show-actions="false"
     @reset="showScanOverlay = false"
   >
-    <template #modal-content>
-      <div class="flex justify-center q-pb-lg">
-        <q-btn
-          class="text-h4 q-pa-xs-lg q-pa-md-xl"
-          no-caps
-          unelevated
-          color="secondary"
-          label="Waiting For Scan..."
-          @click="triggerBarcodeScan('00924891234')"
-        />
-      </div>
+    <template #main-content>
+      <q-card-section>
+        <div class="flex justify-center q-pb-lg">
+          <q-btn
+            class="text-h4 q-pa-xs-lg q-pa-md-xl"
+            no-caps
+            unelevated
+            color="secondary"
+            label="Waiting For Scan..."
+            @click="triggerBarcodeScan('00924891234')"
+          />
+        </div>
+      </q-card-section>
     </template>
   </PopupModal>
 

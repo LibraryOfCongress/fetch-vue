@@ -10,11 +10,15 @@
       <div
         v-if="localFilterOptions.length > 0"
         class="col-auto"
+        :class="headingFilterClass !== '' ? headingFilterClass : ''"
       >
         <q-btn
           flat
-          icon="mdi-filter"
+          no-caps
+          :icon="currentScreenSize == 'xs' ? 'none' : 'mdi-filter'"
+          :label="currentScreenSize == 'xs' ? 'Filter' : ''"
           class="table-component-filter"
+          :class="currentScreenSize == 'xs' ? 'text-accent' : ''"
         >
           <q-menu
             :transition-show="currentScreenSize == 'xs' ? 'scale' : 'fade'"
@@ -66,6 +70,7 @@
       <div
         v-if="!hideTableRearrange"
         class="col-auto"
+        :class="headingRearrangeClass !== '' ? headingRearrangeClass : ''"
       >
         <q-select
           ref="tableSortFilter"
@@ -74,7 +79,7 @@
           :dense="currentScreenSize == 'xs'"
           :display-value="'Rearrange'"
           v-model="localTableVisibleColumns"
-          :options="localTableColumns.filter(opt => opt.required == null)"
+          :options="localTableColumns.filter(opt => !opt.required)"
           emit-value
           map-options
           option-value="name"
@@ -151,6 +156,14 @@
           v-model:selected="selectedTableData"
           class="table-component-table"
         >
+          <template #header-cell-actions="props">
+            <!-- if we ever pass in an actions column it will always use the smallest col size -->
+            <q-th
+              v-if="props.col.name == 'actions'"
+              :auto-width="true"
+            />
+          </template>
+
           <template #body-cell="props">
             <q-td
               :props="props"
@@ -247,6 +260,14 @@ const mainProps = defineProps({
     type: String,
     default: ''
   },
+  headingFilterClass: {
+    type: String,
+    default: ''
+  },
+  headingRearrangeClass: {
+    type: String,
+    default: ''
+  },
   rowKey: {
     type: String,
     default: 'id' // if tableData doesnt include an 'id' param we need to specifiy this
@@ -320,12 +341,12 @@ const endDrag = (e) => {
   // get all the child element order values that are in our select filter list
   const filterMenuElements = [...document.querySelector('.q-menu .q-virtual-scroll__content').children].map(el => ({ order: el.style.order }))
 
+  // filter out any required items since these wont show up in the rearrange menu
+  const filteredTableColumns = localTableColumns.value.filter(item => !item.required)
   // update the localTableColumn order values to match the filterMenuElements order
-  localTableColumns.value = localTableColumns.value.map((item, i) => {
-    return {
-      ...item,
-      order: filterMenuElements[i].order
-    }
+  filteredTableColumns.forEach((item, i) => {
+    const currentTableColumnIndex = localTableColumns.value.findIndex(currentItm => currentItm == item )
+    localTableColumns.value[currentTableColumnIndex].order = filterMenuElements[i].order
   })
 
   // lastly sort the localTableColumn data which will re render the qtable to the new order

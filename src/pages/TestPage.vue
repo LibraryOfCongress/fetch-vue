@@ -146,41 +146,24 @@
     </div>
 
     <!-- owner tier create modal -->
-    <q-dialog
-      :persistent="true"
-      v-model="showOwnerTierCreation"
+    <PopupModal
+      v-if="showOwnerTierCreation"
+      title="Create A New Owner Tier"
+      @reset="reset"
     >
-      <q-card class="test-modal">
-        <q-card-section class="row items-center justify-between q-pb-none">
-          <h2
-            class="text-h6"
-          >
-            Create A New Owner Tier
-          </h2>
-
-          <q-btn
-            icon="close"
-            flat
-            round
-            dense
-            @click="reset"
-          />
-        </q-card-section>
-
+      <template #main-content>
         <q-card-section
           class="column no-wrap items-center"
         >
-          <q-input
-            outlined
-            color="primary"
-            dense
+          <TextInput
             v-model="newOwnerTier"
             :placeholder="'Enter Owner Tier Name'"
-            class="full-width"
           />
         </q-card-section>
+      </template>
 
-        <q-card-actions class="row no-wrap justify-between items-center">
+      <template #footer-content>
+        <q-card-section class="row no-wrap justify-between items-center">
           <q-btn
             no-caps
             unelevated
@@ -199,9 +182,9 @@
             class="text-body1 full-width"
             @click="reset"
           />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+        </q-card-section>
+      </template>
+    </PopupModal>
   </q-page>
 </template>
 
@@ -212,6 +195,8 @@ import { useGlobalStore } from '@/stores/global-store'
 import { ref, toRaw, onMounted, inject, watch } from 'vue'
 import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
 import { useFileSystemAccessHandler } from '@/composables/useFileSystemAccessHandler.js'
+import PopupModal from '@/components/PopupModal.vue'
+import TextInput from '@/components/TextInput.vue'
 
 // Composables
 const { indexDb, getDataInIndexDb, addDataToIndexDb } = useIndexDbHandler()

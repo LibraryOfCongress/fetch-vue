@@ -93,12 +93,12 @@
       show-if-above
       class="bg-primary"
     >
-      <q-list>
+      <q-list class="nav-list">
         <q-item
           class="q-mb-lg align-center"
           clickable
           tag="a"
-          :to="'/test'"
+          :to="'/'"
         >
           <q-item-section>
             <q-icon
@@ -120,7 +120,14 @@
           :key="link.title"
           v-bind="link"
           :icon-size="'28px'"
-          class="justify-center text-white"
+          class="nav-list-link text-white"
+        />
+
+        <!-- admin level link -->
+        <EssentialLink
+          v-bind="adminLink"
+          :icon-size="'28px'"
+          class="nav-list-link-admin text-white"
           :class="isActiveLink(link) ? 'nav-active' : ''"
         />
       </q-list>
@@ -170,9 +177,14 @@ const essentialLinks = ref([
   {
     title: 'Refile',
     icon: 'list',
-    link: '/'
+    link: '/test'
   }
 ])
+const adminLink = ref({
+  title: 'Admin',
+  icon: 'mdi-shield-account',
+  link: '/admin'
+})
 const leftDrawerOpen = ref(false)
 const showOfflineBanner = ref(false)
 const showOnlineBanner = ref(false)
@@ -245,6 +257,20 @@ const isActiveLink = (linkObj) => {
 
     @media (max-width: $breakpoint-sm-min) {
       width: 75%;
+    }
+  }
+
+  &-list {
+    position: relative;
+    height: 100%;
+
+    &-link {
+      &-admin {
+        position: absolute;
+        bottom: 0px;
+        width: 100%;
+        height: auto;
+      }
     }
   }
 }

@@ -30,6 +30,6 @@ const router = useRouter()
   position: sticky;
   top: 50px; // this offsets the main nav
   background-color: $color-white;
-  z-index: 2000;
+  z-index: 1500;
 }
 </style>

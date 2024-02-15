@@ -152,7 +152,7 @@ const checkForServiceWorkerUpdates = () => {
   display: flex;
   flex-direction: column-reverse;
   gap: 0.8rem;
-  z-index: 2000;
+  z-index: 7000;
 
   &-enter-active {
     animation: alert-fade-in 0.5s ease-in-out;
