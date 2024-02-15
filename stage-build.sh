@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -x
 
-IMAGE_LOCATION=images/web.test.Containerfile
+IMAGE_LOCATION=images/web.stage.Containerfile
 IMAGE_TAG=fetch-web-image
 CONTAINER_NAME=fetch-web
 INTERNAL_PORT=80

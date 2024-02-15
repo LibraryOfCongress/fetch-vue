@@ -128,6 +128,7 @@
           v-bind="adminLink"
           :icon-size="'28px'"
           class="nav-list-link-admin text-white"
+          :class="isActiveLink(link) ? 'nav-active' : ''"
         />
       </q-list>
     </q-drawer>
@@ -136,11 +137,14 @@
 
 <script setup>
 import { onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useBackgroundSyncHandler } from '@/composables/useBackgroundSyncHandler.js'
 import EssentialLink from '@/components/EssentialLink.vue'
 import SearchInput from '@/components/SearchInput.vue'
+
+const route = useRoute()
 
 // Composables
 const { bgSyncData, syncInProgress, triggerBackgroundSync } = useBackgroundSyncHandler()
@@ -187,6 +191,8 @@ const showOnlineBanner = ref(false)
 
 // Logic
 onMounted(() => {
+  console.log(route)
+
   window.addEventListener('offline', () => {
     showOnlineBanner.value = false
     showOfflineBanner.value = true
@@ -228,11 +234,23 @@ watch(bgSyncData, () => {
 const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
+
+const isActiveLink = (linkObj) => {
+  if (linkObj.link !== '/' && route.path.includes(linkObj.link)) {
+    return true
+  } else {
+    return false
+  }
+}
 </script>
 
 <style lang="scss" scoped>
 .nav {
   position: relative;
+
+  &-active {
+    background-color: $accent;
+  }
 
   &-search {
     width: 50%;
