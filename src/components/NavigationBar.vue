@@ -121,50 +121,25 @@
           v-bind="link"
           :icon-size="'28px'"
           class="justify-center text-white"
+          :class="isActiveLink(link) ? 'nav-active' : ''"
         />
       </q-list>
     </q-drawer>
-
-    <!-- bottom nav (mobile only) -->
-    <q-footer
-      v-if="currentScreenSize == 'xs'"
-      elevated
-      class="text-white"
-    >
-      <q-toolbar class="nav-bar-bottom bg-primary justify-between">
-        <q-item
-          v-for="(link, i) in mobileNavLinks"
-          :key="i"
-          clickable
-          tag="a"
-          :to="link.link"
-          class="column items-center text-white"
-        >
-          <q-icon
-            :name="link.icon"
-            size="20px"
-          />
-
-          <q-item-label class="text-subcaption q-mt-xs">
-            {{ link.title }}
-          </q-item-label>
-        </q-item>
-      </q-toolbar>
-    </q-footer>
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
-import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBackgroundSyncHandler } from '@/composables/useBackgroundSyncHandler.js'
 import EssentialLink from '@/components/EssentialLink.vue'
 import SearchInput from '@/components/SearchInput.vue'
 
+const route = useRoute()
+
 // Composables
-const { currentScreenSize } = useCurrentScreenSize()
 const { bgSyncData, syncInProgress, triggerBackgroundSync } = useBackgroundSyncHandler()
 
 // Store Data
@@ -198,39 +173,14 @@ const essentialLinks = ref([
     link: '/'
   }
 ])
-const mobileNavLinks = ref([
-  {
-    title: 'Accession',
-    icon: 'mdi-barcode-scan',
-    link: '/accession'
-  },
-  {
-    title: 'Verfication',
-    icon: 'done_all',
-    link: '/verification'
-  },
-  {
-    title: 'Shelving',
-    icon: 'subject',
-    link: '/shelving'
-  },
-  {
-    title: 'Request',
-    icon: 'manage_search',
-    link: '/'
-  },
-  {
-    title: 'Refile',
-    icon: 'list',
-    link: '/'
-  }
-])
 const leftDrawerOpen = ref(false)
 const showOfflineBanner = ref(false)
 const showOnlineBanner = ref(false)
 
 // Logic
 onMounted(() => {
+  console.log(route)
+
   window.addEventListener('offline', () => {
     showOnlineBanner.value = false
     showOfflineBanner.value = true
@@ -272,24 +222,29 @@ watch(bgSyncData, () => {
 const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
+
+const isActiveLink = (linkObj) => {
+  if (linkObj.link !== '/' && route.path.includes(linkObj.link)) {
+    return true
+  } else {
+    return false
+  }
+}
 </script>
 
 <style lang="scss" scoped>
 .nav {
   position: relative;
 
+  &-active {
+    background-color: $accent;
+  }
+
   &-search {
     width: 50%;
 
     @media (max-width: $breakpoint-sm-min) {
       width: 75%;
-    }
-  }
-
-  &-bar-bottom {
-    .q-item {
-      padding-left: 12px;
-      padding-right: 12px;
     }
   }
 }
