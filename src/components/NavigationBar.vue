@@ -121,6 +121,7 @@
           v-bind="link"
           :icon-size="'28px'"
           class="nav-list-link text-white"
+          :class="isActiveLink(link) ? 'nav-active' : ''"
         />
 
         <!-- admin level link -->
@@ -128,7 +129,7 @@
           v-bind="adminLink"
           :icon-size="'28px'"
           class="nav-list-link-admin text-white"
-          :class="isActiveLink(link) ? 'nav-active' : ''"
+          :class="isActiveLink(adminLink) ? 'nav-active' : ''"
         />
       </q-list>
     </q-drawer>
