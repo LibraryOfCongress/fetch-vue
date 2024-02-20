@@ -1,9 +1,11 @@
 <template>
   <q-item
-    clickable
+    :clickable="!disabled"
     tag="a"
     :to="link"
     class="essential-link"
+    :dense="dense"
+    :class="disabled ? 'disabled' : ''"
     @click="emit('click')"
   >
     <q-item-section
@@ -18,7 +20,9 @@
     </q-item-section>
 
     <q-item-section>
-      <q-item-label>{{ title }}</q-item-label>
+      <q-item-label>
+        <span>{{ title }}</span>
+      </q-item-label>
       <q-item-label
         v-if="caption !== ''"
         caption
@@ -54,6 +58,14 @@ defineProps({
   iconPadding: {
     type: String,
     default: '0px 16px 0px 0px'
+  },
+  disabled: {
+    type: Boolean,
+    default: false
+  },
+  dense: {
+    type: Boolean,
+    default: false
   }
 })
 

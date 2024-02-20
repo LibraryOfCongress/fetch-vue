@@ -192,8 +192,6 @@ const showOnlineBanner = ref(false)
 
 // Logic
 onMounted(() => {
-  console.log(route)
-
   window.addEventListener('offline', () => {
     showOnlineBanner.value = false
     showOfflineBanner.value = true

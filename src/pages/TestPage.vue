@@ -1,5 +1,8 @@
 <template>
-  <q-page padding>
+  <q-page
+    :style-fn="handlePageOffset"
+    padding
+  >
     <div class="row">
       <div class="col-12">
         <h1 class="text-h2">
@@ -213,6 +216,8 @@ const showOwnerTierCreation = ref(false)
 const newOwnerTier = ref('')
 
 // Logic
+const handlePageOffset = inject('handle-page-offset')
+
 onMounted(async () => {
   await getOwnerTierList()
   loadingData.value = false

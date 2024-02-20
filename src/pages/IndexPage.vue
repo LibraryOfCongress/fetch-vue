@@ -1,5 +1,6 @@
 <template>
   <q-page
+    :style-fn="handlePageOffset"
     padding
     class="flex flex-center column"
   >
@@ -22,7 +23,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, inject } from 'vue'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 // import inventoryServiceApi from '@/http/InventoryService.js';
 
@@ -35,6 +36,8 @@ const storageUsed = ref(0)
 const storageAvailable = ref(0)
 
 // Logic
+const handlePageOffset = inject('handle-page-offset')
+
 onMounted(() => {
   console.log('vue app environment loaded', process.env.VITE_ENV, process.env.VITE_TEST)
   navigator.storage.estimate().then((estimate) => {

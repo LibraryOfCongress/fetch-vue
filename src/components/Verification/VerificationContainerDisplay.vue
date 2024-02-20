@@ -260,8 +260,8 @@
         </div>
 
         <div
-          v-if="verificationJob.type == 1 && currentScreenSize !== 'xs'"
-          class="col-auto q-ml-auto"
+          v-if="verificationJob.type == 1"
+          class="col-xs-12 col-sm-auto q-ml-sm-auto"
         >
           <!-- if user is on last non tray item we display a verify button instead of a scan button -->
           <q-btn
@@ -270,6 +270,7 @@
             color="accent"
             :label="isLastItemToBeScanned ? 'Verifiy Item' : verificationContainer.id == null ? 'Scan Item' : 'Next Item'"
             class="text-body1"
+            :class="currentScreenSize == 'xs' ? 'full-width q-mt-sm' : ''"
             :disabled="verificationJob.status == 'Paused' || allItemsVerified"
             @click="isLastItemToBeScanned ? validateItemBarcode(verificationContainer.id) : showScanOverlay = !showScanOverlay"
           />
@@ -615,7 +616,7 @@ watch(compiledBarCode, (newBarcode) => {
 })
 const triggerBarcodeScan = async (barcode) => {
   // if a barcode scan is triggered and the user hasnt scanned a tray yet we get that scanned containers data
-  if (verificationJob.value.type == 2  && verificationContainer.value.id == null) {
+  if (verificationJob.value.type == 2  && route.params.containerId == null) {
     getVerificationTray(barcode)
 
     router.push({
@@ -625,13 +626,13 @@ const triggerBarcodeScan = async (barcode) => {
         containerId: verificationContainer.value.id
       }
     })
-  } else if (verificationJob.value.type == 1 && verificationContainer.value.id == null) {
+  } else if (verificationJob.value.type == 1 && route.params.containerId == null) {
     // if a barcode scan is triggered on a non tray job we can assume the user is trying to scan a non tray container item
     getVerificationNonTray(barcode)
 
     // close the overlay modal using a component reference
     scanOverlayModal.value.hideModal()
-  } else if (verificationJob.value.type == 1 && verificationContainer.value.id !== null) {
+  } else if (verificationJob.value.type == 1 && route.params.containerId !== null) {
     // if a barcode scan is triggered on a non tray job when we have a scanned container item
     // we can assume the user is trying to scan a new non tray container and verify the current scanned container
     await validateItemBarcode(verificationContainer.value.id)
@@ -852,7 +853,7 @@ defineExpose({
 
   &-mobile-menu {
     position: fixed;
-    bottom: 51px;
+    bottom: 0;
     right: 0;
     left: 0;
     display: flex;

@@ -1,5 +1,8 @@
 <template>
-  <q-page padding>
+  <q-page
+    :style-fn="handlePageOffset"
+    padding
+  >
     <div class="row">
       <div class="col-grow">
         <EssentialTable
@@ -171,7 +174,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, watch } from 'vue'
+import { onBeforeMount, ref, watch, inject } from 'vue'
 import { useOptionStore } from '@/stores/option-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
@@ -313,6 +316,8 @@ const newShelf = ref({
 })
 
 // Logic
+const handlePageOffset = inject('handle-page-offset')
+
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
     shelfItemsTableVisibleColumns.value = [

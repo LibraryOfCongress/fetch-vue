@@ -7,6 +7,11 @@
     <NavigationBar />
 
     <q-page-container class="main-content">
+      <BreadCrumb
+        v-if="route.name !== 'home'"
+        ref="breadCrumbComponent"
+      />
+
       <router-view />
 
       <!-- global alert component -->
@@ -65,11 +70,15 @@
 
 <script setup>
 import { onMounted, ref, provide, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useAlertPopup } from '@/composables/useAlertPopup'
 import AlertPopup from '@/components/AlertPopup.vue'
 import NavigationBar from '@/components/NavigationBar.vue'
+import BreadCrumb from '@/components/BreadCrumb.vue'
+
+const route = useRoute()
 
 // Composables
 const $q = useQuasar()
@@ -78,6 +87,7 @@ const { alerts, handleAlert, clearAlerts } = useAlertPopup()
 provide('handle-alert', handleAlert) // handleAlert is globally accessible via provide/inject
 
 // Local Data
+const breadCrumbComponent = ref(null)
 const appInstallPrompt = ref(null)
 const showAppInstallBanner = ref(false)
 const main = ref(null)
@@ -128,6 +138,27 @@ const checkForServiceWorkerUpdates = () => {
     }
   })
 }
+
+const handlePageOffset = () => {
+  // this is the global function will use to control the q-page components min-height generation
+  // this is needed since we are adding breadcrumbs to all pages which the q-page components default offset only checks for the navigation bar
+
+  // NavigationBar component height = 50px
+  let headerOffset = 50
+
+  // NavigationBar component height + BreadCrumb component height (dynamic) = offest
+  if (route.name !== 'home') {
+    // default element height on desktop is 49px
+    let breadCrumbElementHeight = 49
+    if (breadCrumbComponent.value) {
+      breadCrumbElementHeight = breadCrumbComponent.value.$el.clientHeight
+    }
+    headerOffset = 50 + breadCrumbElementHeight
+  }
+
+  return { minHeight: `calc(100vh - ${headerOffset}px)` }
+}
+provide('handle-page-offset', handlePageOffset) // handlePageOffset is globally accessible via provide/inject
 </script>
 
 <style lang="scss" scoped>
