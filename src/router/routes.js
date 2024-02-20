@@ -1,4 +1,3 @@
-
 const routes = [
   {
     path: '/',
@@ -33,7 +32,12 @@ const routes = [
       },
       {
         name: 'admin',
-        path: 'admin/:buildingId?',
+        path: 'admin',
+        component: () => import('@/pages/AdminPage.vue')
+      },
+      {
+        name: 'admin-building-view',
+        path: 'admin/buildings/:buildingId?',
         component: () => import('@/pages/AdminPage.vue')
       },
       {

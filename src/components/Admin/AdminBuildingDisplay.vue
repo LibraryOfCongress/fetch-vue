@@ -717,12 +717,11 @@ const submitBulkUploadForm = async () => {
 const loadBuildingDetails = (buildingId) => {
   // Since we already load all the building and its details on mount we can directly set the building in store
   buildingDetails.value = buildings.value.find(b => b.id == buildingId)
-  console.log(buildingDetails.value)
 
   router.push({
-    name: 'admin',
+    name: 'admin-building-view',
     params: {
-      buildingId
+      buildingId: buildingDetails.value.name
     }
   })
 }

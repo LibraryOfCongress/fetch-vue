@@ -1,11 +1,14 @@
 <template>
-  <q-page padding>
+  <q-page 
+    :style-fn="handleHeaderOffset"
+    padding 
+  >
     starting page/component, please copy and replace as needed
   </q-page>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 // Props
 const mainProps = defineProps({
   templateProp: {
@@ -28,6 +31,7 @@ const { templateState } = storeToRefs(useTemplateStore())
 const templateData = ref(null)
 
 // Logic
+const handleHeaderOffset = inject('handle-offset')
 const templateFunction = (value) => {
   return value
 }
