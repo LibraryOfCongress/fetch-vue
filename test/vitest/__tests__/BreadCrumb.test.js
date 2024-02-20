@@ -18,18 +18,24 @@ vi.mock('vue-router', async () => {
       return {
         push: mockRoutePush
       }
+    },
+    useRoute: () => {
+      return {
+        fullPath: '/accession',
+        hash: '',
+        name: ''
+      }
     }
   }
 })
 
 describe('Bread Crumb Component', () => {
-  it('should mount component with a back button', () => {
+  it('should mount a breadcrumb element', () => {
     const wrapper = mount(BreadCrumb)
-
-    expect(wrapper.find('.essential-link').text()).toContain('Back')
+    expect(wrapper.find('.breadcrumb').exists()).toBe(true)
   })
 
-  it('navigates the user backwards on click of the back button'), async () => {
+  it('navigates the user backwards on click of the breadcrumb buttons'), async () => {
     const wrapper = mount(BreadCrumb)
 
     await wrapper.find('.q-item').click()

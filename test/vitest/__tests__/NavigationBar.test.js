@@ -1,9 +1,33 @@
 import { installQuasarPlugin } from '@quasar/quasar-app-extension-testing-unit-vitest'
 import { mount } from '@vue/test-utils'
-import { beforeEach, vi } from 'vitest'
+import { afterEach, beforeEach, vi } from 'vitest'
 import NavigationBar from '@/components/NavigationBar.vue'
 
 installQuasarPlugin()
+
+afterEach(() => {
+  vi.clearAllMocks()
+})
+
+// mock vue router which is used in the navigation bar component
+const mockRoutePush = vi.fn()
+vi.mock('vue-router', async () => {
+  return {
+    RouterView: {},
+    useRouter: () => {
+      return {
+        push: mockRoutePush
+      }
+    },
+    useRoute: () => {
+      return {
+        path: '/',
+        hash: '',
+        name: ''
+      }
+    }
+  }
+})
 
 // mocks the navigator.serviceWorker
 Object.defineProperty(global.navigator, 'serviceWorker', {
