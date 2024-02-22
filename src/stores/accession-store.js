@@ -7,7 +7,6 @@ export const useAccessionStore = defineStore('accession', {
       id: null,
       type: null,
       owner: null,
-      container_size: null,
       media_type: null,
       status: ''
     },
@@ -23,11 +22,22 @@ export const useAccessionStore = defineStore('accession', {
     originalAccessionContainer: null
   }),
   getters: {
-    allItemsVerified: (state) => state.accessionContainer.items.some(item => item.verified == false) ? false : true
+    allItemsVerified: (state) => state.accessionContainer.items.length == 0 || state.accessionContainer.items.some(item => item.verified == false) ? false : true
   },
   actions: {
     resetAccessionStore () {
       this.$reset()
+    },
+    resetAccessionContainer () {
+      this.accessionContainer = {
+        id: null,
+        title: '',
+        owner: '',
+        container_type: '',
+        container_size: '',
+        media_type: '',
+        items: []
+      }
     },
     async postAccessionJob () {
       try {

@@ -1,28 +1,5 @@
 <template>
-  <!-- scan container display -->
   <div
-    v-if="!route.params.containerId"
-    class="absolute-center accession-container"
-  >
-    <div class="column items-center">
-      <h1 class="text-h4 text-bold text-center q-mb-lg">
-        {{ accessionJob.type == 2 ? 'Scan Tray Barcode' : 'Scan Non-Tray Barcode' }}
-      </h1>
-
-      <q-btn
-        class="text-h3 q-pa-xl"
-        no-caps
-        unelevated
-        color="secondary"
-        label="Scan Barcode"
-        @click="accessionJob.type == 2 ? triggerBarcodeScan('CH220987') : triggerBarcodeScan('NT555923')"
-      />
-    </div>
-  </div>
-
-  <!-- container display -->
-  <div
-    v-else
     class="row accession-container flex-lg-grow"
   >
     <div class="col-12 col-lg-4 col-xl-3 accession-container-info">
@@ -35,17 +12,22 @@
 
         <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12 q-mb-xs-md q-mb-sm-none q-mb-lg-lg">
           <BarcodeBox
-            :barcode="accessionContainer.id"
+            :barcode="!accessionContainer.id ? (accessionJob.type == 1 ? 'Please Scan Non-Tray' : 'Please Scan Tray') : accessionContainer.id"
             class="q-mb-md-xl q-mb-lg-none"
           />
         </div>
 
-        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12">
+        <div
+          v-if="accessionContainer.id"
+          class="col-xs-12 col-sm-6 col-md-6 col-lg-12"
+        >
           <div class="accession-container-info-details q-mb-xs-sm q-mb-lg-lg">
             <label class="text-h6 q-mb-xs">
               Owner
             </label>
-            <p class="outline">
+            <p
+              class="outline"
+            >
               {{ accessionContainer.owner }}
             </p>
           </div>
@@ -166,7 +148,6 @@
       <div class="row q-mb-xs-lg">
         <div class="col-xs-12 col-md-auto flex no-wrap justify-between q-mb-xs-md q-mb-md-none q-mr-md-auto">
           <q-btn
-            v-if="accessionJob.type == 2"
             no-caps
             unelevated
             icon="add"
@@ -189,32 +170,30 @@
         </div>
 
         <div class="col-xs-12 col-md-auto flex justify-between">
-          <template v-if="accessionJob.type == 2">
-            <q-btn
-              v-if="accessionJob.status !== 'Paused'"
-              no-caps
-              unelevated
-              outline
-              icon="mdi-pause"
-              color="accent"
-              label="Pause Job"
-              class="btn-no-wrap text-body1"
-              :class="currentScreenSize == 'xs' ? 'full-width q-mb-md' : ''"
-              @click="updateAccessionJobStatus('Paused')"
-            />
-            <q-btn
-              v-else
-              no-caps
-              unelevated
-              outline
-              icon="mdi-play"
-              color="accent"
-              label="Resume Job"
-              class="btn-no-wrap text-body1"
-              :class="currentScreenSize == 'xs' ? 'full-width q-mb-md' : ''"
-              @click="updateAccessionJobStatus('Running')"
-            />
-          </template>
+          <q-btn
+            v-if="accessionJob.status !== 'Paused'"
+            no-caps
+            unelevated
+            outline
+            icon="mdi-pause"
+            color="accent"
+            label="Pause Job"
+            class="btn-no-wrap text-body1"
+            :class="currentScreenSize == 'xs' ? 'full-width q-mb-md' : ''"
+            @click="updateAccessionJobStatus('Paused')"
+          />
+          <q-btn
+            v-else
+            no-caps
+            unelevated
+            outline
+            icon="mdi-play"
+            color="accent"
+            label="Resume Job"
+            class="btn-no-wrap text-body1"
+            :class="currentScreenSize == 'xs' ? 'full-width q-mb-md' : ''"
+            @click="updateAccessionJobStatus('Running')"
+          />
           <q-btn
             no-caps
             unelevated
@@ -223,8 +202,8 @@
             label="Complete Job"
             class="btn-no-wrap text-body1 q-ml-sm"
             :class="currentScreenSize == 'xs' ? 'full-width' : ''"
-            :outline="!accessionStore.allItemsVerified || accessionJob.status == 'Paused'"
-            :disabled="!accessionStore.allItemsVerified || accessionJob.status == 'Paused'"
+            :outline="!allItemsVerified || accessionJob.status == 'Paused'"
+            :disabled="!allItemsVerified || accessionJob.status == 'Paused'"
             @click="showConfirmation = 'Are you sure you want to complete the job?'"
           />
         </div>
@@ -297,8 +276,17 @@ const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const optionStore = useOptionStore()
-const accessionStore = useAccessionStore()
-const { accessionJob, accessionContainer, originalAccessionContainer } = storeToRefs(accessionStore)
+const {
+  resetAccessionContainer,
+  getAccessionTray,
+  getAccessionNonTray,
+  verifyTrayItemBarcode,
+  verifyNonTrayItemBarcode,
+  patchAccessionJob,
+  patchAccessionTray,
+  patchAccessionNonTray
+} = useAccessionStore()
+const { accessionJob, accessionContainer, originalAccessionContainer, allItemsVerified } = storeToRefs(useAccessionStore())
 
 // Local Data
 const accessionTableColumns = ref([
@@ -323,21 +311,31 @@ const editMediaType = ref(false)
 const showConfirmation = ref(null)
 
 // Logic
+watch(route, () => {
+  if (!route.params.containerId) {
+    // if the user clicks to go back to the job in the breadcrumb
+    // clear out any accessionContainer State if there is no containerId in the route
+    resetAccessionContainer()
+  }
+})
+
 watch(compiledBarCode, (newBarcode) => {
   if (newBarcode !== '' && accessionContainer.value.id == null) {
     // if a barcode scan is detected and the user hasnt scanned a tray/nontray yet we trigger a scan and get that scanned containers data
     triggerBarcodeScan(newBarcode)
-  } else if (newBarcode !== '' && accessionContainer.value.id !== null) {
+  } else if (newBarcode !== '' && accessionContainer.value.id) {
     // user is scanning barcodes for items related to the scanned container so we need to validate them
     validateContainerItemBarcode(newBarcode)
   }
 })
-
 const triggerBarcodeScan = (barcode) => {
   if (accessionJob.value.type == 2) {
-    accessionStore.getAccessionTray(barcode)
+    // example barcode for tray: 'CH220987'
+    console.log(barcode)
+    getAccessionTray(barcode)
   } else {
-    accessionStore.getAccessionNonTray(barcode)
+    // example barcode for tray: 'NT555923'
+    getAccessionNonTray(barcode)
   }
 
   router.push({
@@ -360,9 +358,9 @@ const validateContainerItemBarcode = (barcode) => {
   if (accessionContainer.value.items.some(item => item.id == barcode)) {
     // check what type of container type were in (tray/nontray)
     if (accessionJob.value.type == 2) {
-      accessionStore.verifyTrayItemBarcode(barcode)
+      verifyTrayItemBarcode(barcode)
     } else {
-      accessionStore.verifyNonTrayItemBarcode(barcode)
+      verifyNonTrayItemBarcode(barcode)
     }
   } else {
     accessionContainer.value.items.push({ id: barcode, verified: false })
@@ -371,7 +369,7 @@ const validateContainerItemBarcode = (barcode) => {
 const updateAccessionJobStatus = async (status) => {
   try {
     accessionJob.value.status = status
-    await accessionStore.patchAccessionJob()
+    await patchAccessionJob()
 
     //TODO: display success alert
   } catch (error) {
@@ -382,9 +380,9 @@ const updateAccessionJobStatus = async (status) => {
 const updateAccessionContainer = async () => {
   try {
     if (accessionJob.value.type == 2) {
-      await accessionStore.patchAccessionTray()
+      await patchAccessionTray()
     } else {
-      await accessionStore.patchAccessionNonTray()
+      await patchAccessionNonTray()
     }
 
     //TODO: display success alert
