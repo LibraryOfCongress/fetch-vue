@@ -474,6 +474,55 @@
     </template>
   </PopupModal>
 
+  <!-- next tray modal (only for trayed jobs) -->
+  <!-- <PopupModal
+    v-if="showNextTrayModal"
+    :title="'Select Tray'"
+    :show-actions="false"
+    @reset="showNextTrayModal = false"
+  >
+    <template #main-content>
+      <q-card-section class="row verification-next-tray">
+        <div
+          v-for="tray in accessionJob.items.filter(trays => trays.id !== accessionContainer.id)"
+          :key="tray.id"
+          class="col-12 q-mb-sm"
+        >
+          <q-btn
+            no-caps
+            outline
+            color="secondary"
+            class="verification-next-tray-action full-width"
+            @click="null"
+          >
+            <div class="col-12 text-left">
+              <p class="text-h6 text-color-black">
+                Tray #: {{ tray.id }}
+              </p>
+              <p class="text-body1">
+                Trayed
+              </p>
+            </div>
+          </q-btn>
+        </div>
+
+        <div class="col-12">
+          <q-btn
+            no-caps
+            unelevated
+            outline
+            icon="add"
+            color="accent"
+            label="Add Tray"
+            align="left"
+            class="verification-next-tray-action btn-dashed btn-no-wrap text-body1 full-width"
+            @click="null"
+          />
+        </div>
+      </q-card-section>
+    </template>
+  </PopupModal> -->
+
   <!-- print component used to handle printing the template -->
   <PrintTemplate ref="printTemplate">
     <template #print-html>
@@ -529,7 +578,7 @@
 </template>
 
 <script setup>
-import { ref, toRaw, watch, computed } from 'vue'
+import { ref, toRaw, watch, computed, inject } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useVerificationStore } from '@/stores/verification-store'
@@ -609,6 +658,8 @@ const scanAllowed = computed(() => {
 })
 
 // Logic
+const handleAlert = inject('handle-alert')
+
 watch(compiledBarCode, (newBarcode) => {
   if (scanAllowed.value == true) {
     triggerBarcodeScan(newBarcode)
@@ -664,8 +715,11 @@ const validateItemBarcode = async (barcode) => {
       }
     }
   } catch (error) {
-    // TODO: replace error with popup alert
-    console.log(error)
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
   }
 }
 
@@ -697,20 +751,34 @@ const updateVerificationJobStatus = async (status) => {
   try {
     await patchVerificationJob({ status })
 
-    //TODO: display success alert
+    handleAlert({
+      type: 'success',
+      text: 'Verification Job Status Has Been Updated.',
+      autoClose: true
+    })
   } catch (error) {
-    // TODO: replace error with popup alert
-    console.log(error)
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
   }
 }
 const updateVerificationJob = async () => {
   try {
     await patchVerificationJob()
 
-    //TODO: display success alert
+    handleAlert({
+      type: 'success',
+      text: 'Verification Job Has Been Updated.',
+      autoClose: true
+    })
   } catch (error) {
-    // TODO: replace error with popup alert
-    console.log(error)
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
   } finally {
     editMode.value = false
   }
@@ -723,10 +791,17 @@ const updateVerificationContainer = async () => {
       await patchVerificationNonTray()
     }
 
-    //TODO: display success alert
+    handleAlert({
+      type: 'success',
+      text: 'Verification Container Has Been Updated',
+      autoClose: true
+    })
   } catch (error) {
-    // TODO: replace error with popup alert
-    console.log(error)
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
   } finally {
     editMode.value = false
   }
@@ -871,6 +946,14 @@ defineExpose({
       left: 0;
       box-shadow: 0 0 10px 2px rgba(0, 0, 0, 0.1), 0 0px 10px rgba(0, 0, 0, 0.12);
     }
+  }
+}
+
+.verification-next-tray {
+  &-action {
+    min-height: 72px;
+    padding-top: 8px;
+    padding-bottom: 8px;
   }
 }
 </style>

@@ -133,7 +133,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useVerificationStore } from 'src/stores/verification-store'
 
@@ -147,6 +147,8 @@ const jobsInProgress = ref([])
 const jobsInQueue = ref([])
 
 // Logic
+const handleAlert = inject('handle-alert')
+
 onMounted(() => {
   verificationStore.resetVerificationStore()
   loadVerificationJobs()
@@ -162,8 +164,11 @@ const loadVerificationJobs = async () => {
       jobsInQueue.value = res.data.filter(job => job.status == 'In Queue')
     }
   } catch (error) {
-    // TODO: replace error with popup alert
-    console.log(error)
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
   }
 }
 const loadVerificationJob = async (jobId) => {
@@ -177,8 +182,11 @@ const loadVerificationJob = async (jobId) => {
       }
     })
   } catch (error) {
-    // TODO: replace error with popup alert
-    console.log(error)
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
   }
 }
 </script>

@@ -144,7 +144,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAccessionStore } from 'src/stores/accession-store'
@@ -170,6 +170,8 @@ const canSubmitAccessionJob = computed(() => {
 })
 
 // Logic
+const handleAlert = inject('handle-alert')
+
 onMounted(() => {
   resetAccessionStore()
 })
@@ -194,8 +196,11 @@ const submitAccessionJob = async () => {
       }
     })
   } catch (error) {
-    // TODO: replace error with popup alert
-    console.log(error)
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
   } finally {
     showAccessionModal.value = false
   }

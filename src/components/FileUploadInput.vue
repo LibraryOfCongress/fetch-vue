@@ -179,7 +179,7 @@ defineExpose({ files })
 
   &-box {
     position: relative;
-    border: 1px dashed $color-black;
+    border: 2px dashed $color-black;
     border-radius: 4px;
     transition: all .3s ease;
 

@@ -142,6 +142,7 @@
     <div class="row">
       <div class="col-grow">
         <q-table
+          ref="tableComponent"
           flat
           :dense="currentScreenSize == 'xs'"
           :rows="localTableData"
@@ -291,6 +292,7 @@ const localFilterOptions = ref(mainProps.filterOptions)
 const allowTableReorder = ref(false)
 const draggedItemElement = ref(null)
 const selectedTableData = ref([])
+const tableComponent = ref(null)
 
 // Logic
 onMounted(() => {
@@ -306,9 +308,12 @@ watch(selectedTableData, () => {
 
 // watch the tableData props for a change update the localTableData with a copy/non reactive clone
 watch(() => mainProps.tableData, (updatedTableData) => {
-  localTableData.value = structuredClone(toRaw(updatedTableData))
+  localTableData.value = toRaw(updatedTableData)
 },
 { deep: true })
+const clearSelectedData = () => {
+  tableComponent.value.clearSelection()
+}
 
 const filterTableData = () => {
   // get all user selected filters
@@ -368,6 +373,9 @@ const reorderTableItemDOM = (e) => {
   hoveredItemElement.style.order = draggedItemOrderValue
   draggedItemElement.value.style.order = currentHoveredOrderValue
 }
+
+
+defineExpose({ clearSelectedData })
 </script>
 
 <style lang="scss" scoped>

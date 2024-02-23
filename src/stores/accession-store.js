@@ -8,6 +8,7 @@ export const useAccessionStore = defineStore('accession', {
       type: null,
       owner: null,
       media_type: null,
+      items: [],
       status: ''
     },
     accessionContainer: {
@@ -46,10 +47,19 @@ export const useAccessionStore = defineStore('accession', {
         //   inventoryServiceApi.examplesNumbers + 12
         // )
         // this.accessionJob = res.data
-        this.accessionJob = {
-          ...this.accessionJob,
-          status: 'Created',
-          id: 1
+        // TODO: Remove this type difference once api is setup
+        if (this.accessionJob.type == 1) {
+          this.accessionJob = {
+            ...this.accessionJob,
+            status: 'Created',
+            id: 1
+          }
+        } else {
+          this.accessionJob = {
+            ...this.accessionJob,
+            status: 'Created',
+            id: 2
+          }
         }
       } catch (error) {
         return error
@@ -76,11 +86,22 @@ export const useAccessionStore = defineStore('accession', {
         //   inventoryServiceApi.examplesNumbers + 12
         // )
         // this.accessionJob = res.data
-        this.accessionJob = {
-          ...this.accessionJob,
-          status: 'Running', // status from api will match whatever the status is from the job
-          type: 2,
-          id
+        // TODO: Remove this once api is setup
+        if (id == 1) {
+          this.accessionJob = {
+            ...this.accessionJob,
+            status: 'Running', // status from api will match whatever the status is from the job
+            type: 1,
+            id
+          }
+        } else {
+          this.accessionJob = {
+            ...this.accessionJob,
+            items: [],
+            status: 'Running', // status from api will match whatever the status is from the job
+            type: 2,
+            id
+          }
         }
       } catch (error) {
         return error
@@ -93,23 +114,35 @@ export const useAccessionStore = defineStore('accession', {
         //   inventoryServiceApi.examplesNumbers + 12, barcode
         // )
         // this.accessionContainer = res.data
-        this.accessionContainer = {
-          id: barcode,
-          title: 'Tray Title',
-          owner: 'Colonel Sanders',
-          container_type: 'Trayed',
-          container_size: 'C High',
-          media_type: 'Vinyl Recording',
-          items: [
-            {
-              id: '00924891289',
-              verified: true
-            },
-            {
-              id: '00924891290',
-              verified: true
-            }
-          ]
+        if (barcode == 'CH220987') {
+          this.accessionContainer = {
+            id: barcode,
+            title: 'Tray Title',
+            owner: 'Colonel Sanders',
+            container_type: 'Trayed',
+            container_size: 'C High',
+            media_type: 'Vinyl Recording',
+            items: [
+              {
+                id: '00924891289',
+                verified: true
+              },
+              {
+                id: '00924891290',
+                verified: true
+              }
+            ]
+          }
+        } else {
+          this.accessionContainer = {
+            id: barcode,
+            title: 'Tray Title',
+            owner: 'Colonel Sanders',
+            container_type: 'Trayed',
+            container_size: 'C High',
+            media_type: 'Vinyl Recording',
+            items: []
+          }
         }
         this.originalAccessionContainer = { ...this.accessionContainer }
       } catch (error) {
@@ -125,6 +158,23 @@ export const useAccessionStore = defineStore('accession', {
         // this.accessionContainer = res.data
         this.accessionContainer = {
           ...this.accessionContainer
+        }
+        this.originalAccessionContainer = { ...this.accessionContainer }
+      } catch (error) {
+        return error
+      }
+    },
+    async deleteAccessionTrayItem (barcodeList) {
+      try {
+        // TODO: setup api call to delete item in an accession tray
+        // const res = await this.$api.delete(
+        //   inventoryServiceApi.examplesNumbers + 12
+        // )
+        // this.accessionContainer = res.data
+        const filteredItems = this.accessionContainer.items.filter(b => !barcodeList.includes(b.id))
+        this.accessionContainer = {
+          ...this.accessionContainer,
+          items: filteredItems
         }
         this.originalAccessionContainer = { ...this.accessionContainer }
       } catch (error) {
@@ -182,6 +232,22 @@ export const useAccessionStore = defineStore('accession', {
         // this.accessionContainer = res.data
         this.accessionContainer = {
           ...this.accessionContainer
+        }
+        this.originalAccessionContainer = { ...this.accessionContainer }
+      } catch (error) {
+        return error
+      }
+    },
+    async deleteAccessionNonTrayItem (barcodeList) {
+      try {
+        // TODO: setup api call to delete item in an accession nontray
+        // const res = await this.$api.delete(
+        //   inventoryServiceApi.examplesNumbers + 12
+        // )
+        // this.accessionContainer = res.data
+        this.accessionContainer = {
+          ...this.accessionContainer,
+          items: this.accessionContainer.items.filter(b => !barcodeList.includes(b.id) )
         }
         this.originalAccessionContainer = { ...this.accessionContainer }
       } catch (error) {
