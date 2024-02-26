@@ -1,28 +1,5 @@
 <template>
-  <!-- scan container display (TRAY ONLY) -->
   <div
-    v-if="!route.params.containerId && verificationJob.type == 2"
-    class="absolute-center verification-container"
-  >
-    <div class="column items-center">
-      <h1 class="text-h4 text-bold text-center q-mb-lg">
-        Scan Tray Barcode
-      </h1>
-
-      <q-btn
-        class="text-h4 q-pa-xs-lg q-pa-md-xl"
-        no-caps
-        unelevated
-        color="secondary"
-        label="Waiting For Scan..."
-        @click="triggerBarcodeScan('CH220987')"
-      />
-    </div>
-  </div>
-
-  <!-- container display -->
-  <div
-    v-else
     class="row verification-container flex-lg-grow"
   >
     <div
@@ -31,23 +8,27 @@
       <div class="row">
         <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
           <MoreOptionsMenu
+            v-if="verificationJob.type == 1 || verificationContainer.id"
             :options="currentScreenSize !== 'xs' ? [{ text: 'Edit' }] : [{ text: 'Edit' }, { text: 'Print Job' }]"
             class="q-mr-sm"
             @click="handleOptionMenu"
           />
           <h1 class="text-h4 text-bold">
-            {{ verificationJob.type == 2 ? verificationContainer.title : `Job: ${verificationJob.id}` }}
+            {{ `Job: ${verificationJob.id}` }}
           </h1>
         </div>
 
         <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12 q-mb-xs-md q-mb-sm-none q-mb-lg-lg">
           <BarcodeBox
-            :barcode="verificationContainer.id"
+            :barcode="!verificationContainer.id ? (verificationJob.type == 1 ? 'Please Scan Non-Tray' : 'Please Scan Tray') : verificationContainer.id"
             class="q-mb-md-xl q-mb-lg-none"
           />
         </div>
 
-        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12">
+        <div
+          v-if="verificationJob.type == 1 || verificationContainer.id"
+          class="col-xs-12 col-sm-6 col-md-6 col-lg-12"
+        >
           <div class="row">
             <div class="col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg verification-container-info-details">
               <label class="text-h6 q-mb-xs">
@@ -263,16 +244,17 @@
           v-if="verificationJob.type == 1"
           class="col-xs-12 col-sm-auto q-ml-sm-auto"
         >
-          <!-- if user is on last non tray item we display a verify button instead of a scan button -->
+          <!-- if user is on last non tray item we display a verify button -->
           <q-btn
+            v-if="isLastItemToBeScanned"
             no-caps
             unelevated
             color="accent"
-            :label="isLastItemToBeScanned ? 'Verifiy Item' : verificationContainer.id == null ? 'Scan Item' : 'Next Item'"
+            label="Verifiy Item"
             class="text-body1"
             :class="currentScreenSize == 'xs' ? 'full-width q-mt-sm' : ''"
             :disabled="verificationJob.status == 'Paused' || allItemsVerified"
-            @click="isLastItemToBeScanned ? validateItemBarcode(verificationContainer.id) : showScanOverlay = !showScanOverlay"
+            @click="validateItemBarcode(verificationContainer.id)"
           />
         </div>
       </div>
@@ -289,7 +271,7 @@
             color="accent"
             label="Add Item"
             class="btn-no-wrap text-body1 q-mr-sm-md"
-            :disabled="verificationJob.status == 'Paused'"
+            :disabled="!verificationContainer.id || verificationJob.status == 'Paused'"
             @click="showConfirmation = 'Are you sure you want to add an item?'"
           />
           <q-btn
@@ -450,29 +432,54 @@
     @reset="showConfirmation = null"
   />
 
-  <!-- scan overlay (NON TRAY ONLY) -->
-  <PopupModal
-    v-if="showScanOverlay"
-    ref="scanOverlayModal"
-    :title="'Scan Barcode'"
+  <!-- next tray modal (only for trayed jobs) -->
+  <!-- <PopupModal
+    v-if="showNextTrayModal"
+    :title="'Select Tray'"
     :show-actions="false"
-    @reset="showScanOverlay = false"
+    @reset="showNextTrayModal = false"
   >
     <template #main-content>
-      <q-card-section>
-        <div class="flex justify-center q-pb-lg">
+      <q-card-section class="row verification-next-tray">
+        <div
+          v-for="tray in accessionJob.items.filter(trays => trays.id !== verificationContainer.id)"
+          :key="tray.id"
+          class="col-12 q-mb-sm"
+        >
           <q-btn
-            class="text-h4 q-pa-xs-lg q-pa-md-xl"
+            no-caps
+            outline
+            color="secondary"
+            class="verification-next-tray-action full-width"
+            @click="null"
+          >
+            <div class="col-12 text-left">
+              <p class="text-h6 text-color-black">
+                Tray #: {{ tray.id }}
+              </p>
+              <p class="text-body1">
+                Trayed
+              </p>
+            </div>
+          </q-btn>
+        </div>
+
+        <div class="col-12">
+          <q-btn
             no-caps
             unelevated
-            color="secondary"
-            label="Waiting For Scan..."
-            @click="triggerBarcodeScan('00924891234')"
+            outline
+            icon="add"
+            color="accent"
+            label="Add Tray"
+            align="left"
+            class="verification-next-tray-action btn-dashed btn-no-wrap text-body1 full-width"
+            @click="null"
           />
         </div>
       </q-card-section>
     </template>
-  </PopupModal>
+  </PopupModal> -->
 
   <!-- next tray modal (only for trayed jobs) -->
   <!-- <PopupModal
@@ -557,6 +564,7 @@ const { scrollPosition, scrollToTop } = useScrollPosition()
 // Store Data
 const optionStore = useOptionStore()
 const {
+  resetVerificationContainer,
   getVerificationTray,
   getVerificationNonTray,
   verifyTrayItemBarcode,
@@ -588,7 +596,6 @@ const verificationTableColumns = ref([
 const selectedContainerItems = ref([])
 const showConfirmation = ref(null)
 const showScanOverlay = ref(false)
-const scanOverlayModal = ref(null)
 const editMode = ref(false)
 const isLastItemToBeScanned = computed(() => {
   if (verificationJob.value.type == 2) {
@@ -598,25 +605,20 @@ const isLastItemToBeScanned = computed(() => {
     return itemsToBeScanned.length == 1 ? true : false
   }
 })
-const scanAllowed = computed(() => {
-  if (verificationJob.value.type == 2) {
-    // always allow scanning for tray jobs
-    return true
-  } else if (verificationJob.value.type == 1 && showScanOverlay.value) {
-    // only allow scanning on non tray jobs when user triggers scanOverlay
-    return true
-  } else {
-    return false
-  }
-})
 
 // Logic
 const handleAlert = inject('handle-alert')
 
-watch(compiledBarCode, (newBarcode) => {
-  if (scanAllowed.value == true) {
-    triggerBarcodeScan(newBarcode)
+watch(route, () => {
+  if (!route.params.containerId) {
+    // if the user clicks to go back to the job in the breadcrumb
+    // clear out any verificationContainer State if there is no containerId in the route
+    resetVerificationContainer()
   }
+})
+
+watch(compiledBarCode, (newBarcode) => {
+  triggerBarcodeScan(newBarcode)
 })
 const triggerBarcodeScan = async (barcode) => {
   // if a barcode scan is triggered and the user hasnt scanned a tray yet we get that scanned containers data
@@ -631,20 +633,34 @@ const triggerBarcodeScan = async (barcode) => {
       }
     })
   } else if (verificationJob.value.type == 1 && route.params.containerId == null) {
+    console.log('get non tray')
     // if a barcode scan is triggered on a non tray job we can assume the user is trying to scan a non tray container item
     getVerificationNonTray(barcode)
 
-    // close the overlay modal using a component reference
-    scanOverlayModal.value.hideModal()
+    // update route to use the newly scanned containers id
+    router.push({
+      name: 'verification-container',
+      params: {
+        jobId: verificationJob.value.id,
+        containerId: verificationContainer.value.id
+      }
+    })
   } else if (verificationJob.value.type == 1 && route.params.containerId !== null) {
+    console.log('validating')
     // if a barcode scan is triggered on a non tray job when we have a scanned container item
     // we can assume the user is trying to scan a new non tray container and verify the current scanned container
     await validateItemBarcode(verificationContainer.value.id)
 
-    getVerificationNonTray(barcode)
+    await getVerificationNonTray(barcode)
 
-    // close the overlay modal using a component reference
-    scanOverlayModal.value.hideModal()
+    // update route to use the newly scanned containers id
+    router.push({
+      name: 'verification-container',
+      params: {
+        jobId: verificationJob.value.id,
+        containerId: verificationContainer.value.id
+      }
+    })
   } else {
     // scan is related to tray item verification
     validateItemBarcode(barcode)
@@ -706,7 +722,7 @@ const updateVerificationJobStatus = async (status) => {
 
     handleAlert({
       type: 'success',
-      text: 'Verification Job Status Has Been Updated.',
+      text: `Job Status has been updated to: ${status}`,
       autoClose: true
     })
   } catch (error) {

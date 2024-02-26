@@ -26,15 +26,26 @@ export const useVerificationStore = defineStore('verification', {
   getters: {
     allItemsVerified: (state) => {
       if (state.verificationJob.type == 1) {
-        return state.verificationJob.items.some(item => item.verified == false) ? false : true
+        return state.verificationJob.items.length == 0 || state.verificationJob.items.some(item => item.verified == false) ? false : true
       } else {
-        return state.verificationContainer.items.some(item => item.verified == false) ? false : true
+        return state.verificationContainer.items.length == 0 || state.verificationContainer.items.some(item => item.verified == false) ? false : true
       }
     }
   },
   actions: {
     resetVerificationStore () {
       this.$reset()
+    },
+    resetVerificationContainer () {
+      this.verificationContainer = {
+        id: null,
+        title: '',
+        owner: '',
+        container_type: '',
+        container_size: '',
+        media_type: '',
+        items: []
+      }
     },
     async getVerificationJobList () {
       try {
