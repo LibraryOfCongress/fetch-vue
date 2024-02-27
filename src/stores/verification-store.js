@@ -106,7 +106,17 @@ export const useVerificationStore = defineStore('verification', {
             ...this.verificationJob,
             status: 'Running',
             type: 2,
-            id
+            id,
+            trays: [
+              {
+                id: 'CH220989',
+                status: 'Not Started'
+              },
+              {
+                id: 'CH220990',
+                status: 'Not Started'
+              }
+            ]
           }
         } else {
           this.verificationJob = {
@@ -200,6 +210,23 @@ export const useVerificationStore = defineStore('verification', {
         return error
       }
     },
+    async deleteVerificationTrayItem (barcodeList) {
+      try {
+        // TODO: setup api call to delete item in an verification tray
+        // const res = await this.$api.delete(
+        //   inventoryServiceApi.examplesNumbers + 12
+        // )
+        // this.verificationContainer = res.data
+        const filteredItems = this.verificationContainer.items.filter(b => !barcodeList.includes(b.id))
+        this.verificationContainer = {
+          ...this.verificationContainer,
+          items: filteredItems
+        }
+        this.originalVerificationContainer = { ...this.verificationContainer }
+      } catch (error) {
+        return error
+      }
+    },
     async getVerificationNonTray (barcode) {
       try {
         // TODO: setup api call to verify the scanned nontray item barcode and get its data to display
@@ -231,6 +258,22 @@ export const useVerificationStore = defineStore('verification', {
           ...this.verificationContainer
         }
         this.originalVerificationContainer = { ...this.verificationContainer }
+      } catch (error) {
+        return error
+      }
+    },
+    async deleteVerificationNonTrayItem (barcodeList) {
+      try {
+        // TODO: setup api call to delete item in an verification nontray
+        // const res = await this.$api.delete(
+        //   inventoryServiceApi.examplesNumbers + 12
+        // )
+        // this.verificationContainer = res.data
+        this.verificationJob = {
+          ...this.verificationJob,
+          items: this.verificationJob.items.filter(b => !barcodeList.includes(b.id) )
+        }
+        this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {
         return error
       }
