@@ -30,6 +30,13 @@ export const useVerificationStore = defineStore('verification', {
       } else {
         return state.verificationContainer.items.length == 0 || state.verificationContainer.items.some(item => item.verified == false) ? false : true
       }
+    },
+    allTraysCompleted: (state) => {
+      if (state.verificationJob.type == 2 && state.verificationJob.trays) {
+        return state.verificationJob.trays.some(t => t.scanned_for_verification == false || t.collection_verified == false) ? false : true
+      } else {
+        return true
+      }
     }
   },
   actions: {
@@ -110,11 +117,13 @@ export const useVerificationStore = defineStore('verification', {
             trays: [
               {
                 id: 'CH220989',
-                status: 'Not Started'
+                collection_verified: false,
+                scanned_for_verification: false
               },
               {
                 id: 'CH220990',
-                status: 'Not Started'
+                collection_verified: false,
+                scanned_for_verification: false
               }
             ]
           }

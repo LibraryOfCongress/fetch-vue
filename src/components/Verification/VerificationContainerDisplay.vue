@@ -268,7 +268,7 @@
             label="Next Tray"
             class="text-body1"
             :class="currentScreenSize == 'xs' ? 'full-width q-mt-sm' : ''"
-            :disabled="verificationJob.status == 'Paused' || !allItemsVerified"
+            :disabled="verificationJob.status == 'Paused' || !allItemsVerified || allTraysCompleted"
             @click="showNextTrayModal = !showNextTrayModal"
           />
         </div>
@@ -324,8 +324,8 @@
             label="Complete Job"
             class="btn-no-wrap text-body1 q-ml-sm"
             :class="currentScreenSize == 'xs' ? 'full-width' : ''"
-            :outline="!allItemsVerified || verificationJob.status == 'Paused'"
-            :disabled="!allItemsVerified || verificationJob.status == 'Paused'"
+            :outline="!allTraysCompleted || !allItemsVerified || verificationJob.status == 'Paused'"
+            :disabled="!allTraysCompleted || !allItemsVerified || verificationJob.status == 'Paused'"
             @click="showConfirmation = { type: 'completeJob', text:'Are you sure you want to complete the job?' }"
           />
         </div>
@@ -432,8 +432,8 @@
           color="positive"
           label="Complete Job"
           class="btn-no-wrap text-body1 full-width"
-          :outline="!allItemsVerified || verificationJob.status == 'Paused'"
-          :disabled="!allItemsVerified || verificationJob.status == 'Paused'"
+          :outline="!allTraysCompleted || !allItemsVerified || verificationJob.status == 'Paused'"
+          :disabled="!allTraysCompleted || !allItemsVerified || verificationJob.status == 'Paused'"
           @click="showConfirmation = 'Are you sure you want to complete the job?'"
         />
       </template>
@@ -512,7 +512,7 @@
     <template #main-content="{ hideModal }">
       <q-card-section class="row verification-next-tray">
         <div
-          v-for="tray in verificationJob.trays.filter(trays => trays.id !== verificationContainer.id)"
+          v-for="tray in verificationJob.trays.filter(tray => tray.id !== verificationContainer.id && tray.scanned_for_verification == false)"
           :key="tray.id"
           class="col-12 q-mb-sm"
         >
@@ -521,7 +521,7 @@
             outline
             color="secondary"
             class="verification-next-tray-action full-width"
-            @click="loadVerificationTray(tray.id); hideModal();"
+            @click="setActiveVerificationTray(tray.id); hideModal();"
           >
             <div class="col-grow text-left">
               <p class="text-h6 text-color-black">
@@ -535,9 +535,9 @@
             <div class="col-auto">
               <p
                 class="text-body1"
-                :class="tray.status == 'Not Started' ? 'outline text-highlight-red' : ''"
+                :class="!tray.scanned_for_verification ? 'outline text-highlight-red' : ''"
               >
-                {{ tray.status }}
+                {{ !tray.scanned_for_verification ? 'Not Started' : 'In Progress' }}
               </p>
             </div>
           </q-btn>
@@ -654,7 +654,7 @@ const {
   deleteVerificationTrayItem,
   deleteVerificationNonTrayItem
 } = useVerificationStore()
-const { allItemsVerified, verificationJob, originalVerificationJob, verificationContainer, originalVerificationContainer } = storeToRefs(useVerificationStore())
+const { allItemsVerified, allTraysCompleted, verificationJob, originalVerificationJob, verificationContainer, originalVerificationContainer } = storeToRefs(useVerificationStore())
 
 // Local Data
 const batchSheetComponent = ref(null)
@@ -710,7 +710,15 @@ watch(compiledBarCode, (newBarcode) => {
 const triggerBarcodeScan = async (barcode) => {
   // if a barcode scan is triggered and the user hasnt scanned a tray yet we get that scanned containers data
   if (verificationJob.value.type == 2  && route.params.containerId == null) {
-    await loadVerificationTray(barcode)
+    await getVerificationTray(barcode)
+
+    router.push({
+      name: 'verification-container',
+      params: {
+        jobId: verificationJob.value.id,
+        containerId: verificationContainer.value.id
+      }
+    })
   } else if (verificationJob.value.type == 1 && route.params.containerId == null) {
     // if a barcode scan is triggered on a non tray job we can assume the user is trying to scan a non tray container item
     await getVerificationNonTray(barcode)
@@ -826,17 +834,13 @@ const cancelContainerEdit = () => {
   editMode.value = false
 }
 
-const loadVerificationTray = async (barcode) => {
+const setActiveVerificationTray = async (barcode) => {
   try {
     await getVerificationTray(barcode)
 
-    router.push({
-      name: 'verification-container',
-      params: {
-        jobId: verificationJob.value.id,
-        containerId: verificationContainer.value.id
-      }
-    })
+    //TODO: need a way to set the retrieved tray scanned_for_verification as true since this will be the current active tray for the job
+
+    router.push({ name: 'verification', params: { jobId: verificationJob.value.id } })
   } catch (error) {
     handleAlert({
       type: 'error',
