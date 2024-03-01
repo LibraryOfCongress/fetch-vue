@@ -82,7 +82,7 @@
               />
             </div>
 
-            <div class="col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg verification-container-info-details">
+            <div class="col-xs-6 col-sm-12 q-mb-xs-none q-mb-sm-sm q-mb-lg-lg verification-container-info-details">
               <label class="text-h6 q-mb-xs">
                 Container Size
               </label>
@@ -112,7 +112,10 @@
               <label class="text-h6 q-mb-xs">
                 Container Type
               </label>
-              <p v-if="verificationJob.type == 1 || !editMode">
+              <p
+                v-if="verificationJob.type == 1 || !editMode"
+                class="q-my-auto"
+              >
                 {{ verificationContainer.id == null ? verificationJob.container_type : verificationContainer.container_type }}
               </p>
               <SelectInput
@@ -222,7 +225,7 @@
       <div class="row items-center q-mb-xs-md q-mb-sm-lg">
         <div class="col-auto">
           <MoreOptionsMenu
-            :options="currentScreenSize !== 'xs' ? [{ text: 'Print Job' }] : [{ text: 'Add Items', disabled: verificationJob.status == 'Paused' }, { text: 'Delete Items', disabled: selectedContainerItems.length == 0 || verificationJob.status == 'Paused' }]"
+            :options="currentScreenSize !== 'xs' ? [{ text: 'Print Job' }] : [{ text: 'Enter Barcode', disabled: verificationJob.type == 2 && !verificationContainer.id || verificationJob.status == 'Paused' }, { text: 'Delete Items', disabled: selectedContainerItems.length == 0 || verificationJob.status == 'Paused' }]"
             class="q-mr-sm"
             @click="handleOptionMenu"
           />
@@ -286,7 +289,7 @@
             color="accent"
             :label="selectedContainerItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'"
             class="btn-no-wrap text-body1 q-mr-sm-md"
-            :disabled="!verificationContainer.id || verificationJob.status == 'Paused'"
+            :disabled="verificationJob.type == 2 && !verificationContainer.id || verificationJob.status == 'Paused'"
             @click="setBarcodeEditDisplay"
           />
 
@@ -721,6 +724,12 @@ const triggerBarcodeScan = async (barcode) => {
     })
   } else if (verificationJob.value.type == 1 && route.params.containerId == null) {
     // if a barcode scan is triggered on a non tray job we can assume the user is trying to scan a non tray container item
+
+    // if the barcode scanned doesnt exist add it and set it as active
+    if (!verificationJob.value.items.some(item => item.id == barcode)) {
+      await validateItemBarcode(barcode)
+    }
+
     await getVerificationNonTray(barcode)
 
     // update route to use the newly scanned containers id
@@ -778,8 +787,32 @@ const validateItemBarcode = async (barcode) => {
           // find the item in the container along with the selected item in the table and update its value to match the manualEditBarcode
           verificationJob.value.items.find( b => b.id == selectedContainerItems.value[0].id).id = manualBarcodeEdit.value
           selectedContainerItems.value[0].id = manualBarcodeEdit.value
+
+          // get the edited non tray items information
+          await getVerificationNonTray(barcode)
+
+          // update route to load the scanned non tray item id
+          router.push({
+            name: 'verification-container',
+            params: {
+              jobId: verificationJob.value.id,
+              containerId: verificationContainer.value.id
+            }
+          })
         } else {
           verificationJob.value.items.push({ id: barcode, verified: false })
+
+          // get the newly scanned non tray items information
+          await getVerificationNonTray(barcode)
+
+          // update route to load the newly scanned non tray item id
+          router.push({
+            name: 'verification-container',
+            params: {
+              jobId: verificationJob.value.id,
+              containerId: verificationContainer.value.id
+            }
+          })
         }
       }
     }
@@ -822,7 +855,7 @@ const handleOptionMenu = (option) => {
   } else if (option.text == 'Add Items') {
     showConfirmation.value = 'Are you sure you want to add an item?'
   } else if (option.text == 'Delete Items') {
-    showConfirmation.value = 'Are you sure you want to delete selected items?'
+    showConfirmation.value = { type: 'delete', text:'Are you sure you want to delete selected items?' }
   }
 }
 const cancelJobEdit = () => {
