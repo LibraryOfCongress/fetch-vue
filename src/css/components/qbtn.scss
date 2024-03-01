@@ -23,4 +23,11 @@
       flex-wrap: nowrap;
     }
   }
+
+  &.btn-dashed {
+    &::before {
+      border-style: dashed;
+      border-width: 2px;
+    }
+  }
 }

@@ -90,23 +90,10 @@
               </label>
               <SelectInput
                 v-model="accessionJob.owner"
-                :options="optionStore.ownerOptions"
+                :options="ownerOptions"
                 option-value="id"
                 option-label="name"
                 :placeholder="'Select Owner'"
-              />
-            </div>
-
-            <div class="form-group q-mb-md">
-              <label class="form-group-label">
-                Container Size (Required)
-              </label>
-              <SelectInput
-                v-model="accessionJob.container_size"
-                :options="optionStore.containerOptions"
-                option-value="id"
-                option-label="name"
-                :placeholder="'Select Size'"
               />
             </div>
 
@@ -116,7 +103,7 @@
               </label>
               <SelectInput
                 v-model="accessionJob.media_type"
-                :options="optionStore.mediaOptions"
+                :options="mediaOptions"
                 option-value="id"
                 option-label="name"
                 :placeholder="'Select Media Type'"
@@ -157,7 +144,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAccessionStore } from 'src/stores/accession-store'
@@ -168,14 +155,14 @@ import PopupModal from '@/components/PopupModal.vue'
 const router = useRouter()
 
 // Store Data
-const accessionStore = useAccessionStore()
-const optionStore = useOptionStore()
-const { accessionJob } = storeToRefs(accessionStore)
+const { resetAccessionStore, postAccessionJob } = useAccessionStore()
+const { accessionJob } = storeToRefs(useAccessionStore())
+const { ownerOptions, mediaOptions } = storeToRefs(useOptionStore())
 
 // Local Data
 const showAccessionModal = ref(false)
 const canSubmitAccessionJob = computed(() => {
-  if (accessionJob.value.owner !== null && accessionJob.value.container_size !== null) {
+  if (accessionJob.value.owner !== null) {
     return true
   } else {
     return false
@@ -183,18 +170,24 @@ const canSubmitAccessionJob = computed(() => {
 })
 
 // Logic
+const handleAlert = inject('handle-alert')
+
+onMounted(() => {
+  resetAccessionStore()
+})
+
 const reset = () => {
-  accessionStore.resetAccessionStore()
+  resetAccessionStore()
   showAccessionModal.value = false
 }
 const startAccessionProcess = () => {
-  accessionStore.resetAccessionStore()
+  resetAccessionStore()
   showAccessionModal.value = !showAccessionModal.value
 }
 const submitAccessionJob = async () => {
   // TODO: send the accessionJob data to api to start the proccess and get an associated job id
   try {
-    await accessionStore.postAccessionJob()
+    await postAccessionJob()
 
     router.push({
       name: 'accession',
@@ -203,8 +196,11 @@ const submitAccessionJob = async () => {
       }
     })
   } catch (error) {
-    // TODO: replace error with popup alert
-    console.log(error)
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
   } finally {
     showAccessionModal.value = false
   }

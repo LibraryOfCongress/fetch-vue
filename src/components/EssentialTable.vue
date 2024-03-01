@@ -142,6 +142,7 @@
     <div class="row">
       <div class="col-grow">
         <q-table
+          ref="tableComponent"
           flat
           :dense="currentScreenSize == 'xs'"
           :rows="localTableData"
@@ -286,11 +287,12 @@ const { currentScreenSize } = useCurrentScreenSize()
 // Local Data
 const localTableVisibleColumns = ref(mainProps.tableVisibleColumns)
 const localTableColumns = ref(mainProps.tableColumns)
-const localTableData = ref(structuredClone(toRaw(mainProps.tableData))) // Creates a copy of the prop so we dont mutate our passed in data
+const localTableData = ref(structuredClone(toRaw(mainProps.tableData))) // Creates a copy of the tableData prop so we dont mutate our passed in data
 const localFilterOptions = ref(mainProps.filterOptions)
 const allowTableReorder = ref(false)
 const draggedItemElement = ref(null)
 const selectedTableData = ref([])
+const tableComponent = ref(null)
 
 // Logic
 onMounted(() => {
@@ -303,6 +305,15 @@ onMounted(() => {
 watch(selectedTableData, () => {
   emit('selected-data', selectedTableData.value)
 })
+
+// watch the tableData props for a change update the localTableData with a copy/non reactive clone
+watch(() => mainProps.tableData, (updatedTableData) => {
+  localTableData.value = toRaw(updatedTableData)
+},
+{ deep: true })
+const clearSelectedData = () => {
+  tableComponent.value.clearSelection()
+}
 
 const filterTableData = () => {
   // get all user selected filters
@@ -362,6 +373,9 @@ const reorderTableItemDOM = (e) => {
   hoveredItemElement.style.order = draggedItemOrderValue
   draggedItemElement.value.style.order = currentHoveredOrderValue
 }
+
+
+defineExpose({ clearSelectedData })
 </script>
 
 <style lang="scss" scoped>
