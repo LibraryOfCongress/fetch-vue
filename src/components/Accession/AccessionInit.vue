@@ -91,7 +91,7 @@
               <SelectInput
                 v-model="accessionJob.owner"
                 :options="ownerOptions"
-                option-value="id"
+                option-value="name"
                 option-label="name"
                 :placeholder="'Select Owner'"
               />
@@ -104,7 +104,7 @@
               <SelectInput
                 v-model="accessionJob.media_type"
                 :options="mediaOptions"
-                option-value="id"
+                option-value="name"
                 option-label="name"
                 :placeholder="'Select Media Type'"
               />
