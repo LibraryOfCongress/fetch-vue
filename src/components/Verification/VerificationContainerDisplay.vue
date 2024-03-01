@@ -545,20 +545,6 @@
             </div>
           </q-btn>
         </div>
-
-        <!-- <div class="col-12">
-          <q-btn
-            no-caps
-            unelevated
-            outline
-            icon="add"
-            color="accent"
-            label="Add Tray"
-            align="left"
-            class="verification-next-tray-action btn-dashed btn-no-wrap text-body1 full-width"
-            @click="null"
-          />
-        </div> -->
       </q-card-section>
     </template>
   </PopupModal>
