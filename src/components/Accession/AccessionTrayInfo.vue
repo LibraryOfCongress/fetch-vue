@@ -1,0 +1,281 @@
+<template>
+  <div class="col-12 col-lg-4 col-xl-3 accession-container-info">
+    <div class="row">
+      <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
+        <MoreOptionsMenu
+          :options="[{ text: 'Edit' }]"
+          class="q-mr-sm"
+          @click="handleOptionMenu"
+        />
+        <h1 class="text-h4 text-bold">
+          {{ `Job: ${accessionJob.id}` }}
+        </h1>
+      </div>
+
+      <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12 q-mb-xs-md q-mb-sm-none q-mb-lg-lg">
+        <BarcodeBox
+          :barcode="!accessionContainer.id ? 'Please Scan Tray' : accessionContainer.id"
+          class="q-mb-md-xl q-mb-lg-none"
+        />
+      </div>
+
+      <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12">
+        <div class="row">
+          <div class="accession-container-info-details col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg">
+            <label class="text-h6 q-mb-xs">
+              Owner
+            </label>
+            <p
+              class="outline"
+            >
+              {{ accessionJob.owner }}
+            </p>
+          </div>
+
+          <div class="accession-container-info-details col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg">
+            <label class="text-h6 q-mb-xs">
+              Container Type
+            </label>
+            <p>
+              Trayed
+            </p>
+          </div>
+
+          <div class="accession-container-info-details col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg">
+            <label class="text-h6 q-mb-xs">
+              Container Size
+            </label>
+            <p
+              v-if="!editMode"
+              :class="accessionContainer.id ? 'outline' : ''"
+            >
+              {{ accessionContainer.container_size }}
+            </p>
+            <SelectInput
+              v-else
+              v-model="accessionContainer.container_size"
+              :options="containerOptions"
+              option-value="name"
+              option-label="name"
+            />
+          </div>
+
+          <div class="accession-container-info-details col-xs-6 col-sm-12">
+            <label class="text-h6 q-mb-xs">
+              Media Type
+            </label>
+            <p
+              v-if="!editMode"
+              class="outline text-highlight"
+            >
+              {{ !accessionContainer.id ? accessionJob.media_type : accessionContainer.media_type }}
+            </p>
+            <template v-else>
+              <SelectInput
+                v-if="!accessionContainer.id"
+                v-model="accessionJob.media_type"
+                :options="mediaOptions"
+                option-value="name"
+                option-label="name"
+              />
+              <SelectInput
+                v-else
+                v-model="accessionContainer.media_type"
+                :options="mediaOptions"
+                option-value="name"
+                option-label="name"
+              />
+            </template>
+          </div>
+        </div>
+
+        <div
+          v-if="currentScreenSize !== 'xs' && editMode"
+          class="row q-pl-sm-md q-pl-lg-none q-mt-md-sm"
+        >
+          <q-space class="divider q-my-sm" />
+
+          <div class="col-6 q-pr-xs-xs">
+            <q-btn
+              no-caps
+              unelevated
+              color="accent"
+              label="Save Edits"
+              class="full-width text-body1"
+              @click="!accessionContainer.id ? updateTrayJob() : updateTrayContainer()"
+              :disabled="accessionJob.status == 'Paused'"
+            />
+          </div>
+          <div class="col-6 q-pl-xs-xs">
+            <q-btn
+              no-caps
+              unelevated
+              outline
+              color="accent"
+              label="Cancel"
+              class="full-width text-body1"
+              @click="cancelTrayEdits"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- mobile actions menu -->
+      <AccessionMobileActionBar
+        v-if="currentScreenSize == 'xs' && editMode"
+        :edit-mode="editMode"
+        @update-tray="!accessionContainer.id ? updateTrayJob() : updateTrayContainer()"
+        @cancel-tray="cancelTrayEdits"
+      />
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, toRaw, inject } from 'vue'
+import { useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { useAccessionStore } from '@/stores/accession-store'
+import { useOptionStore } from '@/stores/option-store'
+import BarcodeBox from '@/components/BarcodeBox.vue'
+import SelectInput from '@/components/SelectInput.vue'
+import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
+import AccessionMobileActionBar from '@/components/Accession/AccessionMobileActionBar.vue'
+
+const route = useRoute()
+
+// Composables
+const { currentScreenSize } = useCurrentScreenSize()
+
+// Store Data
+const { containerOptions, mediaOptions } = useOptionStore()
+const {
+  patchAccessionJob,
+  patchAccessionTray
+} = useAccessionStore()
+const {
+  accessionJob,
+  accessionContainer,
+  originalAccessionContainer,
+  originalAccessionJob
+} = storeToRefs(useAccessionStore())
+
+// Local Data
+const editMode = ref(false)
+
+// Logic
+const handleAlert = inject('handle-alert')
+
+const handleOptionMenu = (option) => {
+  if (option.text == 'Edit') {
+    editMode.value = true
+  }
+}
+
+const cancelTrayEdits = () => {
+  if (!route.params.containerId) {
+    accessionJob.value = { ...toRaw(originalAccessionJob.value) }
+  } else {
+    accessionContainer.value = { ...toRaw(originalAccessionContainer.value) }
+  }
+
+  editMode.value = false
+}
+
+const updateTrayJob = async () => {
+  try {
+    await patchAccessionJob()
+
+    handleAlert({
+      type: 'success',
+      text: 'The job has been updated.',
+      autoClose: true
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    editMode.value = false
+  }
+}
+const updateTrayContainer = async () => {
+  try {
+    await patchAccessionTray()
+
+    handleAlert({
+      type: 'success',
+      text: 'The tray has been updated.',
+      autoClose: true
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    editMode.value = false
+  }
+}
+
+defineExpose({ editMode })
+</script>
+
+<style lang="scss" scoped>
+.accession-container {
+  &-info {
+    border-right: 1px solid;
+    border-color: $secondary;
+    padding: 3rem;
+
+    @media (max-width: $breakpoint-md-max) {
+      border-right: none;
+      padding: 3rem 1.5rem;
+      padding-bottom: 0;
+    }
+
+    @media (max-width: $breakpoint-sm-min) {
+      padding: 1rem;
+      padding-bottom: 0;
+    }
+
+    &-details {
+      display: flex;
+      flex-flow: column nowrap;
+      align-items: center;
+
+      @media (max-width: $breakpoint-md-max) {
+        align-items: flex-start;
+        padding-left: 1rem;
+      }
+
+      @media (max-width: $breakpoint-sm-min) {
+        align-items: flex-start;
+
+        &:nth-child(odd) {
+          padding-left: 0;
+          padding-right: 4px;
+        }
+
+        &:nth-child(even) {
+          padding-left: 4px;
+          padding-right: 0;
+        }
+      }
+
+      & label {
+        position: relative;
+
+        .q-btn {
+          position: absolute;
+          padding: .4rem;
+        }
+      }
+    }
+  }
+}
+</style>
