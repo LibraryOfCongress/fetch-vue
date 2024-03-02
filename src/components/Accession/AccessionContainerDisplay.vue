@@ -2,11 +2,50 @@
   <div
     class="row accession-container flex-lg-grow"
   >
-    <AccessionNonTrayInfo v-if="accessionJob.type == 1" />
-    <AccessionTrayInfo v-else />
+    <AccessionNonTrayInfo
+      v-if="accessionJob.type == 1"
+      ref="nonTrayInfoComponent"
+    />
+    <AccessionTrayInfo
+      v-else
+      ref="trayInfoComponent"
+    />
 
     <div class="col-12 col-lg-8 col-xl-9 accession-container-scan">
       <div class="row items-center q-mb-xs-md q-mb-sm-lg">
+        <div
+          v-if="currentScreenSize == 'xs'"
+          class="col-auto"
+        >
+          <MoreOptionsMenu
+            v-if="accessionJob.type == 1"
+            :options="[{
+              text: `${selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'}`,
+              disabled: accessionJob.type == 2 && !accessionContainer.id || accessionJob.status == 'Paused'
+            }, {
+              text: 'Delete Items',
+              disabled: selectedItems.length == 0 || accessionJob.status == 'Paused'
+            }]"
+            class="q-mr-sm"
+            @click="handleOptionMenu"
+          />
+          <MoreOptionsMenu
+            v-else
+            :options="[{
+              text: 'Add Tray',
+              disabled: !accessionContainer.id || !allItemsVerified || accessionJob.status == 'Paused'
+            }, {
+              text: `${selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'}`,
+              disabled: accessionJob.type == 2 && !accessionContainer.id || accessionJob.status == 'Paused'
+            }, {
+              text: 'Delete Items',
+              disabled: selectedItems.length == 0 || accessionJob.status == 'Paused'
+            }]"
+            class="q-mr-sm"
+            @click="handleOptionMenu"
+          />
+        </div>
+
         <div class="col-auto">
           <h2 class="text-h4 text-bold">
             Scan Items
@@ -20,7 +59,7 @@
         </div>
 
         <div
-          v-if="accessionJob.type == 2"
+          v-if="accessionJob.type == 2 && currentScreenSize !== 'xs'"
           class="col-auto q-ml-auto"
         >
           <q-btn
@@ -36,7 +75,10 @@
         </div>
       </div>
 
-      <div class="row q-mb-xs-lg">
+      <div
+        v-if="currentScreenSize !== 'xs'"
+        class="row q-mb-xs-lg"
+      >
         <div class="col-xs-12 col-md-auto flex no-wrap justify-between q-mb-xs-md q-mb-md-none q-mr-md-auto">
           <q-btn
             no-caps
@@ -135,6 +177,14 @@
         </div>
       </div>
     </div>
+
+    <!-- mobile actions menu -->
+    <AccessionMobileActionBar
+      v-if="currentScreenSize == 'xs' && !renderIsEditMode"
+      @pause-job="updateAccessionJobStatus('Paused')"
+      @resume-job="updateAccessionJobStatus('Running')"
+      @complete-job="showConfirmation = { type: 'completeJob', text:'Are you sure you want to complete the job?' }"
+    />
   </div>
 
   <!-- barcode edit modal -->
@@ -245,7 +295,7 @@
 </template>
 
 <script setup>
-import { ref, watch, inject } from 'vue'
+import { ref, watch, computed, inject } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAccessionStore } from '@/stores/accession-store'
@@ -256,6 +306,8 @@ import AccessionTrayInfo from '@/components/Accession/AccessionTrayInfo.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import TextInput from '@/components/TextInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
+import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
+import AccessionMobileActionBar from '@/components/Accession/AccessionMobileActionBar.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -279,6 +331,8 @@ const { accessionJob, accessionContainer, allItemsVerified } = storeToRefs(useAc
 
 // Local Data
 const isLoading = ref(false)
+const trayInfoComponent = ref(null)
+const nonTrayInfoComponent = ref(null)
 const accessionTableComponent = ref(null)
 const accessionTableColumns = ref([
   {
@@ -301,6 +355,15 @@ const showConfirmation = ref(null)
 const showBarcodeEdit = ref(false)
 const manualBarcodeEdit = ref('')
 const showNextTrayModal = ref(false)
+const renderIsEditMode = computed(() => {
+  if (trayInfoComponent.value && trayInfoComponent.value.editMode) {
+    return true
+  } else if (nonTrayInfoComponent.value && nonTrayInfoComponent.value.editMode) {
+    return true
+  } else {
+    return false
+  }
+})
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -409,6 +472,16 @@ const handleConfirmation = async () => {
     await deleteContainerItem()
   }
 }
+const handleOptionMenu = (option) => {
+  if (option.text == 'Add Tray') {
+    showNextTrayModal.value = !showNextTrayModal.value
+  } else if (option.text == 'Enter Barcode' || option.text == 'Edit Barcode') {
+    setBarcodeEditDisplay()
+  } else if (option.text == 'Delete Items') {
+    showConfirmation.value = { type: 'delete', text:'Are you sure you want to delete selected items?' }
+  }
+}
+
 
 const addContainerItem = (barcode) => {
   if ( accessionJob.value.type == 2) {

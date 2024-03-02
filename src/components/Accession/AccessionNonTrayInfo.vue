@@ -1,8 +1,13 @@
 <template>
   <div class="col-12 col-lg-4 col-xl-3 accession-container-info">
     <div class="row">
-      <div class="col-12">
-        <h1 class="text-h4 text-bold q-mb-xs-md q-mb-sm-lg">
+      <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
+        <MoreOptionsMenu
+          :options="[{ text: 'Edit' }]"
+          class="q-mr-sm"
+          @click="handleOptionMenu"
+        />
+        <h1 class="text-h4 text-bold">
           {{ `Job: ${accessionJob.id}` }}
         </h1>
       </div>
@@ -15,94 +20,77 @@
       </div>
 
       <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12">
-        <div class="accession-container-info-details q-mb-xs-sm q-mb-lg-lg">
-          <label class="text-h6 q-mb-xs">
-            Owner
-          </label>
-          <p
-            class="outline"
-          >
-            {{ accessionJob.owner }}
-          </p>
-        </div>
+        <div class="row">
+          <div class="accession-container-info-details col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg">
+            <label class="text-h6 q-mb-xs">
+              Owner
+            </label>
+            <p
+              class="outline"
+            >
+              {{ accessionJob.owner }}
+            </p>
+          </div>
 
-        <div class="accession-container-info-details q-mb-xs-sm q-mb-lg-lg">
-          <label class="text-h6 q-mb-xs">
-            Container Type
-          </label>
-          <p>
-            Non-Tray
-          </p>
-        </div>
+          <div class="accession-container-info-details col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg">
+            <label class="text-h6 q-mb-xs">
+              Container Type
+            </label>
+            <p>
+              Non-Tray
+            </p>
+          </div>
 
-        <div class="accession-container-info-details q-mb-xs-sm q-mb-lg-lg">
-          <label class="text-h6 q-mb-xs">
-            Container Size
-            <q-btn
-              v-if="accessionContainer.id"
-              no-caps
-              flat
-              icon="mdi-square-edit-outline"
-              color="accent"
-              label="Edit"
-              class="btn-no-wrap text-caption"
-              @click="editContainerSize = true"
-            />
-          </label>
-          <p
-            v-if="!editContainerSize"
-            :class="accessionContainer.id && accessionContainer.container_size ? 'outline' : ''"
-          >
-            {{ accessionContainer.container_size }}
-          </p>
-          <SelectInput
-            v-else
-            v-model="accessionContainer.container_size"
-            :options="containerOptions"
-            option-value="name"
-            option-label="name"
-          />
-        </div>
-
-        <div class="accession-container-info-details">
-          <label class="text-h6 q-mb-xs">
-            Media Type
-            <q-btn
-              no-caps
-              flat
-              icon="mdi-square-edit-outline"
-              color="accent"
-              label="Edit"
-              class="btn-no-wrap text-caption"
-              @click="editMediaType = true"
-            />
-          </label>
-          <p
-            v-if="!editMediaType"
-            :class="accessionContainer.id && accessionContainer.media_type ? 'outline text-highlight' : ''"
-          >
-            {{ !accessionContainer.id ? accessionJob.media_type : accessionContainer.media_type }}
-          </p>
-          <template v-else>
-            <SelectInput
-              v-if="!accessionContainer.id"
-              v-model="accessionJob.media_type"
-              :options="mediaOptions"
-              option-value="name"
-              option-label="name"
-            />
+          <div class="accession-container-info-details col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg">
+            <label class="text-h6 q-mb-xs">
+              Container Size
+            </label>
+            <p
+              v-if="!editMode"
+              :class="accessionContainer.id && accessionContainer.container_size ? 'outline' : ''"
+            >
+              {{ accessionContainer.container_size }}
+            </p>
             <SelectInput
               v-else
-              v-model="accessionContainer.media_type"
-              :options="mediaOptions"
+              v-model="accessionContainer.container_size"
+              :options="containerOptions"
               option-value="name"
               option-label="name"
             />
-          </template>
+          </div>
+
+          <div class="accession-container-info-details col-xs-6 col-sm-12">
+            <label class="text-h6 q-mb-xs">
+              Media Type
+            </label>
+            <p
+              v-if="!editMode"
+              class="outline text-highlight"
+            >
+              {{ !accessionContainer.id ? accessionJob.media_type : accessionContainer.media_type }}
+            </p>
+            <template v-else>
+              <SelectInput
+                v-if="!accessionContainer.id"
+                v-model="accessionJob.media_type"
+                :options="mediaOptions"
+                option-value="name"
+                option-label="name"
+              />
+              <SelectInput
+                v-else
+                v-model="accessionContainer.media_type"
+                :options="mediaOptions"
+                option-value="name"
+                option-label="name"
+              />
+            </template>
+          </div>
         </div>
 
         <div
-          v-if="editContainerSize || editMediaType"
+          v-if="currentScreenSize !== 'xs' && editMode"
           class="row q-pl-sm-md q-pl-lg-none q-mt-md-sm"
         >
           <q-space class="divider q-my-sm" />
@@ -131,6 +119,14 @@
           </div>
         </div>
       </div>
+
+      <!-- mobile actions menu -->
+      <AccessionMobileActionBar
+        v-if="currentScreenSize == 'xs' && editMode"
+        :edit-mode="editMode"
+        @update-tray="!accessionContainer.id ? updateNonTrayJob() : updateNonTrayContainer()"
+        @cancel-tray="cancelNonTrayEdits"
+      />
     </div>
   </div>
 </template>
@@ -139,12 +135,18 @@
 import { ref, toRaw, inject } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useAccessionStore } from '@/stores/accession-store'
 import { useOptionStore } from '@/stores/option-store'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 import SelectInput from '@/components/SelectInput.vue'
+import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
+import AccessionMobileActionBar from '@/components/Accession/AccessionMobileActionBar.vue'
 
 const route = useRoute()
+
+// Composables
+const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const { containerOptions, mediaOptions } = useOptionStore()
@@ -161,11 +163,16 @@ const {
 } = storeToRefs(useAccessionStore())
 
 // Local Data
-const editContainerSize = ref(false)
-const editMediaType = ref(false)
+const editMode = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
+
+const handleOptionMenu = (option) => {
+  if (option.text == 'Edit') {
+    editMode.value = true
+  }
+}
 
 const cancelNonTrayEdits = () => {
   if (!route.params.containerId) {
@@ -174,8 +181,8 @@ const cancelNonTrayEdits = () => {
     accessionContainer.value = { ...toRaw(originalAccessionContainer.value) }
   }
 
-  editContainerSize.value = false
-  editMediaType.value = false
+  editMode.value = false
+  editMode.value = false
 }
 
 const updateNonTrayJob = async () => {
@@ -194,8 +201,8 @@ const updateNonTrayJob = async () => {
       autoClose: true
     })
   } finally {
-    editContainerSize.value = false
-    editMediaType.value = false
+    editMode.value = false
+    editMode.value = false
   }
 }
 const updateNonTrayContainer = async () => {
@@ -218,10 +225,12 @@ const updateNonTrayContainer = async () => {
       autoClose: true
     })
   } finally {
-    editContainerSize.value = false
-    editMediaType.value = false
+    editMode.value = false
+    editMode.value = false
   }
 }
+
+defineExpose({ editMode })
 </script>
 
 <style lang="scss" scoped>
@@ -254,7 +263,16 @@ const updateNonTrayContainer = async () => {
 
       @media (max-width: $breakpoint-sm-min) {
         align-items: flex-start;
-        padding-left: 0rem;
+
+        &:nth-child(odd) {
+          padding-left: 0;
+          padding-right: 4px;
+        }
+
+        &:nth-child(even) {
+          padding-left: 4px;
+          padding-right: 0;
+        }
       }
 
       & label {
