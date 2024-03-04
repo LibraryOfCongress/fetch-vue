@@ -161,7 +161,7 @@ const essentialLinks = ref([
     link: '/accession'
   },
   {
-    title: 'Verfication',
+    title: 'Verification',
     icon: 'done_all',
     link: '/verification'
   },
