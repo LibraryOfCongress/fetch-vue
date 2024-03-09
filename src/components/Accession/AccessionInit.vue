@@ -21,7 +21,6 @@
       </div>
     </div>
 
-    <!-- jobs in progress list -->
     <!-- <div class="row q-mt-xl">
       <div class="col">
         <h1 class="text-h4 text-bold q-mb-xs-md q-mb-sm-lg">
@@ -330,7 +329,7 @@ const submitAccessionJob = async () => {
     display: flex;
     min-width: 250px;
     width: 100%;
-    height: 238px;
+    min-height: 240px;
     padding: 0;
     border: 1px dashed $color-black;
     border-width: 2px;
@@ -338,7 +337,7 @@ const submitAccessionJob = async () => {
     transition: 0.3s ease;
 
     @media (max-width: $breakpoint-sm-min) {
-      height: 117px;
+      min-height: 120px;
 
       :deep(.q-icon) {
         position: absolute;
@@ -368,7 +367,9 @@ const submitAccessionJob = async () => {
     position: relative;
     display: flex;
     flex-flow: column nowrap;
+    width: 100%;
     min-width: 250px;
+    min-height: 240px;
     padding: 0;
     border-color: $secondary;
     border-radius: 4px;

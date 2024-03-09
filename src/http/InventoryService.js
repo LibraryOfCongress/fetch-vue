@@ -6,13 +6,14 @@ export default {
   //
   // can be called with the api filter like so
   // this.$api.get(inventoryService.examples, { id: entryId })
-  accessionJobs: '/accession-jobs',
-  barcodes: '/barcodes',
-  containerTypes: '/container-types',
-  items: 'items',
-  mediaTypes: '/media-types',
-  owners: '/owners',
-  ownersTiers: '/owners/tiers',
-  sizeClass: '/size_class',
-  trays: '/trays'
+  accessionJobs: '/accession-jobs/',
+  barcodes: '/barcodes/',
+  containerTypes: '/container-types/',
+  items: '/items/',
+  mediaTypes: '/media-types/',
+  nonTrayItems: '/non_tray_items/',
+  owners: '/owners/',
+  ownersTiers: '/owners/tiers/',
+  sizeClass: '/size_class/',
+  trays: '/trays/'
 }

@@ -13,6 +13,7 @@
 <script setup>
 import { onBeforeMount, inject } from 'vue'
 import { useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { useAccessionStore } from 'src/stores/accession-store'
 import { useOptionStore } from '@/stores/option-store'
 import AccessionInit from '@/components/Accession/AccessionInit.vue'
@@ -23,8 +24,10 @@ const route = useRoute()
 // Store Data
 const {
   getAccessionJob,
-  getAccessionTray
+  getAccessionTray,
+  getAccessionNonTrayItem
 } = useAccessionStore()
+const { accessionJob } = storeToRefs(useAccessionStore())
 const { getOptions } = useOptionStore()
 
 // Logic
@@ -32,17 +35,22 @@ const handlePageOffset = inject('handle-page-offset')
 
 onBeforeMount( async () => {
   // if there is an id in the url we need to load that tray/non-tray and its option related data
+  await Promise.all([
+    getOptions('owners'),
+    getOptions('sizeClass'),
+    getOptions('mediaTypes')
+  ])
+
   if (route.params.jobId) {
-    await Promise.all([
-      getAccessionJob(route.params.jobId),
-      getOptions('owners'),
-      getOptions('sizeClass'),
-      getOptions('mediaTypes')
-    ])
+    await getAccessionJob(route.params.jobId)
   }
 
   if (route.params.containerId) {
-    await getAccessionTray(route.params.containerId)
+    if (accessionJob.value.trayed) {
+      await getAccessionTray(route.params.containerId)
+    } else {
+      await getAccessionNonTrayItem(route.params.containerId)
+    }
   }
 })
 </script>

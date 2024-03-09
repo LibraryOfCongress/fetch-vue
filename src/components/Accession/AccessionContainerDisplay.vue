@@ -54,7 +54,7 @@
 
         <div class="col-auto q-ml-sm">
           <span class="outline text-h6">
-            {{ accessionJob.trayed ? accessionContainer.items.length : accessionJob.items.length }} Items
+            {{ accessionJob.trayed ? accessionContainer.items.length : accessionJob.non_tray_items.length }} Items
           </span>
         </div>
 
@@ -147,7 +147,7 @@
           <EssentialTable
             ref="accessionTableComponent"
             :table-columns="accessionTableColumns"
-            :table-data="!accessionJob.trayed ? accessionJob.items : accessionContainer.items"
+            :table-data="accessionJob.trayed ? accessionContainer.items : accessionJob.non_tray_items"
             :disable-table-reorder="true"
             :hide-table-rearrange="true"
             :enable-selection="true"
@@ -388,12 +388,13 @@ const { verifyBarcode } = useBarcodeStore()
 const { barcodeDetails } = storeToRefs(useBarcodeStore())
 const {
   resetAccessionContainer,
-  getAccessionNonTray,
-  verifyTrayItemBarcode,
-  verifyNonTrayItemBarcode,
+  // verifyTrayItemBarcode,
+  // verifyNonTrayItemBarcode,
   patchAccessionJob,
   postAccessionTrayItem,
   deleteAccessionTrayItem,
+  getAccessionNonTrayItem,
+  postAccessionNonTrayItem,
   deleteAccessionNonTrayItem
 } = useAccessionStore()
 const { accessionJob, accessionContainer, allItemsVerified } = storeToRefs(useAccessionStore())
@@ -455,32 +456,30 @@ watch(compiledBarCode, (barcode) => {
   }
 })
 const triggerItemScan = async (barcode) => {
-  console.log('item scan')
   try {
     // example barcode for trayed item 'BK123'
-    //check if the barcode is in the system otherwise create it
+    // check if the barcode is in the system otherwise create it
     await verifyBarcode(barcode)
 
     if (accessionJob.value.trayed) {
       // check if the scanned barcode already exists in the tray job if not add it
       if (accessionJob.value.trayed && accessionContainer.value.items.some(item => item.barcode_id == barcodeDetails.value.id)) {
-        // if barcode does exist trigger a validation
+        //TODO: if barcode does exist trigger a validation
         // validateContainerItemBarcode(barcode)
-        console.log('item already exists')
       } else {
-        await addContainerItem(barcode)
+        await addContainerItem()
       }
     } else {
-      // example barcode for tray: 'NT555923'
-      // get the scanned barcodes info
-      getAccessionNonTray(barcode)
-
+      // example barcode for non tray item: 'NT555923'
       // check if the scanned barcode already exists in the non tray job if not add it
-      if (accessionJob.value.items.some(item => item.id == barcode)) {
-      // if barcode does exist trigger a validation
-        validateContainerItemBarcode(barcode)
+      if (accessionJob.value.non_tray_items.some(item => item.barcode_id == barcodeDetails.value.id)) {
+        // get the scanned non tray item barcode info
+        getAccessionNonTrayItem(accessionJob.value.non_tray_items.find(item => item.barcode_id == barcodeDetails.value.id).id)
+
+        //TODO: if barcode does exist trigger a validation if it wasnt already validated
+        // validateContainerItemBarcode(barcode)
       } else {
-        await addContainerItem(barcode)
+        await addContainerItem()
       }
 
       // set the scanned item as the container id in the route
@@ -500,31 +499,31 @@ const triggerItemScan = async (barcode) => {
     })
   }
 }
-const validateContainerItemBarcode = async (barcode) => {
-  try {
-    isLoading.value = true
+// const validateContainerItemBarcode = async (barcode) => {
+//   try {
+//     isLoading.value = true
 
-    if (accessionJob.value.trayed) {
-      await verifyTrayItemBarcode(barcode)
-    } else {
-      await verifyNonTrayItemBarcode(barcode)
-    }
+//     if (accessionJob.value.trayed) {
+//       await verifyTrayItemBarcode(barcode)
+//     } else {
+//       await verifyNonTrayItemBarcode(barcode)
+//     }
 
-    handleAlert({
-      type: 'success',
-      text: 'The item has been validated.',
-      autoClose: true
-    })
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
-  } finally {
-    isLoading.value = false
-  }
-}
+//     handleAlert({
+//       type: 'success',
+//       text: 'The item has been validated.',
+//       autoClose: true
+//     })
+//   } catch (error) {
+//     handleAlert({
+//       type: 'error',
+//       text: error,
+//       autoClose: true
+//     })
+//   } finally {
+//     isLoading.value = false
+//   }
+// }
 const resetBarcodeEdit = () => {
   showBarcodeEdit.value = false
   manualBarcodeEdit.value = ''
@@ -535,10 +534,10 @@ const setBarcodeEditDisplay = () => {
     manualBarcodeEdit.value = selectedItems.value[0].id
   }
 }
-const addContainerItem = async (barcode) => {
+const addContainerItem = async () => {
   try {
+    const currentDate = new Date()
     if ( accessionJob.value.trayed ) {
-      const currentDate = new Date()
       // TODO: figure out what payload data is actually needed here
       const payload = {
         accession_dt: currentDate,
@@ -558,10 +557,21 @@ const addContainerItem = async (barcode) => {
         withdrawal_dt: currentDate
       }
       await postAccessionTrayItem(payload)
-
-      // accessionContainer.value.items.push({ id: barcode, verified: false })
     } else {
-      accessionJob.value.items.push({ id: barcode, verified: false })
+      // TODO: figure out what payload data is actually needed here
+      const payload = {
+        accession_dt: currentDate,
+        accession_job_id: accessionJob.value.id,
+        barcode_id: barcodeDetails.value.id,
+        container_type_id: 1,
+        media_type_id: 1,
+        owner_id: 1,
+        size_class_id: 1,
+        status: 'In',
+        // subcollection_id: 1,
+        withdrawal_dt: currentDate
+      }
+      await postAccessionNonTrayItem(payload)
     }
 
     handleAlert({
@@ -583,7 +593,7 @@ const updateContainerItem = async (barcode) => {
     if (accessionJob.value.trayed) {
       accessionContainer.value.items.find( item => item.id == selectedItems.value[0].id).id = barcode
     } else {
-      accessionJob.value.items.find( item => item.id == selectedItems.value[0].id).id = barcode
+      accessionJob.value.non_tray_items.find( item => item.id == selectedItems.value[0].id).id = barcode
 
       router.push({
         name: 'accession-container',

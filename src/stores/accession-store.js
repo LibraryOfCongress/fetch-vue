@@ -11,7 +11,8 @@ export const useAccessionStore = defineStore('accession', {
       owner_id: null,
       media_type: null,
       media_type_id: null,
-      items: [],
+      non_tray_items: [],
+      trays: [],
       status: ''
     },
     accessionContainer: {
@@ -29,7 +30,7 @@ export const useAccessionStore = defineStore('accession', {
   getters: {
     allItemsVerified: (state) => {
       if (state.accessionJob.trayed == false) {
-        return state.accessionJob.items.length == 0 || state.accessionJob.items.some(item => item.verified == false) ? false : true
+        return state.accessionJob.non_tray_items.length == 0 || state.accessionJob.non_tray_items.some(item => item.verified == false) ? false : true
       } else {
         return state.accessionContainer.items.length == 0 || state.accessionContainer.items.some(item => item.verified == false) ? false : true
       }
@@ -58,69 +59,39 @@ export const useAccessionStore = defineStore('accession', {
         throw error
       }
     },
+    async getAccessionJob (id) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.accessionJobs}${id}`)
+        this.accessionJob = { ...res.data }
+        this.originalAccessionJob = { ...res.data }
+      } catch (error) {
+        throw error
+      }
+    },
     async postAccessionJob (payload) {
       try {
         const res = await this.$api.post(inventoryServiceApi.accessionJobs, payload)
 
-        this.accessionJob = res.data
-        this.originalAccessionJob = res.data
+        this.accessionJob = { ...res.data }
+        this.originalAccessionJob = { ...res.data }
       } catch (error) {
         throw error
       }
     },
     async patchAccessionJob (payload) {
       try {
-        const res = await this.$api.patch(`${inventoryServiceApi.accessionJobs}/${payload.id}`, payload)
-        this.accessionJob = res.data
-        this.originalAccessionJob = res.data
+        const res = await this.$api.patch(`${inventoryServiceApi.accessionJobs}${payload.id}`, payload)
+        this.accessionJob = { ...res.data }
+        this.originalAccessionJob = { ...res.data }
       } catch (error) {
         throw error
       }
     },
-    async getAccessionJob (id) {
+    async getAccessionTray (barcode) {
       try {
-        const res = await this.$api.get(`${inventoryServiceApi.accessionJobs}/${id}`)
-        this.accessionJob = res.data
-        this.originalAccessionJob = res.data
-
-        // TODO: Remove this once api is setup
-        // if (id == 1) {
-        //   this.accessionJob = {
-        //     ...this.accessionJob,
-        //     owner: 'John Doe',
-        //     media_type: 'Document',
-        //     status: 'Running', // status from api will match whatever the status is from the job
-        //     type: 1,
-        //     items: [
-        //       {
-        //         id: '00924891289',
-        //         verified: true
-        //       },
-        //       {
-        //         id: '00924891290',
-        //         verified: false
-        //       }
-        //     ],
-        //     id
-        //   }
-        // } else {
-        //   this.accessionJob = {
-        //     ...this.accessionJob,
-        //     owner: 'John Doe',
-        //     media_type: 'Document',
-        //     trays: [
-        //       {
-        //         id: 'CH220987',
-        //         collection_verified: false,
-        //         scanned_for_verification: false
-        //       }
-        //     ],
-        //     status: 'Running', // status from api will match whatever the status is from the job
-        //     type: 2,
-        //     id
-        //   }
-        // }
-        // this.originalAccessionJob = { ...this.accessionJob }
+        const res = await this.$api.get(`${inventoryServiceApi.trays}${barcode}`)
+        this.accessionContainer = { ...res.data, items: res.data.items ?? [] }
+        this.originalAccessionContainer = { ...res.data, items: res.data.items ?? [] }
       } catch (error) {
         throw error
       }
@@ -133,58 +104,23 @@ export const useAccessionStore = defineStore('accession', {
         this.originalAccessionContainer = { ...res.data, items: res.data.items ?? [] }
 
         // add the new tray to accessionJob trays
-        this.accessionJob.trays = { ...this.accessionJob.trays, ...res.data }
-        this.originalAccessionJob.trays = { ...this.originalAccessionJob.trays, ...res.data }
+        this.accessionJob.trays = [
+          ...this.accessionJob.trays,
+          res.data
+        ]
+        this.originalAccessionJob.trays = [
+          ...this.originalAccessionJob.trays,
+          res.data
+        ]
       } catch (error) {
         throw error
       }
     },
     async patchAccessionTray (payload) {
       try {
-        const res = await this.$api.patch(`${inventoryServiceApi.trays}/${payload.id}`, payload)
+        const res = await this.$api.patch(`${inventoryServiceApi.trays}${payload.id}`, payload)
         this.accessionContainer = { ...res.data, items: res.data.items ?? [] }
         this.originalAccessionContainer = { ...res.data, items: res.data.items ?? [] }
-      } catch (error) {
-        throw error
-      }
-    },
-    async getAccessionTray (barcode) {
-      try {
-        const res = await this.$api.get(`${inventoryServiceApi.trays}/${barcode}`)
-        this.accessionContainer = { ...res.data, items: res.data.items ?? [] }
-        this.originalAccessionContainer = { ...res.data, items: res.data.items ?? [] }
-
-        // if (barcode == 'CH220987') {
-        //   this.accessionContainer = {
-        //     id: barcode,
-        //     title: 'Tray Title',
-        //     owner: 'Colonel Sanders',
-        //     container_type: 'Trayed',
-        //     container_size: 'C High',
-        //     media_type: 'Vinyl Recording',
-        //     items: [
-        //       {
-        //         id: '00924891289',
-        //         verified: true
-        //       },
-        //       {
-        //         id: '00924891290',
-        //         verified: true
-        //       }
-        //     ]
-        //   }
-        // } else {
-        //   this.accessionContainer = {
-        //     id: barcode,
-        //     title: 'Tray Title',
-        //     owner: 'Colonel Sanders',
-        //     container_type: 'Trayed',
-        //     container_size: 'C High',
-        //     media_type: 'Vinyl Recording',
-        //     items: []
-        //   }
-        // }
-        // this.originalAccessionContainer = { ...this.accessionContainer }
       } catch (error) {
         throw error
       }
@@ -204,11 +140,11 @@ export const useAccessionStore = defineStore('accession', {
     },
     async deleteAccessionTrayItem (barcodeList) {
       try {
-        // TODO: setup api call to delete item in an accession tray
-        // const res = await this.$api.delete(
-        //   inventoryServiceApi.examplesNumbers + 12
-        // )
-        // this.accessionContainer = res.data
+        await Promise.all(barcodeList.map(barcode => {
+          return this.$api.delete(`${inventoryServiceApi.items}${barcode}`)
+        }))
+
+        // filter the deleted tray items from the accessionContainer
         const filteredItems = this.accessionContainer.items.filter(b => !barcodeList.includes(b.id))
         this.accessionContainer = {
           ...this.accessionContainer,
@@ -231,50 +167,57 @@ export const useAccessionStore = defineStore('accession', {
         throw error
       }
     },
-    async getAccessionNonTray (barcode) {
+    async getAccessionNonTrayItem (id) {
       try {
-        // TODO: setup api call to check the scanned barcode and get its nontray data
-        // const res = await this.$api.patch(
-        //   inventoryServiceApi.examplesNumbers + 12, barcode
-        // )
-        // this.accessionContainer = res.data
-        this.accessionContainer = {
-          id: barcode,
-          owner: 'Colonel Sanders',
-          container_type: 'Non-Trayed',
-          container_size: '',
-          media_type: this.accessionJob.media_type
-        }
-        this.originalAccessionContainer = { ...this.accessionContainer }
+        const res = await this.$api.get(`${inventoryServiceApi.nonTrayItems}${id}`)
+
+        this.accessionContainer = { ...res.data  }
+        this.originalAccessionContainer = { ...res.data }
       } catch (error) {
         throw error
       }
     },
-    async patchAccessionNonTray () {
+    async postAccessionNonTrayItem (payload) {
       try {
-        // TODO: setup api call to update an accession nontray
-        // const res = await this.$api.patch(
-        //   inventoryServiceApi.examplesNumbers + 12
-        // )
-        // this.accessionContainer = res.data
-        this.accessionContainer = {
-          ...this.accessionContainer
-        }
+        const res = await this.$api.post(inventoryServiceApi.nonTrayItems, payload)
+
+        // set the item as the container since there is no tray container for non tray jobs
+        this.accessionContainer = { ...res.data, verified: true }
         this.originalAccessionContainer = { ...this.accessionContainer }
+
+        // add the new non tray item to accessionJob non tray items
+        this.accessionJob.non_tray_items = [
+          ...this.accessionJob.non_tray_items,
+          res.data
+        ]
+        this.originalAccessionJob.non_tray_items = [
+          ...this.originalAccessionJob.non_tray_items,
+          res.data
+        ]
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchAccessionNonTrayItem (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.nonTrayItems}${payload.id}`, payload)
+
+        this.accessionContainer = { ...res.data  }
+        this.originalAccessionContainer = { ...res.data }
       } catch (error) {
         throw error
       }
     },
     async deleteAccessionNonTrayItem (barcodeList) {
       try {
-        // TODO: setup api call to delete item in an accession nontray
-        // const res = await this.$api.delete(
-        //   inventoryServiceApi.examplesNumbers + 12
-        // )
-        // this.accessionContainer = res.data
+        await Promise.all(barcodeList.map(barcode => {
+          return this.$api.delete(`${inventoryServiceApi.nonTrayItems}${barcode}`)
+        }))
+
+        // filter the deleted non tray items from the accessionJob
         this.accessionJob = {
           ...this.accessionJob,
-          items: this.accessionJob.items.filter(b => !barcodeList.includes(b.id) )
+          non_tray_items: this.accessionJob.non_tray_items.filter(b => !barcodeList.includes(b.id) )
         }
         this.originalAccessionJob = { ...this.accessionJob }
       } catch (error) {
@@ -286,7 +229,7 @@ export const useAccessionStore = defineStore('accession', {
         // TODO: setup api call to verify the scanned nontray item barcode
         // const res = await this.$api.patch(
         //   inventoryServiceApi.examplesNumbers + 12, barcode
-        this.accessionJob.items[this.accessionJob.items.findIndex(item => item.id == barcode)].verified = true
+        this.accessionJob.non_tray_items[this.accessionJob.non_tray_items.findIndex(item => item.id == barcode)].verified = true
         this.originalAccessionJob = { ...this.accessionJob }
       } catch (error) {
         throw error

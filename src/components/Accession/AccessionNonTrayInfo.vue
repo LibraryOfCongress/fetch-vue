@@ -28,7 +28,7 @@
             <p
               class="outline"
             >
-              {{ accessionJob.owner }}
+              {{ accessionJob.owner?.name }}
             </p>
           </div>
 
@@ -46,16 +46,17 @@
               Container Size
             </label>
             <p
-              v-if="!editMode"
-              :class="accessionContainer.id && accessionContainer.container_size ? 'outline' : ''"
+              v-if="!editMode || editMode && !accessionContainer.id"
+              :class="accessionContainer.id && accessionContainer.size_class ? 'outline' : ''"
             >
-              {{ accessionContainer.container_size }}
+              {{ accessionContainer.size_class?.name }}
             </p>
             <SelectInput
               v-else
-              v-model="accessionContainer.container_size"
+              v-model="accessionContainer.size_class_id"
               :options="sizeClass"
-              option-value="name"
+              option-type="sizeClass"
+              option-value="id"
               option-label="name"
             />
           </div>
@@ -66,23 +67,25 @@
             </label>
             <p
               v-if="!editMode"
-              class="outline text-highlight"
+              :class="accessionJob.media_type || accessionContainer.media_type ? 'outline text-highlight' : ''"
             >
-              {{ !accessionContainer.id ? accessionJob.media_type : accessionContainer.media_type }}
+              {{ !accessionContainer.id ? accessionJob.media_type?.name : accessionContainer.media_type?.name }}
             </p>
             <template v-else>
               <SelectInput
                 v-if="!accessionContainer.id"
-                v-model="accessionJob.media_type"
+                v-model="accessionJob.media_type_id"
                 :options="mediaTypes"
-                option-value="name"
+                option-type="mediaTypes"
+                option-value="id"
                 option-label="name"
               />
               <SelectInput
                 v-else
-                v-model="accessionContainer.media_type"
+                v-model="accessionContainer.media_type_id"
                 :options="mediaTypes"
-                option-value="name"
+                option-type="mediaTypes"
+                option-value="id"
                 option-label="name"
               />
             </template>
@@ -149,11 +152,14 @@ const route = useRoute()
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { sizeClass, mediaTypes } = useOptionStore()
+const {
+  sizeClass,
+  mediaTypes
+} = storeToRefs(useOptionStore())
 const {
   patchAccessionJob,
-  patchAccessionNonTray,
-  verifyNonTrayItemBarcode
+  patchAccessionNonTrayItem
+  // verifyNonTrayItemBarcode
 } = useAccessionStore()
 const {
   accessionJob,
@@ -182,12 +188,15 @@ const cancelNonTrayEdits = () => {
   }
 
   editMode.value = false
-  editMode.value = false
 }
-
 const updateNonTrayJob = async () => {
   try {
-    await patchAccessionJob()
+    const payload = {
+      id: route.params.jobId,
+      media_type_id: accessionJob.value.media_type_id
+    }
+
+    await patchAccessionJob(payload)
 
     handleAlert({
       type: 'success',
@@ -202,16 +211,20 @@ const updateNonTrayJob = async () => {
     })
   } finally {
     editMode.value = false
-    editMode.value = false
   }
 }
 const updateNonTrayContainer = async () => {
   try {
-    await patchAccessionNonTray()
-
-    if (!accessionContainer.value.verified) {
-      await verifyNonTrayItemBarcode(route.params.containerId)
+    const payload = {
+      ...accessionContainer.value
     }
+
+    await patchAccessionNonTrayItem(payload)
+
+    // TODO: need to figure out how to validate non tray items
+    // if (!accessionContainer.value.verified) {
+    //   await verifyNonTrayItemBarcode(route.params.containerId)
+    // }
 
     handleAlert({
       type: 'success',
@@ -225,7 +238,6 @@ const updateNonTrayContainer = async () => {
       autoClose: true
     })
   } finally {
-    editMode.value = false
     editMode.value = false
   }
 }

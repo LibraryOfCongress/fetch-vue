@@ -84,6 +84,7 @@
                 v-else
                 v-model="accessionContainer.media_type_id"
                 :options="mediaTypes"
+                option-type="mediaTypes"
                 option-value="id"
                 option-label="name"
               />
@@ -191,7 +192,6 @@ watch(compiledBarCode, (barcode) => {
   }
 })
 const handleTrayScan = async (barcode) => {
-  console.log('tray scan')
   try {
     //check if the barcode is in the system otherwise create it
     await verifyBarcode(barcode)
@@ -199,20 +199,19 @@ const handleTrayScan = async (barcode) => {
     // example barcode for tray: 'CH220987'
     // if the scanned tray exists in the accessionJob load the tray details
     if (accessionJob.value.trays && accessionJob.value.trays.some(tray => tray.barcode_id == barcodeDetails.value.id)) {
-      console.log('tray already exists')
-      // getAccessionTray(barcodeDetails.value.id)
+      // getAccessionTray(accessionJob.value.trays.find(tray => tray.barcode_id == barcodeDetails.value.id).id)
 
       //TODO: Temp till get accession tray works
       accessionContainer.value = {
         ...accessionJob.value.trays.find(tray => tray.barcode_id == barcodeDetails.value.id),
-        items: accessionJob.value.items ?? []
+        items: []
       }
       originalAccessionContainer.value = {
         ...accessionJob.value.trays.find(tray => tray.barcode_id == barcodeDetails.value.id),
-        items: accessionJob.value.items ?? []
+        items: []
       }
     } else {
-      // if the scanned barcode doesnt exist create the scanned tray using the scanned barcodes uuid
+      // if the scanned tray barcode doesnt exist create the scanned tray using the scanned barcodes uuid
       const currentDate = new Date()
       const payload = {
         accession_dt: currentDate,
