@@ -3,6 +3,7 @@
     <!-- Print Doc -->
     <div
       id="print-document"
+      class="print"
       style="display: none"
     >
       <slot name="print-html" />
@@ -28,3 +29,12 @@ const print = () => {
 }
 defineExpose({ print })
 </script>
+
+<style lang="scss" scoped>
+@page {
+	size: Letter;
+	margin: 0.8cm;
+	margin-bottom: 0.6cm;
+	margin-top: 0.6cm;
+}
+</style>
