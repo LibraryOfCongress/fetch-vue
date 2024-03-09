@@ -66,6 +66,7 @@ module.exports = {
     // allow debugger during development only
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     'no-console': process.env.NODE_ENV === 'production' ? 'off' : 'off',
+    'no-useless-catch': 'off',
     'vue/no-unused-vars': 'error',
     'vue/no-mutating-props': 'off',
     'vue/no-v-for-template-key': 'off',

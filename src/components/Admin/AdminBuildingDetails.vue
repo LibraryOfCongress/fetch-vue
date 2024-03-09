@@ -210,7 +210,7 @@
             </label>
             <SelectInput
               v-model="shelfItemDetails.owner"
-              :options="ownerOptions"
+              :options="owners"
               option-value="id"
               option-label="name"
               :placeholder="'Select Owner'"
@@ -223,7 +223,7 @@
             </label>
             <SelectInput
               v-model="shelfItemDetails.size_class"
-              :options="containerOptions"
+              :options="sizeClass"
               option-value="id"
               option-label="name"
               :placeholder="'Select Container Size'"
@@ -331,7 +331,7 @@ const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const { buildingDetails } = storeToRefs(useBuildingStore())
-const { containerOptions, ownerOptions } = storeToRefs(useOptionStore())
+const { sizeClass, owners } = storeToRefs(useOptionStore())
 
 // Local Data
 const shelfData = ref({

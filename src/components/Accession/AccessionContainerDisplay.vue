@@ -3,7 +3,7 @@
     class="row accession-container flex-lg-grow"
   >
     <AccessionNonTrayInfo
-      v-if="accessionJob.type == 1"
+      v-if="!accessionJob.trayed"
       ref="nonTrayInfoComponent"
     />
     <AccessionTrayInfo
@@ -18,10 +18,10 @@
           class="col-auto"
         >
           <MoreOptionsMenu
-            v-if="accessionJob.type == 1"
+            v-if="!accessionJob.trayed"
             :options="[{
               text: `${selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'}`,
-              disabled: accessionJob.type == 2 && !accessionContainer.id || accessionJob.status == 'Paused'
+              disabled: accessionJob.trayed && !accessionContainer.id || accessionJob.status == 'Paused'
             }, {
               text: 'Delete Items',
               disabled: selectedItems.length == 0 || accessionJob.status == 'Paused'
@@ -36,7 +36,7 @@
               disabled: !accessionContainer.id || !allItemsVerified || accessionJob.status == 'Paused'
             }, {
               text: `${selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'}`,
-              disabled: accessionJob.type == 2 && !accessionContainer.id || accessionJob.status == 'Paused'
+              disabled: accessionJob.trayed && !accessionContainer.id || accessionJob.status == 'Paused'
             }, {
               text: 'Delete Items',
               disabled: selectedItems.length == 0 || accessionJob.status == 'Paused'
@@ -54,12 +54,12 @@
 
         <div class="col-auto q-ml-sm">
           <span class="outline text-h6">
-            {{ accessionJob.type == 2 ? accessionContainer.items.length : accessionJob.items.length }} Items
+            {{ accessionJob.trayed ? accessionContainer.items.length : accessionJob.items.length }} Items
           </span>
         </div>
 
         <div
-          v-if="accessionJob.type == 2 && currentScreenSize !== 'xs'"
+          v-if="accessionJob.trayed && currentScreenSize !== 'xs'"
           class="col-auto q-ml-auto"
         >
           <q-btn
@@ -87,7 +87,7 @@
             color="accent"
             :label="selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'"
             class="btn-no-wrap text-body1 q-mr-sm-md"
-            :disabled="accessionJob.type == 2 && !accessionContainer.id || accessionJob.status == 'Paused'"
+            :disabled="accessionJob.trayed && !accessionContainer.id || accessionJob.status == 'Paused'"
             @click="setBarcodeEditDisplay"
           />
           <q-btn
@@ -147,7 +147,7 @@
           <EssentialTable
             ref="accessionTableComponent"
             :table-columns="accessionTableColumns"
-            :table-data="accessionJob.type == 1 ? accessionJob.items : accessionContainer.items"
+            :table-data="!accessionJob.trayed ? accessionJob.items : accessionContainer.items"
             :disable-table-reorder="true"
             :hide-table-rearrange="true"
             :enable-selection="true"
@@ -217,7 +217,7 @@
           class="text-body1 full-width"
           :disabled="!manualBarcodeEdit"
           :loading="isLoading"
-          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerBarcodeScan(manualBarcodeEdit); resetBarcodeEdit();"
+          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); resetBarcodeEdit();"
         >
           <template #loading>
             <q-spinner-bars
@@ -270,7 +270,7 @@
           color="accent"
           label="Complete"
           class="text-body1 full-width"
-          @click="handleConfirmation('complete'); hideModal();"
+          @click="handleConfirmation('completeJob'); hideModal();"
         />
 
         <q-space class="q-mx-lg" />
@@ -364,6 +364,7 @@ import { ref, watch, computed, inject } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAccessionStore } from '@/stores/accession-store'
+import { useBarcodeStore } from '@/stores/barcode-store'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import AccessionNonTrayInfo from '@/components/Accession/AccessionNonTrayInfo.vue'
@@ -383,13 +384,15 @@ const { compiledBarCode } = useBarcodeScanHandler()
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
+const { verifyBarcode } = useBarcodeStore()
+const { barcodeDetails } = storeToRefs(useBarcodeStore())
 const {
   resetAccessionContainer,
-  getAccessionTray,
   getAccessionNonTray,
   verifyTrayItemBarcode,
   verifyNonTrayItemBarcode,
   patchAccessionJob,
+  postAccessionTrayItem,
   deleteAccessionTrayItem,
   deleteAccessionNonTrayItem
 } = useAccessionStore()
@@ -444,19 +447,43 @@ watch(route, () => {
 })
 
 watch(compiledBarCode, (barcode) => {
-  if (barcode !== '') {
-    triggerBarcodeScan(barcode)
+  if (barcode !== '' && accessionJob.value.trayed && accessionContainer.value.id) {
+    // if were in a trayed job only trigger scan if we already loaded a tray container
+    triggerItemScan(barcode)
+  } else if (barcode !== '' && accessionJob.value.trayed == false) {
+    triggerItemScan(barcode)
   }
 })
-const triggerBarcodeScan = (barcode) => {
-  if (accessionJob.value.type == 2) {
-    // example barcode for tray: 'CH220987'
-    // if there is no container set yet for a trayed job user is scanning a tray
-    if (accessionContainer.value.id == null) {
-      // get the scanned tray info
-      getAccessionTray(barcode)
+const triggerItemScan = async (barcode) => {
+  console.log('item scan')
+  try {
+    // example barcode for trayed item 'BK123'
+    //check if the barcode is in the system otherwise create it
+    await verifyBarcode(barcode)
 
-      // set the scanned tray as the container id in the route
+    if (accessionJob.value.trayed) {
+      // check if the scanned barcode already exists in the tray job if not add it
+      if (accessionJob.value.trayed && accessionContainer.value.items.some(item => item.barcode_id == barcodeDetails.value.id)) {
+        // if barcode does exist trigger a validation
+        // validateContainerItemBarcode(barcode)
+        console.log('item already exists')
+      } else {
+        await addContainerItem(barcode)
+      }
+    } else {
+      // example barcode for tray: 'NT555923'
+      // get the scanned barcodes info
+      getAccessionNonTray(barcode)
+
+      // check if the scanned barcode already exists in the non tray job if not add it
+      if (accessionJob.value.items.some(item => item.id == barcode)) {
+      // if barcode does exist trigger a validation
+        validateContainerItemBarcode(barcode)
+      } else {
+        await addContainerItem(barcode)
+      }
+
+      // set the scanned item as the container id in the route
       router.push({
         name: 'accession-container',
         params: {
@@ -464,36 +491,12 @@ const triggerBarcodeScan = (barcode) => {
           containerId: accessionContainer.value.id
         }
       })
-    } else {
-      // if there is a container id user is scanning that trays items
-      // check if the scanned barcode already exists in the non tray job if not add it
-      if (accessionContainer.value.items.some(item => item.id == barcode)) {
-        // if barcode does exist trigger a validation
-        validateContainerItemBarcode(barcode)
-      } else {
-        addContainerItem(barcode)
-      }
     }
-  } else {
-    // example barcode for tray: 'NT555923'
-    // get the scanned barcodes info
-    getAccessionNonTray(barcode)
-
-    // check if the scanned barcode already exists in the non tray job if not add it
-    if (accessionJob.value.items.some(item => item.id == barcode)) {
-      // if barcode does exist trigger a validation
-      validateContainerItemBarcode(barcode)
-    } else {
-      addContainerItem(barcode)
-    }
-
-    // set the scanned item as the container id in the route
-    router.push({
-      name: 'accession-container',
-      params: {
-        jobId: accessionJob.value.id,
-        containerId: accessionContainer.value.id
-      }
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
     })
   }
 }
@@ -501,7 +504,7 @@ const validateContainerItemBarcode = async (barcode) => {
   try {
     isLoading.value = true
 
-    if (accessionJob.value.type == 2) {
+    if (accessionJob.value.trayed) {
       await verifyTrayItemBarcode(barcode)
     } else {
       await verifyNonTrayItemBarcode(barcode)
@@ -522,7 +525,6 @@ const validateContainerItemBarcode = async (barcode) => {
     isLoading.value = false
   }
 }
-
 const resetBarcodeEdit = () => {
   showBarcodeEdit.value = false
   manualBarcodeEdit.value = ''
@@ -533,39 +535,52 @@ const setBarcodeEditDisplay = () => {
     manualBarcodeEdit.value = selectedItems.value[0].id
   }
 }
+const addContainerItem = async (barcode) => {
+  try {
+    if ( accessionJob.value.trayed ) {
+      const currentDate = new Date()
+      // TODO: figure out what payload data is actually needed here
+      const payload = {
+        accession_dt: currentDate,
+        // accession_job_id: 1,
+        arbitrary_data: 'Signed copy',
+        barcode_id: barcodeDetails.value.id,
+        condition: 'Good',
+        container_type_id: 1,
+        media_type_id: 1,
+        owner_id: 1,
+        size_class_id: 1,
+        status: 'In',
+        // subcollection_id: 1,
+        title: 'Lord of The Rings',
+        tray_id: accessionContainer.value.id,
+        volume: 'I',
+        withdrawal_dt: currentDate
+      }
+      await postAccessionTrayItem(payload)
 
-const handleConfirmation = async (confirmType) => {
-  if (confirmType == 'delete') {
-    await deleteContainerItem()
-  } else if (confirmType == 'completePrint') {
-    //TODO: send api call to complete the accession job
+      // accessionContainer.value.items.push({ id: barcode, verified: false })
+    } else {
+      accessionJob.value.items.push({ id: barcode, verified: false })
+    }
 
-    // print the job after completion
-    batchSheetComponent.value.printBatchReport()
-  }
-}
-const handleOptionMenu = (option) => {
-  if (option.text == 'Add Tray') {
-    showNextTrayModal.value = !showNextTrayModal.value
-  } else if (option.text == 'Enter Barcode' || option.text == 'Edit Barcode') {
-    setBarcodeEditDisplay()
-  } else if (option.text == 'Delete Items') {
-    showConfirmation.value = { type: 'delete', text:'Are you sure you want to delete selected items?' }
-  }
-}
-
-
-const addContainerItem = (barcode) => {
-  if ( accessionJob.value.type == 2) {
-    accessionContainer.value.items.push({ id: barcode, verified: false })
-  } else {
-    accessionJob.value.items.push({ id: barcode, verified: false })
+    handleAlert({
+      type: 'success',
+      text: 'The item has been added.',
+      autoClose: true
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
   }
 }
 const updateContainerItem = async (barcode) => {
   try {
     // find the item in the container along with the selected item in the table and update its value to match the manualEditBarcode
-    if (accessionJob.value.type == 2) {
+    if (accessionJob.value.trayed) {
       accessionContainer.value.items.find( item => item.id == selectedItems.value[0].id).id = barcode
     } else {
       accessionJob.value.items.find( item => item.id == selectedItems.value[0].id).id = barcode
@@ -599,7 +614,7 @@ const updateContainerItem = async (barcode) => {
 const deleteContainerItem = async () => {
   try {
     const barcodesToRemove = selectedItems.value.map(item => item.id)
-    if (accessionJob.value.type == 2) {
+    if (accessionJob.value.trayed) {
       await deleteAccessionTrayItem(barcodesToRemove)
     } else {
       await deleteAccessionNonTrayItem(barcodesToRemove)
@@ -629,26 +644,53 @@ const deleteContainerItem = async () => {
   }
 }
 
+const handleConfirmation = async (confirmType) => {
+  if (confirmType == 'delete') {
+    await deleteContainerItem()
+  } else if (confirmType == 'completeJob') {
+    await completeAccessionJob()
+  } else if (confirmType == 'completePrint') {
+    await completeAccessionJob()
+
+    // print the job after completion
+    batchSheetComponent.value.printBatchReport()
+  }
+}
+const handleOptionMenu = (option) => {
+  if (option.text == 'Add Tray') {
+    showNextTrayModal.value = !showNextTrayModal.value
+  } else if (option.text == 'Enter Barcode' || option.text == 'Edit Barcode') {
+    setBarcodeEditDisplay()
+  } else if (option.text == 'Delete Items') {
+    showConfirmation.value = { type: 'delete', text:'Are you sure you want to delete selected items?' }
+  }
+}
+
 const addNewTray = async () => {
+  // clear out the accession container data in store
+  resetAccessionContainer()
+
+  // route the user back to the job so we can scan a new tray container barcode
+  router.push({
+    name: 'accession',
+    params: {
+      jobId: accessionJob.value.id
+    }
+  })
+}
+
+const updateAccessionJobStatus = async (status) => {
   try {
-    // save the current completed tray details and items to the job
-    // TODO: need to update patch method to handle adding a tray
-    await patchAccessionJob()
+    const payload = {
+      id: route.params.jobId,
+      status
+    }
 
-    // clear out the accession container data in store
-    resetAccessionContainer()
-
-    // route the user back to the job so we can scan a new tray container barcode
-    router.push({
-      name: 'accession',
-      params: {
-        jobId: accessionJob.value.id
-      }
-    })
+    await patchAccessionJob(payload)
 
     handleAlert({
       type: 'success',
-      text: 'Successfully added a tray to the job',
+      text: `Job Status has been updated to: ${status}`,
       autoClose: true
     })
   } catch (error) {
@@ -659,16 +701,27 @@ const addNewTray = async () => {
     })
   }
 }
-
-const updateAccessionJobStatus = async (status) => {
+const completeAccessionJob = async () => {
   try {
-    accessionJob.value.status = status
-    await patchAccessionJob()
+    const payload = {
+      id: route.params.jobId,
+      status: 'Completed'
+    }
+
+    await patchAccessionJob(payload)
 
     handleAlert({
       type: 'success',
-      text: `Job Status has been updated to: ${status}`,
+      text: 'The Job has been completed and moved for verification.',
       autoClose: true
+    })
+
+    // route the user back to the accession init dashboard
+    router.push({
+      name: 'accession',
+      params: {
+        jobId: null
+      }
     })
   } catch (error) {
     handleAlert({

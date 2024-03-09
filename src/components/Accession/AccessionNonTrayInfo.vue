@@ -54,7 +54,7 @@
             <SelectInput
               v-else
               v-model="accessionContainer.container_size"
-              :options="containerOptions"
+              :options="sizeClass"
               option-value="name"
               option-label="name"
             />
@@ -74,14 +74,14 @@
               <SelectInput
                 v-if="!accessionContainer.id"
                 v-model="accessionJob.media_type"
-                :options="mediaOptions"
+                :options="mediaTypes"
                 option-value="name"
                 option-label="name"
               />
               <SelectInput
                 v-else
                 v-model="accessionContainer.media_type"
-                :options="mediaOptions"
+                :options="mediaTypes"
                 option-value="name"
                 option-label="name"
               />
@@ -149,7 +149,7 @@ const route = useRoute()
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { containerOptions, mediaOptions } = useOptionStore()
+const { sizeClass, mediaTypes } = useOptionStore()
 const {
   patchAccessionJob,
   patchAccessionNonTray,

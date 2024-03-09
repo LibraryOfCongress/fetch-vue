@@ -9,7 +9,7 @@
     </div>
 
     <div class="row">
-      <div class="col-auto q-pa-xs-xs q-pa-lg-sm q-pa-xl-md">
+      <div class="col-xs-12 col-sm-auto q-pa-xs-xs q-pa-lg-sm q-pa-xl-md">
         <q-btn
           class="accession-btn text-h4"
           flat
@@ -21,6 +21,71 @@
       </div>
     </div>
 
+    <!-- jobs in progress list -->
+    <!-- <div class="row q-mt-xl">
+      <div class="col">
+        <h1 class="text-h4 text-bold q-mb-xs-md q-mb-sm-lg">
+          Jobs In Progress
+        </h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div
+        v-if="accessionJobList.length == 0"
+        class="col-auto"
+      >
+        <p class="text-h6">
+          No jobs currently in progress...
+        </p>
+      </div>
+      <template v-else>
+        <div
+          v-for="job in accessionJobList.filter(job => job.status !== 'Completed')"
+          :key="job.id"
+          class="col-xs-12 col-sm-auto q-pa-xs-xs q-pa-lg-sm q-pa-xl-md"
+        >
+          <q-card
+            flat
+            bordered
+            class="accession-card"
+            @click="null"
+          >
+            <q-card-section class="q-pa-none">
+              <div class="accession-card-barcode text-h4">
+                {{ job.id }}
+              </div>
+            </q-card-section>
+
+            <q-card-section class="q-py-md q-px-md">
+              <div class="accession-card-details q-mb-xs">
+                <label class="text-body1">Job #:</label>
+                <p class="text-body1">
+                  {{ job.id }}
+                </p>
+              </div>
+
+              <div class="accession-card-details q-mb-xs">
+                <p class="text-body1 text-secondary">
+                  {{ job.trayed ? 'Trayed' : 'Non-Trayed' }}
+                </p>
+              </div>
+
+              <div class="accession-card-details">
+                <label class="text-body1">Status:</label>
+                <p
+                  class="text-body1 outline"
+                  :class="[ job.status == 'Paused' ? 'text-highlight-yellow' : 'text-highlight' ]"
+                >
+                  {{ job.status }}
+                </p>
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+      </template>
+    </div> -->
+
     <!-- start accession process modal -->
     <PopupModal
       v-if="showAccessionModal"
@@ -30,7 +95,7 @@
       <template #header-content>
         <q-card-section class="row items-center justify-between q-pb-none">
           <h2
-            v-if="!accessionJob.type"
+            v-if="accessionJob.trayed == null"
             class="text-h6"
           >
             Start New Accession
@@ -43,7 +108,7 @@
             flat
             dense
             class="text-body1"
-            @click="accessionJob.type = null"
+            @click="accessionJob.trayed = null"
           />
 
           <q-btn
@@ -59,7 +124,7 @@
       <template #main-content>
         <!-- first step in accession job process -->
         <q-card-section
-          v-if="!accessionJob.type"
+          v-if="accessionJob.trayed == null"
           class="column no-wrap items-center"
         >
           <q-btn
@@ -68,7 +133,7 @@
             padding="14px md"
             label="Non-Tray Accession"
             class="accession-modal-btn full-width text-body1 q-mb-md"
-            @click="accessionJob.type = 1"
+            @click="accessionJob.trayed = false"
           />
 
           <q-btn
@@ -77,7 +142,7 @@
             padding="14px md"
             label="Trayed Accession"
             class="accession-modal-btn full-width text-body1"
-            @click="accessionJob.type = 2"
+            @click="accessionJob.trayed = true"
           />
         </q-card-section>
 
@@ -90,8 +155,9 @@
               </label>
               <SelectInput
                 v-model="accessionJob.owner"
-                :options="ownerOptions"
-                option-value="name"
+                :options="owners"
+                option-type="owners"
+                option-value="id"
                 option-label="name"
                 :placeholder="'Select Owner'"
               />
@@ -103,8 +169,9 @@
               </label>
               <SelectInput
                 v-model="accessionJob.media_type"
-                :options="mediaOptions"
-                option-value="name"
+                :options="mediaTypes"
+                option-type="mediaTypes"
+                option-value="id"
                 option-label="name"
                 :placeholder="'Select Media Type'"
               />
@@ -115,7 +182,7 @@
 
       <template #footer-content>
         <q-card-section
-          v-if="accessionJob.type !== null"
+          v-if="accessionJob.trayed !== null"
           class="row no-wrap justify-between items-center q-pt-sm"
         >
           <q-btn
@@ -157,7 +224,7 @@ const router = useRouter()
 // Store Data
 const { resetAccessionStore, postAccessionJob } = useAccessionStore()
 const { accessionJob } = storeToRefs(useAccessionStore())
-const { ownerOptions, mediaOptions } = storeToRefs(useOptionStore())
+const { owners, mediaTypes } = storeToRefs(useOptionStore())
 
 // Local Data
 const showAccessionModal = ref(false)
@@ -174,7 +241,41 @@ const handleAlert = inject('handle-alert')
 
 onMounted(() => {
   resetAccessionStore()
+  // loadAccessionJobs()
 })
+
+// const loadAccessionJobs = async () => {
+//   try {
+//     isLoading.value = true
+//     await getAccessionJobList()
+//   } catch (error) {
+//     handleAlert({
+//       type: 'error',
+//       text: error,
+//       autoClose: true
+//     })
+//   } finally {
+//     isLoading.value = false
+//   }
+// }
+// const loadVerificationJob = async (jobId) => {
+//   try {
+//     await verificationStore.getVerificationJob(jobId)
+
+//     router.push({
+//       name: 'verification',
+//       params: {
+//         jobId
+//       }
+//     })
+//   } catch (error) {
+//     handleAlert({
+//       type: 'error',
+//       text: error,
+//       autoClose: true
+//     })
+//   }
+// }
 
 const reset = () => {
   resetAccessionStore()
@@ -185,15 +286,30 @@ const startAccessionProcess = () => {
   showAccessionModal.value = !showAccessionModal.value
 }
 const submitAccessionJob = async () => {
-  // TODO: send the accessionJob data to api to start the proccess and get an associated job id
   try {
-    await postAccessionJob()
+    const currentDate = new Date()
+    const payload = {
+      last_transition: currentDate,
+      media_type_id: accessionJob.value.media_type, //Currently missing from api - remove once its added
+      owner_id: accessionJob.value.owner,
+      run_time: currentDate.toLocaleString('en-us', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).split(' ').shift(),
+      status: 'Created',
+      trayed: accessionJob.value.trayed
+    }
+
+    await postAccessionJob(payload)
 
     router.push({
       name: 'accession',
       params: {
         jobId: accessionJob.value.id
       }
+    })
+
+    handleAlert({
+      type: 'success',
+      text: 'An Accession Job has successfully been created.',
+      autoClose: true
     })
   } catch (error) {
     handleAlert({
@@ -212,9 +328,9 @@ const submitAccessionJob = async () => {
   &-btn {
     position: relative;
     display: flex;
-    min-width: 225px;
+    min-width: 250px;
     width: 100%;
-    aspect-ratio: 1 / 1;
+    height: 238px;
     padding: 0;
     border: 1px dashed $color-black;
     border-width: 2px;
@@ -222,7 +338,12 @@ const submitAccessionJob = async () => {
     transition: 0.3s ease;
 
     @media (max-width: $breakpoint-sm-min) {
-      min-width: 164px;
+      height: 117px;
+
+      :deep(.q-icon) {
+        position: absolute;
+        top: 25px;
+      }
     }
 
     &:hover:not(:disabled) {
@@ -237,9 +358,58 @@ const submitAccessionJob = async () => {
       text-transform: none;
 
       @media (max-width: $breakpoint-sm-min) {
-        bottom: 12%;
         width: 9rem;
         line-height: normal;
+      }
+    }
+  }
+
+  &-card {
+    position: relative;
+    display: flex;
+    flex-flow: column nowrap;
+    min-width: 250px;
+    padding: 0;
+    border-color: $secondary;
+    border-radius: 4px;
+    transition: 0.3s ease;
+
+    @media (max-width: $breakpoint-sm-min) {
+      flex-flow: row nowrap;
+
+      .q-card__section {
+        width: 50%;
+      }
+    }
+
+    &:hover:not(:disabled) {
+      color: $accent;
+      border-color: $accent;
+      cursor: pointer;
+    }
+
+    &-barcode {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      padding: 2.5rem .5rem;
+      background-color: $secondary;
+      color: $color-white;
+
+      @media (max-width: $breakpoint-sm-min) {
+        padding: 1rem .75rem;
+      }
+    }
+
+    &-details {
+      display: flex;
+      flex-flow: row wrap;
+      width: 100%;
+
+      label {
+        margin-right: .5rem;
       }
     }
   }

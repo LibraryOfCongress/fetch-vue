@@ -62,14 +62,14 @@
               <SelectInput
                 v-else-if="verificationContainer.id == null"
                 v-model="verificationJob.owner"
-                :options="optionStore.ownerOptions"
+                :options="optionStore.owners"
                 option-value="name"
                 option-label="name"
               />
               <SelectInput
                 v-else
                 v-model="verificationContainer.owner"
-                :options="optionStore.ownerOptions"
+                :options="optionStore.owners"
                 option-value="name"
                 option-label="name"
               />
@@ -88,14 +88,14 @@
               <SelectInput
                 v-else-if="verificationContainer.id == null"
                 v-model="verificationJob.media_type"
-                :options="optionStore.mediaOptions"
+                :options="optionStore.mediaTypes"
                 option-value="name"
                 option-label="name"
               />
               <SelectInput
                 v-else
                 v-model="verificationContainer.media_type"
-                :options="optionStore.mediaOptions"
+                :options="optionStore.mediaTypes"
                 option-value="name"
                 option-label="name"
               />
@@ -114,14 +114,14 @@
               <SelectInput
                 v-else-if="verificationContainer.id == null"
                 v-model="verificationJob.container_size"
-                :options="optionStore.containerOptions"
+                :options="optionStore.sizeClass"
                 option-value="name"
                 option-label="name"
               />
               <SelectInput
                 v-else
                 v-model="verificationContainer.container_size"
-                :options="optionStore.containerOptions"
+                :options="optionStore.sizeClass"
                 option-value="name"
                 option-label="name"
               />
