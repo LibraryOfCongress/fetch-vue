@@ -245,9 +245,69 @@
     v-if="showConfirmation !== null"
     :title="'Confirm'"
     :text="showConfirmation.text"
+    :show-actions="false"
     @reset="showConfirmation = null"
-    @confirm="handleConfirmation"
-  />
+  >
+    <template #footer-content="{ hideModal }">
+      <q-card-section
+        v-if="showConfirmation.type == 'completeJob'"
+        class="row no-wrap justify-between items-center q-pt-sm"
+      >
+        <q-btn
+          no-caps
+          unelevated
+          color="accent"
+          label="Complete & Print"
+          class="btn-no-wrap text-body1 full-width"
+          @click="handleConfirmation('completePrint'); hideModal();"
+        />
+
+        <q-space class="q-mx-xs" />
+
+        <q-btn
+          no-caps
+          unelevated
+          color="accent"
+          label="Complete"
+          class="text-body1 full-width"
+          @click="handleConfirmation('complete'); hideModal();"
+        />
+
+        <q-space class="q-mx-lg" />
+
+        <q-btn
+          outline
+          no-caps
+          label="Cancel"
+          class="accession-modal-btn text-body1 full-width"
+          @click="hideModal"
+        />
+      </q-card-section>
+      <q-card-section
+        v-else-if="showConfirmation.type == 'delete'"
+        class="row no-wrap justify-between items-center q-pt-sm"
+      >
+        <q-btn
+          no-caps
+          unelevated
+          color="accent"
+          label="Confirm"
+          class="text-body1 full-width"
+          @click="handleConfirmation('delete'); hideModal();"
+        />
+
+        <q-space class="q-mx-xs" />
+
+        <q-btn
+          outline
+          no-caps
+          label="Cancel"
+          class="accession-modal-btn text-body1 full-width"
+          @click="hideModal"
+        />
+      </q-card-section>
+    </template>
+  </PopupModal>
 
   <!-- next tray modal (only for trayed jobs) -->
   <PopupModal
@@ -292,6 +352,11 @@
     </template>
   </PopupModal>
 
+  <!-- print component used to handle printing the template -->
+  <AccessionBatchSheet
+    ref="batchSheetComponent"
+    :accession-job-details="accessionJob"
+  />
 </template>
 
 <script setup>
@@ -308,6 +373,7 @@ import TextInput from '@/components/TextInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import AccessionMobileActionBar from '@/components/Accession/AccessionMobileActionBar.vue'
+import AccessionBatchSheet from '@/components/Accession/AccessionBatchSheet.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -334,6 +400,7 @@ const isLoading = ref(false)
 const trayInfoComponent = ref(null)
 const nonTrayInfoComponent = ref(null)
 const accessionTableComponent = ref(null)
+const batchSheetComponent = ref(null)
 const accessionTableColumns = ref([
   {
     name: 'id',
@@ -467,9 +534,14 @@ const setBarcodeEditDisplay = () => {
   }
 }
 
-const handleConfirmation = async () => {
-  if (showConfirmation.value.type == 'delete') {
+const handleConfirmation = async (confirmType) => {
+  if (confirmType == 'delete') {
     await deleteContainerItem()
+  } else if (confirmType == 'completePrint') {
+    //TODO: send api call to complete the accession job
+
+    // print the job after completion
+    batchSheetComponent.value.printBatchReport()
   }
 }
 const handleOptionMenu = (option) => {
