@@ -13,72 +13,22 @@ export const useOptionStore = defineStore('options', {
         name: 'Trayed'
       }
     ],
-    containerOptions: [
-      {
-        id: 1,
-        name: 'A High'
-      },
-      {
-        id: 2,
-        name: 'A Low'
-      },
-      {
-        id: 3,
-        name: 'B High'
-      },
-      {
-        id: 4,
-        name: 'B Low'
-      },
-      {
-        id: 5,
-        name: 'C high'
-      }
-    ],
-    mediaOptions: [
-      {
-        id: 1,
-        name: 'Document'
-      },
-      {
-        id: 2,
-        name: 'Music'
-      },
-      {
-        id: 3,
-        name: 'Video'
-      },
-      {
-        id: 4,
-        name: 'Vinyl Recording'
-      }
-    ],
-    ownerOptions: [
-      {
-        id: 1,
-        name: 'John Doe'
-      },
-      {
-        id: 2,
-        name: 'George Washington'
-      },
-      {
-        id: 3,
-        name: 'Colonel Sanders'
-      }
-    ],
+    sizeClass: [],
+    mediaTypes: [],
+    owners: [],
     ownerTierOptions: []
   }),
   actions: {
     resetOptionStore () {
       this.$reset()
     },
-    async getOptions () {
+    async getOptions (optionType) {
       try {
-        // TODO: setup api call to retrieve select options
-        // const res = await this.$api.get(
-        //   inventoryServiceApi.examplesNumbers + 12
-        // )
+        const res = await this.$api.get(
+          inventoryServiceApi[optionType]
+        )
+
+        this[optionType] = res.data.items
       } catch (error) {
         return error
       }

@@ -85,7 +85,7 @@
             </label>
             <SelectInput
               v-model="newShelf.owner"
-              :options="ownerOptions"
+              :options="owners"
               option-value="id"
               option-label="name"
               :placeholder="'Select Owner'"
@@ -187,7 +187,7 @@ import PopupModal from 'src/components/PopupModal.vue'
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { containerTypes, ownerOptions } = storeToRefs(useOptionStore())
+const { containerTypes, owners } = storeToRefs(useOptionStore())
 
 // Local Data
 const shelfItems = ref([

@@ -12,20 +12,27 @@
     use-input
     hide-selected
     fill-input
-    input-debounce="0"
+    input-debounce="500"
     @filter="filterOptions"
     class="custom-select full-width"
     :placeholder="placeholder"
     :disable="disabled"
   >
     <template #no-option>
-      <slot name="no-option" />
+      <slot name="no-option">
+        <q-item>
+          <q-item-section>
+            No results
+          </q-item-section>
+        </q-item>
+      </slot>
     </template>
   </q-select>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { useOptionStore } from 'src/stores/option-store'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 
 // Props
@@ -37,6 +44,10 @@ const mainProps = defineProps({
       return []
     },
     required: true
+  },
+  optionType: {
+    type: String,
+    default: ''
   },
   optionValue: {
     type: String,
@@ -62,6 +73,9 @@ const emit = defineEmits(['update:modelValue'])
 // Compasables
 const { currentScreenSize } = useCurrentScreenSize()
 
+// Store Data
+const { getOptions } = useOptionStore()
+
 // Local Data
 const localOptions = ref(mainProps.options)
 
@@ -69,7 +83,13 @@ const localOptions = ref(mainProps.options)
 const updateModelValue = (value) => {
   emit('update:modelValue', value)
 }
-const filterOptions = (val, update) => {
+const filterOptions = async (val, update) => {
+  // if there is an optionType then we need to get a list of options from the api based on the optionType passed in
+  // the passed in optionType should match an http endpoint
+  if (mainProps.optionType !== '') {
+    await getOptions(mainProps.optionType)
+  }
+
   update(() => {
     localOptions.value = mainProps.options.filter(opt => opt[mainProps.optionLabel].toString().toLowerCase().indexOf(val.toLowerCase()) > -1)
   })
