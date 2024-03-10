@@ -552,32 +552,34 @@
   <!-- print component used to handle printing the template -->
   <PrintTemplate ref="printTemplate">
     <template #print-html>
-      <div class="q-pa-lg">
-        <EssentialTable
-          ref="verificationTableComponent"
-          :table-columns="verificationTableColumns"
-          :table-data="verificationJob.type == 2 ? verificationContainer.items : verificationJob.items"
-          :disable-table-reorder="true"
-          :hide-table-rearrange="true"
-          :enable-selection="false"
-          @selected-data="selectedContainerItems = $event"
-        >
-          <q-btn
-            no-caps
-            outline
-            color="secondary"
-            class="verification-next-tray-action full-width"
-            @click="null"
+      <q-card-section>
+        <div class="q-pa-lg">
+          <EssentialTable
+            ref="verificationTableComponent"
+            :table-columns="verificationTableColumns"
+            :table-data="verificationJob.type == 2 ? verificationContainer.items : verificationJob.items"
+            :disable-table-reorder="true"
+            :hide-table-rearrange="true"
+            :enable-selection="false"
+            @selected-data="selectedContainerItems = $event"
           >
-            <div class="col-12 text-left">
-              <p class="text-h6 text-color-black">
-                Tray #: {{ tray.id }}
-              </p>
-              <p class="text-body1">
-                Trayed
-              </p>
-            </div>
-          </q-btn>
+            <q-btn
+              no-caps
+              outline
+              color="secondary"
+              class="verification-next-tray-action full-width"
+              @click="null"
+            >
+              <div class="col-12 text-left">
+                <p class="text-h6 text-color-black">
+                  Tray #: {{ tray.id }}
+                </p>
+                <p class="text-body1">
+                  Trayed
+                </p>
+              </div>
+            </q-btn>
+          </EssentialTable>
         </div>
 
         <div class="col-12">
@@ -595,7 +597,7 @@
         </div>
       </q-card-section>
     </template>
-  </PopupModal>
+  </PrintTemplate>
 
   <!-- print component used to handle printing the template -->
   <VerificationBatchSheet
