@@ -26,15 +26,33 @@ export const useVerificationStore = defineStore('verification', {
   getters: {
     allItemsVerified: (state) => {
       if (state.verificationJob.type == 1) {
-        return state.verificationJob.items.some(item => item.verified == false) ? false : true
+        return state.verificationJob.items.length == 0 || state.verificationJob.items.some(item => item.verified == false) ? false : true
       } else {
-        return state.verificationContainer.items.some(item => item.verified == false) ? false : true
+        return state.verificationContainer.items.length == 0 || state.verificationContainer.items.some(item => item.verified == false) ? false : true
+      }
+    },
+    allTraysCompleted: (state) => {
+      if (state.verificationJob.type == 2 && state.verificationJob.trays) {
+        return state.verificationJob.trays.some(t => t.scanned_for_verification == false || t.collection_verified == false) ? false : true
+      } else {
+        return true
       }
     }
   },
   actions: {
     resetVerificationStore () {
       this.$reset()
+    },
+    resetVerificationContainer () {
+      this.verificationContainer = {
+        id: null,
+        title: '',
+        owner: '',
+        container_type: '',
+        container_size: '',
+        media_type: '',
+        items: []
+      }
     },
     async getVerificationJobList () {
       try {
@@ -95,7 +113,19 @@ export const useVerificationStore = defineStore('verification', {
             ...this.verificationJob,
             status: 'Running',
             type: 2,
-            id
+            id,
+            trays: [
+              {
+                id: 'CH220989',
+                collection_verified: false,
+                scanned_for_verification: false
+              },
+              {
+                id: 'CH220990',
+                collection_verified: false,
+                scanned_for_verification: false
+              }
+            ]
           }
         } else {
           this.verificationJob = {
@@ -189,6 +219,23 @@ export const useVerificationStore = defineStore('verification', {
         return error
       }
     },
+    async deleteVerificationTrayItem (barcodeList) {
+      try {
+        // TODO: setup api call to delete item in an verification tray
+        // const res = await this.$api.delete(
+        //   inventoryServiceApi.examplesNumbers + 12
+        // )
+        // this.verificationContainer = res.data
+        const filteredItems = this.verificationContainer.items.filter(b => !barcodeList.includes(b.id))
+        this.verificationContainer = {
+          ...this.verificationContainer,
+          items: filteredItems
+        }
+        this.originalVerificationContainer = { ...this.verificationContainer }
+      } catch (error) {
+        return error
+      }
+    },
     async getVerificationNonTray (barcode) {
       try {
         // TODO: setup api call to verify the scanned nontray item barcode and get its data to display
@@ -220,6 +267,22 @@ export const useVerificationStore = defineStore('verification', {
           ...this.verificationContainer
         }
         this.originalVerificationContainer = { ...this.verificationContainer }
+      } catch (error) {
+        return error
+      }
+    },
+    async deleteVerificationNonTrayItem (barcodeList) {
+      try {
+        // TODO: setup api call to delete item in an verification nontray
+        // const res = await this.$api.delete(
+        //   inventoryServiceApi.examplesNumbers + 12
+        // )
+        // this.verificationContainer = res.data
+        this.verificationJob = {
+          ...this.verificationJob,
+          items: this.verificationJob.items.filter(b => !barcodeList.includes(b.id) )
+        }
+        this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {
         return error
       }
