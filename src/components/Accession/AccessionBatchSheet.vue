@@ -31,7 +31,7 @@
             Total Items: {{ accessionJobDetails.items ? accessionJobDetails.items.length : 0 }}
           </p>
           <p class="text-h5 text-bold">
-            Owner: {{ accessionJobDetails.owner }}
+            Owner: {{ accessionJobDetails.owner?.name }}
           </p>
         </section>
 
@@ -42,7 +42,7 @@
             Manifest:
           </p>
           <table
-            v-if="accessionJobDetails.type == 1"
+            v-if="accessionJobDetails.trayed == false"
             class="table-borderless"
           >
             <thead>
@@ -53,7 +53,7 @@
             </thead>
             <tbody>
               <tr
-                v-for="item in accessionJobDetails.items"
+                v-for="item in accessionJobDetails.non_tray_items"
                 :key="item.id"
               >
                 <td>{{ item.id }}</td>
