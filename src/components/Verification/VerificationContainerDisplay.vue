@@ -225,7 +225,12 @@
       <div class="row items-center q-mb-xs-md q-mb-sm-lg">
         <div class="col-auto">
           <MoreOptionsMenu
-            :options="currentScreenSize !== 'xs' ? [{ text: 'Print Job' }] : [{ text: 'Enter Barcode', disabled: verificationJob.type == 2 && !verificationContainer.id || verificationJob.status == 'Paused' }, { text: 'Delete Items', disabled: selectedContainerItems.length == 0 || verificationJob.status == 'Paused' }]"
+            :options="currentScreenSize !== 'xs' ? [{ text: 'Print Job' }] : [{
+              text: `${selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'}`,
+              disabled: verificationJob.type == 2 && !verificationContainer.id || verificationJob.status == 'Paused'
+            }, {
+              text: 'Delete Items', disabled: selectedItems.length == 0 || verificationJob.status == 'Paused'
+            }]"
             class="q-mr-sm"
             @click="handleOptionMenu"
           />
@@ -287,7 +292,7 @@
             unelevated
             icon="add"
             color="accent"
-            :label="selectedContainerItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'"
+            :label="selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'"
             class="btn-no-wrap text-body1 q-mr-sm-md"
             :disabled="verificationJob.type == 2 && !verificationContainer.id || verificationJob.status == 'Paused'"
             @click="setBarcodeEditDisplay"
@@ -300,7 +305,7 @@
             color="negative"
             label="Delete"
             class="btn-no-wrap text-body1"
-            :disabled="selectedContainerItems.length == 0 || verificationJob.status == 'Paused'"
+            :disabled="selectedItems.length == 0 || verificationJob.status == 'Paused'"
             @click="showConfirmation = { type: 'delete', text:'Are you sure you want to delete selected items?' }"
           />
         </div>
@@ -337,12 +342,13 @@
       <div class="row q-mb-xs-xl q-mb-sm-none">
         <div class="col-12 q-mb-xs-md q-mb-sm-none">
           <EssentialTable
+            ref="verificationTableComponent"
             :table-columns="verificationTableColumns"
             :table-data="verificationJob.type == 2 ? verificationContainer.items : verificationJob.items"
             :disable-table-reorder="true"
             :hide-table-rearrange="true"
             :enable-selection="true"
-            @selected-data="selectedContainerItems = $event"
+            @selected-data="selectedItems = $event"
           >
             <template #table-td="{ props, colName, value }">
               <span
@@ -446,7 +452,7 @@
   <!-- barcode edit modal -->
   <PopupModal
     v-if="showBarcodeEdit"
-    :title="selectedContainerItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'"
+    :title="selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'"
     @reset="resetBarcodeEdit"
   >
     <template #main-content>
@@ -550,56 +556,6 @@
   </PopupModal>
 
   <!-- print component used to handle printing the template -->
-  <PrintTemplate ref="printTemplate">
-    <template #print-html>
-      <q-card-section>
-        <div class="q-pa-lg">
-          <EssentialTable
-            ref="verificationTableComponent"
-            :table-columns="verificationTableColumns"
-            :table-data="verificationJob.type == 2 ? verificationContainer.items : verificationJob.items"
-            :disable-table-reorder="true"
-            :hide-table-rearrange="true"
-            :enable-selection="false"
-            @selected-data="selectedContainerItems = $event"
-          >
-            <q-btn
-              no-caps
-              outline
-              color="secondary"
-              class="verification-next-tray-action full-width"
-              @click="null"
-            >
-              <div class="col-12 text-left">
-                <p class="text-h6 text-color-black">
-                  Tray #: {{ tray.id }}
-                </p>
-                <p class="text-body1">
-                  Trayed
-                </p>
-              </div>
-            </q-btn>
-          </EssentialTable>
-        </div>
-
-        <div class="col-12">
-          <q-btn
-            no-caps
-            unelevated
-            outline
-            icon="add"
-            color="accent"
-            label="Add Tray"
-            align="left"
-            class="verification-next-tray-action btn-dashed btn-no-wrap text-body1 full-width"
-            @click="null"
-          />
-        </div>
-      </q-card-section>
-    </template>
-  </PrintTemplate>
-
-  <!-- print component used to handle printing the template -->
   <VerificationBatchSheet
     ref="batchSheetComponent"
     :verification-job-details="verificationJob"
@@ -650,7 +606,6 @@ const { allItemsVerified, allTraysCompleted, verificationJob, originalVerificati
 // Local Data
 const batchSheetComponent = ref(null)
 const isLoading = ref(false)
-const printTemplate = ref(null)
 const verificationTableComponent = ref(null)
 const verificationTableColumns = ref([
   {
@@ -668,7 +623,7 @@ const verificationTableColumns = ref([
     sortable: false
   }
 ])
-const selectedContainerItems = ref([])
+const selectedItems = ref([])
 const showConfirmation = ref(null)
 const showScanOverlay = ref(false)
 const editMode = ref(false)
@@ -757,10 +712,10 @@ const validateItemBarcode = async (barcode) => {
         await verifyTrayItemBarcode(barcode)
       } else {
         // add the barcode if it doesnt exist unless user is currently editing a barcode
-        if (selectedContainerItems.value.length == 1) {
+        if (selectedItems.value.length == 1) {
           // find the item in the container along with the selected item in the table and update its value to match the manualEditBarcode
-          verificationContainer.value.items.find( b => b.id == selectedContainerItems.value[0].id).id = manualBarcodeEdit.value
-          selectedContainerItems.value[0].id = manualBarcodeEdit.value
+          verificationContainer.value.items.find( b => b.id == selectedItems.value[0].id).id = manualBarcodeEdit.value
+          selectedItems.value[0].id = manualBarcodeEdit.value
         } else {
           verificationContainer.value.items.push({ id: barcode, verified: false })
         }
@@ -771,10 +726,10 @@ const validateItemBarcode = async (barcode) => {
         await verifyNonTrayItemBarcode(barcode)
       } else {
         // add the barcode if it doesnt exist unless user is currently editing a barcode
-        if (selectedContainerItems.value.length == 1) {
+        if (selectedItems.value.length == 1) {
           // find the item in the container along with the selected item in the table and update its value to match the manualEditBarcode
-          verificationJob.value.items.find( b => b.id == selectedContainerItems.value[0].id).id = manualBarcodeEdit.value
-          selectedContainerItems.value[0].id = manualBarcodeEdit.value
+          verificationJob.value.items.find( b => b.id == selectedItems.value[0].id).id = manualBarcodeEdit.value
+          selectedItems.value[0].id = manualBarcodeEdit.value
 
           // get the edited non tray items information
           await getVerificationNonTray(barcode)
@@ -820,8 +775,8 @@ const resetBarcodeEdit = () => {
 }
 const setBarcodeEditDisplay = () => {
   showBarcodeEdit.value = true
-  if (selectedContainerItems.value.length == 1) {
-    manualBarcodeEdit.value = selectedContainerItems.value[0].id
+  if (selectedItems.value.length == 1) {
+    manualBarcodeEdit.value = selectedItems.value[0].id
   }
 }
 
@@ -840,8 +795,8 @@ const handleOptionMenu = (option) => {
     editMode.value = true
   } else if (option.text == 'Print Job') {
     batchSheetComponent.value.printBatchReport()
-  } else if (option.text == 'Add Items') {
-    showConfirmation.value = 'Are you sure you want to add an item?'
+  } else if (option.text == 'Enter Barcode' || option.text == 'Edit Barcode') {
+    setBarcodeEditDisplay()
   } else if (option.text == 'Delete Items') {
     showConfirmation.value = { type: 'delete', text:'Are you sure you want to delete selected items?' }
   }
@@ -931,7 +886,7 @@ const updateVerificationContainer = async () => {
 }
 const deleteContainerItem = async () => {
   try {
-    const barcodesToRemove = selectedContainerItems.value.map(item => item.id)
+    const barcodesToRemove = selectedItems.value.map(item => item.id)
     if (verificationJob.value.type == 2) {
       await deleteVerificationTrayItem(barcodesToRemove)
     } else {
