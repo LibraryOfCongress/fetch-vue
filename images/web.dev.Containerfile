@@ -5,6 +5,8 @@ WORKDIR /app
 
 COPY package*.json ./
 
+RUN cat env/.env
+
 RUN npm -g install @quasar/cli
 
 COPY . .
