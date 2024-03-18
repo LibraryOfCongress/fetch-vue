@@ -158,7 +158,7 @@
                 v-if="colName == 'verified'"
               >
                 <q-icon
-                  v-if="value == true"
+                  v-if="value == true || accessionJob.trayed"
                   name="check"
                   color="positive"
                   size="30px"
@@ -464,8 +464,8 @@ const triggerItemScan = async (barcode) => {
     if (accessionJob.value.trayed) {
       // check if the scanned barcode already exists in the tray job if not add it
       if (accessionJob.value.trayed && accessionContainer.value.items.some(item => item.barcode_id == barcodeDetails.value.id)) {
-        //TODO: if barcode does exist trigger a validation
-        // validateContainerItemBarcode(barcode)
+        // validation is not needed in trays so we just return
+        return
       } else {
         await addContainerItem()
       }
@@ -538,20 +538,18 @@ const addContainerItem = async () => {
   try {
     const currentDate = new Date()
     if ( accessionJob.value.trayed ) {
-      // TODO: figure out what payload data is actually needed here
+      // TODO: Rremove this hardcoded item data since it will mostly come from folio
       const payload = {
         accession_dt: currentDate,
-        // accession_job_id: 1,
         arbitrary_data: 'Signed copy',
         barcode_id: barcodeDetails.value.id,
         condition: 'Good',
-        container_type_id: 1,
-        media_type_id: 1,
-        owner_id: 1,
-        size_class_id: 1,
+        container_type_id: 1, //TODO: Remove once not required from api as its not needed
+        media_type_id: accessionContainer.value.media_type_id,
+        owner_id: accessionJob.value.owner_id,
+        size_class_id: accessionContainer.value.size_class_id,
         status: 'In',
-        // subcollection_id: 1,
-        title: 'Lord of The Rings',
+        title: 'Lord of The Ringss',
         tray_id: accessionContainer.value.id,
         volume: 'I',
         withdrawal_dt: currentDate
@@ -563,10 +561,10 @@ const addContainerItem = async () => {
         accession_dt: currentDate,
         accession_job_id: accessionJob.value.id,
         barcode_id: barcodeDetails.value.id,
-        container_type_id: 1,
-        media_type_id: 1,
-        owner_id: 1,
-        size_class_id: 1,
+        container_type_id: 1, //TODO: Remove once not required from api as its not needed
+        media_type_id: accessionJob.value.media_type_id,
+        owner_id: accessionJob.value.owner_id,
+        size_class_id: 1, //TODO: change this to null once its optional in api
         status: 'In',
         // subcollection_id: 1,
         withdrawal_dt: currentDate

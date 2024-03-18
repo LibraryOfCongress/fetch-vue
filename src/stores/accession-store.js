@@ -32,7 +32,7 @@ export const useAccessionStore = defineStore('accession', {
       if (state.accessionJob.trayed == false) {
         return state.accessionJob.non_tray_items.length == 0 || state.accessionJob.non_tray_items.some(item => item.verified == false) ? false : true
       } else {
-        return state.accessionContainer.items.length == 0 || state.accessionContainer.items.some(item => item.verified == false) ? false : true
+        return state.accessionContainer.items.length !== 0
       }
     }
   },
@@ -131,7 +131,7 @@ export const useAccessionStore = defineStore('accession', {
 
         this.accessionContainer.items = [
           ...this.accessionContainer.items,
-          { ...res.data, verified: true }
+          { ...res.data }
         ]
         this.originalAccessionContainer = { ... this.accessionContainer }
       } catch (error) {
