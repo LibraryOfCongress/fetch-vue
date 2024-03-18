@@ -23,6 +23,13 @@ export const useOptionStore = defineStore('options', {
       this.$reset()
     },
     async getOptions (optionType) {
+      console.log(`this.$api: ${this.$api}`)
+      console.log(`this.$axios: ${this.$axios}`)
+      console.log(`inventoryServiceApi: ${inventoryServiceApi}`)
+      console.log(`optionType: ${optionType}`)
+      console.log(`process.env.VITE_INV_SERVCE_API: ${process.env.VITE_INV_SERVCE_API}`)
+      console.log('For that matter, here is all of process.env:')
+      console.log(JSON.stringify(process.env))
       try {
         const res = await this.$api.get(
           inventoryServiceApi[optionType]
