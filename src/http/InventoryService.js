@@ -8,6 +8,7 @@ export default {
   // this.$api.get(inventoryService.examples, { id: entryId })
   accessionJobs: '/accession-jobs/',
   barcodes: '/barcodes/',
+  barcodesValue: '/barcodes/value/',
   containerTypes: '/container-types/',
   items: '/items/',
   mediaTypes: '/media-types/',

@@ -213,15 +213,27 @@ const handleTrayScan = async (barcode) => {
     } else {
       // if the scanned tray barcode doesnt exist create the scanned tray using the scanned barcodes uuid
       const currentDate = new Date()
+      const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode.slice(0, 2))?.id
+      if (!generateSizeClass) {
+        handleAlert({
+          type: 'error',
+          text: `The tray can not be added, the container size ${barcode.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
+          autoClose: true
+        })
+        return
+      }
+
       const payload = {
         accession_dt: currentDate,
         accession_job_id: accessionJob.value.id,
         barcode_id: barcodeDetails.value.id,
+        collection_accessioned: false,
         container_type_id: accessionJob.value.container_type_id,
         media_type_id: accessionJob.value.media_type_id,
         owner_id: accessionJob.value.owner_id,
+        scanned_for_accession: false,
         shelved_dt: currentDate,
-        size_class_id: sizeClass.value.find(size => size.short_name == barcode.slice(0, 2))?.id,
+        size_class_id: generateSizeClass,
         withdrawal_dt: currentDate
       }
       await postAccessionTray(payload)

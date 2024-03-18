@@ -131,9 +131,24 @@ export const useAccessionStore = defineStore('accession', {
 
         this.accessionContainer.items = [
           ...this.accessionContainer.items,
-          { ...res.data }
+          res.data
         ]
         this.originalAccessionContainer = { ... this.accessionContainer }
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchAccessionTrayItem (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.items}${payload.id}`, payload)
+
+        // remove the old item and replace it with the upated item in accessionContainer items
+        const filteredItems = this.accessionContainer.items.filter(item => item.id !== payload.id)
+        this.accessionContainer.items = [
+          ...filteredItems,
+          res.data
+        ]
+        this.originalAccessionContainer = { ...this.accessionContainer }
       } catch (error) {
         throw error
       }

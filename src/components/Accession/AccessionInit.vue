@@ -303,7 +303,7 @@ const submitAccessionJob = async () => {
     const currentDate = new Date()
     const payload = {
       last_transition: currentDate,
-      media_type_id: accessionJob.value.media_type, //Currently missing from api - remove once its added
+      media_type_id: accessionJob.value.media_type,
       owner_id: accessionJob.value.owner,
       run_time: currentDate.toLocaleString('en-us', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).split(' ').shift(),
       status: 'Created',

@@ -384,7 +384,7 @@ const { compiledBarCode } = useBarcodeScanHandler()
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { verifyBarcode } = useBarcodeStore()
+const { verifyBarcode, patchBarcode } = useBarcodeStore()
 const { barcodeDetails } = storeToRefs(useBarcodeStore())
 const {
   resetAccessionContainer,
@@ -392,6 +392,7 @@ const {
   // verifyNonTrayItemBarcode,
   patchAccessionJob,
   postAccessionTrayItem,
+  patchAccessionTrayItem,
   deleteAccessionTrayItem,
   getAccessionNonTrayItem,
   postAccessionNonTrayItem,
@@ -407,8 +408,8 @@ const accessionTableComponent = ref(null)
 const batchSheetComponent = ref(null)
 const accessionTableColumns = ref([
   {
-    name: 'id',
-    field: 'id',
+    name: 'barcode_value',
+    field: row => row.barcode.value,
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -531,7 +532,7 @@ const resetBarcodeEdit = () => {
 const setBarcodeEditDisplay = () => {
   showBarcodeEdit.value = true
   if (selectedItems.value.length == 1) {
-    manualBarcodeEdit.value = selectedItems.value[0].id
+    manualBarcodeEdit.value = selectedItems.value[0].barcode.value
   }
 }
 const addContainerItem = async () => {
@@ -544,9 +545,9 @@ const addContainerItem = async () => {
         arbitrary_data: 'Signed copy',
         barcode_id: barcodeDetails.value.id,
         condition: 'Good',
-        container_type_id: 1, //TODO: Remove once not required from api as its not needed
         media_type_id: accessionContainer.value.media_type_id,
         owner_id: accessionJob.value.owner_id,
+        scanned_for_accession: true,
         size_class_id: accessionContainer.value.size_class_id,
         status: 'In',
         title: 'Lord of The Ringss',
@@ -585,23 +586,32 @@ const addContainerItem = async () => {
     })
   }
 }
-const updateContainerItem = async (barcode) => {
+const updateContainerItem = async (barcode_value) => {
   try {
-    // find the item in the container along with the selected item in the table and update its value to match the manualEditBarcode
+    // update the barcode in the system
+    await patchBarcode(selectedItems.value[0].barcode.id, barcode_value)
+
+    // update the container item along with the selected item in the table to match the manualEditBarcode text
     if (accessionJob.value.trayed) {
-      accessionContainer.value.items.find( item => item.id == selectedItems.value[0].id).id = barcode
+      const itemPayload = {
+        id: selectedItems.value[0].id,
+        barcode: {
+          value: barcode_value
+        }
+      }
+      await patchAccessionTrayItem(itemPayload)
     } else {
-      accessionJob.value.non_tray_items.find( item => item.id == selectedItems.value[0].id).id = barcode
+      accessionJob.value.non_tray_items.find( item => item.id == selectedItems.value[0].id).id = barcode_value
 
       router.push({
         name: 'accession-container',
         params: {
           jobId: accessionJob.value.id,
-          containerId: barcode
+          containerId: barcode_value
         }
       })
     }
-    selectedItems.value[0].id = barcode
+    selectedItems.value[0].barcode.value = barcode_value
 
     handleAlert({
       type: 'success',
@@ -623,6 +633,7 @@ const deleteContainerItem = async () => {
   try {
     const barcodesToRemove = selectedItems.value.map(item => item.id)
     if (accessionJob.value.trayed) {
+      //TODO: do we need to delete barcode as well?
       await deleteAccessionTrayItem(barcodesToRemove)
     } else {
       await deleteAccessionNonTrayItem(barcodesToRemove)
