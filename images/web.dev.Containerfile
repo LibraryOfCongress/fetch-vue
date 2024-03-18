@@ -5,11 +5,11 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN cat env/.env
-
 RUN npm -g install @quasar/cli
 
 COPY . .
+
+RUN cat env/.env
 
 # build stage
 FROM develop-stage as build-stage
