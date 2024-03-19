@@ -39,7 +39,10 @@ const storageAvailable = ref(0)
 const handlePageOffset = inject('handle-page-offset')
 
 onMounted(() => {
-  console.log('vue app environment loaded', process.env.VITE_ENV, process.env.VITE_TEST)
+  console.log(`VITE_ENV: ${process.env.VITE_ENV}`)
+  console.log(`VITE_INV_SERVCE_API: ${process.env.VITE_INV_SERVCE_API}`)
+  console.log(`VITE_API_BASE_URI: ${process.env.VITE_API_BASE_URI}`)
+  console.log(`VITE_BASE_URL: ${process.env.VITE_BASE_URL}`)
   navigator.storage.estimate().then((estimate) => {
     storageUsed.value = (estimate.usage / 1024 / 1024).toFixed(2)
     storageAvailable.value = (estimate.quota / 1024 / 1024).toFixed(2)
