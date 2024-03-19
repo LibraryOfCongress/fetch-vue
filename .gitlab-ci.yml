@@ -12,9 +12,9 @@ build_image:
   script:
     - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
     - cp -v images/web.dev.Containerfile Dockerfile
-    - echo "VITE_ENV='$DEVELOP_VITE_ENV'" >> env/.env
-    - echo "VITE_INV_SERVCE_API='$DEVELOP_VITE_INV_SERVCE_API'" >> env/.env
-    - echo "VITE_API_BASE_URI='$DEVELOP_VITE_API_BASE_URI'" >> env/.env
+    - echo $DEVELOP_VITE_ENV > env/.env
+    - echo $DEVELOP_VITE_INV_SERVCE_API > env/.env
+    - echo $DEVELOP_VITE_API_BASE_URI > env/.env
     - cat -A env/.env
     - /kaniko/executor
       --context $CI_PROJECT_DIR
@@ -34,9 +34,9 @@ build_mr:
   script:
     - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
     - cp -v images/web.dev.Containerfile Dockerfile
-    - echo "VITE_ENV='$DEVELOP_VITE_ENV'" >> env/.env
-    - echo "VITE_INV_SERVCE_API='$DEVELOP_VITE_INV_SERVCE_API'" >> env/.env
-    - echo "VITE_API_BASE_URI='$DEVELOP_VITE_API_BASE_URI'" >> env/.env
+    - echo $DEVELOP_VITE_ENV > env/.env
+    - echo $DEVELOP_VITE_INV_SERVCE_API > env/.env
+    - echo $DEVELOP_VITE_API_BASE_URI > env/.env
     - cat -A env/.env
     - /kaniko/executor
       --context $CI_PROJECT_DIR
@@ -63,9 +63,9 @@ build_image_test:
   script:
     - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
     - cp -v images/web.test.Containerfile Dockerfile
-    - echo "VITE_ENV='$TEST_VITE_ENV'" >> env/.env
-    - echo "VITE_INV_SERVCE_API='$TEST_VITE_INV_SERVCE_API'" >> env/.env
-    - echo "VITE_API_BASE_URI='$TEST_VITE_API_BASE_URI'" >> env/.env
+    - echo $TEST_VITE_ENV > env/.env
+    - echo $TEST_VITE_INV_SERVCE_API > env/.env
+    - echo $TEST_VITE_API_BASE_URI > env/.env
     - cat -A env/.env
     - /kaniko/executor
       --context $CI_PROJECT_DIR
@@ -85,9 +85,9 @@ build_image_staging:
   script:
     - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
     - cp -v images/web.stage.Containerfile Dockerfile
-    - echo "VITE_ENV='$STAGING_VITE_ENV'" >> env/.env
-    - echo "VITE_INV_SERVCE_API='$STAGING_VITE_INV_SERVCE_API'" >> env/.env
-    - echo "VITE_API_BASE_URI='$STAGING_VITE_API_BASE_URI'" >> env/.env
+    - echo $STAGING_VITE_ENV > env/.env
+    - echo $STAGING_VITE_INV_SERVCE_API > env/.env
+    - echo $STAGING_VITE_API_BASE_URI > env/.env
     - cat -A env/.env
     - /kaniko/executor
       --context $CI_PROJECT_DIR
