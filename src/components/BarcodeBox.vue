@@ -1,5 +1,5 @@
 <template>
-  <div class="barcode text-h4">
+  <div class="barcode text-h4 text-center">
     {{ barcode }}
   </div>
 </template>

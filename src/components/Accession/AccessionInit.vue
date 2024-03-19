@@ -50,7 +50,7 @@
       </div>
       <template v-else>
         <div
-          v-for="job in accessionJobList.filter(job => job.status !== 'Completed')"
+          v-for="job in accessionJobList"
           :key="job.id"
           class="col-xs-12 col-sm-auto q-pa-xs-xs q-pa-lg-sm q-pa-xl-md"
         >

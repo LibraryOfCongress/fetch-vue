@@ -365,6 +365,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAccessionStore } from '@/stores/accession-store'
 import { useBarcodeStore } from '@/stores/barcode-store'
+import { useOptionStore } from '@/stores/option-store'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import AccessionNonTrayInfo from '@/components/Accession/AccessionNonTrayInfo.vue'
@@ -386,6 +387,7 @@ const { currentScreenSize } = useCurrentScreenSize()
 // Store Data
 const { verifyBarcode, patchBarcode } = useBarcodeStore()
 const { barcodeDetails } = storeToRefs(useBarcodeStore())
+const { sizeClass } = storeToRefs(useOptionStore())
 const {
   resetAccessionContainer,
   // verifyTrayItemBarcode,
@@ -396,6 +398,7 @@ const {
   deleteAccessionTrayItem,
   getAccessionNonTrayItem,
   postAccessionNonTrayItem,
+  patchAccessionNonTrayItem,
   deleteAccessionNonTrayItem
 } = useAccessionStore()
 const { accessionJob, accessionContainer, allItemsVerified } = storeToRefs(useAccessionStore())
@@ -468,19 +471,21 @@ const triggerItemScan = async (barcode) => {
         // validation is not needed in trays so we just return
         return
       } else {
-        await addContainerItem()
+        await addContainerItem(barcode)
       }
     } else {
-      // example barcode for non tray item: 'NT555923'
+      // example barcode for non tray item: 'CL555923'
       // check if the scanned barcode already exists in the non tray job if not add it
       if (accessionJob.value.non_tray_items.some(item => item.barcode_id == barcodeDetails.value.id)) {
         // get the scanned non tray item barcode info
-        getAccessionNonTrayItem(accessionJob.value.non_tray_items.find(item => item.barcode_id == barcodeDetails.value.id).id)
+        await getAccessionNonTrayItem(accessionJob.value.non_tray_items.find(item => item.barcode_id == barcodeDetails.value.id).id)
 
-        //TODO: if barcode does exist trigger a validation if it wasnt already validated
-        // validateContainerItemBarcode(barcode)
+        //if barcode does exist, check if hte media_type was set then trigger a validation if it wasnt already validated
+        if (!accessionContainer.value.scanned_for_accession && accessionContainer.value.media_type_id) {
+          await validateContainerItemBarcode()
+        }
       } else {
-        await addContainerItem()
+        await addContainerItem(barcode)
       }
 
       // set the scanned item as the container id in the route
@@ -500,31 +505,32 @@ const triggerItemScan = async (barcode) => {
     })
   }
 }
-// const validateContainerItemBarcode = async (barcode) => {
-//   try {
-//     isLoading.value = true
+const validateContainerItemBarcode = async () => {
+  try {
+    isLoading.value = true
 
-//     if (accessionJob.value.trayed) {
-//       await verifyTrayItemBarcode(barcode)
-//     } else {
-//       await verifyNonTrayItemBarcode(barcode)
-//     }
+    // we only need to validate items for non trays
+    const itemPayload = {
+      id: accessionContainer.value.id,
+      scanned_for_accession: true
+    }
+    await patchAccessionNonTrayItem(itemPayload)
 
-//     handleAlert({
-//       type: 'success',
-//       text: 'The item has been validated.',
-//       autoClose: true
-//     })
-//   } catch (error) {
-//     handleAlert({
-//       type: 'error',
-//       text: error,
-//       autoClose: true
-//     })
-//   } finally {
-//     isLoading.value = false
-//   }
-// }
+    handleAlert({
+      type: 'success',
+      text: 'The item has been validated.',
+      autoClose: true
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    isLoading.value = false
+  }
+}
 const resetBarcodeEdit = () => {
   showBarcodeEdit.value = false
   manualBarcodeEdit.value = ''
@@ -535,7 +541,7 @@ const setBarcodeEditDisplay = () => {
     manualBarcodeEdit.value = selectedItems.value[0].barcode.value
   }
 }
-const addContainerItem = async () => {
+const addContainerItem = async (barcode_value) => {
   try {
     const currentDate = new Date()
     if ( accessionJob.value.trayed ) {
@@ -557,17 +563,26 @@ const addContainerItem = async () => {
       }
       await postAccessionTrayItem(payload)
     } else {
+      const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
+      if (!generateSizeClass) {
+        handleAlert({
+          type: 'error',
+          text: `The tray can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
+          autoClose: true
+        })
+        return
+      }
+
       // TODO: figure out what payload data is actually needed here
       const payload = {
         accession_dt: currentDate,
         accession_job_id: accessionJob.value.id,
         barcode_id: barcodeDetails.value.id,
-        container_type_id: 1, //TODO: Remove once not required from api as its not needed
         media_type_id: accessionJob.value.media_type_id,
         owner_id: accessionJob.value.owner_id,
-        size_class_id: 1, //TODO: change this to null once its optional in api
+        scanned_for_accession: false,
+        size_class_id: generateSizeClass,
         status: 'In',
-        // subcollection_id: 1,
         withdrawal_dt: currentDate
       }
       await postAccessionNonTrayItem(payload)
@@ -601,7 +616,13 @@ const updateContainerItem = async (barcode_value) => {
       }
       await patchAccessionTrayItem(itemPayload)
     } else {
-      accessionJob.value.non_tray_items.find( item => item.id == selectedItems.value[0].id).id = barcode_value
+      const itemPayload = {
+        id: selectedItems.value[0].id,
+        barcode: {
+          value: barcode_value
+        }
+      }
+      await patchAccessionNonTrayItem(itemPayload)
 
       router.push({
         name: 'accession-container',

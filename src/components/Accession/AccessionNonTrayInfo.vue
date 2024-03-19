@@ -14,7 +14,7 @@
 
       <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12 q-mb-xs-md q-mb-sm-none q-mb-lg-lg">
         <BarcodeBox
-          :barcode="!accessionContainer.id ? 'Please Scan Non-Tray' : accessionContainer.id"
+          :barcode="!accessionContainer.id ? 'Please Scan Non&nbsp;Tray' : accessionContainer.id"
           class="q-mb-md-xl q-mb-lg-none"
         />
       </div>
@@ -215,22 +215,38 @@ const updateNonTrayJob = async () => {
 }
 const updateNonTrayContainer = async () => {
   try {
-    const payload = {
-      ...accessionContainer.value
+    // by default when updating a container we assume it has already been verified
+    let addVerifiedAlert = false
+    let itemPayload = {
+      id: accessionContainer.value.id,
+      media_type_id: accessionContainer.value.media_type_id,
+      size_class_id: accessionContainer.value.size_class_id
     }
 
-    await patchAccessionNonTrayItem(payload)
+    // if the item were updating hasnt been verified we can trigger a verified status as long as a media_type was set
+    if (!accessionContainer.value.scanned_for_accession && accessionContainer.value.media_type_id) {
+      itemPayload = {
+        ...itemPayload,
+        scanned_for_accession: true
+      }
+      addVerifiedAlert = true
+    }
 
-    // TODO: need to figure out how to validate non tray items
-    // if (!accessionContainer.value.verified) {
-    //   await verifyNonTrayItemBarcode(route.params.containerId)
-    // }
+    await patchAccessionNonTrayItem(itemPayload)
 
-    handleAlert({
-      type: 'success',
-      text: 'The non-tray item has been updated.',
-      autoClose: true
-    })
+    if (addVerifiedAlert) {
+      handleAlert({
+        type: 'success',
+        text: 'The non-tray item has been updated and verified.',
+        autoClose: true
+      })
+    } else {
+      handleAlert({
+        type: 'success',
+        text: 'The non-tray item has been updated.',
+        autoClose: true
+      })
+    }
   } catch (error) {
     handleAlert({
       type: 'error',
