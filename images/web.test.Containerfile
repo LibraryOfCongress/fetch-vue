@@ -9,6 +9,8 @@ RUN npm -g install @quasar/cli
 
 COPY . .
 
+RUN cat env/.env
+
 # build stage
 FROM develop-stage as build-stage
 
@@ -28,6 +30,9 @@ ENV REQUESTS_CA_BUNDLE=/usr/local/share/ca-certificates/ca-bundle.crt
 FROM nginx:1.17.5-alpine as production-stage
 
 COPY --from=build-stage /app/dist/pwa /usr/share/nginx/html
+
+# This is for confirmation only, bundler already ran
+COPY --from=build-stage /app/env/.env env/.env
 
 RUN rm /etc/nginx/conf.d/default.conf
 
