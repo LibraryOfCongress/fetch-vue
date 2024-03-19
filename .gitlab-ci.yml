@@ -13,8 +13,8 @@ build_image:
     - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
     - cp -v images/web.dev.Containerfile Dockerfile
     - echo $DEVELOP_VITE_ENV > env/.env
-    - echo $DEVELOP_VITE_INV_SERVCE_API > env/.env
-    - echo $DEVELOP_VITE_API_BASE_URI > env/.env
+    - echo $DEVELOP_VITE_INV_SERVCE_API >> env/.env
+    - echo $DEVELOP_VITE_API_BASE_URI >> env/.env
     - cat -A env/.env
     - /kaniko/executor
       --context $CI_PROJECT_DIR
@@ -35,8 +35,8 @@ build_mr:
     - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
     - cp -v images/web.dev.Containerfile Dockerfile
     - echo $DEVELOP_VITE_ENV > env/.env
-    - echo $DEVELOP_VITE_INV_SERVCE_API > env/.env
-    - echo $DEVELOP_VITE_API_BASE_URI > env/.env
+    - echo $DEVELOP_VITE_INV_SERVCE_API >> env/.env
+    - echo $DEVELOP_VITE_API_BASE_URI >> env/.env
     - cat -A env/.env
     - /kaniko/executor
       --context $CI_PROJECT_DIR
@@ -64,8 +64,8 @@ build_image_test:
     - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
     - cp -v images/web.test.Containerfile Dockerfile
     - echo $TEST_VITE_ENV > env/.env
-    - echo $TEST_VITE_INV_SERVCE_API > env/.env
-    - echo $TEST_VITE_API_BASE_URI > env/.env
+    - echo $TEST_VITE_INV_SERVCE_API >> env/.env
+    - echo $TEST_VITE_API_BASE_URI >> env/.env
     - cat -A env/.env
     - /kaniko/executor
       --context $CI_PROJECT_DIR
@@ -86,8 +86,8 @@ build_image_staging:
     - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
     - cp -v images/web.stage.Containerfile Dockerfile
     - echo $STAGING_VITE_ENV > env/.env
-    - echo $STAGING_VITE_INV_SERVCE_API > env/.env
-    - echo $STAGING_VITE_API_BASE_URI > env/.env
+    - echo $STAGING_VITE_INV_SERVCE_API >> env/.env
+    - echo $STAGING_VITE_API_BASE_URI >> env/.env
     - cat -A env/.env
     - /kaniko/executor
       --context $CI_PROJECT_DIR
