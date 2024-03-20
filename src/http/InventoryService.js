@@ -14,6 +14,7 @@ export default {
   nonTrayItems: '/non_tray_items/',
   owners: '/owners/',
   ownersTiers: '/owners/tiers/',
+  shelvingJobs: '/shelving-jobs/',
   sizeClass: '/size_class/',
   trays: '/trays/'
 }

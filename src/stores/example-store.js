@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
+// import inventoryServiceApi from '@/http/InventoryService.js'
 
-export const useTemplateStore = defineStore('store-name', {
+export const useExampleStore = defineStore('example-store', {
   state: () => ({
     stateProp: 0
   }),
@@ -8,6 +9,9 @@ export const useTemplateStore = defineStore('store-name', {
     stateValue: (state) => state.stateProp
   },
   actions: {
+    resetExampleStore () {
+      this.$reset()
+    },
     async incrementStateProp () {
       this.stateProp++
     }
