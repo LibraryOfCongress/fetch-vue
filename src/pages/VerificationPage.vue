@@ -4,7 +4,7 @@
     :padding="!route.params.jobId"
     class="verification column no-wrap"
   >
-    <VerificationInit v-if="!route.params.jobId" />
+    <VerificationDashboard v-if="!route.params.jobId" />
 
     <VerificationContainerDisplay
       v-if="route.params.jobId"
@@ -17,7 +17,7 @@
 import { onBeforeMount, inject } from 'vue'
 import { useRoute } from 'vue-router'
 import { useVerificationStore } from 'src/stores/verification-store'
-import VerificationInit from '@/components/Verification/VerificationInit.vue'
+import VerificationDashboard from '@/components/Verification/VerificationDashboard.vue'
 import VerificationContainerDisplay from '@/components/Verification/VerificationContainerDisplay.vue'
 
 const route = useRoute()

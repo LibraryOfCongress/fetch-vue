@@ -5,10 +5,13 @@ export const useVerificationStore = defineStore('verification', {
   state: () => ({
     verificationJob: {
       id: null,
-      type: null,
+      trayed: null,
       owner: null,
-      container_size: null,
+      owner_id: null,
       media_type: null,
+      media_type_id: null,
+      non_tray_items: [],
+      trays: [],
       status: ''
     },
     originalVerificationJob: null,
@@ -17,7 +20,7 @@ export const useVerificationStore = defineStore('verification', {
       title: '',
       owner: '',
       container_type: '',
-      container_size: '',
+      size_class: '',
       media_type: '',
       items: []
     },
@@ -49,7 +52,7 @@ export const useVerificationStore = defineStore('verification', {
         title: '',
         owner: '',
         container_type: '',
-        container_size: '',
+        size_class: '',
         media_type: '',
         items: []
       }

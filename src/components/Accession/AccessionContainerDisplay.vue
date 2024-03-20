@@ -567,7 +567,7 @@ const addContainerItem = async (barcode_value) => {
       if (!generateSizeClass) {
         handleAlert({
           type: 'error',
-          text: `The tray can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
+          text: `The item can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
           autoClose: true
         })
         return
