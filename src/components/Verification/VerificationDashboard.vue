@@ -2,14 +2,12 @@
   <div class="verification-container">
     <!-- jobs in progress list -->
     <div class="row">
-      <div class="col">
+      <div class="col-12">
         <h1 class="text-h4 text-bold q-mb-xs-md q-mb-sm-lg">
           Jobs In Progress
         </h1>
       </div>
-    </div>
 
-    <div class="row">
       <div
         v-if="jobsInProgress.length == 0"
         class="col-auto"
@@ -67,14 +65,12 @@
 
     <!-- jobs in queue list -->
     <div class="row q-mt-xl">
-      <div class="col">
+      <div class="col-12">
         <h1 class="text-h4 text-bold q-mb-xs-md q-mb-sm-lg">
           Jobs In Queue
         </h1>
       </div>
-    </div>
 
-    <div class="row">
       <div
         v-if="jobsInQueue.length == 0"
         class="col-auto"
@@ -118,8 +114,7 @@
               <div class="verification-card-details">
                 <label class="text-body1">Status:</label>
                 <p
-                  class="text-body1 outline"
-                  :class="[ job.status == 'Paused' ? 'text-highlight-yellow' : 'text-highlight' ]"
+                  class="text-body1 outline text-highlight"
                 >
                   {{ job.status }}
                 </p>
@@ -134,13 +129,19 @@
 
 <script setup>
 import { ref, onMounted, inject } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { useVerificationStore } from 'src/stores/verification-store'
 
 const router = useRouter()
 
 // Store Data
-const verificationStore = useVerificationStore()
+const {
+  resetVerificationStore,
+  getVerificationJobList,
+  getVerificationJob
+} = useVerificationStore()
+const { verificationJobList } = storeToRefs(useVerificationStore())
 
 // Local Data
 const jobsInProgress = ref([])
@@ -150,18 +151,18 @@ const jobsInQueue = ref([])
 const handleAlert = inject('handle-alert')
 
 onMounted(() => {
-  verificationStore.resetVerificationStore()
+  resetVerificationStore()
   loadVerificationJobs()
 })
 
 const loadVerificationJobs = async () => {
   try {
-    const res = await verificationStore.getVerificationJobList()
+    await getVerificationJobList()
 
     // filter jobs by status
-    if (res.data) {
-      jobsInProgress.value = res.data.filter(job => job.status !== 'In Queue')
-      jobsInQueue.value = res.data.filter(job => job.status == 'In Queue')
+    if (verificationJobList.value.length > 0) {
+      jobsInProgress.value = verificationJobList.value.filter(job => job.status !== 'Created')
+      jobsInQueue.value = verificationJobList.value.filter(job => job.status == 'Created')
     }
   } catch (error) {
     handleAlert({
@@ -173,7 +174,7 @@ const loadVerificationJobs = async () => {
 }
 const loadVerificationJob = async (jobId) => {
   try {
-    await verificationStore.getVerificationJob(jobId)
+    await getVerificationJob(jobId)
 
     router.push({
       name: 'verification',

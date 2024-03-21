@@ -156,13 +156,13 @@
             <template #table-td="{ props, colName, value }">
               <span
                 v-if="colName == 'id' && verificationJob.trayed"
-                :class="props.row.scanned_for_accession == false ? 'disabled' : ''"
+                :class="props.row.verified == false ? 'disabled' : ''"
               >
                 {{ value }}
               </span>
               <span
                 v-else-if="colName == 'id' && !verificationJob.trayed"
-                :class="props.row.scanned_for_accession == true || verificationContainer.id == props.row.id ? '' : 'disabled'"
+                :class="props.row.verified == true || verificationContainer.id == props.row.id ? '' : 'disabled'"
               >
                 {{ value }}
               </span>
@@ -333,7 +333,7 @@
             outline
             color="secondary"
             class="verification-next-tray-action full-width"
-            @click="setActiveVerificationTray(tray.id); hideModal();"
+            @click="setNextVerificationTray(tray.id); hideModal();"
           >
             <div class="col-grow text-left">
               <p class="text-h6 text-color-black">
@@ -395,14 +395,14 @@ const { barcodeDetails } = storeToRefs(useBarcodeStore())
 const { sizeClass } = storeToRefs(useOptionStore())
 const {
   resetVerificationContainer,
-  getVerificationTray,
   patchVerificationJob,
-  getVerificationTrayItem,
   getVerificationNonTrayItem,
   postVerificationTrayItem,
   postVerificationNonTrayItem,
   deleteVerificationTrayItem,
-  deleteVerificationNonTrayItem
+  deleteVerificationNonTrayItem,
+  verifyTrayItem,
+  verifyNonTrayItem
 } = useVerificationStore()
 const {
   allItemsVerified,
@@ -471,6 +471,11 @@ const triggerItemScan = async (barcode_value) => {
       }
     } else {
       // example barcode for non tray item: 'CL555923'
+      // check if we have a current active item and validate it if it hasnt been verified yet
+      if (verificationContainer.value.id && !verificationContainer.value.verified) {
+        await validateItemBarcode()
+      }
+
       // check if the scanned barcode already exists in the non tray job if not add it
       if (verificationJob.value.non_tray_items.some(item => item.barcode_id == barcodeDetails.value.id)) {
         // get the scanned non tray item barcode info
@@ -501,10 +506,20 @@ const validateItemBarcode = async () => {
     isLoading.value = true
     // get the passed in item barcodes data
     if (verificationJob.trayed) {
-      // tray items will be marked as verified after getting their data since these match the verification job
+      // tray items will be marked as verified when getting their data since these match the verification job
       const trayItemId = verificationContainer.value.items.some(item => item.barcode_id == barcodeDetails.value.id).id
-      await getVerificationTrayItem(trayItemId)
+      await verifyTrayItem(trayItemId)
+    } else {
+      // non tray items will be marked as verified after user loads their data and verifies the inforamtion is correct or modifies the data
+      const nonTrayItemId = verificationContainer.value.id
+      await verifyNonTrayItem(nonTrayItemId)
     }
+
+    handleAlert({
+      type: 'success',
+      text: 'The item has been validated.',
+      autoClose: true
+    })
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -632,21 +647,9 @@ const handleOptionMenu = (option) => {
   }
 }
 
-const setActiveVerificationTray = async (barcode) => {
-  //TODO: need to see if we wont need this since when you select a new tray we usually send the user back to the job and wait for new tray scan?
-  try {
-    await getVerificationTray(barcode)
-
-    //TODO: need a way to set the retrieved tray scanned_for_verification as true since this will be the current active tray for the job
-
-    router.push({ name: 'verification', params: { jobId: verificationJob.value.id } })
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
-  }
+const setNextVerificationTray = async () => {
+  // send the user back to the job and wait for next tray to be scanned
+  router.push({ name: 'verification', params: { jobId: verificationJob.value.id } })
 }
 const updateVerificationJobStatus = async (status) => {
   try {

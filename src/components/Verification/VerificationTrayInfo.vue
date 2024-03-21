@@ -237,7 +237,7 @@ const handleTrayScan = async (barcode_value) => {
         barcode_id: barcodeDetails.value.id,
         owner_id: verificationJob.value.owner_id,
         media_type_id: verificationJob.value.media_type_id,
-        scanned_for_accession: false,
+        scanned_for_verification: false,
         size_class_id: generateSizeClass
       }
       await postVerificationTray(payload)
@@ -270,7 +270,7 @@ const handleOptionMenu = (option) => {
 }
 
 const cancelTrayEdit = () => {
-  if (!verificationContainer.id) {
+  if (!verificationContainer.value.id) {
     verificationJob.value = { ...toRaw(originalVerificationJob.value) }
   } else {
     verificationContainer.value = { ...toRaw(originalVerificationContainer.value) }

@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
-// import inventoryServiceApi from '@/http/InventoryService.js';
+import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useVerificationStore = defineStore('verification', {
   state: () => ({
+    verificationJobList: [],
     verificationJob: {
       id: null,
       trayed: null,
@@ -17,25 +18,27 @@ export const useVerificationStore = defineStore('verification', {
     originalVerificationJob: null,
     verificationContainer: {
       id: null,
-      title: '',
       owner: '',
+      owner_id: null,
       container_type: '',
       size_class: '',
+      size_class_id: null,
       media_type: '',
+      media_type_id: null,
       items: []
     },
     originalVerificationContainer: null
   }),
   getters: {
     allItemsVerified: (state) => {
-      if (state.verificationJob.type == 1) {
-        return state.verificationJob.items.length == 0 || state.verificationJob.items.some(item => item.verified == false) ? false : true
+      if (state.verificationJob.trayed == false) {
+        return state.verificationJob.non_tray_items.length == 0 || state.verificationJob.non_tray_items.some(item => item.verified == false) ? false : true
       } else {
         return state.verificationContainer.items.length == 0 || state.verificationContainer.items.some(item => item.verified == false) ? false : true
       }
     },
     allTraysCompleted: (state) => {
-      if (state.verificationJob.type == 2 && state.verificationJob.trays) {
+      if (state.verificationJob.trayed && state.verificationJob.trays.length > 0) {
         return state.verificationJob.trays.some(t => t.scanned_for_verification == false || t.collection_verified == false) ? false : true
       } else {
         return true
@@ -49,56 +52,56 @@ export const useVerificationStore = defineStore('verification', {
     resetVerificationContainer () {
       this.verificationContainer = {
         id: null,
-        title: '',
         owner: '',
+        owner_id: null,
         container_type: '',
         size_class: '',
+        size_class_id: null,
         media_type: '',
+        media_type_id: null,
         items: []
       }
     },
     async getVerificationJobList () {
       try {
-        // TODO: setup api call to retrieve all the verification jobs
-        // const res = await this.$api.get(
-        //   inventoryServiceApi.examplesNumbers + 12
-        // )
-        const res = {
-          data: [
-            {
-              id: 1234567891,
-              type: 1,
-              owner: 'John Doe',
-              container_size: 'B Low',
-              media_type: 'Vinyl Recording',
-              status: 'Paused'
-            },
-            {
-              id: 1234567892,
-              type: 2,
-              owner: 'John Doe',
-              container_size: 'A High',
-              media_type: 'Vinyl Recording',
-              status: 'Running'
-            },
-            {
-              id: 1234567893,
-              type: 1,
-              owner: 'John Doe',
-              container_size: 'B High',
-              media_type: 'Vinyl Recording',
-              status: 'In Queue'
-            },
-            {
-              id: 1234567894,
-              type: 2,
-              owner: 'John Doe',
-              container_size: 'A Low',
-              media_type: 'Vinyl Recording',
-              status: 'In Queue'
-            }
-          ]
-        }
+        const res = await this.$api.get(inventoryServiceApi.verificationJobs)
+        this.verificationJobList = res.data.items
+        // const res = {
+        //   data: [
+        //     {
+        //       id: 1234567891,
+        //       type: 1,
+        //       owner: 'John Doe',
+        //       container_size: 'B Low',
+        //       media_type: 'Vinyl Recording',
+        //       status: 'Paused'
+        //     },
+        //     {
+        //       id: 1234567892,
+        //       type: 2,
+        //       owner: 'John Doe',
+        //       container_size: 'A High',
+        //       media_type: 'Vinyl Recording',
+        //       status: 'Running'
+        //     },
+        //     {
+        //       id: 1234567893,
+        //       type: 1,
+        //       owner: 'John Doe',
+        //       container_size: 'B High',
+        //       media_type: 'Vinyl Recording',
+        //       status: 'In Queue'
+        //     },
+        //     {
+        //       id: 1234567894,
+        //       type: 2,
+        //       owner: 'John Doe',
+        //       container_size: 'A Low',
+        //       media_type: 'Vinyl Recording',
+        //       status: 'In Queue'
+        //     }
+        //   ]
+        // }
         return res
       } catch (error) {
         return error
@@ -106,56 +109,8 @@ export const useVerificationStore = defineStore('verification', {
     },
     async getVerificationJob (id) {
       try {
-        // TODO: setup api call to retrieve an verification job
-        // const res = await this.$api.get(
-        //   inventoryServiceApi.examplesNumbers + 12
-        // )
-        // this.verificationJob = res.data
-        if (id == 1234567892 || id == 1234567894) {
-          this.verificationJob = {
-            ...this.verificationJob,
-            status: 'Running',
-            type: 2,
-            id,
-            trays: [
-              {
-                id: 'CH220989',
-                collection_verified: false,
-                scanned_for_verification: false
-              },
-              {
-                id: 'CH220990',
-                collection_verified: false,
-                scanned_for_verification: false
-              }
-            ]
-          }
-        } else {
-          this.verificationJob = {
-            ...this.verificationJob,
-            owner: 'John Doe',
-            container_size: 'B Low',
-            container_type: 'Non-Trayed',
-            media_type: 'Vinyl Recording',
-            status: 'Running',
-            type: 1,
-            id,
-            items: [
-              {
-                id: '00924891234',
-                verified: false
-              },
-              {
-                id: '00924891235',
-                verified: false
-              },
-              {
-                id: '00924891236',
-                verified: false
-              }
-            ]
-          }
-        }
+        const res = await this.$api.get(`${inventoryServiceApi.verificationJobs}${id}`)
+        this.verificationJob = res.data
         this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {
         return error
@@ -163,72 +118,83 @@ export const useVerificationStore = defineStore('verification', {
     },
     async patchVerificationJob (payload) {
       try {
-        // TODO: setup api call to update an verification job
-        // const res = await this.$api.patch(
-        //   inventoryServiceApi.examplesNumbers + 12
-        // )
-        // this.verificationJob = res.data
-        this.verificationJob = {
-          ...this.verificationJob,
-          ...payload
-        }
+        const res = await this.$api.patch(`${inventoryServiceApi.verificationJobs}${payload.id}`, payload)
+        this.verificationJob = res.data
         this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {
         return error
       }
     },
-    async getVerificationTray (barcode) {
+    async getVerificationTray (id) {
       try {
-        // TODO: setup api call to check the scanned barcode and get its tray data
-        // const res = await this.$api.patch(
-        //   inventoryServiceApi.examplesNumbers + 12, barcode
-        // )
-        // this.verificationContainer = res.data
-        this.verificationContainer = {
-          id: barcode,
-          title: 'Tray Title',
-          owner: 'Colonel Sanders',
-          container_type: 'Trayed',
-          container_size: 'C High',
-          media_type: 'Vinyl Recording',
-          items: [
-            {
-              id: '00924891289',
-              verified: true
-            },
-            {
-              id: '00924891290',
-              verified: true
-            }
-          ]
-        }
+        const res = await this.$api.get(`${inventoryServiceApi.trays}${id}`)
+        this.verificationContainer = res.data
         this.originalVerificationContainer = { ...this.verificationContainer }
       } catch (error) {
         return error
       }
     },
-    async patchVerificationTray () {
+    async postAccessionTray (payload) {
       try {
-        // TODO: setup api call to update an verification tray
-        // const res = await this.$api.patch(
-        //   inventoryServiceApi.examplesNumbers + 12
-        // )
-        // this.verificationContainer = res.data
-        this.verificationContainer = {
-          ...this.verificationContainer
-        }
-        this.originalVerificationContainer = { ...this.verificationContainer }
+        const res = await this.$api.post(inventoryServiceApi.trays, payload)
+
+        this.verificationContainer = { ...res.data, items: res.data.items ?? [] }
+        this.originalAccessionContainer = { ...this.verificationContainer }
+
+        // add the new tray to verificationJob trays
+        this.verificationJob.trays = [
+          ...this.verificationJob.trays,
+          res.data
+        ]
+        this.originalAccessionJob.trays = [...this.verificationJob.trays]
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchVerificationTray (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.trays}${payload.id}`, payload)
+        this.verificationContainer = { ...res.data, items: res.data.items ?? [] }
+        this.originalAccessionContainer = { ...this.verificationContainer }
       } catch (error) {
         return error
+      }
+    },
+    async postVerificationTrayItem (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.items, payload)
+
+        this.verificationContainer.items = [
+          ...this.verificationContainer.items,
+          res.data
+        ]
+        this.originalVerificationContainer = { ... this.verificationContainer }
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchAccessionTrayItem (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.items}${payload.id}`, payload)
+
+        // remove the old item and replace it with the updated item in verificationContainer items
+        const filteredItems = this.verificationContainer.items.filter(item => item.id !== payload.id)
+        this.verificationContainer.items = [
+          ...filteredItems,
+          res.data
+        ]
+        this.originalVerificationContainer = { ...this.verificationContainer }
+      } catch (error) {
+        throw error
       }
     },
     async deleteVerificationTrayItem (barcodeList) {
       try {
-        // TODO: setup api call to delete item in an verification tray
-        // const res = await this.$api.delete(
-        //   inventoryServiceApi.examplesNumbers + 12
-        // )
-        // this.verificationContainer = res.data
+        await Promise.all(barcodeList.map(barcode => {
+          return this.$api.delete(`${inventoryServiceApi.items}${barcode}`)
+        }))
+
+        // filter the deleted tray items from the verificationContainer
         const filteredItems = this.verificationContainer.items.filter(b => !barcodeList.includes(b.id))
         this.verificationContainer = {
           ...this.verificationContainer,
@@ -239,36 +205,37 @@ export const useVerificationStore = defineStore('verification', {
         return error
       }
     },
-    async getVerificationNonTray (barcode) {
+    async getVerificationNonTrayItem (id) {
       try {
-        // TODO: setup api call to verify the scanned nontray item barcode and get its data to display
-        // const res = await this.$api.patch(
-        //   inventoryServiceApi.examplesNumbers + 12, barcode
-        // )
-        // this.verificationContainer = res.data
-        this.verificationContainer = {
-          id: barcode,
-          title: 'Non Tray Title',
-          owner: 'Colonel Sanders',
-          container_type: 'Non-Trayed',
-          container_size: 'B High',
-          media_type: 'Vinyl Recording'
-        }
+        const res = await this.$api.get(`${inventoryServiceApi.nonTrayItems}${id}`)
+        this.verificationContainer = res.data
         this.originalVerificationContainer = { ...this.verificationContainer }
       } catch (error) {
         return error
       }
     },
-    async patchVerificationNonTray () {
+    async postVerificationNonTrayItem (payload) {
       try {
-        // TODO: setup api call to update an verification nontray
-        // const res = await this.$api.patch(
-        //   inventoryServiceApi.examplesNumbers + 12
-        // )
-        // this.verificationContainer = res.data
-        this.verificationContainer = {
-          ...this.verificationContainer
-        }
+        const res = await this.$api.post(inventoryServiceApi.nonTrayItems, payload)
+
+        // set the item as the container since there is no tray container for non tray jobs
+        this.verificationContainer = res.data
+        this.originalVerificationContainer = { ...this.verificationContainer }
+
+        // add the new non tray item to verificationJob non tray items
+        this.verificationJob.non_tray_items = [
+          ...this.verificationJob.non_tray_items,
+          res.data
+        ]
+        this.originalverificationJob = { ...this.verificationJob }
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchVerificationNonTrayItem (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.nonTrayItems}${payload.id}`, payload)
+        this.verificationContainer = res.data
         this.originalVerificationContainer = { ...this.verificationContainer }
       } catch (error) {
         return error
@@ -276,40 +243,41 @@ export const useVerificationStore = defineStore('verification', {
     },
     async deleteVerificationNonTrayItem (barcodeList) {
       try {
-        // TODO: setup api call to delete item in an verification nontray
-        // const res = await this.$api.delete(
-        //   inventoryServiceApi.examplesNumbers + 12
-        // )
-        // this.verificationContainer = res.data
+        await Promise.all(barcodeList.map(barcode => {
+          return this.$api.delete(`${inventoryServiceApi.nonTrayItems}${barcode}`)
+        }))
+
+        // filter the deleted non tray items from the verificationJob
         this.verificationJob = {
           ...this.verificationJob,
-          items: this.verificationJob.items.filter(b => !barcodeList.includes(b.id) )
+          non_tray_items: this.verificationJob.non_tray_items.filter(b => !barcodeList.includes(b.id) )
         }
         this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {
         return error
       }
     },
-    async verifyTrayItemBarcode (barcode) {
+    async verifyTrayItem (id) {
       try {
-        // TODO: setup api call to verify the scanned tray item barcode
-        // const res = await this.$api.patch(
-        //   inventoryServiceApi.examplesNumbers + 12, barcode
-        // )
-        // this.verificationContainer = res.data
-        this.verificationContainer.items[this.verificationContainer.items.findIndex(item => item.id == barcode)].verified = true
+        const res = await this.$api.patch(`${inventoryServiceApi.items}${id}`, { verified: true })
+
+        // remove the old item and replace it with the updated item in verificationContainer items
+        const filteredItems = this.verificationContainer.items.filter(item => item.id !== id)
+        this.verificationContainer.items = [
+          ...filteredItems,
+          res.data
+        ]
+        this.originalVerificationContainer = { ...this.verificationContainer }
       } catch (error) {
         return error
       }
     },
-    async verifyNonTrayItemBarcode (barcode) {
+    async verifyNonTrayItem (id) {
       try {
-        // TODO: setup api call to verify the scanned nontray item barcode
-        // const res = await this.$api.patch(
-        //   inventoryServiceApi.examplesNumbers + 12, barcode
-        // )
-        // this.verificationContainer = res.data
-        this.verificationJob.items[this.verificationJob.items.findIndex(item => item.id == barcode)].verified = true
+        await this.$api.patch(`${inventoryServiceApi.nonTrayItems}${id}`, { verified: true })
+
+        // update the non tray items verified state in the verificationJob data as well
+        this.verificationJob.non_tray_items[this.verificationJob.non_tray_items.findIndex(item => item.id == id)].verified = true
       } catch (error) {
         return error
       }

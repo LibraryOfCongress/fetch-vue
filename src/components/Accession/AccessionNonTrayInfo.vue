@@ -159,7 +159,6 @@ const {
 const {
   patchAccessionJob,
   patchAccessionNonTrayItem
-  // verifyNonTrayItemBarcode
 } = useAccessionStore()
 const {
   accessionJob,

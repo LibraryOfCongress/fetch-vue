@@ -16,5 +16,6 @@ export default {
   owners: '/owners/',
   ownersTiers: '/owners/tiers/',
   sizeClass: '/size_class/',
-  trays: '/trays/'
+  trays: '/trays/',
+  verificationJobs: '/verification-jobs/'
 }

@@ -34,7 +34,7 @@ const { getOptions } = useOptionStore()
 const handlePageOffset = inject('handle-page-offset')
 
 onBeforeMount( async () => {
-  // if there is an id in the url we need to load that tray/non-tray and its option related data
+  // load any options info that will be needed in accession
   await Promise.all([
     getOptions('owners'),
     getOptions('sizeClass'),

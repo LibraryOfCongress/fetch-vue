@@ -390,8 +390,6 @@ const { barcodeDetails } = storeToRefs(useBarcodeStore())
 const { sizeClass } = storeToRefs(useOptionStore())
 const {
   resetAccessionContainer,
-  // verifyTrayItemBarcode,
-  // verifyNonTrayItemBarcode,
   patchAccessionJob,
   postAccessionTrayItem,
   patchAccessionTrayItem,

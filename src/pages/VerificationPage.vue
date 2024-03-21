@@ -16,26 +16,45 @@
 <script setup>
 import { onBeforeMount, inject } from 'vue'
 import { useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { useVerificationStore } from 'src/stores/verification-store'
+import { useOptionStore } from '@/stores/option-store'
 import VerificationDashboard from '@/components/Verification/VerificationDashboard.vue'
 import VerificationContainerDisplay from '@/components/Verification/VerificationContainerDisplay.vue'
 
 const route = useRoute()
 
 // Store Data
-const { getVerificationJob, getVerificationTray } = useVerificationStore()
+const {
+  getVerificationJob,
+  getVerificationTray,
+  getVerificationNonTrayItem
+} = useVerificationStore()
+const { verificationJob } = storeToRefs(useVerificationStore())
+const { getOptions } = useOptionStore()
 
 // Logic
 const handlePageOffset = inject('handle-page-offset')
 
 onBeforeMount( async () => {
+  // load any options info that will be needed in verification
+  await Promise.all([
+    getOptions('owners'),
+    getOptions('sizeClass'),
+    getOptions('mediaTypes')
+  ])
+
   // if there is an id in the url we need to load that job
   if (route.params.jobId) {
     await getVerificationJob(route.params.jobId)
   }
 
   if (route.params.containerId) {
-    await getVerificationTray(route.params.containerId)
+    if (verificationJob.value.trayed) {
+      await getVerificationTray(route.params.containerId)
+    } else {
+      await getVerificationNonTrayItem(route.params.containerId)
+    }
   }
 })
 </script>

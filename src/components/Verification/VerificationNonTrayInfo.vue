@@ -197,7 +197,7 @@ const handleOptionMenu = (option) => {
 }
 
 const cancelNonTrayEdit = () => {
-  if (!verificationContainer.id) {
+  if (!verificationContainer.value.id) {
     verificationJob.value = { ...toRaw(originalVerificationJob.value) }
   } else {
     verificationContainer.value = { ...toRaw(originalVerificationContainer.value) }
@@ -236,7 +236,7 @@ const updateNonTrayItem = async () => {
       id: verificationContainer.value.id,
       media_type_id: verificationContainer.value.media_type_id,
       size_class_id: verificationContainer.value.size_class_id,
-      scanned_for_accession: true //TODO: we'll need a verified tag to use for verification in the api
+      verified: true //TODO: we'll need a verified tag to use for verification in the api
     }
     await patchVerificationNonTrayItem(payload)
 
