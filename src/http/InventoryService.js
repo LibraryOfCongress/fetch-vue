@@ -13,9 +13,11 @@ export default {
   items: '/items/',
   mediaTypes: '/media-types/',
   nonTrayItems: '/non_tray_items/',
+  nonTrayItemsBarcode: '/non_tray_items/barcode/',
   owners: '/owners/',
   ownersTiers: '/owners/tiers/',
   sizeClass: '/size_class/',
   trays: '/trays/',
+  traysBarcode: '/trays/barcode/',
   verificationJobs: '/verification-jobs/'
 }

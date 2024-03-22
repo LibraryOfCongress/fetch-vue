@@ -56,19 +56,24 @@
             </p>
           </div>
 
-          <div
-            v-if="verificationContainer.id"
-            class="col-xs-6 col-sm-12 q-mb-xs-none q-mb-sm-sm q-mb-lg-lg verification-container-info-details"
-          >
+          <div class="col-xs-6 col-sm-12 q-mb-xs-none q-mb-sm-sm q-mb-lg-lg verification-container-info-details">
             <label class="text-h6 q-mb-xs">
               Container Size
             </label>
             <p
               v-if="!editMode"
-              class="outline"
+              :class="verificationJob.size_class || verificationContainer.size_class ? 'outline' : ''"
             >
-              {{ verificationContainer.size_class?.name }}
+              {{ !verificationContainer.id ? verificationJob.size_class?.name : verificationContainer.size_class?.name }}
             </p>
+            <SelectInput
+              v-else-if="!verificationContainer.id"
+              v-model="verificationJob.size_class_id"
+              :options="sizeClass"
+              option-type="sizeClass"
+              option-value="id"
+              option-label="name"
+            />
             <SelectInput
               v-else
               v-model="verificationContainer.size_class_id"
@@ -89,24 +94,22 @@
             >
               {{ !verificationContainer.id ? verificationJob.media_type?.name : verificationContainer.media_type?.name }}
             </p>
-            <template v-else>
-              <SelectInput
-                v-if="!verificationContainer.id"
-                v-model="verificationJob.media_type_id"
-                :options="mediaTypes"
-                option-type="mediaTypes"
-                option-value="id"
-                option-label="name"
-              />
-              <SelectInput
-                v-else
-                v-model="verificationContainer.media_type_id"
-                :options="mediaTypes"
-                option-type="mediaTypes"
-                option-value="id"
-                option-label="name"
-              />
-            </template>
+            <SelectInput
+              v-else-if="!verificationContainer.id"
+              v-model="verificationJob.media_type_id"
+              :options="mediaTypes"
+              option-type="mediaTypes"
+              option-value="id"
+              option-label="name"
+            />
+            <SelectInput
+              v-else
+              v-model="verificationContainer.media_type_id"
+              :options="mediaTypes"
+              option-type="mediaTypes"
+              option-value="id"
+              option-label="name"
+            />
           </div>
         </div>
 
@@ -210,7 +213,8 @@ const updateNonTrayJob = async () => {
     const payload = {
       id: verificationJob.value.id,
       owner_id: verificationJob.value.owner_id,
-      media_type_id: verificationJob.value.media_type_id
+      media_type_id: verificationJob.value.media_type_id,
+      size_class_id: verificationJob.value.size_class_id
     }
 
     await patchVerificationJob(payload)

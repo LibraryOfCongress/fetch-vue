@@ -30,6 +30,14 @@ export const useBarcodeStore = defineStore('barcode-store', {
         return error
       }
     },
+    async getBarcodeDetails (barcode) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.barcodesValue}${barcode}`)
+        this.barcodeDetails = res.data
+      } catch (error) {
+        return error
+      }
+    },
     async postBarcode (barcode) {
       try {
         const res = await this.$api.post(inventoryServiceApi.barcodes, {
@@ -53,14 +61,10 @@ export const useBarcodeStore = defineStore('barcode-store', {
         return error
       }
     },
-    async getBarcodeDetails (barcode) {
+    async deleteBarcode (barcode_id) {
       try {
-        //TODO: update this once we change the barcode get endpoint to accept a barcode value instead of uuid
-        const res = await this.$api.get(`${inventoryServiceApi.barcodesValue}${barcode}`)
+        const res = await this.$api.delete(`${inventoryServiceApi.barcodes}${barcode_id}`)
 
-        // if (res.data.items.some(b => b.value == barcode)) {
-        //   this.barcodeDetails = res.data.items.find(b => b.value == barcode)
-        // }
         this.barcodeDetails = res.data
       } catch (error) {
         return error

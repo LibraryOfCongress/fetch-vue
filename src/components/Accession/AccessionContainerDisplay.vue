@@ -365,7 +365,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAccessionStore } from '@/stores/accession-store'
 import { useBarcodeStore } from '@/stores/barcode-store'
-import { useOptionStore } from '@/stores/option-store'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import AccessionNonTrayInfo from '@/components/Accession/AccessionNonTrayInfo.vue'
@@ -385,12 +384,16 @@ const { compiledBarCode } = useBarcodeScanHandler()
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { verifyBarcode, patchBarcode } = useBarcodeStore()
+const {
+  verifyBarcode,
+  patchBarcode,
+  deleteBarcode
+} = useBarcodeStore()
 const { barcodeDetails } = storeToRefs(useBarcodeStore())
-const { sizeClass } = storeToRefs(useOptionStore())
 const {
   resetAccessionContainer,
   patchAccessionJob,
+  patchAccessionTray,
   postAccessionTrayItem,
   patchAccessionTrayItem,
   deleteAccessionTrayItem,
@@ -417,7 +420,7 @@ const accessionTableColumns = ref([
   },
   {
     name: 'verified',
-    field: 'verified',
+    field: 'scanned_for_accession',
     label: '',
     align: 'right',
     sortable: false
@@ -457,11 +460,11 @@ watch(compiledBarCode, (barcode) => {
     triggerItemScan(barcode)
   }
 })
-const triggerItemScan = async (barcode) => {
+const triggerItemScan = async (barcode_value) => {
   try {
     // example barcode for trayed item 'BK123'
     // check if the barcode is in the system otherwise create it
-    await verifyBarcode(barcode)
+    await verifyBarcode(barcode_value)
 
     if (accessionJob.value.trayed) {
       // check if the scanned barcode already exists in the tray job if not add it
@@ -469,29 +472,29 @@ const triggerItemScan = async (barcode) => {
         // validation is not needed in trays so we just return
         return
       } else {
-        await addContainerItem(barcode)
+        await addContainerItem()
       }
     } else {
       // example barcode for non tray item: 'CL555923'
       // check if the scanned barcode already exists in the non tray job if not add it
       if (accessionJob.value.non_tray_items.some(item => item.barcode_id == barcodeDetails.value.id)) {
         // get the scanned non tray item barcode info
-        await getAccessionNonTrayItem(accessionJob.value.non_tray_items.find(item => item.barcode_id == barcodeDetails.value.id).id)
+        await getAccessionNonTrayItem(barcode_value)
 
         //if barcode does exist, check if hte media_type was set then trigger a validation if it wasnt already validated
         if (!accessionContainer.value.scanned_for_accession && accessionContainer.value.media_type_id) {
           await validateContainerItemBarcode()
         }
       } else {
-        await addContainerItem(barcode)
+        await addContainerItem()
       }
 
-      // set the scanned item as the container id in the route
+      // set the scanned item barcode as the container id in the route
       router.push({
         name: 'accession-container',
         params: {
           jobId: accessionJob.value.id,
-          containerId: accessionContainer.value.id
+          containerId: accessionContainer.value.barcode.value
         }
       })
     }
@@ -539,7 +542,7 @@ const setBarcodeEditDisplay = () => {
     manualBarcodeEdit.value = selectedItems.value[0].barcode.value
   }
 }
-const addContainerItem = async (barcode_value) => {
+const addContainerItem = async () => {
   try {
     const currentDate = new Date()
     if ( accessionJob.value.trayed ) {
@@ -561,16 +564,6 @@ const addContainerItem = async (barcode_value) => {
       }
       await postAccessionTrayItem(payload)
     } else {
-      const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
-      if (!generateSizeClass) {
-        handleAlert({
-          type: 'error',
-          text: `The item can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
-          autoClose: true
-        })
-        return
-      }
-
       // TODO: figure out what payload data is actually needed here
       const payload = {
         accession_dt: currentDate,
@@ -579,7 +572,7 @@ const addContainerItem = async (barcode_value) => {
         media_type_id: accessionJob.value.media_type_id,
         owner_id: accessionJob.value.owner_id,
         scanned_for_accession: false,
-        size_class_id: generateSizeClass,
+        size_class_id: accessionJob.value.size_class_id,
         status: 'In',
         withdrawal_dt: currentDate
       }
@@ -650,12 +643,11 @@ const updateContainerItem = async (barcode_value) => {
 }
 const deleteContainerItem = async () => {
   try {
-    const barcodesToRemove = selectedItems.value.map(item => item.id)
+    const itemsToRemove = selectedItems.value.map(item => item.id)
     if (accessionJob.value.trayed) {
-      //TODO: do we need to delete barcode as well?
-      await deleteAccessionTrayItem(barcodesToRemove)
+      await deleteAccessionTrayItem(itemsToRemove)
     } else {
-      await deleteAccessionNonTrayItem(barcodesToRemove)
+      await deleteAccessionNonTrayItem(itemsToRemove)
 
       router.push({
         name: 'accession',
@@ -664,6 +656,11 @@ const deleteContainerItem = async () => {
         }
       })
     }
+
+    // delete the barcodes from the system after we delete the item to get rid of the association in the database
+    await Promise.all(selectedItems.value.map(item => {
+      return deleteBarcode(item.barcode.id)
+    }))
 
     handleAlert({
       type: 'success',
@@ -705,6 +702,9 @@ const handleOptionMenu = (option) => {
 }
 
 const addNewTray = async () => {
+  //mark the current tray as complete since you can only add a new tray if the current tray has all its items
+  await patchAccessionTray({ id: accessionContainer.value.id, collection_accessioned: true })
+
   // clear out the accession container data in store
   resetAccessionContainer()
 
@@ -741,11 +741,15 @@ const updateAccessionJobStatus = async (status) => {
 }
 const completeAccessionJob = async () => {
   try {
+    //if were in a tray job we need to mark the current tray collection as complete before completing the job
+    if (accessionJob.value.trayed && !accessionContainer.value.collection_accessioned) {
+      await patchAccessionTray({ id: accessionContainer.value.id, collection_accessioned: true })
+    }
+
     const payload = {
       id: route.params.jobId,
       status: 'Completed'
     }
-
     await patchAccessionJob(payload)
 
     handleAlert({

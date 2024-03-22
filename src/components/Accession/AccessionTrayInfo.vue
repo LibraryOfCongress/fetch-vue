@@ -14,7 +14,7 @@
 
       <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12 q-mb-xs-md q-mb-sm-none q-mb-lg-lg">
         <BarcodeBox
-          :barcode="!accessionContainer.id ? 'Please Scan Tray' : accessionContainer.id"
+          :barcode="!route.params.containerId ? 'Please Scan Tray' : accessionContainer.barcode?.value"
           class="q-mb-md-xl q-mb-lg-none"
         />
       </div>
@@ -164,6 +164,7 @@ const {
 } = storeToRefs(useOptionStore())
 const {
   patchAccessionJob,
+  getAccessionTray,
   postAccessionTray,
   patchAccessionTray
 } = useAccessionStore()
@@ -191,44 +192,35 @@ watch(compiledBarCode, (barcode) => {
     handleTrayScan(barcode)
   }
 })
-const handleTrayScan = async (barcode) => {
+const handleTrayScan = async (barcode_value) => {
   try {
+    // stop the scan if no size class matches the scanned tray
+    const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
+    if (!generateSizeClass) {
+      handleAlert({
+        type: 'error',
+        text: `The tray can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
+        autoClose: true
+      })
+      return
+    }
+
     //check if the barcode is in the system otherwise create it
-    await verifyBarcode(barcode)
+    await verifyBarcode(barcode_value)
 
     // example barcode for tray: 'CH220987'
     // if the scanned tray exists in the accessionJob load the tray details
     if (accessionJob.value.trays && accessionJob.value.trays.some(tray => tray.barcode_id == barcodeDetails.value.id)) {
-      // getAccessionTray(accessionJob.value.trays.find(tray => tray.barcode_id == barcodeDetails.value.id).id)
-
-      //TODO: Temp till get accession tray works
-      accessionContainer.value = {
-        ...accessionJob.value.trays.find(tray => tray.barcode_id == barcodeDetails.value.id),
-        items: []
-      }
-      originalAccessionContainer.value = {
-        ...accessionJob.value.trays.find(tray => tray.barcode_id == barcodeDetails.value.id),
-        items: []
-      }
+      await getAccessionTray(barcode_value)
     } else {
       // if the scanned tray barcode doesnt exist create the scanned tray using the scanned barcodes uuid
       const currentDate = new Date()
-      const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode.slice(0, 2))?.id
-      if (!generateSizeClass) {
-        handleAlert({
-          type: 'error',
-          text: `The tray can not be added, the container size ${barcode.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
-          autoClose: true
-        })
-        return
-      }
-
       const payload = {
         accession_dt: currentDate,
         accession_job_id: accessionJob.value.id,
         barcode_id: barcodeDetails.value.id,
         collection_accessioned: false,
-        container_type_id: accessionJob.value.container_type_id,
+        container_type_id: 1, //TODO Remove once not need from api
         media_type_id: accessionJob.value.media_type_id,
         owner_id: accessionJob.value.owner_id,
         scanned_for_accession: false,
@@ -239,12 +231,12 @@ const handleTrayScan = async (barcode) => {
       await postAccessionTray(payload)
     }
 
-    // set the scanned tray as the container id in the route
+    // set the scanned tray barcode as the container id in the route
     router.push({
       name: 'accession-container',
       params: {
         jobId: accessionJob.value.id,
-        containerId: accessionContainer.value.id
+        containerId: accessionContainer.value.barcode.value
       }
     })
   } catch (error) {

@@ -44,7 +44,7 @@
 
               <div class="verification-card-details q-mb-xs">
                 <p class="text-body1 text-secondary">
-                  {{ job.type == 1 ? 'Non-Trayed' : 'Trayed' }}
+                  {{ !job.trayed ? 'Non-Trayed' : 'Trayed' }}
                 </p>
               </div>
 
@@ -107,7 +107,7 @@
 
               <div class="verification-card-details q-mb-xs">
                 <p class="text-body1 text-secondary">
-                  {{ job.type == 1 ? 'Non-Trayed' : 'Trayed' }}
+                  {{ !job.trayed ? 'Non-Trayed' : 'Trayed' }}
                 </p>
               </div>
 

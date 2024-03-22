@@ -172,6 +172,23 @@
               />
             </div>
 
+            <div
+              v-if="!accessionJob.trayed"
+              class="form-group q-mb-md"
+            >
+              <label class="form-group-label">
+                Container Size (Optional)
+              </label>
+              <SelectInput
+                v-model="accessionJob.size_class"
+                :options="sizeClass"
+                option-type="sizeClass"
+                option-value="id"
+                option-label="name"
+                :placeholder="'Select Size Class'"
+              />
+            </div>
+
             <div class="form-group">
               <label class="form-group-label">
                 Media Type (Optional)
@@ -233,7 +250,7 @@ const router = useRouter()
 // Store Data
 const { resetAccessionStore, postAccessionJob, getAccessionJobList, getAccessionJob } = useAccessionStore()
 const { accessionJob, accessionJobList } = storeToRefs(useAccessionStore())
-const { owners, mediaTypes } = storeToRefs(useOptionStore())
+const { owners, mediaTypes, sizeClass } = storeToRefs(useOptionStore())
 
 // Local Data
 const isLoading = ref(false)
@@ -303,6 +320,7 @@ const submitAccessionJob = async () => {
     const currentDate = new Date()
     const payload = {
       last_transition: currentDate,
+      size_class_id: accessionJob.trayed ? undefined : accessionJob.value.size_class,
       media_type_id: accessionJob.value.media_type,
       owner_id: accessionJob.value.owner,
       run_time: currentDate.toLocaleString('en-us', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).split(' ').shift(),

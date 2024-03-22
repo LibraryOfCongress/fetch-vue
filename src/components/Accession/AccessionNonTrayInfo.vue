@@ -14,7 +14,7 @@
 
       <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12 q-mb-xs-md q-mb-sm-none q-mb-lg-lg">
         <BarcodeBox
-          :barcode="!accessionContainer.id ? 'Please Scan Non&nbsp;Tray' : accessionContainer.id"
+          :barcode="!route.params.containerId ? 'Please Scan Non&nbsp;Tray' : accessionContainer.barcode?.value"
           class="q-mb-md-xl q-mb-lg-none"
         />
       </div>
@@ -46,11 +46,19 @@
               Container Size
             </label>
             <p
-              v-if="!editMode || editMode && !accessionContainer.id"
-              :class="accessionContainer.id && accessionContainer.size_class ? 'outline' : ''"
+              v-if="!editMode"
+              :class="accessionJob.size_class || accessionContainer.size_class ? 'outline' : ''"
             >
-              {{ accessionContainer.size_class?.name }}
+              {{ !accessionContainer.id ? accessionJob.size_class?.name : accessionContainer.size_class?.name }}
             </p>
+            <SelectInput
+              v-else-if="!accessionContainer.id"
+              v-model="accessionJob.size_class_id"
+              :options="sizeClass"
+              option-type="sizeClass"
+              option-value="id"
+              option-label="name"
+            />
             <SelectInput
               v-else
               v-model="accessionContainer.size_class_id"
@@ -71,24 +79,22 @@
             >
               {{ !accessionContainer.id ? accessionJob.media_type?.name : accessionContainer.media_type?.name }}
             </p>
-            <template v-else>
-              <SelectInput
-                v-if="!accessionContainer.id"
-                v-model="accessionJob.media_type_id"
-                :options="mediaTypes"
-                option-type="mediaTypes"
-                option-value="id"
-                option-label="name"
-              />
-              <SelectInput
-                v-else
-                v-model="accessionContainer.media_type_id"
-                :options="mediaTypes"
-                option-type="mediaTypes"
-                option-value="id"
-                option-label="name"
-              />
-            </template>
+            <SelectInput
+              v-else-if="!accessionContainer.id"
+              v-model="accessionJob.media_type_id"
+              :options="mediaTypes"
+              option-type="mediaTypes"
+              option-value="id"
+              option-label="name"
+            />
+            <SelectInput
+              v-else
+              v-model="accessionContainer.media_type_id"
+              :options="mediaTypes"
+              option-type="mediaTypes"
+              option-value="id"
+              option-label="name"
+            />
           </div>
         </div>
 
@@ -192,7 +198,8 @@ const updateNonTrayJob = async () => {
   try {
     const payload = {
       id: route.params.jobId,
-      media_type_id: accessionJob.value.media_type_id
+      media_type_id: accessionJob.value.media_type_id,
+      size_class_id: accessionJob.value.size_class_id
     }
 
     await patchAccessionJob(payload)

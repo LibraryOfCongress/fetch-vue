@@ -12,6 +12,8 @@ export const useVerificationStore = defineStore('verification', {
       media_type: null,
       media_type_id: null,
       non_tray_items: [],
+      size_class: null,
+      size_class_id: null,
       trays: [],
       status: ''
     },
@@ -237,6 +239,10 @@ export const useVerificationStore = defineStore('verification', {
         const res = await this.$api.patch(`${inventoryServiceApi.nonTrayItems}${payload.id}`, payload)
         this.verificationContainer = res.data
         this.originalVerificationContainer = { ...this.verificationContainer }
+
+        // update the non tray item in verificationJob non tray items
+        this.verificationJob.non_tray_items[this.verificationJob.non_tray_items.findIndex(item => item.id == payload.id)] = res.data
+        this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {
         return error
       }
