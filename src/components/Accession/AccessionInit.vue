@@ -21,7 +21,7 @@
       </div>
     </div>
 
-    <!-- <div class="row q-mt-xl">
+    <div class="row q-mt-xl">
       <div class="col">
         <h1 class="text-h4 text-bold q-mb-xs-md q-mb-sm-lg">
           Jobs In Progress
@@ -31,7 +31,17 @@
 
     <div class="row">
       <div
-        v-if="accessionJobList.length == 0"
+        v-if="isLoading"
+        class="overlay"
+      >
+        <q-spinner-bars
+          color="primary"
+          size="2rem"
+          class="overlay-loading"
+        />
+      </div>
+      <div
+        v-else-if="accessionJobList.length == 0"
         class="col-auto"
       >
         <p class="text-h6">
@@ -40,7 +50,7 @@
       </div>
       <template v-else>
         <div
-          v-for="job in accessionJobList.filter(job => job.status !== 'Completed')"
+          v-for="job in accessionJobList"
           :key="job.id"
           class="col-xs-12 col-sm-auto q-pa-xs-xs q-pa-lg-sm q-pa-xl-md"
         >
@@ -48,7 +58,7 @@
             flat
             bordered
             class="accession-card"
-            @click="null"
+            @click="loadAccessionJob(job.id)"
           >
             <q-card-section class="q-pa-none">
               <div class="accession-card-barcode text-h4">
@@ -83,7 +93,7 @@
           </q-card>
         </div>
       </template>
-    </div> -->
+    </div>
 
     <!-- start accession process modal -->
     <PopupModal
@@ -162,6 +172,23 @@
               />
             </div>
 
+            <div
+              v-if="!accessionJob.trayed"
+              class="form-group q-mb-md"
+            >
+              <label class="form-group-label">
+                Container Size (Optional)
+              </label>
+              <SelectInput
+                v-model="accessionJob.size_class"
+                :options="sizeClass"
+                option-type="sizeClass"
+                option-value="id"
+                option-label="name"
+                :placeholder="'Select Size Class'"
+              />
+            </div>
+
             <div class="form-group">
               <label class="form-group-label">
                 Media Type (Optional)
@@ -221,11 +248,12 @@ import PopupModal from '@/components/PopupModal.vue'
 const router = useRouter()
 
 // Store Data
-const { resetAccessionStore, postAccessionJob } = useAccessionStore()
-const { accessionJob } = storeToRefs(useAccessionStore())
-const { owners, mediaTypes } = storeToRefs(useOptionStore())
+const { resetAccessionStore, postAccessionJob, getAccessionJobList, getAccessionJob } = useAccessionStore()
+const { accessionJob, accessionJobList } = storeToRefs(useAccessionStore())
+const { owners, mediaTypes, sizeClass } = storeToRefs(useOptionStore())
 
 // Local Data
+const isLoading = ref(false)
 const showAccessionModal = ref(false)
 const canSubmitAccessionJob = computed(() => {
   if (accessionJob.value.owner !== null) {
@@ -240,41 +268,44 @@ const handleAlert = inject('handle-alert')
 
 onMounted(() => {
   resetAccessionStore()
-  // loadAccessionJobs()
+  loadAccessionJobs()
 })
 
-// const loadAccessionJobs = async () => {
-//   try {
-//     isLoading.value = true
-//     await getAccessionJobList()
-//   } catch (error) {
-//     handleAlert({
-//       type: 'error',
-//       text: error,
-//       autoClose: true
-//     })
-//   } finally {
-//     isLoading.value = false
-//   }
-// }
-// const loadVerificationJob = async (jobId) => {
-//   try {
-//     await verificationStore.getVerificationJob(jobId)
+const loadAccessionJobs = async () => {
+  try {
+    isLoading.value = true
+    await getAccessionJobList()
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    isLoading.value = false
+  }
+}
+const loadAccessionJob = async (jobId) => {
+  try {
+    isLoading.value = true
+    await getAccessionJob(jobId)
 
-//     router.push({
-//       name: 'verification',
-//       params: {
-//         jobId
-//       }
-//     })
-//   } catch (error) {
-//     handleAlert({
-//       type: 'error',
-//       text: error,
-//       autoClose: true
-//     })
-//   }
-// }
+    router.push({
+      name: 'accession',
+      params: {
+        jobId
+      }
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    isLoading.value = false
+  }
+}
 
 const reset = () => {
   resetAccessionStore()
@@ -289,7 +320,8 @@ const submitAccessionJob = async () => {
     const currentDate = new Date()
     const payload = {
       last_transition: currentDate,
-      media_type_id: accessionJob.value.media_type, //Currently missing from api - remove once its added
+      size_class_id: accessionJob.trayed ? undefined : accessionJob.value.size_class,
+      media_type_id: accessionJob.value.media_type,
       owner_id: accessionJob.value.owner,
       run_time: currentDate.toLocaleString('en-us', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).split(' ').shift(),
       status: 'Created',

@@ -8,13 +8,17 @@ export default {
   // this.$api.get(inventoryService.examples, { id: entryId })
   accessionJobs: '/accession-jobs/',
   barcodes: '/barcodes/',
+  barcodesValue: '/barcodes/value/',
   containerTypes: '/container-types/',
   items: '/items/',
   mediaTypes: '/media-types/',
   nonTrayItems: '/non_tray_items/',
+  nonTrayItemsBarcode: '/non_tray_items/barcode/',
   owners: '/owners/',
   ownersTiers: '/owners/tiers/',
   shelvingJobs: '/shelving-jobs/',
   sizeClass: '/size_class/',
-  trays: '/trays/'
+  trays: '/trays/',
+  traysBarcode: '/trays/barcode/',
+  verificationJobs: '/verification-jobs/'
 }

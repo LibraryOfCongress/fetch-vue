@@ -1,59 +1,77 @@
 <template>
-  <div class="col-12 col-lg-4 col-xl-3 accession-container-info">
+  <div
+    class="col-12 col-lg-4 col-xl-3 verification-container-info"
+  >
     <div class="row">
       <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
         <MoreOptionsMenu
-          :options="[{ text: 'Edit' }]"
+          :options="currentScreenSize !== 'xs' ? [{ text: 'Edit' }] : [{ text: 'Edit' }, { text: 'Print Job' }]"
           class="q-mr-sm"
           @click="handleOptionMenu"
         />
         <h1 class="text-h4 text-bold">
-          {{ `Job: ${accessionJob.id}` }}
+          {{ `Job: ${verificationJob.id}` }}
         </h1>
       </div>
 
       <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12 q-mb-xs-md q-mb-sm-none q-mb-lg-lg">
         <BarcodeBox
-          :barcode="!route.params.containerId ? 'Please Scan Tray' : accessionContainer.barcode?.value"
+          :barcode="!verificationContainer.id ? 'Please Scan Tray' : verificationContainer.id"
           class="q-mb-md-xl q-mb-lg-none"
         />
       </div>
 
-      <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12">
+      <div
+        class="col-xs-12 col-sm-6 col-md-6 col-lg-12"
+      >
         <div class="row">
-          <div class="accession-container-info-details col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg">
+          <div class="col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg verification-container-info-details">
             <label class="text-h6 q-mb-xs">
               Owner
             </label>
             <p
+              v-if="!editMode"
               class="outline"
             >
-              {{ accessionJob.owner?.name }}
+              {{ verificationJob.owner?.name }}
             </p>
+            <SelectInput
+              v-else-if="editMode && verificationContainer.id == null"
+              v-model="verificationJob.owner_id"
+              :options="owners"
+              option-type="owners"
+              option-value="id"
+              option-label="name"
+            />
           </div>
 
-          <div class="accession-container-info-details col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg">
+          <div class="col-xs-6 col-sm-12 verification-container-info-details">
             <label class="text-h6 q-mb-xs">
               Container Type
             </label>
-            <p>
+            <p
+              class="q-my-auto"
+            >
               Trayed
             </p>
           </div>
 
-          <div class="accession-container-info-details col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg">
+          <div
+            v-if="verificationContainer.id"
+            class="col-xs-6 col-sm-12 q-mb-xs-none q-mb-sm-sm q-mb-lg-lg verification-container-info-details"
+          >
             <label class="text-h6 q-mb-xs">
               Container Size
             </label>
             <p
-              v-if="!editMode || editMode && !accessionContainer.id"
-              :class="accessionContainer.id ? 'outline' : ''"
+              v-if="!editMode"
+              class="outline"
             >
-              {{ accessionContainer.size_class?.name }}
+              {{ verificationContainer.size_class?.name }}
             </p>
             <SelectInput
               v-else
-              v-model="accessionContainer.size_class_id"
+              v-model="verificationContainer.size_class_id"
               :options="sizeClass"
               option-type="sizeClass"
               option-value="id"
@@ -61,20 +79,20 @@
             />
           </div>
 
-          <div class="accession-container-info-details col-xs-6 col-sm-12">
+          <div class="col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg verification-container-info-details">
             <label class="text-h6 q-mb-xs">
               Media Type
             </label>
             <p
               v-if="!editMode"
-              :class="accessionJob.media_type || accessionContainer.media_type ? 'outline text-highlight' : ''"
+              class="outline text-highlight"
             >
-              {{ !accessionContainer.id ? accessionJob.media_type?.name : accessionContainer.media_type?.name }}
+              {{ !verificationContainer.id ? verificationJob.media_type?.name : verificationContainer.media_type?.name }}
             </p>
             <template v-else>
               <SelectInput
-                v-if="!accessionContainer.id"
-                v-model="accessionJob.media_type_id"
+                v-if="!verificationContainer.id"
+                v-model="verificationJob.media_type_id"
                 :options="mediaTypes"
                 option-type="mediaTypes"
                 option-value="id"
@@ -82,7 +100,7 @@
               />
               <SelectInput
                 v-else
-                v-model="accessionContainer.media_type_id"
+                v-model="verificationContainer.media_type_id"
                 :options="mediaTypes"
                 option-type="mediaTypes"
                 option-value="id"
@@ -105,8 +123,8 @@
               color="accent"
               label="Save Edits"
               class="full-width text-body1"
-              @click="!accessionContainer.id ? updateTrayJob() : updateTrayContainer()"
-              :disabled="accessionJob.status == 'Paused'"
+              @click="!verificationContainer.id ? updateTrayJob() : updateTrayContainer()"
+              :disabled="verificationJob.status == 'Paused'"
             />
           </div>
           <div class="col-6 q-pl-xs-xs">
@@ -117,63 +135,61 @@
               color="accent"
               label="Cancel"
               class="full-width text-body1"
-              @click="cancelTrayEdits"
+              @click="cancelTrayEdit()"
             />
           </div>
         </div>
       </div>
-
-      <!-- mobile actions menu -->
-      <AccessionMobileActionBar
-        v-if="currentScreenSize == 'xs' && editMode"
-        :edit-mode="editMode"
-        @update-tray="!accessionContainer.id ? updateTrayJob() : updateTrayContainer()"
-        @cancel-tray="cancelTrayEdits"
-      />
     </div>
+
+    <!-- mobile compressed container info -->
+    <VerificationMobileInfo
+      v-if="currentScreenSize == 'xs'"
+      @handle-option-menu="handleOptionMenu"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, watch, toRaw, inject } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, toRaw, watch, inject } from 'vue'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
-import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
-import { useBarcodeStore } from '@/stores/barcode-store'
-import { useAccessionStore } from '@/stores/accession-store'
+import { useVerificationStore } from '@/stores/verification-store'
 import { useOptionStore } from '@/stores/option-store'
+import { useBarcodeStore } from '@/stores/barcode-store'
+import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
+import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
-import AccessionMobileActionBar from '@/components/Accession/AccessionMobileActionBar.vue'
+import VerificationMobileInfo from '@/components/Verification/VerificationMobileInfo.vue'
 
-const route = useRoute()
 const router = useRouter()
 
 // Composables
-const { currentScreenSize } = useCurrentScreenSize()
 const { compiledBarCode } = useBarcodeScanHandler()
-
-// Store Data
 const { verifyBarcode } = useBarcodeStore()
 const { barcodeDetails } = storeToRefs(useBarcodeStore())
+const { currentScreenSize } = useCurrentScreenSize()
+
+// Store Data
 const {
+  owners,
   sizeClass,
   mediaTypes
 } = storeToRefs(useOptionStore())
 const {
-  patchAccessionJob,
-  getAccessionTray,
-  postAccessionTray,
-  patchAccessionTray
-} = useAccessionStore()
+  patchVerificationJob,
+  getVerificationTray,
+  postVerificationTray,
+  patchVerificationTray
+} = useVerificationStore()
 const {
-  accessionJob,
-  accessionContainer,
-  originalAccessionContainer,
-  originalAccessionJob
-} = storeToRefs(useAccessionStore())
+  verificationJob,
+  verificationContainer,
+  originalVerificationContainer,
+  originalVerificationJob
+} = storeToRefs(useVerificationStore())
 
 // Local Data
 const editMode = ref(false)
@@ -181,62 +197,49 @@ const editMode = ref(false)
 // Logic
 const handleAlert = inject('handle-alert')
 
-const handleOptionMenu = (option) => {
-  if (option.text == 'Edit') {
-    editMode.value = true
-  }
-}
-
-watch(compiledBarCode, (barcode) => {
-  if (barcode !== '' && !accessionContainer.value.id) {
-    handleTrayScan(barcode)
+watch(compiledBarCode, (barcode_value) => {
+  if (barcode_value !== '' && !verificationContainer.value.id) {
+    handleTrayScan(barcode_value)
   }
 })
 const handleTrayScan = async (barcode_value) => {
   try {
-    // stop the scan if no size class matches the scanned tray
-    const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
-    if (!generateSizeClass) {
-      handleAlert({
-        type: 'error',
-        text: `The tray can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
-        autoClose: true
-      })
-      return
-    }
-
     //check if the barcode is in the system otherwise create it
     await verifyBarcode(barcode_value)
 
     // example barcode for tray: 'CH220987'
-    // if the scanned tray exists in the accessionJob load the tray details
-    if (accessionJob.value.trays && accessionJob.value.trays.some(tray => tray.barcode_id == barcodeDetails.value.id)) {
-      await getAccessionTray(barcode_value)
+    // if the scanned tray exists in the verificationJob load the tray details
+    if (verificationJob.value.trays && verificationJob.value.trays.some(tray => tray.barcode_id == barcodeDetails.value.id)) {
+      getVerificationTray(barcode_value)
     } else {
       // if the scanned tray barcode doesnt exist create the scanned tray using the scanned barcodes uuid
-      const currentDate = new Date()
-      const payload = {
-        accession_dt: currentDate,
-        accession_job_id: accessionJob.value.id,
-        barcode_id: barcodeDetails.value.id,
-        collection_accessioned: false,
-        container_type_id: 1, //TODO Remove once not need from api
-        media_type_id: accessionJob.value.media_type_id,
-        owner_id: accessionJob.value.owner_id,
-        scanned_for_accession: false,
-        shelved_dt: currentDate,
-        size_class_id: generateSizeClass,
-        withdrawal_dt: currentDate
+      const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
+      if (!generateSizeClass) {
+        handleAlert({
+          type: 'error',
+          text: `The tray can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
+          autoClose: true
+        })
+        return
       }
-      await postAccessionTray(payload)
+
+      //TODO: need to figure out what payload info is needed to add a new tray at the verification job level
+      const payload = {
+        barcode_id: barcodeDetails.value.id,
+        owner_id: verificationJob.value.owner_id,
+        media_type_id: verificationJob.value.media_type_id,
+        scanned_for_verification: false,
+        size_class_id: generateSizeClass
+      }
+      await postVerificationTray(payload)
     }
 
     // set the scanned tray barcode as the container id in the route
     router.push({
-      name: 'accession-container',
+      name: 'verification-container',
       params: {
-        jobId: accessionJob.value.id,
-        containerId: accessionContainer.value.barcode.value
+        jobId: verificationJob.value.id,
+        containerId: verificationContainer.value.barcode.value
       }
     })
   } catch (error) {
@@ -248,11 +251,20 @@ const handleTrayScan = async (barcode_value) => {
   }
 }
 
-const cancelTrayEdits = () => {
-  if (!route.params.containerId) {
-    accessionJob.value = { ...toRaw(originalAccessionJob.value) }
+const handleOptionMenu = (option) => {
+  if (option.text == 'Edit') {
+    editMode.value = true
+  } else if (option.text == 'Print Job') {
+    //TODO: emit to the main container to print the batch sheet?
+    // batchSheetComponent.value.printBatchReport()
+  }
+}
+
+const cancelTrayEdit = () => {
+  if (!verificationContainer.value.id) {
+    verificationJob.value = { ...toRaw(originalVerificationJob.value) }
   } else {
-    accessionContainer.value = { ...toRaw(originalAccessionContainer.value) }
+    verificationContainer.value = { ...toRaw(originalVerificationContainer.value) }
   }
 
   editMode.value = false
@@ -260,11 +272,12 @@ const cancelTrayEdits = () => {
 const updateTrayJob = async () => {
   try {
     const payload = {
-      id: route.params.jobId,
-      media_type_id: accessionJob.value.media_type_id
+      id: verificationJob.value.id,
+      owner_id: verificationJob.value.owner_id,
+      media_type_id: verificationJob.value.media_type_id
     }
 
-    await patchAccessionJob(payload)
+    await patchVerificationJob(payload)
 
     handleAlert({
       type: 'success',
@@ -284,14 +297,13 @@ const updateTrayJob = async () => {
 const updateTrayContainer = async () => {
   try {
     const payload = {
-      ...accessionContainer.value
+      ...verificationContainer.value
     }
-
-    await patchAccessionTray(payload)
+    await patchVerificationTray(payload)
 
     handleAlert({
       type: 'success',
-      text: 'The tray has been updated.',
+      text: 'Verification Container Has Been Updated',
       autoClose: true
     })
   } catch (error) {
@@ -304,20 +316,22 @@ const updateTrayContainer = async () => {
     editMode.value = false
   }
 }
-
-defineExpose({ editMode })
 </script>
 
 <style lang="scss" scoped>
-.accession-container {
+.verification-container {
+  width: 100%;
+  height: auto;
+
   &-info {
     border-right: 1px solid;
     border-color: $secondary;
     padding: 3rem;
+    transition: all .4s ease-in-out;
 
     @media (max-width: $breakpoint-md-max) {
       border-right: none;
-      padding: 3rem 1.5rem;
+      padding: 1.5rem;
       padding-bottom: 0;
     }
 

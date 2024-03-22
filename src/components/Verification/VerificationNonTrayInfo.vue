@@ -1,59 +1,74 @@
 <template>
-  <div class="col-12 col-lg-4 col-xl-3 accession-container-info">
+  <div
+    class="col-12 col-lg-4 col-xl-3 verification-container-info"
+  >
     <div class="row">
       <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
         <MoreOptionsMenu
-          :options="[{ text: 'Edit' }]"
+          :options="currentScreenSize !== 'xs' ? [{ text: 'Edit' }] : [{ text: 'Edit' }, { text: 'Print Job' }]"
           class="q-mr-sm"
           @click="handleOptionMenu"
         />
         <h1 class="text-h4 text-bold">
-          {{ `Job: ${accessionJob.id}` }}
+          {{ `Job: ${verificationJob.id}` }}
         </h1>
       </div>
 
       <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12 q-mb-xs-md q-mb-sm-none q-mb-lg-lg">
         <BarcodeBox
-          :barcode="!route.params.containerId ? 'Please Scan Non&nbsp;Tray' : accessionContainer.barcode?.value"
+          :barcode="!verificationContainer.id ? 'Please Scan Non&nbsp;Tray' : verificationContainer.id"
           class="q-mb-md-xl q-mb-lg-none"
         />
       </div>
 
-      <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12">
+      <div
+        class="col-xs-12 col-sm-6 col-md-6 col-lg-12"
+      >
         <div class="row">
-          <div class="accession-container-info-details col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg">
+          <div class="col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg verification-container-info-details">
             <label class="text-h6 q-mb-xs">
               Owner
             </label>
             <p
+              v-if="!editMode"
               class="outline"
             >
-              {{ accessionJob.owner?.name }}
+              {{ verificationJob.owner?.name }}
             </p>
+            <SelectInput
+              v-else-if="editMode && verificationContainer.id == null"
+              v-model="verificationJob.owner_id"
+              :options="owners"
+              option-type="owners"
+              option-value="id"
+              option-label="name"
+            />
           </div>
 
-          <div class="accession-container-info-details col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg">
+          <div class="col-xs-6 col-sm-12 verification-container-info-details">
             <label class="text-h6 q-mb-xs">
               Container Type
             </label>
-            <p>
+            <p
+              class="q-my-auto"
+            >
               Non-Tray
             </p>
           </div>
 
-          <div class="accession-container-info-details col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg">
+          <div class="col-xs-6 col-sm-12 q-mb-xs-none q-mb-sm-sm q-mb-lg-lg verification-container-info-details">
             <label class="text-h6 q-mb-xs">
               Container Size
             </label>
             <p
               v-if="!editMode"
-              :class="accessionJob.size_class || accessionContainer.size_class ? 'outline' : ''"
+              :class="verificationJob.size_class || verificationContainer.size_class ? 'outline' : ''"
             >
-              {{ !accessionContainer.id ? accessionJob.size_class?.name : accessionContainer.size_class?.name }}
+              {{ !verificationContainer.id ? verificationJob.size_class?.name : verificationContainer.size_class?.name }}
             </p>
             <SelectInput
-              v-else-if="!accessionContainer.id"
-              v-model="accessionJob.size_class_id"
+              v-else-if="!verificationContainer.id"
+              v-model="verificationJob.size_class_id"
               :options="sizeClass"
               option-type="sizeClass"
               option-value="id"
@@ -61,7 +76,7 @@
             />
             <SelectInput
               v-else
-              v-model="accessionContainer.size_class_id"
+              v-model="verificationContainer.size_class_id"
               :options="sizeClass"
               option-type="sizeClass"
               option-value="id"
@@ -69,19 +84,19 @@
             />
           </div>
 
-          <div class="accession-container-info-details col-xs-6 col-sm-12">
+          <div class="col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg verification-container-info-details">
             <label class="text-h6 q-mb-xs">
               Media Type
             </label>
             <p
               v-if="!editMode"
-              :class="accessionJob.media_type || accessionContainer.media_type ? 'outline text-highlight' : ''"
+              class="outline text-highlight"
             >
-              {{ !accessionContainer.id ? accessionJob.media_type?.name : accessionContainer.media_type?.name }}
+              {{ !verificationContainer.id ? verificationJob.media_type?.name : verificationContainer.media_type?.name }}
             </p>
             <SelectInput
-              v-else-if="!accessionContainer.id"
-              v-model="accessionJob.media_type_id"
+              v-else-if="!verificationContainer.id"
+              v-model="verificationJob.media_type_id"
               :options="mediaTypes"
               option-type="mediaTypes"
               option-value="id"
@@ -89,7 +104,7 @@
             />
             <SelectInput
               v-else
-              v-model="accessionContainer.media_type_id"
+              v-model="verificationContainer.media_type_id"
               :options="mediaTypes"
               option-type="mediaTypes"
               option-value="id"
@@ -111,8 +126,8 @@
               color="accent"
               label="Save Edits"
               class="full-width text-body1"
-              @click="!accessionContainer.id ? updateNonTrayJob() : updateNonTrayContainer()"
-              :disabled="accessionJob.status == 'Paused'"
+              @click="!verificationContainer.id ? updateNonTrayJob() : updateNonTrayItem()"
+              :disabled="verificationJob.status == 'Paused'"
             />
           </div>
           <div class="col-6 q-pl-xs-xs">
@@ -123,55 +138,51 @@
               color="accent"
               label="Cancel"
               class="full-width text-body1"
-              @click="cancelNonTrayEdits"
+              @click="cancelNonTrayEdit()"
             />
           </div>
         </div>
       </div>
-
-      <!-- mobile actions menu -->
-      <AccessionMobileActionBar
-        v-if="currentScreenSize == 'xs' && editMode"
-        :edit-mode="editMode"
-        @update-tray="!accessionContainer.id ? updateNonTrayJob() : updateNonTrayContainer()"
-        @cancel-tray="cancelNonTrayEdits"
-      />
     </div>
+
+    <!-- mobile compressed container info -->
+    <VerificationMobileInfo
+      v-if="currentScreenSize == 'xs'"
+      @handle-option-menu="handleOptionMenu"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, toRaw, inject } from 'vue'
-import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
-import { useAccessionStore } from '@/stores/accession-store'
+import { useVerificationStore } from '@/stores/verification-store'
 import { useOptionStore } from '@/stores/option-store'
+import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
-import AccessionMobileActionBar from '@/components/Accession/AccessionMobileActionBar.vue'
-
-const route = useRoute()
+import VerificationMobileInfo from '@/components/Verification/VerificationMobileInfo.vue'
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const {
+  owners,
   sizeClass,
   mediaTypes
 } = storeToRefs(useOptionStore())
 const {
-  patchAccessionJob,
-  patchAccessionNonTrayItem
-} = useAccessionStore()
+  patchVerificationJob,
+  patchVerificationNonTrayItem
+} = useVerificationStore()
 const {
-  accessionJob,
-  accessionContainer,
-  originalAccessionContainer,
-  originalAccessionJob
-} = storeToRefs(useAccessionStore())
+  verificationJob,
+  verificationContainer,
+  originalVerificationContainer,
+  originalVerificationJob
+} = storeToRefs(useVerificationStore())
 
 // Local Data
 const editMode = ref(false)
@@ -182,14 +193,17 @@ const handleAlert = inject('handle-alert')
 const handleOptionMenu = (option) => {
   if (option.text == 'Edit') {
     editMode.value = true
+  } else if (option.text == 'Print Job') {
+    //TODO: emit to the main container to print the batch sheet?
+    // batchSheetComponent.value.printBatchReport()
   }
 }
 
-const cancelNonTrayEdits = () => {
-  if (!route.params.containerId) {
-    accessionJob.value = { ...toRaw(originalAccessionJob.value) }
+const cancelNonTrayEdit = () => {
+  if (!verificationContainer.value.id) {
+    verificationJob.value = { ...toRaw(originalVerificationJob.value) }
   } else {
-    accessionContainer.value = { ...toRaw(originalAccessionContainer.value) }
+    verificationContainer.value = { ...toRaw(originalVerificationContainer.value) }
   }
 
   editMode.value = false
@@ -197,12 +211,13 @@ const cancelNonTrayEdits = () => {
 const updateNonTrayJob = async () => {
   try {
     const payload = {
-      id: route.params.jobId,
-      media_type_id: accessionJob.value.media_type_id,
-      size_class_id: accessionJob.value.size_class_id
+      id: verificationJob.value.id,
+      owner_id: verificationJob.value.owner_id,
+      media_type_id: verificationJob.value.media_type_id,
+      size_class_id: verificationJob.value.size_class_id
     }
 
-    await patchAccessionJob(payload)
+    await patchVerificationJob(payload)
 
     handleAlert({
       type: 'success',
@@ -219,40 +234,21 @@ const updateNonTrayJob = async () => {
     editMode.value = false
   }
 }
-const updateNonTrayContainer = async () => {
+const updateNonTrayItem = async () => {
   try {
-    // by default when updating a container we assume it has already been verified
-    let addVerifiedAlert = false
-    let itemPayload = {
-      id: accessionContainer.value.id,
-      media_type_id: accessionContainer.value.media_type_id,
-      size_class_id: accessionContainer.value.size_class_id
+    const payload = {
+      id: verificationContainer.value.id,
+      media_type_id: verificationContainer.value.media_type_id,
+      size_class_id: verificationContainer.value.size_class_id,
+      verified: true //TODO: we'll need a verified tag to use for verification in the api
     }
+    await patchVerificationNonTrayItem(payload)
 
-    // if the item were updating hasnt been verified we can trigger a verified status as long as a media_type was set
-    if (!accessionContainer.value.scanned_for_accession && accessionContainer.value.media_type_id) {
-      itemPayload = {
-        ...itemPayload,
-        scanned_for_accession: true
-      }
-      addVerifiedAlert = true
-    }
-
-    await patchAccessionNonTrayItem(itemPayload)
-
-    if (addVerifiedAlert) {
-      handleAlert({
-        type: 'success',
-        text: 'The non-tray item has been updated and verified.',
-        autoClose: true
-      })
-    } else {
-      handleAlert({
-        type: 'success',
-        text: 'The non-tray item has been updated.',
-        autoClose: true
-      })
-    }
+    handleAlert({
+      type: 'success',
+      text: 'The non-tray item has been updated.',
+      autoClose: true
+    })
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -263,20 +259,22 @@ const updateNonTrayContainer = async () => {
     editMode.value = false
   }
 }
-
-defineExpose({ editMode })
 </script>
 
 <style lang="scss" scoped>
-.accession-container {
+.verification-container {
+  width: 100%;
+  height: auto;
+
   &-info {
     border-right: 1px solid;
     border-color: $secondary;
     padding: 3rem;
+    transition: all .4s ease-in-out;
 
     @media (max-width: $breakpoint-md-max) {
       border-right: none;
-      padding: 3rem 1.5rem;
+      padding: 1.5rem;
       padding-bottom: 0;
     }
 
