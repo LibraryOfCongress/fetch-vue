@@ -390,7 +390,10 @@ const { compiledBarCode } = useBarcodeScanHandler()
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { verifyBarcode } = useBarcodeStore()
+const {
+  verifyBarcode,
+  deleteBarcode
+} = useBarcodeStore()
 const { barcodeDetails } = storeToRefs(useBarcodeStore())
 const { sizeClass } = storeToRefs(useOptionStore())
 const {
@@ -479,17 +482,17 @@ const triggerItemScan = async (barcode_value) => {
       // check if the scanned barcode already exists in the non tray job if not add it
       if (verificationJob.value.non_tray_items.some(item => item.barcode_id == barcodeDetails.value.id)) {
         // get the scanned non tray item barcode info
-        await getVerificationNonTrayItem(verificationJob.value.non_tray_items.find(item => item.barcode_id == barcodeDetails.value.id).id)
+        await getVerificationNonTrayItem(barcode_value)
       } else {
         await addContainerItem(barcode_value)
       }
 
-      // set the scanned item as the container id in the route
+      // set the scanned item barcode as the container id in the route
       router.push({
         name: 'verification-container',
         params: {
           jobId: verificationJob.value.id,
-          containerId: verificationContainer.value.id
+          containerId: verificationContainer.value.barcode.value
         }
       })
     }
@@ -585,12 +588,11 @@ const addContainerItem = async (barcode_value) => {
 }
 const deleteContainerItem = async () => {
   try {
-    const barcodesToRemove = selectedItems.value.map(item => item.id)
+    const itemsToRemove = selectedItems.value.map(item => item.id)
     if (verificationJob.value.trayed) {
-      //TODO: do we need to delete barcode as well?
-      await deleteVerificationTrayItem(barcodesToRemove)
+      await deleteVerificationTrayItem(itemsToRemove)
     } else {
-      await deleteVerificationNonTrayItem(barcodesToRemove)
+      await deleteVerificationNonTrayItem(itemsToRemove)
 
       router.push({
         name: 'verification',
@@ -599,6 +601,11 @@ const deleteContainerItem = async () => {
         }
       })
     }
+
+    // delete the barcodes from the system after we delete the item to get rid of the association in the database
+    await Promise.all(selectedItems.value.map(item => {
+      return deleteBarcode(item.barcode.id)
+    }))
 
     handleAlert({
       type: 'success',

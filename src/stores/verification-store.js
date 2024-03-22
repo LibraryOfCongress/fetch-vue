@@ -127,9 +127,9 @@ export const useVerificationStore = defineStore('verification', {
         return error
       }
     },
-    async getVerificationTray (id) {
+    async getVerificationTray (barcode) {
       try {
-        const res = await this.$api.get(`${inventoryServiceApi.trays}${id}`)
+        const res = await this.$api.get(`${inventoryServiceApi.traysBarcode}${barcode}`)
         this.verificationContainer = res.data
         this.originalVerificationContainer = { ...this.verificationContainer }
       } catch (error) {
@@ -207,9 +207,9 @@ export const useVerificationStore = defineStore('verification', {
         return error
       }
     },
-    async getVerificationNonTrayItem (id) {
+    async getVerificationNonTrayItem (barcode) {
       try {
-        const res = await this.$api.get(`${inventoryServiceApi.nonTrayItems}${id}`)
+        const res = await this.$api.get(`${inventoryServiceApi.nonTrayItemsBarcode}${barcode}`)
         this.verificationContainer = res.data
         this.originalVerificationContainer = { ...this.verificationContainer }
       } catch (error) {

@@ -180,6 +180,7 @@ const {
 } = storeToRefs(useOptionStore())
 const {
   patchVerificationJob,
+  getVerificationTray,
   postVerificationTray,
   patchVerificationTray
 } = useVerificationStore()
@@ -209,17 +210,7 @@ const handleTrayScan = async (barcode_value) => {
     // example barcode for tray: 'CH220987'
     // if the scanned tray exists in the verificationJob load the tray details
     if (verificationJob.value.trays && verificationJob.value.trays.some(tray => tray.barcode_id == barcodeDetails.value.id)) {
-      // getVerificationTray(verificationJob.value.trays.find(tray => tray.barcode_id == barcodeDetails.value.id).id)
-
-      //TODO: Temp till get tray works
-      verificationContainer.value = {
-        ...verificationJob.value.trays.find(tray => tray.barcode_id == barcodeDetails.value.id),
-        items: []
-      }
-      originalVerificationContainer.value = {
-        ...verificationJob.value.trays.find(tray => tray.barcode_id == barcodeDetails.value.id),
-        items: []
-      }
+      getVerificationTray(barcode_value)
     } else {
       // if the scanned tray barcode doesnt exist create the scanned tray using the scanned barcodes uuid
       const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
@@ -243,12 +234,12 @@ const handleTrayScan = async (barcode_value) => {
       await postVerificationTray(payload)
     }
 
-    // set the scanned tray as the container id in the route
+    // set the scanned tray barcode as the container id in the route
     router.push({
       name: 'verification-container',
       params: {
         jobId: verificationJob.value.id,
-        containerId: verificationContainer.value.id
+        containerId: verificationContainer.value.barcode.value
       }
     })
   } catch (error) {
