@@ -114,6 +114,8 @@ deploy_dev:
     - terraform init -backend-config=backend.hcl
     - terraform destroy -auto-approve
     - terraform apply -auto-approve
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'develop'
 
 deploy_test:
   stage: terraform
@@ -123,9 +125,7 @@ deploy_test:
   script:
     - export TF_VAR_vault_deployer_password=$VAULT_DEPLOYER_PASSWORD_TEST
     - export TF_VAR_vault_addr=$VAULT_ADDR_TEST
-    - export TF_VAR_vue_image='git.loc.gov:4567/fetch/vue/test:latest'
-    - export TF_VAR_inventory_service_image='git.loc.gov:4567/fetch/inventory_service/test:latest'
-    # - export TF_VAR_env=test
+    - export TF_VAR_image='git.loc.gov:4567/fetch/vue/test:latest'
     - cp -v $FETCH_DEPLOYER_K8S_CONFIG_TEST ${CI_PROJECT_DIR}/terraform/kubeconfig
     - terraform --version
     - cd terraform
