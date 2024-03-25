@@ -136,19 +136,19 @@ export const useVerificationStore = defineStore('verification', {
         return error
       }
     },
-    async postAccessionTray (payload) {
+    async postVerificationTray (payload) {
       try {
         const res = await this.$api.post(inventoryServiceApi.trays, payload)
 
         this.verificationContainer = { ...res.data, items: res.data.items ?? [] }
-        this.originalAccessionContainer = { ...this.verificationContainer }
+        this.originalVerificationContainer = { ...this.verificationContainer }
 
         // add the new tray to verificationJob trays
         this.verificationJob.trays = [
           ...this.verificationJob.trays,
           res.data
         ]
-        this.originalAccessionJob.trays = [...this.verificationJob.trays]
+        this.originalVerificationJob.trays = [...this.verificationJob.trays]
       } catch (error) {
         throw error
       }
@@ -157,7 +157,7 @@ export const useVerificationStore = defineStore('verification', {
       try {
         const res = await this.$api.patch(`${inventoryServiceApi.trays}${payload.id}`, payload)
         this.verificationContainer = { ...res.data, items: res.data.items ?? [] }
-        this.originalAccessionContainer = { ...this.verificationContainer }
+        this.originalVerificationContainer = { ...this.verificationContainer }
       } catch (error) {
         return error
       }
@@ -175,7 +175,7 @@ export const useVerificationStore = defineStore('verification', {
         throw error
       }
     },
-    async patchAccessionTrayItem (payload) {
+    async patchVerificationTrayItem (payload) {
       try {
         const res = await this.$api.patch(`${inventoryServiceApi.items}${payload.id}`, payload)
 

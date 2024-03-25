@@ -34,7 +34,7 @@
             v-else
             :options="[{
               text: 'Next Tray',
-              disabled: !verificationContainer.id || !allItemsVerified || verificationJob.status == 'Paused'
+              disabled: !verificationContainer.id || !allItemsVerified || verificationJob.status == 'Paused' || verificationJob.trays.length <= 1
             }, {
               text: `${selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'}`,
               disabled: !verificationContainer.id || verificationJob.status == 'Paused'
@@ -70,7 +70,7 @@
         </div>
 
         <div
-          v-if="currentScreenSize !== 'xs' && verificationJob.trayed && verificationJob.trays.length > 0"
+          v-if="currentScreenSize !== 'xs' && verificationJob.trayed && verificationJob.trays.length > 1"
           class="col-xs-12 col-sm-auto q-ml-sm-auto"
         >
           <q-btn
@@ -155,14 +155,14 @@
           >
             <template #table-td="{ props, colName, value }">
               <span
-                v-if="colName == 'id' && verificationJob.trayed"
-                :class="props.row.verified == false ? 'disabled' : ''"
+                v-if="colName == 'barcode_value' && verificationJob.trayed"
+                :class="!props.row.verified ? 'disabled' : ''"
               >
                 {{ value }}
               </span>
               <span
-                v-else-if="colName == 'id' && !verificationJob.trayed"
-                :class="props.row.verified == true || verificationContainer.id == props.row.id ? '' : 'disabled'"
+                v-else-if="colName == 'barcode_value' && !verificationJob.trayed"
+                :class="props.row.verified || verificationContainer.id == props.row.id ? '' : 'disabled'"
               >
                 {{ value }}
               </span>
@@ -282,7 +282,7 @@
           class="text-body1 full-width"
           :disabled="!manualBarcodeEdit"
           :loading="isLoading"
-          @click="validateItemBarcode(manualBarcodeEdit); resetBarcodeEdit();"
+          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); resetBarcodeEdit();"
         >
           <template #loading>
             <q-spinner-bars
@@ -324,11 +324,30 @@
     <template #main-content="{ hideModal }">
       <q-card-section class="row verification-next-tray">
         <div
-          v-for="tray in verificationJob.trays.filter(tray => tray.id !== verificationContainer.id && tray.scanned_for_verification == false)"
+          v-for="tray in verificationJob.trays"
           :key="tray.id"
           class="col-12 q-mb-sm"
         >
+          <q-item
+            v-if="tray.id == verificationContainer.id"
+            class="verification-next-tray-item"
+          >
+            <div class="col-grow text-left">
+              <p class="text-h6 text-color-black">
+                Tray #: {{ tray.id }}
+              </p>
+              <p class="text-body1">
+                Trayed
+              </p>
+            </div>
+            <div class="col-auto">
+              <p class="text-body1">
+                Current
+              </p>
+            </div>
+          </q-item>
           <q-btn
+            v-else
             no-caps
             outline
             color="secondary"
@@ -371,7 +390,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useVerificationStore } from '@/stores/verification-store'
 import { useBarcodeStore } from '@/stores/barcode-store'
-import { useOptionStore } from '@/stores/option-store'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from '@/components/EssentialTable.vue'
@@ -392,16 +410,18 @@ const { currentScreenSize } = useCurrentScreenSize()
 // Store Data
 const {
   verifyBarcode,
+  patchBarcode,
   deleteBarcode
 } = useBarcodeStore()
 const { barcodeDetails } = storeToRefs(useBarcodeStore())
-const { sizeClass } = storeToRefs(useOptionStore())
 const {
   resetVerificationContainer,
   patchVerificationJob,
   getVerificationNonTrayItem,
   postVerificationTrayItem,
+  patchVerificationTrayItem,
   postVerificationNonTrayItem,
+  patchVerificationNonTrayItem,
   deleteVerificationTrayItem,
   deleteVerificationNonTrayItem,
   verifyTrayItem,
@@ -420,8 +440,8 @@ const isLoading = ref(false)
 const verificationTableComponent = ref(null)
 const verificationTableColumns = ref([
   {
-    name: 'id',
-    field: 'id',
+    name: 'barcode_value',
+    field: row => row.barcode.value,
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -467,7 +487,7 @@ const triggerItemScan = async (barcode_value) => {
 
     if (verificationJob.value.trayed) {
       // check if the scanned barcode already exists in the tray job if not add it
-      if (verificationJob.value.trayed && verificationContainer.value.items.some(item => item.barcode_id == barcodeDetails.value.id)) {
+      if (verificationJob.value.trayed && verificationContainer.value.items.some(item => item.barcode.id == barcodeDetails.value.id)) {
         await validateItemBarcode()
       } else {
         await addContainerItem(barcode_value)
@@ -508,9 +528,9 @@ const validateItemBarcode = async () => {
   try {
     isLoading.value = true
     // get the passed in item barcodes data
-    if (verificationJob.trayed) {
+    if (verificationJob.value.trayed) {
       // tray items will be marked as verified when getting their data since these match the verification job
-      const trayItemId = verificationContainer.value.items.some(item => item.barcode_id == barcodeDetails.value.id).id
+      const trayItemId = verificationContainer.value.items.find(item => item.barcode.id == barcodeDetails.value.id).id
       await verifyTrayItem(trayItemId)
     } else {
       // non tray items will be marked as verified after user loads their data and verifies the inforamtion is correct or modifies the data
@@ -533,7 +553,7 @@ const validateItemBarcode = async () => {
     isLoading.value = false
   }
 }
-const addContainerItem = async (barcode_value) => {
+const addContainerItem = async () => {
   try {
     const currentDate = new Date()
     if ( verificationJob.value.trayed ) {
@@ -553,22 +573,13 @@ const addContainerItem = async (barcode_value) => {
       }
       await postVerificationTrayItem(payload)
     } else {
-      const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
-      if (!generateSizeClass) {
-        handleAlert({
-          type: 'error',
-          text: `The item can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
-          autoClose: true
-        })
-        return
-      }
-
       // TODO: figure out what payload data is actually needed here
       const payload = {
         barcode_id: barcodeDetails.value.id,
         media_type_id: verificationJob.value.media_type_id,
         owner_id: verificationJob.value.owner_id,
-        size_class_id: generateSizeClass
+        size_class_id: verificationJob.value.size_class_id,
+        status: 'In'
       }
       await postVerificationNonTrayItem(payload)
     }
@@ -584,6 +595,55 @@ const addContainerItem = async (barcode_value) => {
       text: error,
       autoClose: true
     })
+  }
+}
+const updateContainerItem = async (barcode_value) => {
+  try {
+    // update the barcode in the system
+    await patchBarcode(selectedItems.value[0].barcode.id, barcode_value)
+
+    // update the container item along with the selected item in the table to match the manualEditBarcode text
+    if (verificationJob.value.trayed) {
+      const itemPayload = {
+        id: selectedItems.value[0].id,
+        barcode: {
+          value: barcode_value
+        }
+      }
+      await patchVerificationTrayItem(itemPayload)
+    } else {
+      const itemPayload = {
+        id: selectedItems.value[0].id,
+        barcode: {
+          value: barcode_value
+        }
+      }
+      await patchVerificationNonTrayItem(itemPayload)
+
+      router.push({
+        name: 'verification-container',
+        params: {
+          jobId: verificationJob.value.id,
+          containerId: barcode_value
+        }
+      })
+    }
+    selectedItems.value[0].barcode.value = barcode_value
+
+    handleAlert({
+      type: 'success',
+      text: 'The item has been updated.',
+      autoClose: true
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    // clear out any selected items in the table
+    verificationTableComponent.value.clearSelectedData()
   }
 }
 const deleteContainerItem = async () => {
@@ -631,7 +691,7 @@ const resetBarcodeEdit = () => {
 const setBarcodeEditDisplay = () => {
   showBarcodeEdit.value = true
   if (selectedItems.value.length == 1) {
-    manualBarcodeEdit.value = selectedItems.value[0].id
+    manualBarcodeEdit.value = selectedItems.value[0].barcode.value
   }
 }
 
@@ -758,6 +818,14 @@ const completeVerificationJob = async () => {
 }
 
 .verification-next-tray {
+  &-item {
+    display: flex;
+    align-items: center;
+    border: 2px dashed $secondary;
+    border-radius: 3px;
+    color: $secondary;
+  }
+
   &-action {
     min-height: 72px;
     padding-top: 8px;

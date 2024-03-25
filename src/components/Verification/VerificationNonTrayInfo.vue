@@ -16,7 +16,7 @@
 
       <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12 q-mb-xs-md q-mb-sm-none q-mb-lg-lg">
         <BarcodeBox
-          :barcode="!verificationContainer.id ? 'Please Scan Non&nbsp;Tray' : verificationContainer.id"
+          :barcode="!verificationContainer.id ? 'Please Scan Non&nbsp;Tray' : verificationContainer.barcode?.value"
           class="q-mb-md-xl q-mb-lg-none"
         />
       </div>

@@ -468,7 +468,7 @@ const triggerItemScan = async (barcode_value) => {
 
     if (accessionJob.value.trayed) {
       // check if the scanned barcode already exists in the tray job if not add it
-      if (accessionJob.value.trayed && accessionContainer.value.items.some(item => item.barcode_id == barcodeDetails.value.id)) {
+      if (accessionJob.value.trayed && accessionContainer.value.items.some(item => item.barcode.id == barcodeDetails.value.id)) {
         // validation is not needed in trays so we just return
         return
       } else {

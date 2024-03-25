@@ -16,7 +16,7 @@
 
       <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12 q-mb-xs-md q-mb-sm-none q-mb-lg-lg">
         <BarcodeBox
-          :barcode="!verificationContainer.id ? 'Please Scan Tray' : verificationContainer.id"
+          :barcode="!verificationContainer.id ? 'Please Scan Tray' : verificationContainer.barcode?.value"
           class="q-mb-md-xl q-mb-lg-none"
         />
       </div>
@@ -45,7 +45,7 @@
             />
           </div>
 
-          <div class="col-xs-6 col-sm-12 verification-container-info-details">
+          <div class="col-xs-6 col-sm-12 q-mb-xs-none q-mb-sm-sm q-mb-lg-lg verification-container-info-details">
             <label class="text-h6 q-mb-xs">
               Container Type
             </label>
@@ -79,7 +79,7 @@
             />
           </div>
 
-          <div class="col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg verification-container-info-details">
+          <div class="col-xs-6 col-sm-12 verification-container-info-details">
             <label class="text-h6 q-mb-xs">
               Media Type
             </label>
@@ -181,7 +181,7 @@ const {
 const {
   patchVerificationJob,
   getVerificationTray,
-  postVerificationTray,
+  //TODO: remove? postVerificationTray,
   patchVerificationTray
 } = useVerificationStore()
 const {
@@ -204,34 +204,40 @@ watch(compiledBarCode, (barcode_value) => {
 })
 const handleTrayScan = async (barcode_value) => {
   try {
+    // stop the scan if no size class matches the scanned tray
+    const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
+    if (!generateSizeClass) {
+      handleAlert({
+        type: 'error',
+        text: `The tray can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
+        autoClose: true
+      })
+      return
+    }
+
     //check if the barcode is in the system otherwise create it
     await verifyBarcode(barcode_value)
 
     // example barcode for tray: 'CH220987'
     // if the scanned tray exists in the verificationJob load the tray details
     if (verificationJob.value.trays && verificationJob.value.trays.some(tray => tray.barcode_id == barcodeDetails.value.id)) {
-      getVerificationTray(barcode_value)
+      await getVerificationTray(barcode_value)
     } else {
-      // if the scanned tray barcode doesnt exist create the scanned tray using the scanned barcodes uuid
-      const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
-      if (!generateSizeClass) {
-        handleAlert({
-          type: 'error',
-          text: `The tray can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
-          autoClose: true
-        })
-        return
-      }
-
       //TODO: need to figure out what payload info is needed to add a new tray at the verification job level
-      const payload = {
-        barcode_id: barcodeDetails.value.id,
-        owner_id: verificationJob.value.owner_id,
-        media_type_id: verificationJob.value.media_type_id,
-        scanned_for_verification: false,
-        size_class_id: generateSizeClass
-      }
-      await postVerificationTray(payload)
+      // const payload = {
+      //   verification_job_id: verificationJob.value.id,
+      //   barcode_id: barcodeDetails.value.id,
+      //   owner_id: verificationJob.value.owner_id,
+      //   media_type_id: verificationJob.value.media_type_id,
+      //   scanned_for_verification: false,
+      //   size_class_id: generateSizeClass
+      // }
+      // await postVerificationTray(payload)
+      handleAlert({
+        type: 'error',
+        text: `The scanned tray ${barcode_value} doesnt exist on this verification job. Please scan a tray that is associated to this job.`,
+        autoClose: true
+      })
     }
 
     // set the scanned tray barcode as the container id in the route
