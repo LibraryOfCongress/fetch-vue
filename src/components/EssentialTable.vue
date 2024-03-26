@@ -36,7 +36,7 @@
               >
                 <q-item-section>
                   <q-item-label header>
-                    {{ localTableColumns.find(obj => obj.field == data.field)?.label }}
+                    {{ localTableColumns.find(obj => obj.field.toString() == data.field.toString())?.label }}
                   </q-item-label>
 
                   <q-item
@@ -233,7 +233,7 @@ const mainProps = defineProps({
       // example of how filterOptions need to be structured
       // [
       //   {
-      //     field: 'media_type',
+      //     field: 'media_type', or field: row => row.media_type.name
       //     options: [
       //       {
       //         text: 'Document',
@@ -332,10 +332,20 @@ const filterTableData = () => {
   // filters the original table data based on the active filters obj
   const filteredData = mainProps.tableData.filter(entry => {
     // iterate through every active filter by field and selected filter values and check if the value exists under the table data entrys field
-    return Object.entries(activeFiltersObj).every(([
+    const filterMatchesData = Object.entries(activeFiltersObj).every(([
       field,
       val
-    ]) => val.includes(entry[field]))
+    ]) => {
+      if (field.includes('=>')) {
+        // if we pass in a arrow function field we only need the object param path to check if we have a table row with that field
+        // ex row => row.barcode.value we only need 'barcode.value' from that function
+        const paramPath = field.split('row.').pop()
+        return val.includes(paramPath.split('.').reduce((prev, curr) => prev[curr], entry))
+      } else {
+        return val.includes(entry[field])
+      }
+    })
+    return filterMatchesData
   })
 
   localTableData.value = [...toRaw(filteredData)]

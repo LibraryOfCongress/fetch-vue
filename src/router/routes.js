@@ -67,7 +67,7 @@ const routes = [
       },
       {
         name: 'shelving',
-        path: 'shelving',
+        path: 'shelving/:jobId?',
         component: () => import('@/pages/ShelvingPage.vue')
       },
       {
