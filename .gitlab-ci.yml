@@ -106,9 +106,10 @@ deploy_dev:
   script:
     - export TF_VAR_vault_deployer_password=$VAULT_DEPLOYER_PASSWORD_DEV
     - export TF_VAR_vault_addr=$VAULT_ADDR_DEV
-    - cp -v $FETCH_DEPLOYER_K8S_CONFIG_DEV ${CI_PROJECT_DIR}/terraform/kubeconfig
     - terraform --version
     - cd terraform
+    - kubectl config use-context fetch/build:fetch -v=6
+    - cp -v $KUBECONFIG kubeconfig
     - export TF_STATE_NAME=develop
     - envsubst < backend.hcl.tmpl > backend.hcl
     - terraform init -backend-config=backend.hcl
@@ -126,9 +127,10 @@ deploy_test:
     - export TF_VAR_vault_deployer_password=$VAULT_DEPLOYER_PASSWORD_TEST
     - export TF_VAR_vault_addr=$VAULT_ADDR_TEST
     - export TF_VAR_image='git.loc.gov:4567/fetch/vue/test:latest'
-    - cp -v $FETCH_DEPLOYER_K8S_CONFIG_TEST ${CI_PROJECT_DIR}/terraform/kubeconfig
     - terraform --version
     - cd terraform
+    - kubectl config use-context fetch/build:fetch-test -v=6
+    - cp -v $KUBECONFIG kubeconfig
     - export TF_STATE_NAME=test
     - envsubst < backend.hcl.tmpl > backend.hcl
     - terraform init -backend-config=backend.hcl
