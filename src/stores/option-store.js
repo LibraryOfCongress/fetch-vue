@@ -3,6 +3,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useOptionStore = defineStore('options', {
   state: () => ({
+    buildings: [],
     containerTypes: [
       {
         id: 1,

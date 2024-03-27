@@ -138,7 +138,7 @@ The best way to handle testing the PWA portion of the application will require a
 ### 1. Run the local build script
 
 ```bash
-quasar build:local
+npm run build:local
 ```
 
 This will build the app in pwa mode and store the built files under ./dist/pwa

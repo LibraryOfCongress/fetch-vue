@@ -9,6 +9,7 @@ export default {
   accessionJobs: '/accession-jobs/',
   barcodes: '/barcodes/',
   barcodesValue: '/barcodes/value/',
+  buildings: '/buildings/',
   containerTypes: '/container-types/',
   items: '/items/',
   mediaTypes: '/media-types/',
