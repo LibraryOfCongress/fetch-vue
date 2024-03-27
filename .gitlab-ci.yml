@@ -129,7 +129,7 @@ deploy_test:
     - export TF_VAR_image='git.loc.gov:4567/fetch/vue/test:latest'
     - terraform --version
     - cd terraform
-    - kubectl config use-context fetch/build:fetch -v=6
+    - kubectl config use-context fetch/build:fetch-test -v=6
     - cp -v $KUBECONFIG kubeconfig
     - export TF_STATE_NAME=test
     - envsubst < backend.hcl.tmpl > backend.hcl
