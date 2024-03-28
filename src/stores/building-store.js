@@ -1,11 +1,39 @@
 import { defineStore } from 'pinia'
-// import inventoryServiceApi from '@/http/InventoryService.js'
+import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useBuildingStore = defineStore('building-details', {
   state: () => ({
     buildings: [],
-    buildingDetails: {}
+    buildingDetails: {},
+    moduleDetails: {},
+    aisleDetails: {},
+    ladderDetails: {}
   }),
+  getters: {
+    renderBuildingModules: (state) => {
+      let modules = []
+      if (state.buildingDetails.id && state.buildingDetails.modules) {
+        modules = state.buildingDetails.modules
+      }
+      return modules
+    },
+    renderBuildingOrModuleAisles: (state) => {
+      let aisles = []
+      if (state.moduleDetails.id && state.moduleDetails.aisles) {
+        aisles = state.moduleDetails.aisles
+      } else if (state.buildingDetails.id && state.buildingDetails.aisles) {
+        aisles = state.buildingDetails.aisles
+      }
+      return aisles
+    },
+    renderAisleLadders: (state) => {
+      let ladders = []
+      if (state.aisleDetails.id && state.aisleDetails.ladders) {
+        ladders = state.aisleDetails.ladders
+      }
+      return ladders
+    }
+  },
   actions: {
     resetBuildingStore () {
       this.$reset()
@@ -141,135 +169,157 @@ export const useBuildingStore = defineStore('building-details', {
         return error
       }
     },
-    async getBuildingDetails (buildingId) {
+    async getBuildingDetails (id) {
       try {
-        // TODO: setup api call to retrieve the building
-        // const res = await this.$api.get(
-        //   inventoryServiceApi.examplesNumbers + 12
-        // )
-        this.buildingDetails = [
-          {
-            id: 1,
-            name: 'Cabin Branch',
-            modules: [
-              {
-                id: 10,
-                name: 'module 1',
-                aisles: [
-                  {
-                    id: 1,
-                    ladders: 12
-                  },
-                  {
-                    id: 2,
-                    ladders: 13
-                  },
-                  {
-                    id: 3,
-                    ladders: 14
-                  },
-                  {
-                    id: 4,
-                    ladders: 15
-                  }
-                ]
-              },
-              {
-                id: 11,
-                name: 'module 2',
-                aisles: [
-                  {
-                    id: 1,
-                    ladders: 12
-                  },
-                  {
-                    id: 2,
-                    ladders: 13
-                  },
-                  {
-                    id: 3,
-                    ladders: 14
-                  },
-                  {
-                    id: 4,
-                    ladders: 15
-                  }
-                ]
-              },
-              {
-                id: 12,
-                name: 'module 3',
-                aisles: [
-                  {
-                    id: 1,
-                    ladders: 12
-                  },
-                  {
-                    id: 2,
-                    ladders: 13
-                  },
-                  {
-                    id: 3,
-                    ladders: 14
-                  },
-                  {
-                    id: 4,
-                    ladders: 15
-                  }
-                ]
-              },
-              {
-                id: 13,
-                name: 'module 4',
-                aisles: [
-                  {
-                    id: 1,
-                    ladders: 12
-                  },
-                  {
-                    id: 2,
-                    ladders: 13
-                  },
-                  {
-                    id: 3,
-                    ladders: 14
-                  },
-                  {
-                    id: 4,
-                    ladders: 15
-                  }
-                ]
-              }
-            ],
-            available_shelves: 120
-          },
-          {
-            id: 2,
-            name: 'Fort Meade',
-            modules: [],
-            aisles: [
-              {
-                id: 1,
-                ladders: 12
-              },
-              {
-                id: 2,
-                ladders: 13
-              },
-              {
-                id: 3,
-                ladders: 14
-              },
-              {
-                id: 4,
-                ladders: 15
-              }
-            ],
-            available_shelves: 60
-          }
-        ].find(b => b.id == buildingId)
+        const res = await this.$api.get(`${inventoryServiceApi.buildings}${id}`)
+        this.buildingDetails = res.data
+        // this.buildingDetails = [
+        //   {
+        //     id: 1,
+        //     name: 'Cabin Branch',
+        //     modules: [
+        //       {
+        //         id: 10,
+        //         name: 'module 1',
+        //         aisles: [
+        //           {
+        //             id: 1,
+        //             ladders: 12
+        //           },
+        //           {
+        //             id: 2,
+        //             ladders: 13
+        //           },
+        //           {
+        //             id: 3,
+        //             ladders: 14
+        //           },
+        //           {
+        //             id: 4,
+        //             ladders: 15
+        //           }
+        //         ]
+        //       },
+        //       {
+        //         id: 11,
+        //         name: 'module 2',
+        //         aisles: [
+        //           {
+        //             id: 1,
+        //             ladders: 12
+        //           },
+        //           {
+        //             id: 2,
+        //             ladders: 13
+        //           },
+        //           {
+        //             id: 3,
+        //             ladders: 14
+        //           },
+        //           {
+        //             id: 4,
+        //             ladders: 15
+        //           }
+        //         ]
+        //       },
+        //       {
+        //         id: 12,
+        //         name: 'module 3',
+        //         aisles: [
+        //           {
+        //             id: 1,
+        //             ladders: 12
+        //           },
+        //           {
+        //             id: 2,
+        //             ladders: 13
+        //           },
+        //           {
+        //             id: 3,
+        //             ladders: 14
+        //           },
+        //           {
+        //             id: 4,
+        //             ladders: 15
+        //           }
+        //         ]
+        //       },
+        //       {
+        //         id: 13,
+        //         name: 'module 4',
+        //         aisles: [
+        //           {
+        //             id: 1,
+        //             ladders: 12
+        //           },
+        //           {
+        //             id: 2,
+        //             ladders: 13
+        //           },
+        //           {
+        //             id: 3,
+        //             ladders: 14
+        //           },
+        //           {
+        //             id: 4,
+        //             ladders: 15
+        //           }
+        //         ]
+        //       }
+        //     ],
+        //     available_shelves: 120
+        //   },
+        //   {
+        //     id: 2,
+        //     name: 'Fort Meade',
+        //     modules: [],
+        //     aisles: [
+        //       {
+        //         id: 1,
+        //         ladders: 12
+        //       },
+        //       {
+        //         id: 2,
+        //         ladders: 13
+        //       },
+        //       {
+        //         id: 3,
+        //         ladders: 14
+        //       },
+        //       {
+        //         id: 4,
+        //         ladders: 15
+        //       }
+        //     ],
+        //     available_shelves: 60
+        //   }
+        // ].find(b => b.id == id)
       } catch (error) {
-        return error
+        throw error
+      }
+    },
+    async getModuleDetails (id) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.modules}${id}`)
+        this.moduleDetails = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async getAisleDetails (id) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.aisles}${id}`)
+        this.aisleDetails = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async getLadderDetails (id) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.ladders}${id}`)
+        this.ladderDetails = res.data
+      } catch (error) {
+        throw error
       }
     }
   }

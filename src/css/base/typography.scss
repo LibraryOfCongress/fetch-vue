@@ -1,8 +1,23 @@
 // add custom typography classes here
 // see quasar.dev/style/typography for the default classes
+.text-h1 {
+  @media (max-width: $breakpoint-sm-min) {
+    font-size: 4.8rem;
+  }
+}
+.text-h2 {
+  @media (max-width: $breakpoint-sm-min) {
+    font-size: 3rem;
+  }
+}
+.text-h3 {
+  @media (max-width: $breakpoint-sm-min) {
+    font-size: 2.5rem;
+  }
+}
 .text-h4 {
   @media (max-width: $breakpoint-sm-min) {
-    font-size: 1.8rem;
+    font-size: 1.7rem;
   }
 }
 

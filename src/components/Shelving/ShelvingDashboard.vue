@@ -9,7 +9,7 @@
           :table-data="shelvingJobList"
           :disable-table-reorder="currentScreenSize == 'xs' ? true : false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
-          :heading-filter-class="'q-ml-auto'"
+          :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
         >
           <template #heading-row>
             <div
@@ -26,22 +26,11 @@
               :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? 'justify-end q-mb-md' : 'order-1'"
             >
               <q-btn
-                v-if="currentScreenSize !== 'xs'"
-                no-caps
-                unelevated
-                icon="add"
-                color="accent"
-                label="Create Shelving Job"
-                class="btn-no-wrap text-body1 q-ml-sm"
-                @click="showShelfModal = !showShelfModal"
-              />
-              <q-btn
-                v-else
                 no-caps
                 unelevated
                 color="accent"
                 label="Create Shelving Job"
-                class="btn-no-wrap text-body1"
+                class="btn-no-wrap text-body1 q-ml-xs-none q-ml-sm-sm"
                 @click="showShelfModal = !showShelfModal"
               />
             </div>
@@ -170,7 +159,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, watch, inject } from 'vue'
+import { onBeforeMount, ref, inject } from 'vue'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useShelvingStore } from '@/stores/shelving-store'
@@ -313,25 +302,6 @@ onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
     shelfItemsTableVisibleColumns.value = [
       'job_number',
-      'status',
-      'assigned_user',
-      'added_date'
-    ]
-  }
-})
-
-watch(currentScreenSize, () => {
-  if (currentScreenSize.value == 'xs') {
-    shelfItemsTableVisibleColumns.value = [
-      'job_number',
-      'status',
-      'assigned_user',
-      'added_date'
-    ]
-  } else {
-    shelfItemsTableVisibleColumns.value = [
-      'job_number',
-      'containers',
       'status',
       'assigned_user',
       'added_date'

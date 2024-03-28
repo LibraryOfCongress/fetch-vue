@@ -162,12 +162,14 @@
             <q-th
               v-if="props.col.name == 'actions'"
               :auto-width="true"
+              style="padding-left: 8px;"
             />
           </template>
 
           <template #body-cell="props">
             <q-td
               :props="props"
+              :style="[ props.col.name == 'actions' ? 'padding-left:8px;' : null ]"
               @click="emit('selected-table-row', props.row)"
             >
               <slot
@@ -175,6 +177,7 @@
                 :props="props"
                 :col-name="props.col.name"
                 :value="props.value"
+                :class="props.col.name == 'actions' ? 'q-pl-none' : null"
               >
                 <span>
                   {{ props.value }}
@@ -394,6 +397,13 @@ defineExpose({ clearSelectedData })
 
   &-filter {
     height: 100%;
+
+    @media (max-width: $breakpoint-sm-min) {
+      padding: 4px;
+      :deep(.q-icon) {
+        display: none
+      }
+    }
 
     &-list {
       & > .q-item {

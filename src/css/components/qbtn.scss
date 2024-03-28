@@ -24,6 +24,12 @@
     }
   }
 
+  &.btn-hide-icon {
+    .q-icon {
+      display: none;
+    }
+  }
+
   &.btn-dashed {
     &::before {
       border-style: dashed;

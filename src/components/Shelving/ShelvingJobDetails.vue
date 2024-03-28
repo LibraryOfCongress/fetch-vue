@@ -1,8 +1,8 @@
 <template>
   <div class="shelving-job">
-    <div class="row justify-between q-mt-xs-lg q-mt-md-xl q-mx-md">
-      <div class="col-xs-12 col-sm-6 col-md-3">
-        <div class="shelving-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+    <div class="row justify-between q-mt-xs-md q-mt-md-xl q-mx-xs-sm q-mx-sm-md">
+      <div class="col-xs-12 col-md-12 col-lg-3">
+        <div class="shelving-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-lg-lg">
           <label
             id="jobNumber"
             class="shelving-job-details-label text-h4 text-bold"
@@ -15,10 +15,10 @@
         </div>
       </div>
 
-      <div class="col-xs-12 col-sm-6 col-md-2">
+      <div class="col-xs-6 col-sm-6 col-md-grow">
         <div class="shelving-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
           <label
-            class="shelving-job-details-label text-h6 text-bold q-mt-lg"
+            class="shelving-job-details-label-2 text-h6 text-bold"
           >
             Building:
           </label>
@@ -28,10 +28,10 @@
         </div>
       </div>
 
-      <div class="col-xs-12 col-sm-6 col-md-2">
+      <div class="col-xs-6 col-sm-6 col-md-grow">
         <div class="shelving-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
           <label
-            class="shelving-job-details-label text-h6 text-bold q-mt-lg"
+            class="shelving-job-details-label-2 text-h6 text-bold"
           >
             Assigned User:
           </label>
@@ -41,8 +41,7 @@
           </p> -->
           <SelectInput
             v-model="shelvingJob.assigned_user.name"
-            :options="owners"
-            option-type="owners"
+            :options="users"
             option-value="id"
             option-label="name"
           >
@@ -57,10 +56,10 @@
         </div>
       </div>
 
-      <div class="col-xs-12 col-sm-6 col-md-2">
-        <div class="shelving-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+      <div class="col-xs-6 col-sm-6 col-md-grow">
+        <div class="shelving-job-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
           <label
-            class="shelving-job-details-label text-h6 text-bold q-mt-lg"
+            class="shelving-job-details-label-2 text-h6 text-bold"
           >
             Date Created:
           </label>
@@ -70,34 +69,63 @@
         </div>
       </div>
 
-      <div class="col-xs-12 col-sm-6 col-md-auto">
-        <div class="shelving-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-sm">
+      <div class="col-xs-6 col-sm-auto col-md-auto q-mr-auto">
+        <div class="shelving-job-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-sm">
           <label
-            class="shelving-job-details-label text-h6 text-bold q-mt-lg"
+            class="shelving-job-details-label-2 text-h6 text-bold"
           >
             Status:
           </label>
           <p
             class="text-body1"
-            :class="shelvingJob.status == 'In Progress' ? 'outline text-highlight-yellow' : null"
+            :class="shelvingJob.status == 'Ready For Shelving' || shelvingJob.status == 'In Progress' ? 'outline text-highlight' : shelvingJob.status == 'Paused' ? 'outline text-highlight-yellow' : null"
           >
             {{ shelvingJob.status }}
           </p>
         </div>
       </div>
 
-      <div class="col-xs-12 col-sm-6 col-md-2">
-        <div class="shelving-job-details-action">
+      <div
+        v-if="currentScreenSize !== 'xs'"
+        class="col-sm-12 col-md-12 col-lg-3 q-ml-auto"
+      >
+        <div class="shelving-job-details-action q-mt-sm-sm q-mt-md-md">
+          <q-btn
+            v-if="shelvingJob.status !== 'Ready For Shelving'"
+            no-caps
+            unelevated
+            outline
+            color="accent"
+            :icon="shelvingJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
+            :label="shelvingJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
+            class="btn-no-wrap text-body1 q-mr-sm"
+            @click="shelvingJob.status == 'Paused' ? updateShelvingJobStatus('In Progress') : updateShelvingJobStatus('Paused')"
+          />
           <q-btn
             no-caps
             unelevated
             color="positive"
-            :label="'Execute Shelving'"
-            class="text-body1"
-            @click="null"
+            :label="shelvingJob.status == 'Ready For Shelving' ? 'Execute Job' : 'Complete Job'"
+            class="btn-no-wrap text-body1"
+            :disabled="shelvingJob.status == 'Paused'"
+            @click="shelvingJob.status == 'Ready For Shelving' ? executeShelvingJob() : completeShelvingJob()"
           />
         </div>
       </div>
+      <MobileActionBar
+        v-else
+        button-one-color="accent"
+        :button-one-icon="shelvingJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
+        :button-one-label="shelvingJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
+        :button-one-outline="true"
+        :button-one-disabled="shelvingJob.status == 'Ready For Shelving'"
+        @button-one-click="shelvingJob.status == 'Paused' ? updateShelvingJobStatus('In Progress') : updateShelvingJobStatus('Paused')"
+        button-two-color="positive"
+        :button-two-label="shelvingJob.status == 'Ready For Shelving' ? 'Execute Job' : 'Complete Job'"
+        :button-two-outline="false"
+        :button-two-disabled="shelvingJob.status == 'Paused'"
+        @button-two-click="shelvingJob.status == 'Ready For Shelving' ? executeShelvingJob() : completeShelvingJob()"
+      />
     </div>
 
     <q-space class="divider q-my-xs-lg q-my-md-xl" />
@@ -106,16 +134,17 @@
       <div class="col-grow">
         <EssentialTable
           :table-columns="shelfTableColumns"
+          :table-visible-columns="shelfTableVisibleColumns"
           :filter-options="shelfTableFilters"
           :table-data="shelvingJob.containers"
-          :hide-table-rearrange="true"
+          :hide-table-rearrange="false"
           :disable-table-reorder="true"
-          :heading-row-class="'q-mb-lg'"
-          :heading-filter-class="'q-ml-auto'"
+          :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
+          :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
         >
           <template #heading-row>
             <div
-              class="col-xs-5 col-sm-auto q-mr-auto q-pl-xs-md"
+              class="col-xs-12 col-sm-grow q-mr-auto"
             >
               <label class="text-h4 text-bold">
                 Containers in Job:
@@ -128,7 +157,7 @@
               v-if="colName == 'actions'"
             >
               <MoreOptionsMenu
-                :options="!props.row.module ? [{ text: 'Assign Location' }] : [{ text: 'Edit Location' }]"
+                :options="!props.row.module_id ? [{ text: 'Assign Location' }] : [{ text: 'Edit Location' }]"
                 class=""
                 @click="handleOptionMenu($event, props.row)"
               />
@@ -206,11 +235,11 @@
             </label>
             <SelectInput
               v-model="locationForm.module_id"
-              :options="selectedBuildingModules"
+              :options="renderBuildingModules"
               option-value="id"
-              option-label="name"
+              option-label="id"
               :placeholder="'Select Module'"
-              :disabled="selectedBuildingModules.length == 0"
+              :disabled="renderBuildingModules.length == 0"
               @update:model-value="handleLocationFormChange('Module')"
             />
           </div>
@@ -224,11 +253,11 @@
               </label>
               <SelectInput
                 v-model="locationForm.aisle_id"
-                :options="selectedBuildingOrModuleAisles"
+                :options="renderBuildingOrModuleAisles"
                 option-value="id"
                 option-label="number"
                 :placeholder="'Select Aisle'"
-                :disabled="selectedBuildingOrModuleAisles.length == 0"
+                :disabled="renderBuildingOrModuleAisles.length == 0"
                 @update:model-value="handleLocationFormChange('Aisle')"
               />
             </div>
@@ -266,11 +295,11 @@
             </label>
             <SelectInput
               v-model="locationForm.ladder_id"
-              :options="selectedAisleLadders"
+              :options="renderAisleLadders"
               option-value="id"
               option-label="number"
               :placeholder="'Select Ladder'"
-              :disabled="selectedAisleLadders.length == 0"
+              :disabled="renderAisleLadders.length == 0"
               @update:model-value="handleLocationFormChange('Ladder')"
             />
           </div>
@@ -326,6 +355,7 @@
             label="Submit"
             class="text-body1 full-width"
             :loading="isLoading"
+            :disabled="!isLocationFormValid || shelvingJob.status == 'Paused'"
             @click="submitLocationForm(); hideModal();"
           >
             <template #loading>
@@ -352,22 +382,40 @@
 </template>
 
 <script setup>
-import { ref, inject, computed } from 'vue'
+import { ref, inject, computed, onBeforeMount } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useShelvingStore } from '@/stores/shelving-store'
-import { useOptionStore } from 'src/stores/option-store'
+import { useOptionStore } from '@/stores/option-store'
+import { useBuildingStore } from '@/stores/building-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
-import MoreOptionsMenu from 'src/components/MoreOptionsMenu.vue'
-import EssentialTable from 'src/components/EssentialTable.vue'
-import SelectInput from 'src/components/SelectInput.vue'
-import PopupModal from 'src/components/PopupModal.vue'
+import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
+import EssentialTable from '@/components/EssentialTable.vue'
+import SelectInput from '@/components/SelectInput.vue'
+import PopupModal from '@/components/PopupModal.vue'
+import MobileActionBar from '@/components/MobileActionBar.vue'
+
+const router = useRouter()
+const route = useRoute()
 
 // Compasables
 const { currentScreenSize } = useCurrentScreenSize()
 
 // // Store Data
+const {
+  getBuildingDetails,
+  getModuleDetails,
+  getAisleDetails,
+  getLadderDetails
+} = useBuildingStore()
+const {
+  renderBuildingModules,
+  renderBuildingOrModuleAisles,
+  renderAisleLadders
+} = storeToRefs(useBuildingStore())
+const { patchShelvingJob } = useShelvingStore()
 const { shelvingJob } = storeToRefs(useShelvingStore())
-const { owners, sizeClass, buildings } = storeToRefs(useOptionStore())
+const { users, owners, sizeClass, buildings } = storeToRefs(useOptionStore())
 
 // Local Data
 const isLoading = ref(false)
@@ -406,7 +454,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'module',
-    field: 'module',
+    field: 'module_id',
     label: 'Module',
     align: 'left',
     sortable: true,
@@ -414,7 +462,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'aisle',
-    field: 'aisle',
+    field: 'aisle_id',
     label: 'Aisle',
     align: 'left',
     sortable: true,
@@ -430,7 +478,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'ladder',
-    field: 'ladder',
+    field: 'ladder_id',
     label: 'Ladder',
     align: 'left',
     sortable: true,
@@ -453,33 +501,28 @@ const shelfTableColumns = ref([
     order: 9
   }
 ])
+const shelfTableVisibleColumns = ref([
+  'actions',
+  'barcode',
+  'owner',
+  'size_class',
+  'module',
+  'aisle',
+  'side',
+  'ladder',
+  'shelf',
+  'shelf_position'
+])
 const shelfTableFilters = ref([
   {
     field: row => row.size_class.name,
     options: [
       {
-        text: 'A High',
-        value: false
-      },
-      {
-        text: 'B Low',
-        value: false
-      },
-      {
         text: 'C High',
         value: false
-      }
-    ]
-  },
-  {
-    field: row => row.owner.name,
-    options: [
-      {
-        text: 'John Doe',
-        value: false
       },
       {
-        text: 'George Washington',
+        text: 'C Low',
         value: false
       }
     ]
@@ -498,49 +541,41 @@ const locationForm = ref({
   shelf_id: null,
   shelf_position_id: null
 })
-const selectedBuildingModules = computed(() => {
-  let modules = []
-  if (locationForm.value.building_id) {
-    modules = buildings.value.find(b => b.id == locationForm.value.building_id).modules
-  }
-  return modules
+const isLocationFormValid = computed(() => {
+  // validate that all needed fields are filled out in the building form
+  return !Object.values(locationForm.value).some(v => v == null || v == '')
 })
-const selectedBuildingOrModuleAisles = computed(() => {
-  let aisles = []
-  if (locationForm.value.module_id && selectedBuildingModules.value.length > 0) {
-    aisles = selectedBuildingModules.value.find(m => m.id == locationForm.value.module_id).aisles
-  } else if (locationForm.value.building_id && buildings.value.some(b => b.id == locationForm.value.building_id).aisles) {
-    aisles = buildings.value.find(b => b.id == locationForm.value.building_id).aisles
-  }
-  return aisles
-})
-const selectedAisleLadders = computed(() => {
-  let ladders = []
-  if (locationForm.value.aisle_id && selectedBuildingOrModuleAisles.value.length > 0) {
-    ladders = selectedBuildingOrModuleAisles.value.find(a => a.id == locationForm.value.aisle_id).ladders
-  }
-  return ladders
-})
+//TODO need to figure out how shelfs work and if they live in ladders?
 const selectedLadderShelves = computed(() => {
   let shelves = []
-  if (locationForm.value.ladder_id && selectedAisleLadders.value.length > 0) {
-    shelves = selectedAisleLadders.value.find(l => l.id == locationForm.value.ladder_id).shelves
-  }
   return shelves
 })
 const selectedShelfPositions = computed(() => {
   let shelfPositions = []
-  console.log('test', selectedLadderShelves.value)
-  if (locationForm.value.shelf_id && selectedLadderShelves.value.length > 0) {
-    shelfPositions = selectedLadderShelves.value.find(s => s.id == locationForm.value.shelf_id).shelf_numbers
-  }
   return shelfPositions
 })
 
 // Logic
 const handleAlert = inject('handle-alert')
 
-const handleOptionMenu = (action, rowData) => {
+onBeforeMount(() => {
+  if (currentScreenSize.value == 'xs') {
+    shelfTableVisibleColumns.value = [
+      'actions',
+      'barcode',
+      'owner',
+      'size_class',
+      'module'
+    ]
+  }
+})
+
+const handleOptionMenu = async (action, rowData) => {
+  // if the rowData contains a building_id we can get that buildings details to populate out any related fields
+  if (rowData.building_id) {
+    await getBuildingDetails(rowData.building_id)
+  }
+
   if (action.text == 'Edit Location') {
     locationForm.value.item_id = rowData.item_id
     locationForm.value.owner_id = rowData.owner_id
@@ -561,10 +596,11 @@ const handleOptionMenu = (action, rowData) => {
   showShelvingLocationModal.value = true
 }
 
-const handleLocationFormChange = (valueType) => {
+const handleLocationFormChange = async (valueType) => {
   // reset the form depending on the edited form field type
   switch (valueType) {
-  case 'Owner' || 'Size Class':
+  case 'Owner':
+  case 'Size Class':
     locationForm.value.building_id = ''
     locationForm.value.module_id = ''
     locationForm.value.aisle_id = ''
@@ -574,6 +610,7 @@ const handleLocationFormChange = (valueType) => {
     locationForm.value.shelf_position_id = ''
     return
   case 'Building':
+    await getBuildingDetails(locationForm.value.building_id)
     locationForm.value.module_id = ''
     locationForm.value.aisle_id = ''
     locationForm.value.side_id = 'left'
@@ -582,6 +619,7 @@ const handleLocationFormChange = (valueType) => {
     locationForm.value.shelf_position_id = ''
     return
   case 'Module':
+    await getModuleDetails(locationForm.value.module_id)
     locationForm.value.aisle_id = ''
     locationForm.value.side_id = 'left'
     locationForm.value.ladder_id = ''
@@ -589,12 +627,14 @@ const handleLocationFormChange = (valueType) => {
     locationForm.value.shelf_position_id = ''
     return
   case 'Aisle':
+    await getAisleDetails(locationForm.value.aisle_id)
     locationForm.value.side_id = 'left'
     locationForm.value.ladder_id = ''
     locationForm.value.shelf_id = ''
     locationForm.value.shelf_position_id = ''
     return
   case 'Ladder':
+    await getLadderDetails(locationForm.value.ladder_id)
     locationForm.value.shelf_id = ''
     locationForm.value.shelf_position_id = ''
     return
@@ -634,6 +674,78 @@ const submitLocationForm = async () => {
     isLoading.value = false
   }
 }
+
+const executeShelvingJob = async () => {
+  try {
+    const payload = {
+      id: route.params.jobId,
+      status: 'In Progress'
+    }
+    await patchShelvingJob(payload)
+
+    handleAlert({
+      type: 'success',
+      text: 'Shelving Job Successfully Started',
+      autoClose: true
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  }
+}
+const updateShelvingJobStatus = async (status) => {
+  try {
+    const payload = {
+      id: route.params.jobId,
+      status
+    }
+
+    await patchShelvingJob(payload)
+
+    handleAlert({
+      type: 'success',
+      text: `Job Status has been updated to: ${status}`,
+      autoClose: true
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  }
+}
+const completeShelvingJob = async () => {
+  try {
+    const payload = {
+      id: route.params.jobId,
+      status: 'Completed'
+    }
+    await patchShelvingJob(payload)
+
+    handleAlert({
+      type: 'success',
+      text: 'The Shelving Job has been completed.',
+      autoClose: true
+    })
+
+    router.push({
+      name: 'shelving',
+      params: {
+        jobId: null
+      }
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -654,6 +766,16 @@ const submitLocationForm = async () => {
     height: 100%;
     flex-direction: column;
     justify-content: flex-start;
+
+    &-label {
+      &-2 {
+        margin-top: 2rem;
+
+        @media (max-width: $breakpoint-sm-max) {
+          margin-top: 0;
+        }
+      }
+    }
 
     &-action {
       display: flex;

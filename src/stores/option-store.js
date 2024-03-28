@@ -17,7 +17,8 @@ export const useOptionStore = defineStore('options', {
     sizeClass: [],
     mediaTypes: [],
     owners: [],
-    ownerTierOptions: []
+    ownerTierOptions: [],
+    users: []
   }),
   actions: {
     resetOptionStore () {

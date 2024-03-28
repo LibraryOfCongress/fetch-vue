@@ -7,14 +7,17 @@ export default {
   // can be called with the api filter like so
   // this.$api.get(inventoryService.examples, { id: entryId })
   accessionJobs: '/accession-jobs/',
+  aisles: '/aisles/',
   barcodes: '/barcodes/',
   barcodesValue: '/barcodes/value/',
   buildings: '/buildings/',
   containerTypes: '/container-types/',
   items: '/items/',
   mediaTypes: '/media-types/',
+  modules: '/modules/',
   nonTrayItems: '/non_tray_items/',
   nonTrayItemsBarcode: '/non_tray_items/barcode/',
+  ladders: '/ladders/',
   owners: '/owners/',
   ownersTiers: '/owners/tiers/',
   shelvingJobs: '/shelving-jobs/',
