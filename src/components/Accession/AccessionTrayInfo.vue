@@ -124,11 +124,16 @@
       </div>
 
       <!-- mobile actions menu -->
-      <AccessionMobileActionBar
+      <MobileActionBar
         v-if="currentScreenSize == 'xs' && editMode"
-        :edit-mode="editMode"
-        @update-tray="!accessionContainer.id ? updateTrayJob() : updateTrayContainer()"
-        @cancel-tray="cancelTrayEdits"
+        button-one-color="accent"
+        button-one-label="Save Edits"
+        :button-one-outline="false"
+        @button-one-click="!accessionContainer.id ? updateTrayJob() : updateTrayContainer()"
+        button-two-color="accent"
+        button-two-label="Cancel"
+        :button-two-outline="true"
+        @button-two-click="cancelTrayEdits"
       />
     </div>
   </div>
@@ -146,7 +151,7 @@ import { useOptionStore } from '@/stores/option-store'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
-import AccessionMobileActionBar from '@/components/Accession/AccessionMobileActionBar.vue'
+import MobileActionBar from '@/components/MobileActionBar.vue'
 
 const route = useRoute()
 const router = useRouter()

@@ -179,11 +179,18 @@
     </div>
 
     <!-- mobile actions menu -->
-    <AccessionMobileActionBar
+    <MobileActionBar
       v-if="currentScreenSize == 'xs' && !renderIsEditMode"
-      @pause-job="updateAccessionJobStatus('Paused')"
-      @resume-job="updateAccessionJobStatus('Running')"
-      @complete-job="showConfirmation = { type: 'completeJob', text:'Are you sure you want to complete the job?' }"
+      button-one-color="accent"
+      :button-one-icon="accessionJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
+      :button-one-label="accessionJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
+      :button-one-outline="true"
+      @button-one-click="accessionJob.status == 'Paused' ? updateAccessionJobStatus('Running') : updateAccessionJobStatus('Paused')"
+      button-two-color="positive"
+      button-two-label="Complete Job"
+      :button-two-outline="false"
+      :button-two-disabled="!allItemsVerified || accessionJob.status == 'Paused'"
+      @button-two-click="showConfirmation = { type: 'completeJob', text:'Are you sure you want to complete the job?' }"
     />
   </div>
 
@@ -373,7 +380,7 @@ import EssentialTable from '@/components/EssentialTable.vue'
 import TextInput from '@/components/TextInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
-import AccessionMobileActionBar from '@/components/Accession/AccessionMobileActionBar.vue'
+import MobileActionBar from '@/components/MobileActionBar.vue'
 import AccessionBatchSheet from '@/components/Accession/AccessionBatchSheet.vue'
 
 const router = useRouter()
@@ -480,11 +487,6 @@ const triggerItemScan = async (barcode_value) => {
       if (accessionJob.value.non_tray_items.some(item => item.barcode_id == barcodeDetails.value.id)) {
         // get the scanned non tray item barcode info
         await getAccessionNonTrayItem(barcode_value)
-
-        //if barcode does exist, check if hte media_type was set then trigger a validation if it wasnt already validated
-        if (!accessionContainer.value.scanned_for_accession && accessionContainer.value.media_type_id) {
-          await validateContainerItemBarcode()
-        }
       } else {
         await addContainerItem()
       }
@@ -504,32 +506,6 @@ const triggerItemScan = async (barcode_value) => {
       text: error,
       autoClose: true
     })
-  }
-}
-const validateContainerItemBarcode = async () => {
-  try {
-    isLoading.value = true
-
-    // we only need to validate items for non trays
-    const itemPayload = {
-      id: accessionContainer.value.id,
-      scanned_for_accession: true
-    }
-    await patchAccessionNonTrayItem(itemPayload)
-
-    handleAlert({
-      type: 'success',
-      text: 'The item has been validated.',
-      autoClose: true
-    })
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
-  } finally {
-    isLoading.value = false
   }
 }
 const resetBarcodeEdit = () => {
@@ -571,7 +547,7 @@ const addContainerItem = async () => {
         barcode_id: barcodeDetails.value.id,
         media_type_id: accessionJob.value.media_type_id,
         owner_id: accessionJob.value.owner_id,
-        scanned_for_accession: false,
+        scanned_for_accession: accessionJob.value.media_type_id && accessionJob.value.size_class_id ? true : false,
         size_class_id: accessionJob.value.size_class_id,
         status: 'In',
         withdrawal_dt: currentDate

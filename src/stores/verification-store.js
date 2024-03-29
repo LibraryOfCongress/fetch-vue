@@ -34,14 +34,14 @@ export const useVerificationStore = defineStore('verification', {
   getters: {
     allItemsVerified: (state) => {
       if (state.verificationJob.trayed == false) {
-        return state.verificationJob.non_tray_items.length == 0 || state.verificationJob.non_tray_items.some(item => item.verified == false) ? false : true
+        return state.verificationJob.non_tray_items.length == 0 || state.verificationJob.non_tray_items.some(item => item.scanned_for_verification == false) ? false : true
       } else {
-        return state.verificationContainer.items.length == 0 || state.verificationContainer.items.some(item => item.verified == false) ? false : true
+        return state.verificationContainer.items.length == 0 || state.verificationContainer.items.some(item => item.scanned_for_verification == false) ? false : true
       }
     },
     allTraysCompleted: (state) => {
       if (state.verificationJob.trayed && state.verificationJob.trays.length > 0) {
-        return state.verificationJob.trays.some(t => t.scanned_for_verification == false || t.collection_verified == false) ? false : true
+        return state.verificationJob.trays.some(t => t.collection_verified == false) ? false : true
       } else {
         return true
       }
@@ -136,23 +136,24 @@ export const useVerificationStore = defineStore('verification', {
         return error
       }
     },
-    async postVerificationTray (payload) {
-      try {
-        const res = await this.$api.post(inventoryServiceApi.trays, payload)
+    // TODO: check if we can add trays ad the verificaiton level
+    // async postVerificationTray (payload) {
+    //   try {
+    //     const res = await this.$api.post(inventoryServiceApi.trays, payload)
 
-        this.verificationContainer = { ...res.data, items: res.data.items ?? [] }
-        this.originalVerificationContainer = { ...this.verificationContainer }
+    //     this.verificationContainer = { ...res.data, items: res.data.items ?? [] }
+    //     this.originalVerificationContainer = { ...this.verificationContainer }
 
-        // add the new tray to verificationJob trays
-        this.verificationJob.trays = [
-          ...this.verificationJob.trays,
-          res.data
-        ]
-        this.originalVerificationJob.trays = [...this.verificationJob.trays]
-      } catch (error) {
-        throw error
-      }
-    },
+    //     // add the new tray to verificationJob trays
+    //     this.verificationJob.trays = [
+    //       ...this.verificationJob.trays,
+    //       res.data
+    //     ]
+    //     this.originalVerificationJob.trays = [...this.verificationJob.trays]
+    //   } catch (error) {
+    //     throw error
+    //   }
+    // },
     async patchVerificationTray (payload) {
       try {
         const res = await this.$api.patch(`${inventoryServiceApi.trays}${payload.id}`, payload)
@@ -265,14 +266,10 @@ export const useVerificationStore = defineStore('verification', {
     },
     async verifyTrayItem (id) {
       try {
-        const res = await this.$api.patch(`${inventoryServiceApi.items}${id}`, { verified: true })
+        await this.$api.patch(`${inventoryServiceApi.items}${id}`, { scanned_for_verification: true })
 
-        // remove the old item and replace it with the updated item in verificationContainer items
-        const filteredItems = this.verificationContainer.items.filter(item => item.id !== id)
-        this.verificationContainer.items = [
-          ...filteredItems,
-          res.data
-        ]
+        // update the verified status for the item in verificationContainer items
+        this.verificationContainer.items[this.verificationContainer.items.findIndex(item => item.id == id)].scanned_for_verification = true
         this.originalVerificationContainer = { ...this.verificationContainer }
       } catch (error) {
         return error
@@ -280,10 +277,10 @@ export const useVerificationStore = defineStore('verification', {
     },
     async verifyNonTrayItem (id) {
       try {
-        await this.$api.patch(`${inventoryServiceApi.nonTrayItems}${id}`, { verified: true })
+        await this.$api.patch(`${inventoryServiceApi.nonTrayItems}${id}`, { scanned_for_verification: true })
 
         // update the non tray items verified state in the verificationJob data as well
-        this.verificationJob.non_tray_items[this.verificationJob.non_tray_items.findIndex(item => item.id == id)].verified = true
+        this.verificationJob.non_tray_items[this.verificationJob.non_tray_items.findIndex(item => item.id == id)].scanned_for_verification = true
       } catch (error) {
         return error
       }

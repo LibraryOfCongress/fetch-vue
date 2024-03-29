@@ -62,6 +62,8 @@
 import { useScrollPosition } from '@/composables/useScrollPosition.js'
 import { useVerificationStore } from '@/stores/verification-store'
 import { storeToRefs } from 'pinia'
+import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
+
 // Emits
 const emit = defineEmits(['handle-option-menu'])
 

@@ -147,6 +147,19 @@
       v-if="currentScreenSize == 'xs'"
       @handle-option-menu="handleOptionMenu"
     />
+
+    <!-- mobile actions menu -->
+    <MobileActionBar
+      v-if="currentScreenSize == 'xs' && editMode"
+      button-one-color="accent"
+      button-one-label="Save Edits"
+      :button-one-outline="false"
+      @button-one-click="!verificationContainer.id ? updateTrayJob() : updateTrayContainer()"
+      button-two-color="accent"
+      button-two-label="Cancel"
+      :button-two-outline="true"
+      @button-two-click="cancelTrayEdit()"
+    />
   </div>
 </template>
 
@@ -163,13 +176,13 @@ import BarcodeBox from '@/components/BarcodeBox.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import VerificationMobileInfo from '@/components/Verification/VerificationMobileInfo.vue'
+import MobileActionBar from '@/components/MobileActionBar.vue'
 
 const router = useRouter()
 
 // Composables
 const { compiledBarCode } = useBarcodeScanHandler()
 const { verifyBarcode } = useBarcodeStore()
-const { barcodeDetails } = storeToRefs(useBarcodeStore())
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
@@ -215,39 +228,31 @@ const handleTrayScan = async (barcode_value) => {
       return
     }
 
-    //check if the barcode is in the system otherwise create it
-    await verifyBarcode(barcode_value)
-
-    // example barcode for tray: 'CH220987'
-    // if the scanned tray exists in the verificationJob load the tray details
-    if (verificationJob.value.trays && verificationJob.value.trays.some(tray => tray.barcode_id == barcodeDetails.value.id)) {
-      await getVerificationTray(barcode_value)
-    } else {
-      //TODO: need to figure out what payload info is needed to add a new tray at the verification job level
-      // const payload = {
-      //   verification_job_id: verificationJob.value.id,
-      //   barcode_id: barcodeDetails.value.id,
-      //   owner_id: verificationJob.value.owner_id,
-      //   media_type_id: verificationJob.value.media_type_id,
-      //   scanned_for_verification: false,
-      //   size_class_id: generateSizeClass
-      // }
-      // await postVerificationTray(payload)
+    // stop the scan if the scanned tray doesnt exist in the verificationJob
+    if (verificationJob.value.trays && !verificationJob.value.trays.some(tray => tray.barcode.value == barcode_value)) {
       handleAlert({
         type: 'error',
         text: `The scanned tray ${barcode_value} doesnt exist on this verification job. Please scan a tray that is associated to this job.`,
         autoClose: true
       })
-    }
+      return
+    } else {
+      // example barcode for tray: 'CH220987'
+      // check if the barcode is in the system otherwise create it
+      await verifyBarcode(barcode_value)
 
-    // set the scanned tray barcode as the container id in the route
-    router.push({
-      name: 'verification-container',
-      params: {
-        jobId: verificationJob.value.id,
-        containerId: verificationContainer.value.barcode.value
-      }
-    })
+      // load the tray details
+      await getVerificationTray(barcode_value)
+
+      // set the scanned tray barcode as the container id in the route
+      router.push({
+        name: 'verification-container',
+        params: {
+          jobId: verificationJob.value.id,
+          containerId: verificationContainer.value.barcode.value
+        }
+      })
+    }
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -322,6 +327,8 @@ const updateTrayContainer = async () => {
     editMode.value = false
   }
 }
+
+defineExpose({ editMode })
 </script>
 
 <style lang="scss" scoped>

@@ -156,13 +156,13 @@
             <template #table-td="{ props, colName, value }">
               <span
                 v-if="colName == 'barcode_value' && verificationJob.trayed"
-                :class="!props.row.verified ? 'disabled' : ''"
+                :class="!props.row.scanned_for_verification ? 'disabled' : ''"
               >
                 {{ value }}
               </span>
               <span
                 v-else-if="colName == 'barcode_value' && !verificationJob.trayed"
-                :class="props.row.verified || verificationContainer.id == props.row.id ? '' : 'disabled'"
+                :class="props.row.scanned_for_verification || verificationContainer.id == props.row.id ? '' : 'disabled'"
               >
                 {{ value }}
               </span>
@@ -195,61 +195,19 @@
     </div>
 
     <!-- mobile actions menu -->
-    <!-- <div
-      v-if="currentScreenSize == 'xs'"
-      class="verification-container-mobile-menu"
-    >
-      <template v-if="editMode">
-        <q-btn
-          no-caps
-          unelevated
-          color="accent"
-          label="Save Edits"
-          class="full-width text-body1"
-          @click="verificationContainer.id == null ? updateVerificationJob() : updateVerificationContainer()"
-          :disabled="verificationJob.status == 'Paused'"
-        />
-
-        <q-space class="q-mx-xs" />
-
-        <q-btn
-          no-caps
-          unelevated
-          outline
-          color="accent"
-          label="Cancel"
-          class="full-width text-body1"
-          @click="verificationContainer.id == null ? cancelJobEdit() : cancelContainerEdit()"
-        />
-      </template>
-
-      <template v-else>
-        <q-btn
-          no-caps
-          unelevated
-          outline
-          :icon="verificationJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
-          color="accent"
-          :label="verificationJob.status !== 'Paused' ? 'Pause Job' : 'Resume Job'"
-          class="btn-no-wrap text-body1 full-width"
-          @click="verificationJob.status !== 'Paused' ? updateVerificationJobStatus('Paused') : updateVerificationJobStatus('Running')"
-        />
-
-        <q-space class="q-mx-xs" />
-
-        <q-btn
-          no-caps
-          unelevated
-          icon="check"
-          color="positive"
-          label="Complete Job"
-          class="btn-no-wrap text-body1 full-width"
-          :outline="!allTraysCompleted || !allItemsVerified || verificationJob.status == 'Paused'"
-          :disabled="!allTraysCompleted || !allItemsVerified || verificationJob.status == 'Paused'"
-          @click="showConfirmation = 'Are you sure you want to complete the job?'"
-        />
-      </template>
-    </div> -->
+    <MobileActionBar
+      v-if="currentScreenSize == 'xs' && !renderIsEditMode"
+      button-one-color="accent"
+      :button-one-icon="verificationJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
+      :button-one-label="verificationJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
+      :button-one-outline="true"
+      @button-one-click="verificationJob.status !== 'Paused' ? updateVerificationJobStatus('Paused') : updateVerificationJobStatus('Running')"
+      button-two-color="positive"
+      button-two-label="Complete Job"
+      :button-two-outline="false"
+      :button-two-disabled="!allTraysCompleted || !allItemsVerified || verificationJob.status == 'Paused'"
+      @button-two-click="showConfirmation = { type: 'completeJob', text:'Are you sure you want to complete the job?' }"
+    />
   </div>
 
   <!-- barcode edit modal -->
@@ -385,7 +343,7 @@
 </template>
 
 <script setup>
-import { ref, watch, inject } from 'vue'
+import { ref, watch, inject, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useVerificationStore } from '@/stores/verification-store'
@@ -396,6 +354,7 @@ import EssentialTable from '@/components/EssentialTable.vue'
 import TextInput from '@/components/TextInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
+import MobileActionBar from '@/components/MobileActionBar.vue'
 import VerificationTrayInfo from '@/components/Verification/VerificationTrayInfo.vue'
 import VerificationNonTrayInfo from '@/components/Verification/VerificationNonTrayInfo.vue'
 import VerificationBatchSheet from '@/components/Verification/VerificationBatchSheet.vue'
@@ -437,6 +396,8 @@ const {
 // Local Data
 const batchSheetComponent = ref(null)
 const isLoading = ref(false)
+const trayInfoComponent = ref(null)
+const nonTrayInfoComponent = ref(null)
 const verificationTableComponent = ref(null)
 const verificationTableColumns = ref([
   {
@@ -448,7 +409,7 @@ const verificationTableColumns = ref([
   },
   {
     name: 'verified',
-    field: 'verified',
+    field: 'scanned_for_verification',
     label: '',
     align: 'right',
     sortable: false
@@ -459,6 +420,15 @@ const showConfirmation = ref(null)
 const showBarcodeEdit = ref(false)
 const manualBarcodeEdit = ref('')
 const showNextTrayModal = ref(false)
+const renderIsEditMode = computed(() => {
+  if (trayInfoComponent.value && trayInfoComponent.value.editMode) {
+    return true
+  } else if (nonTrayInfoComponent.value && nonTrayInfoComponent.value.editMode) {
+    return true
+  } else {
+    return false
+  }
+})
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -495,7 +465,7 @@ const triggerItemScan = async (barcode_value) => {
     } else {
       // example barcode for non tray item: 'CL555923'
       // check if we have a current active item and validate it if it hasnt been verified yet
-      if (verificationContainer.value.id && !verificationContainer.value.verified) {
+      if (verificationContainer.value.id && !verificationContainer.value.scanned_for_verification) {
         await validateItemBarcode()
       }
 
@@ -557,13 +527,15 @@ const addContainerItem = async () => {
   try {
     const currentDate = new Date()
     if ( verificationJob.value.trayed ) {
-      // TODO: Rremove this hardcoded item data since it will mostly come from folio?
+      // TODO: Remove this hardcoded item data since it will mostly come from folio?
       const payload = {
+        accession_dt: verificationContainer.value.accession_dt,
         arbitrary_data: 'Signed copy',
         barcode_id: barcodeDetails.value.id,
         condition: 'Good',
         media_type_id: verificationContainer.value.media_type_id,
         owner_id: verificationJob.value.owner_id,
+        scanned_for_verification: true,
         size_class_id: verificationContainer.value.size_class_id,
         status: 'In',
         title: 'Lord of The Ringss',
