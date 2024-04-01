@@ -299,8 +299,8 @@
               </p>
             </div>
             <div class="col-auto">
-              <p class="text-body1">
-                Current
+              <p class="text-body1 outline text-highlight">
+                Completed
               </p>
             </div>
           </q-item>
@@ -540,6 +540,7 @@ const addContainerItem = async () => {
         status: 'In',
         title: 'Lord of The Ringss',
         tray_id: verificationContainer.value.id,
+        verification_job_id: verificationJob.value.id,
         volume: 'I',
         withdrawal_dt: currentDate
       }
@@ -551,7 +552,8 @@ const addContainerItem = async () => {
         media_type_id: verificationJob.value.media_type_id,
         owner_id: verificationJob.value.owner_id,
         size_class_id: verificationJob.value.size_class_id,
-        status: 'In'
+        status: 'In',
+        verification_job_id: verificationJob.value.id
       }
       await postVerificationNonTrayItem(payload)
     }

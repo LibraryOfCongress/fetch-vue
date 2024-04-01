@@ -525,6 +525,7 @@ const addContainerItem = async () => {
       // TODO: Rremove this hardcoded item data since it will mostly come from folio
       const payload = {
         accession_dt: currentDate,
+        accession_job_id: accessionJob.value.id,
         arbitrary_data: 'Signed copy',
         barcode_id: barcodeDetails.value.id,
         condition: 'Good',

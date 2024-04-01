@@ -34,14 +34,14 @@ export const useVerificationStore = defineStore('verification', {
   getters: {
     allItemsVerified: (state) => {
       if (state.verificationJob.trayed == false) {
-        return state.verificationJob.non_tray_items.length == 0 || state.verificationJob.non_tray_items.some(item => item.scanned_for_verification == false) ? false : true
+        return state.verificationJob.non_tray_items.length == 0 || state.verificationJob.non_tray_items.some(item => !item.scanned_for_verification) ? false : true
       } else {
-        return state.verificationContainer.items.length == 0 || state.verificationContainer.items.some(item => item.scanned_for_verification == false) ? false : true
+        return state.verificationContainer.items.length == 0 || state.verificationContainer.items.some(item => !item.scanned_for_verification) ? false : true
       }
     },
     allTraysCompleted: (state) => {
       if (state.verificationJob.trayed && state.verificationJob.trays.length > 0) {
-        return state.verificationJob.trays.some(t => t.collection_verified == false) ? false : true
+        return state.verificationJob.trays.some(t => !t.collection_verified) ? false : true
       } else {
         return true
       }
