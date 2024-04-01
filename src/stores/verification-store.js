@@ -36,12 +36,18 @@ export const useVerificationStore = defineStore('verification', {
       if (state.verificationJob.trayed == false) {
         return state.verificationJob.non_tray_items.length == 0 || state.verificationJob.non_tray_items.some(item => !item.scanned_for_verification) ? false : true
       } else {
-        return state.verificationContainer.items.length == 0 || state.verificationContainer.items.some(item => !item.scanned_for_verification) ? false : true
+        // if were in a trayed job and no tray scanned yet then return true otherwise if a tray is loaded we need to check that all tray items are verified
+        if (!state.verificationContainer.id) {
+          return true
+        } else {
+          return state.verificationContainer.items.length == 0 || state.verificationContainer.items.some(item => !item.scanned_for_verification) ? false : true
+        }
       }
     },
     allTraysCompleted: (state) => {
       if (state.verificationJob.trayed && state.verificationJob.trays.length > 0) {
-        return state.verificationJob.trays.some(t => !t.collection_verified) ? false : true
+        // filter out the active tray if there is one since that trays completion will be based on the all items verified state
+        return state.verificationJob.trays.filter(t => t.id !== state.verificationContainer.id).some(t => !t.collection_verified) ? false : true
       } else {
         return true
       }
@@ -159,6 +165,10 @@ export const useVerificationStore = defineStore('verification', {
         const res = await this.$api.patch(`${inventoryServiceApi.trays}${payload.id}`, payload)
         this.verificationContainer = { ...res.data, items: res.data.items ?? [] }
         this.originalVerificationContainer = { ...this.verificationContainer }
+
+        // update the tray in the verificationJob trays
+        this.verificationJob.trays[this.verificationJob.trays.findIndex(tray => tray.id == payload.id)] = res.data
+        this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {
         return error
       }

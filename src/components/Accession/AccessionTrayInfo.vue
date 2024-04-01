@@ -227,7 +227,6 @@ const handleTrayScan = async (barcode_value) => {
         collection_accessioned: false,
         container_type_id: 1, //TODO Remove once not need from api
         media_type_id: accessionJob.value.media_type_id,
-        owner_id: accessionJob.value.owner_id,
         scanned_for_accession: false,
         shelved_dt: currentDate,
         size_class_id: generateSizeClass,

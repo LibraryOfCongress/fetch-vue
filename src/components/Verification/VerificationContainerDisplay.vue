@@ -33,8 +33,8 @@
           <MoreOptionsMenu
             v-else
             :options="[{
-              text: 'Next Tray',
-              disabled: !verificationContainer.id || !allItemsVerified || verificationJob.status == 'Paused' || verificationJob.trays.length <= 1
+              text: `${!verificationContainer.id ? 'View Trays' : 'Next Tray'}`,
+              disabled: !allItemsVerified || verificationJob.status == 'Paused' || verificationJob.trays.length <= 1
             }, {
               text: `${selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'}`,
               disabled: !verificationContainer.id || verificationJob.status == 'Paused'
@@ -77,7 +77,7 @@
             no-caps
             unelevated
             color="accent"
-            label="Next Tray"
+            :label="!verificationContainer.id ? 'View Trays' : 'Next Tray'"
             class="text-body1"
             :disabled="verificationJob.status == 'Paused' || !allItemsVerified || allTraysCompleted"
             @click="showNextTrayModal = !showNextTrayModal"
@@ -287,13 +287,38 @@
           class="col-12 q-mb-sm"
         >
           <q-item
-            v-if="tray.id == verificationContainer.id"
+            v-if="!verificationContainer.id"
             class="verification-next-tray-item"
           >
-            <div class="col-grow text-left">
+            <div class="col-12">
               <p class="text-h6 text-color-black">
-                Tray #: {{ tray.id }}
+                Tray #: {{ tray.barcode?.value }}
               </p>
+            </div>
+            <div class="col-grow text-left">
+              <p class="text-body1">
+                Trayed
+              </p>
+            </div>
+            <div class="col-auto">
+              <p
+                class="text-body1 outline"
+                :class="tray.collection_verified ? 'text-highlight' : !tray.collection_verified && tray.scanned_for_verification ? 'text-highlight-yellow' : 'text-highlight-red'"
+              >
+                {{ tray.collection_verified ? 'Completed' : !tray.collection_verified && tray.scanned_for_verification ? 'In Progress' : 'Not Started' }}
+              </p>
+            </div>
+          </q-item>
+          <q-item
+            v-else-if="tray.id == verificationContainer.id"
+            class="verification-next-tray-item"
+          >
+            <div class="col-12">
+              <p class="text-h6 text-color-black">
+                Tray #: {{ tray.barcode?.value }}
+              </p>
+            </div>
+            <div class="col-grow text-left">
               <p class="text-body1">
                 Trayed
               </p>
@@ -310,23 +335,24 @@
             outline
             color="secondary"
             class="verification-next-tray-action full-width"
-            @click="setNextVerificationTray(tray.id); hideModal();"
+            @click="setNextVerificationTray(); hideModal();"
           >
-            <div class="col-grow text-left">
+            <div class="col-12 text-left">
               <p class="text-h6 text-color-black">
-                Tray #: {{ tray.id }}
+                Tray #: {{ tray.barcode?.value }}
               </p>
+            </div>
+            <div class="col-grow text-left">
               <p class="text-body1">
                 Trayed
               </p>
             </div>
-
             <div class="col-auto">
               <p
-                class="text-body1"
-                :class="!tray.scanned_for_verification ? 'outline text-highlight-red' : ''"
+                class="text-body1 outline"
+                :class="tray.collection_verified ? 'text-highlight' : !tray.collection_verified && tray.scanned_for_verification ? 'text-highlight-yellow' : 'text-highlight-red'"
               >
-                {{ !tray.scanned_for_verification ? 'Not Started' : 'In Progress' }}
+                {{ tray.collection_verified ? 'Completed' : !tray.collection_verified && tray.scanned_for_verification ? 'In Progress' : 'Not Started' }}
               </p>
             </div>
           </q-btn>
@@ -376,6 +402,7 @@ const { barcodeDetails } = storeToRefs(useBarcodeStore())
 const {
   resetVerificationContainer,
   patchVerificationJob,
+  patchVerificationTray,
   getVerificationNonTrayItem,
   postVerificationTrayItem,
   patchVerificationTrayItem,
@@ -534,7 +561,6 @@ const addContainerItem = async () => {
         barcode_id: barcodeDetails.value.id,
         condition: 'Good',
         media_type_id: verificationContainer.value.media_type_id,
-        owner_id: verificationJob.value.owner_id,
         scanned_for_verification: true,
         size_class_id: verificationContainer.value.size_class_id,
         status: 'In',
@@ -550,7 +576,6 @@ const addContainerItem = async () => {
       const payload = {
         barcode_id: barcodeDetails.value.id,
         media_type_id: verificationJob.value.media_type_id,
-        owner_id: verificationJob.value.owner_id,
         size_class_id: verificationJob.value.size_class_id,
         status: 'In',
         verification_job_id: verificationJob.value.id
@@ -683,14 +708,31 @@ const handleOptionMenu = (option) => {
     setBarcodeEditDisplay()
   } else if (option.text == 'Delete Items') {
     showConfirmation.value = { type: 'delete', text:'Are you sure you want to delete selected items?' }
-  } else if (option.text == 'Next Tray') {
+  } else if (option.text == 'View Trays' || option.text == 'Next Tray') {
     showNextTrayModal.value = !showNextTrayModal.value
   }
 }
 
 const setNextVerificationTray = async () => {
-  // send the user back to the job and wait for next tray to be scanned
-  router.push({ name: 'verification', params: { jobId: verificationJob.value.id } })
+  try {
+    // set the current tray to completed status since user can only go to the next tray if the current tray is done
+    if (!verificationContainer.value.collection_verified) {
+      const payload = {
+        id: verificationContainer.value.id,
+        collection_verified: true
+      }
+      await patchVerificationTray(payload)
+    }
+
+    // send the user back to the job and wait for next tray to be scanned
+    router.push({ name: 'verification', params: { jobId: verificationJob.value.id } })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  }
 }
 const updateVerificationJobStatus = async (status) => {
   try {
@@ -794,6 +836,7 @@ const completeVerificationJob = async () => {
 .verification-next-tray {
   &-item {
     display: flex;
+    flex-flow: row wrap;
     align-items: center;
     border: 2px dashed $secondary;
     border-radius: 3px;

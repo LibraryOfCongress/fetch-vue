@@ -244,6 +244,11 @@ const handleTrayScan = async (barcode_value) => {
       // load the tray details
       await getVerificationTray(barcode_value)
 
+      // set tray scanned status to true if the scanned tray wasnt already scanned at some point
+      if (!verificationContainer.value.scanned_for_verification) {
+        await patchVerificationTray({ id: verificationContainer.value.id, scanned_for_verification: true })
+      }
+
       // set the scanned tray barcode as the container id in the route
       router.push({
         name: 'verification-container',
