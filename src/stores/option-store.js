@@ -3,6 +3,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useOptionStore = defineStore('options', {
   state: () => ({
+    buildings: [],
     containerTypes: [
       {
         id: 1,
@@ -16,7 +17,8 @@ export const useOptionStore = defineStore('options', {
     sizeClass: [],
     mediaTypes: [],
     owners: [],
-    ownerTierOptions: []
+    ownerTierOptions: [],
+    users: []
   }),
   actions: {
     resetOptionStore () {

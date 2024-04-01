@@ -16,6 +16,7 @@ import { useGlobalStore } from '@/stores/global-store'
 import { storeToRefs } from 'pinia'
 // Props
 defineProps({
+  // used for unit test
   testLoading: {
     type: Boolean,
     default: false

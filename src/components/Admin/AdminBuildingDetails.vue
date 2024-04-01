@@ -316,7 +316,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeMount, ref, watch } from 'vue'
+import { computed, onBeforeMount, ref } from 'vue'
 import { useBuildingStore } from '@/stores/building-store'
 import { useOptionStore } from '@/stores/option-store'
 import { storeToRefs } from 'pinia'
@@ -557,31 +557,6 @@ onBeforeMount(() => {
       'shelf_width',
       'shelf_height',
       'shelf_depth'
-    ]
-  }
-})
-
-watch(currentScreenSize, () => {
-  if (currentScreenSize.value == 'xs') {
-    shelfItemsTableVisibleColumns.value = [
-      'actions',
-      'shelf_number',
-      'shelf_width',
-      'shelf_height',
-      'shelf_depth'
-    ]
-  } else {
-    shelfItemsTableVisibleColumns.value = [
-      'actions',
-      'shelf_number',
-      'shelf_width',
-      'shelf_height',
-      'shelf_depth',
-      'size_class',
-      'max_capacity',
-      'container_type',
-      'owner',
-      'id'
     ]
   }
 })

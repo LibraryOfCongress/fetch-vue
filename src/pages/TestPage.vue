@@ -5,7 +5,7 @@
   >
     <div class="row">
       <div class="col-12">
-        <h1 class="text-h2">
+        <h1 class="text-h4 text-primary q-mb-md">
           List of Owner Tiers
         </h1>
         <ul class="owner-list">
@@ -60,7 +60,7 @@
 
     <div class="row">
       <div class="col-12">
-        <h1 class="text-h2">
+        <h1 class="text-h4 text-primary q-mb-md">
           Alert Examples
         </h1>
 
@@ -90,7 +90,7 @@
 
     <div class="row">
       <div class="col-12">
-        <h1 class="text-h2">
+        <h1 class="text-h4 text-primary q-mb-md">
           File System Access Api Examples
         </h1>
       </div>
@@ -335,11 +335,6 @@ const saveChangesToText = async () => {
 </script>
 
 <style lang="scss" scoped>
-h1 {
-  font-size: 30px;
-  color: $primary;
-}
-
 .owner-list {
   position: relative;
   display: inline-block;

@@ -158,10 +158,21 @@ const generateBreadCrumbs = () => {
     ]
     break
   case 'shelving':
-    breadCrumbs = [
-      ...breadCrumbs,
-      { text: 'Shelving' }
-    ]
+    if (!route.params.jobId) {
+      breadCrumbs = [
+        ...breadCrumbs,
+        { text: 'Shelving' }
+      ]
+    } else {
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Shelving',
+          to: '/shelving'
+        },
+        { text: `${route.params.jobId}` }
+      ]
+    }
     break
   default:
     break
