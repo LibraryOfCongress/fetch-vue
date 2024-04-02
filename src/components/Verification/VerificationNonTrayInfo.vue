@@ -126,6 +126,7 @@
               color="accent"
               label="Save Edits"
               class="full-width text-body1"
+              :loading="appActionIsLoadingData"
               @click="!verificationContainer.id ? updateNonTrayJob() : updateNonTrayItem()"
               :disabled="verificationJob.status == 'Paused'"
             />
@@ -156,6 +157,7 @@
       button-one-color="accent"
       button-one-label="Save Edits"
       :button-one-outline="false"
+      :button-one-loading="appActionIsLoadingData"
       @button-one-click="!verificationContainer.id ? updateNonTrayJob() : updateNonTrayContainer()"
       button-two-color="accent"
       button-two-label="Cancel"
@@ -168,6 +170,7 @@
 <script setup>
 import { ref, toRaw, inject } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useGlobalStore } from '@/stores/global-store'
 import { useVerificationStore } from '@/stores/verification-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
@@ -177,10 +180,14 @@ import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import VerificationMobileInfo from '@/components/Verification/VerificationMobileInfo.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
 
+// Emits
+const emit = defineEmits(['print'])
+
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
+const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   owners,
   sizeClass,
@@ -207,8 +214,7 @@ const handleOptionMenu = (option) => {
   if (option.text == 'Edit') {
     editMode.value = true
   } else if (option.text == 'Print Job') {
-    //TODO: emit to the main container to print the batch sheet?
-    // batchSheetComponent.value.printBatchReport()
+    emit('print')
   }
 }
 
@@ -223,11 +229,13 @@ const cancelNonTrayEdit = () => {
 }
 const updateNonTrayJob = async () => {
   try {
+    appActionIsLoadingData.value = true
     const payload = {
       id: verificationJob.value.id,
       owner_id: verificationJob.value.owner_id,
       media_type_id: verificationJob.value.media_type_id,
-      size_class_id: verificationJob.value.size_class_id
+      size_class_id: verificationJob.value.size_class_id,
+      status: 'Running'
     }
 
     await patchVerificationJob(payload)
@@ -244,11 +252,13 @@ const updateNonTrayJob = async () => {
       autoClose: true
     })
   } finally {
+    appActionIsLoadingData.value = false
     editMode.value = false
   }
 }
 const updateNonTrayItem = async () => {
   try {
+    appActionIsLoadingData.value = true
     const payload = {
       id: verificationContainer.value.id,
       media_type_id: verificationContainer.value.media_type_id,
@@ -269,6 +279,7 @@ const updateNonTrayItem = async () => {
       autoClose: true
     })
   } finally {
+    appActionIsLoadingData.value = false
     editMode.value = false
   }
 }

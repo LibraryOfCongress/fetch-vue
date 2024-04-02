@@ -28,10 +28,10 @@
             Total Trays: {{ verificationJobDetails.trays ? verificationJobDetails.trays.length : 0 }}
           </p>
           <p class="text-h5 text-bold q-mb-sm">
-            Total Items: {{ verificationJobDetails.items ? verificationJobDetails.items.length : 0 }}
+            Total Items: {{ renderTotalItems }}
           </p>
           <p class="text-h5 text-bold">
-            Owner: {{ verificationJobDetails.owner }}
+            Owner: {{ verificationJobDetails.owner?.name }}
           </p>
         </section>
 
@@ -42,7 +42,7 @@
             Manifest:
           </p>
           <table
-            v-if="verificationJobDetails.type == 1"
+            v-if="verificationJobDetails.trayed == false"
             class="table-borderless"
           >
             <thead>
@@ -53,11 +53,11 @@
             </thead>
             <tbody>
               <tr
-                v-for="item in verificationJobDetails.items"
+                v-for="item in verificationJobDetails.non_tray_items"
                 :key="item.id"
               >
-                <td>{{ item.id }}</td>
-                <td>{{ item.size_class }}</td>
+                <td>{{ item.barcode?.value }}</td>
+                <td>{{ item.size_class?.name }}</td>
               </tr>
             </tbody>
           </table>
@@ -77,8 +77,8 @@
                 v-for="tray in verificationJobDetails.trays"
                 :key="tray.id"
               >
-                <td>{{ tray.id }}</td>
-                <td>{{ tray.size_class }}</td>
+                <td>{{ tray.barcode?.value }}</td>
+                <td>{{ tray.size_class?.name }}</td>
                 <td>{{ tray.items ? tray.items.length : 0 }}</td>
               </tr>
             </tbody>
@@ -90,10 +90,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import PrintTemplate from '@/components/PrintTemplate.vue'
 // Props
-defineProps({
+const mainProps = defineProps({
   verificationJobDetails: {
     type: Object,
     required: true
@@ -102,6 +102,14 @@ defineProps({
 
 // Local Data
 const printTemplate = ref(null)
+const renderTotalItems = computed(() => {
+  if (mainProps.verificationJobDetails.trayed) {
+    //TODO: need to figure out how we want to calculate total items for trayed jobs
+    return 0
+  } else {
+    return mainProps.verificationJobDetails.non_tray_items.length
+  }
+})
 
 // Logic
 const printBatchReport = () => {

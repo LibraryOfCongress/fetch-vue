@@ -228,16 +228,8 @@
               <label class="form-group-label">
                 Side
               </label>
-              <q-btn-toggle
+              <ToggleButtonInput
                 v-model="buildingForm.side"
-                spread
-                no-caps
-                unelevated
-                toggle-color="accent"
-                color="white"
-                text-color="black"
-                class="form-toggle"
-                :style="[ currentScreenSize == 'xs' ? 'height:40px;' : 'height:56px;' ]"
                 :options="[
                   {label: 'Left', value: 'left'},
                   {label: 'Right', value: 'right'}
@@ -281,16 +273,9 @@
             label="Create"
             class="text-body1 full-width"
             :disabled="!isBuildingFormValid"
-            :loading="isLoading"
+            :loading="appActionIsLoadingData"
             @click="submitBuildingForm"
-          >
-            <template #loading>
-              <q-spinner-bars
-                color="white"
-                size="1.5rem"
-              />
-            </template>
-          </q-btn>
+          />
 
           <q-space class="q-mx-xs" />
 
@@ -401,16 +386,8 @@
               <label class="form-group-label">
                 Side
               </label>
-              <q-btn-toggle
+              <ToggleButtonInput
                 v-model="buildingForm.side"
-                spread
-                no-caps
-                unelevated
-                toggle-color="accent"
-                color="white"
-                text-color="black"
-                class="form-toggle"
-                :style="[ currentScreenSize == 'xs' ? 'height:40px;' : 'height:56px;' ]"
                 :options="[
                   {label: 'Left', value: 'left'},
                   {label: 'Right', value: 'right'}
@@ -446,16 +423,9 @@
             :label="currentScreenSize == 'xs' ? 'Create' : 'Create Hierarchy'"
             class="text-body1 full-width"
             :disabled="!isBulkUploadValid"
-            :loading="isLoading"
+            :loading="appActionIsLoadingData"
             @click="submitBulkUploadForm"
-          >
-            <template #loading>
-              <q-spinner-bars
-                color="white"
-                size="1.5rem"
-              />
-            </template>
-          </q-btn>
+          />
 
           <q-space class="q-mx-xs" />
 
@@ -477,10 +447,12 @@ import { ref, inject, computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { useGlobalStore } from '@/stores/global-store'
 import { useBuildingStore } from '@/stores/building-store'
 import PopupModal from '@/components/PopupModal.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import TextInput from '@/components/TextInput.vue'
+import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import FileUploadInput from '@/components/FileUploadInput.vue'
 
 const router = useRouter()
@@ -489,11 +461,11 @@ const router = useRouter()
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
+const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { getBuildingsList } = useBuildingStore()
 const { buildings, buildingDetails } = storeToRefs(useBuildingStore())
 
 // Local Data
-const isLoading = ref(false)
 const buildingFormTitle = ref('')
 const buildingForm = ref({
   building: '',
@@ -666,7 +638,7 @@ const handleBuildingFormChange = (valueType) => {
 const submitBuildingForm = async () => {
   // TODO: Setup endpoints needed to send the different building properties to the location hierarchy
   try {
-    isLoading.value = true
+    appActionIsLoadingData.value = true
     console.log('creating building/fields', buildingForm.value)
 
     // mock api request success (remove once api setup)
@@ -677,7 +649,7 @@ const submitBuildingForm = async () => {
         autoClose: true
       })
       resetBuildingForm()
-      isLoading.value = false
+      appActionIsLoadingData.value = false
       resolve
     }, 2000))
   } catch (err) {
@@ -691,7 +663,7 @@ const submitBuildingForm = async () => {
 const submitBulkUploadForm = async () => {
   // TODO: Setup endpoints needed to send the different building properties to the location hierarchy
   try {
-    isLoading.value = true
+    appActionIsLoadingData.value = true
     console.log('uploading building/fields using file', bulkUploadFile.value, buildingForm.value)
 
     // mock api request success (remove once api setup)
@@ -702,7 +674,7 @@ const submitBulkUploadForm = async () => {
         autoClose: true
       })
       resetBulkUploadForm()
-      isLoading.value = false
+      appActionIsLoadingData.value = false
       resolve
     }, 2000))
   } catch (err) {

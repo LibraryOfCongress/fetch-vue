@@ -31,17 +31,7 @@
 
     <div class="row">
       <div
-        v-if="isLoading"
-        class="overlay"
-      >
-        <q-spinner-bars
-          color="primary"
-          size="2rem"
-          class="overlay-loading"
-        />
-      </div>
-      <div
-        v-else-if="accessionJobList.length == 0"
+        v-if="accessionJobList.length == 0"
         class="col-auto"
       >
         <p class="text-h6">
@@ -218,6 +208,7 @@
             label="Submit"
             class="text-body1 full-width"
             :disable="!canSubmitAccessionJob"
+            :loading="appActionIsLoadingData"
             @click="submitAccessionJob"
           />
 
@@ -240,6 +231,7 @@
 import { ref, computed, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { useGlobalStore } from '@/stores/global-store'
 import { useAccessionStore } from 'src/stores/accession-store'
 import { useOptionStore } from 'src/stores/option-store'
 import SelectInput from '@/components/SelectInput.vue'
@@ -248,12 +240,12 @@ import PopupModal from '@/components/PopupModal.vue'
 const router = useRouter()
 
 // Store Data
+const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { resetAccessionStore, postAccessionJob, getAccessionJobList, getAccessionJob } = useAccessionStore()
 const { accessionJob, accessionJobList } = storeToRefs(useAccessionStore())
 const { owners, mediaTypes, sizeClass } = storeToRefs(useOptionStore())
 
 // Local Data
-const isLoading = ref(false)
 const showAccessionModal = ref(false)
 const canSubmitAccessionJob = computed(() => {
   if (accessionJob.value.owner !== null) {
@@ -273,7 +265,7 @@ onMounted(() => {
 
 const loadAccessionJobs = async () => {
   try {
-    isLoading.value = true
+    appIsLoadingData.value = true
     await getAccessionJobList()
   } catch (error) {
     handleAlert({
@@ -282,12 +274,12 @@ const loadAccessionJobs = async () => {
       autoClose: true
     })
   } finally {
-    isLoading.value = false
+    appIsLoadingData.value = false
   }
 }
 const loadAccessionJob = async (jobId) => {
   try {
-    isLoading.value = true
+    appIsLoadingData.value = true
     await getAccessionJob(jobId)
 
     router.push({
@@ -303,7 +295,7 @@ const loadAccessionJob = async (jobId) => {
       autoClose: true
     })
   } finally {
-    isLoading.value = false
+    appIsLoadingData.value = false
   }
 }
 
@@ -317,6 +309,7 @@ const startAccessionProcess = () => {
 }
 const submitAccessionJob = async () => {
   try {
+    appActionIsLoadingData.value = true
     const currentDate = new Date()
     const payload = {
       last_transition: currentDate,
@@ -324,7 +317,7 @@ const submitAccessionJob = async () => {
       media_type_id: accessionJob.value.media_type,
       owner_id: accessionJob.value.owner,
       run_time: currentDate.toLocaleString('en-us', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).split(' ').shift(),
-      status: 'Created',
+      status: 'Running',
       trayed: accessionJob.value.trayed
     }
 
@@ -349,6 +342,7 @@ const submitAccessionJob = async () => {
       autoClose: true
     })
   } finally {
+    appActionIsLoadingData.value = false
     showAccessionModal.value = false
   }
 }

@@ -7,10 +7,12 @@
     :options="localOptions"
     :option-value="optionValue"
     :option-label="optionLabel"
+    :multiple="multiple"
+    :use-chips="useChips"
     emit-value
     map-options
     use-input
-    hide-selected
+    :hide-selected="hideSelected"
     fill-input
     input-debounce="500"
     @filter="filterOptions"
@@ -60,6 +62,18 @@ const mainProps = defineProps({
   placeholder: {
     type: String,
     default: ''
+  },
+  multiple: {
+    type: Boolean,
+    default: false
+  },
+  useChips: {
+    type: Boolean,
+    default: false
+  },
+  hideSelected: {
+    type: Boolean,
+    default: true
   },
   disabled: {
     type: Boolean,

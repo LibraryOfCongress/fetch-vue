@@ -4,6 +4,8 @@
     :padding="!route.params.jobId"
     class="accession column no-wrap"
   >
+    <LoadingOverlay />
+
     <AccessionDashboard v-if="!route.params.jobId" />
 
     <AccessionContainerDisplay v-if="route.params.jobId" />
@@ -16,6 +18,7 @@ import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAccessionStore } from 'src/stores/accession-store'
 import { useOptionStore } from '@/stores/option-store'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import AccessionDashboard from '@/components/Accession/AccessionDashboard.vue'
 import AccessionContainerDisplay from '@/components/Accession/AccessionContainerDisplay.vue'
 
