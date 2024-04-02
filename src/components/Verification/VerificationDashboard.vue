@@ -131,11 +131,13 @@
 import { ref, onMounted, inject } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
+import { useGlobalStore } from '@/stores/global-store'
 import { useVerificationStore } from 'src/stores/verification-store'
 
 const router = useRouter()
 
 // Store Data
+const { appIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   resetVerificationStore,
   getVerificationJobList,
@@ -157,11 +159,12 @@ onMounted(() => {
 
 const loadVerificationJobs = async () => {
   try {
+    appIsLoadingData.value = true
     await getVerificationJobList()
 
     // filter jobs by status
     if (verificationJobList.value.length > 0) {
-      jobsInProgress.value = verificationJobList.value.filter(job => job.status !== 'Created')
+      jobsInProgress.value = verificationJobList.value.filter(job => job.status !== 'Created' && job.status !== 'Completed')
       jobsInQueue.value = verificationJobList.value.filter(job => job.status == 'Created')
     }
   } catch (error) {
@@ -170,10 +173,13 @@ const loadVerificationJobs = async () => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 const loadVerificationJob = async (jobId) => {
   try {
+    appIsLoadingData.value = true
     await getVerificationJob(jobId)
 
     router.push({
@@ -188,6 +194,8 @@ const loadVerificationJob = async (jobId) => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 </script>

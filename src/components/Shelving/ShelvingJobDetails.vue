@@ -269,16 +269,8 @@
               <label class="form-group-label">
                 Side
               </label>
-              <q-btn-toggle
+              <ToggleButtonInput
                 v-model="locationForm.side_id"
-                spread
-                no-caps
-                unelevated
-                toggle-color="accent"
-                color="white"
-                text-color="black"
-                class="form-toggle"
-                :style="[ currentScreenSize == 'xs' ? 'height:40px;' : 'height:56px;' ]"
                 :options="[
                   {label: 'Left', value: 'left'},
                   {label: 'Right', value: 'right'}
@@ -354,17 +346,10 @@
             color="accent"
             label="Submit"
             class="text-body1 full-width"
-            :loading="isLoading"
+            :loading="appActionIsLoadingData"
             :disabled="!isLocationFormValid || shelvingJob.status == 'Paused'"
             @click="submitLocationForm(); hideModal();"
-          >
-            <template #loading>
-              <q-spinner-bars
-                color="white"
-                size="1.5rem"
-              />
-            </template>
-          </q-btn>
+          />
 
           <q-space class="q-mx-xs" />
 
@@ -384,6 +369,7 @@
 <script setup>
 import { ref, inject, computed, onBeforeMount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useGlobalStore } from '@/stores/global-store'
 import { useShelvingStore } from '@/stores/shelving-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useBuildingStore } from '@/stores/building-store'
@@ -393,6 +379,7 @@ import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
+import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
 
 const router = useRouter()
@@ -402,6 +389,7 @@ const route = useRoute()
 const { currentScreenSize } = useCurrentScreenSize()
 
 // // Store Data
+const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   getBuildingDetails,
   getModuleDetails,
@@ -418,7 +406,6 @@ const { shelvingJob } = storeToRefs(useShelvingStore())
 const { users, owners, sizeClass, buildings } = storeToRefs(useOptionStore())
 
 // Local Data
-const isLoading = ref(false)
 const shelfTableColumns = ref([
   {
     name: 'actions',
@@ -660,7 +647,7 @@ const resetLocationForm = () => {
 }
 const submitLocationForm = async () => {
   try {
-    isLoading.value = true
+    appActionIsLoadingData.value = true
     //TODO setup call to post/patch item location data to shelving job
     console.log('submitting location data', locationForm.value)
     resetLocationForm()
@@ -671,7 +658,7 @@ const submitLocationForm = async () => {
       autoClose: true
     })
   } finally {
-    isLoading.value = false
+    appActionIsLoadingData.value = false
   }
 }
 

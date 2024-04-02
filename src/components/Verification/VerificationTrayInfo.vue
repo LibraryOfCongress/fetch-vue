@@ -123,6 +123,7 @@
               color="accent"
               label="Save Edits"
               class="full-width text-body1"
+              :loading="appActionIsLoadingData"
               @click="!verificationContainer.id ? updateTrayJob() : updateTrayContainer()"
               :disabled="verificationJob.status == 'Paused'"
             />
@@ -154,6 +155,7 @@
       button-one-color="accent"
       button-one-label="Save Edits"
       :button-one-outline="false"
+      :button-one-loading="appActionIsLoadingData"
       @button-one-click="!verificationContainer.id ? updateTrayJob() : updateTrayContainer()"
       button-two-color="accent"
       button-two-label="Cancel"
@@ -167,6 +169,7 @@
 import { ref, toRaw, watch, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { useGlobalStore } from '@/stores/global-store'
 import { useVerificationStore } from '@/stores/verification-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useBarcodeStore } from '@/stores/barcode-store'
@@ -180,12 +183,16 @@ import MobileActionBar from '@/components/MobileActionBar.vue'
 
 const router = useRouter()
 
+// Emits
+const emit = defineEmits(['print'])
+
 // Composables
 const { compiledBarCode } = useBarcodeScanHandler()
 const { verifyBarcode } = useBarcodeStore()
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
+const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   owners,
   sizeClass,
@@ -211,7 +218,7 @@ const editMode = ref(false)
 const handleAlert = inject('handle-alert')
 
 watch(compiledBarCode, (barcode_value) => {
-  if (barcode_value !== '' && !verificationContainer.value.id) {
+  if (barcode_value !== '' && !verificationContainer.value.id && verificationJob.value.status !== 'Paused') {
     handleTrayScan(barcode_value)
   }
 })
@@ -249,6 +256,11 @@ const handleTrayScan = async (barcode_value) => {
         await patchVerificationTray({ id: verificationContainer.value.id, scanned_for_verification: true })
       }
 
+      // set job status to running if it isnt already running
+      if (verificationJob.value.status !== 'Running') {
+        await updateTrayJob()
+      }
+
       // set the scanned tray barcode as the container id in the route
       router.push({
         name: 'verification-container',
@@ -271,8 +283,7 @@ const handleOptionMenu = (option) => {
   if (option.text == 'Edit') {
     editMode.value = true
   } else if (option.text == 'Print Job') {
-    //TODO: emit to the main container to print the batch sheet?
-    // batchSheetComponent.value.printBatchReport()
+    emit('print')
   }
 }
 
@@ -287,10 +298,12 @@ const cancelTrayEdit = () => {
 }
 const updateTrayJob = async () => {
   try {
+    appActionIsLoadingData.value = true
     const payload = {
       id: verificationJob.value.id,
       owner_id: verificationJob.value.owner_id,
-      media_type_id: verificationJob.value.media_type_id
+      media_type_id: verificationJob.value.media_type_id,
+      status: 'Running'
     }
 
     await patchVerificationJob(payload)
@@ -307,11 +320,14 @@ const updateTrayJob = async () => {
       autoClose: true
     })
   } finally {
+    appActionIsLoadingData.value = false
     editMode.value = false
   }
 }
 const updateTrayContainer = async () => {
   try {
+    appActionIsLoadingData.value = true
+
     const payload = {
       ...verificationContainer.value
     }
@@ -329,6 +345,7 @@ const updateTrayContainer = async () => {
       autoClose: true
     })
   } finally {
+    appActionIsLoadingData.value = false
     editMode.value = false
   }
 }

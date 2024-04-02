@@ -190,6 +190,7 @@
       button-two-label="Complete Job"
       :button-two-outline="false"
       :button-two-disabled="!allItemsVerified || accessionJob.status == 'Paused'"
+      :button-two-loading="appActionIsLoadingData"
       @button-two-click="showConfirmation = { type: 'completeJob', text:'Are you sure you want to complete the job?' }"
     />
   </div>
@@ -223,16 +224,9 @@
           label="submit"
           class="text-body1 full-width"
           :disabled="!manualBarcodeEdit"
-          :loading="isLoading"
+          :loading="appActionIsLoadingData"
           @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); resetBarcodeEdit();"
-        >
-          <template #loading>
-            <q-spinner-bars
-              color="white"
-              size="1.5rem"
-            />
-          </template>
-        </q-btn>
+        />
 
         <q-space class="q-mx-xs" />
 
@@ -266,6 +260,7 @@
           color="accent"
           label="Complete & Print"
           class="btn-no-wrap text-body1 full-width"
+          :loading="appActionIsLoadingData"
           @click="handleConfirmation('completePrint'); hideModal();"
         />
 
@@ -277,6 +272,7 @@
           color="accent"
           label="Complete"
           class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
           @click="handleConfirmation('completeJob'); hideModal();"
         />
 
@@ -300,6 +296,7 @@
           color="accent"
           label="Confirm"
           class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
           @click="handleConfirmation('delete'); hideModal();"
         />
 
@@ -370,6 +367,7 @@
 import { ref, watch, computed, inject } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { useGlobalStore } from '@/stores/global-store'
 import { useAccessionStore } from '@/stores/accession-store'
 import { useBarcodeStore } from '@/stores/barcode-store'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
@@ -391,6 +389,7 @@ const { compiledBarCode } = useBarcodeScanHandler()
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
+const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   verifyBarcode,
   patchBarcode,
@@ -412,7 +411,6 @@ const {
 const { accessionJob, accessionContainer, allItemsVerified } = storeToRefs(useAccessionStore())
 
 // Local Data
-const isLoading = ref(false)
 const trayInfoComponent = ref(null)
 const nonTrayInfoComponent = ref(null)
 const accessionTableComponent = ref(null)
@@ -469,6 +467,7 @@ watch(compiledBarCode, (barcode) => {
 })
 const triggerItemScan = async (barcode_value) => {
   try {
+    appActionIsLoadingData.value = true
     // example barcode for trayed item 'BK123'
     // check if the barcode is in the system otherwise create it
     await verifyBarcode(barcode_value)
@@ -506,6 +505,8 @@ const triggerItemScan = async (barcode_value) => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appActionIsLoadingData.value = false
   }
 }
 const resetBarcodeEdit = () => {
@@ -569,6 +570,7 @@ const addContainerItem = async () => {
 }
 const updateContainerItem = async (barcode_value) => {
   try {
+    appActionIsLoadingData.value = true
     // update the barcode in the system
     await patchBarcode(selectedItems.value[0].barcode.id, barcode_value)
 
@@ -614,10 +616,12 @@ const updateContainerItem = async (barcode_value) => {
   } finally {
     // clear out any selected items in the table
     accessionTableComponent.value.clearSelectedData()
+    appActionIsLoadingData.value = false
   }
 }
 const deleteContainerItem = async () => {
   try {
+    appActionIsLoadingData.value = true
     const itemsToRemove = selectedItems.value.map(item => item.id)
     if (accessionJob.value.trayed) {
       await deleteAccessionTrayItem(itemsToRemove)
@@ -651,6 +655,7 @@ const deleteContainerItem = async () => {
   } finally {
     // clear out any selected items in the table
     accessionTableComponent.value.clearSelectedData()
+    appActionIsLoadingData.value = false
   }
 }
 
@@ -716,6 +721,7 @@ const updateAccessionJobStatus = async (status) => {
 }
 const completeAccessionJob = async () => {
   try {
+    appActionIsLoadingData.value = true
     //if were in a tray job we need to mark the current tray collection as complete before completing the job
     if (accessionJob.value.trayed && !accessionContainer.value.collection_accessioned) {
       await patchAccessionTray({ id: accessionContainer.value.id, collection_accessioned: true })
@@ -746,6 +752,8 @@ const completeAccessionJob = async () => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appActionIsLoadingData.value = false
   }
 }
 </script>

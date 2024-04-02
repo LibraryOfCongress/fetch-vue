@@ -5,10 +5,12 @@
     <VerificationNonTrayInfo
       v-if="!verificationJob.trayed"
       ref="nonTrayInfoComponent"
+      @print="handleOptionMenu({ text: 'Print Job' })"
     />
     <VerificationTrayInfo
       v-else
       ref="trayInfoComponent"
+      @print="handleOptionMenu({ text: 'Print Job' })"
     />
 
     <!-- scan item section -->
@@ -206,6 +208,7 @@
       button-two-label="Complete Job"
       :button-two-outline="false"
       :button-two-disabled="!allTraysCompleted || !allItemsVerified || verificationJob.status == 'Paused'"
+      :button-two-loading="appActionIsLoadingData"
       @button-two-click="showConfirmation = { type: 'completeJob', text:'Are you sure you want to complete the job?' }"
     />
   </div>
@@ -239,16 +242,9 @@
           label="submit"
           class="text-body1 full-width"
           :disabled="!manualBarcodeEdit"
-          :loading="isLoading"
+          :loading="appActionIsLoadingData"
           @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); resetBarcodeEdit();"
-        >
-          <template #loading>
-            <q-spinner-bars
-              color="white"
-              size="1.5rem"
-            />
-          </template>
-        </q-btn>
+        />
 
         <q-space class="q-mx-xs" />
 
@@ -372,6 +368,7 @@
 import { ref, watch, inject, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { useGlobalStore } from '@/stores/global-store'
 import { useVerificationStore } from '@/stores/verification-store'
 import { useBarcodeStore } from '@/stores/barcode-store'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
@@ -393,6 +390,7 @@ const { compiledBarCode } = useBarcodeScanHandler()
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
+const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   verifyBarcode,
   patchBarcode,
@@ -422,7 +420,6 @@ const {
 
 // Local Data
 const batchSheetComponent = ref(null)
-const isLoading = ref(false)
 const trayInfoComponent = ref(null)
 const nonTrayInfoComponent = ref(null)
 const verificationTableComponent = ref(null)
@@ -469,6 +466,11 @@ watch(route, () => {
 })
 
 watch(compiledBarCode, (barcode_value) => {
+  // ignore scans if job is paused
+  if (verificationJob.value.status == 'Paused') {
+    return
+  }
+
   if (barcode_value !== '' && verificationJob.value.trayed && verificationContainer.value.id) {
     // if were in a trayed job only trigger scan if we already loaded a tray container
     triggerItemScan(barcode_value)
@@ -504,6 +506,11 @@ const triggerItemScan = async (barcode_value) => {
         await addContainerItem(barcode_value)
       }
 
+      // set job status to running if it isnt already running
+      if (verificationJob.value.status !== 'Running') {
+        await updateVerificationJobStatus('Running')
+      }
+
       // set the scanned item barcode as the container id in the route
       router.push({
         name: 'verification-container',
@@ -523,7 +530,7 @@ const triggerItemScan = async (barcode_value) => {
 }
 const validateItemBarcode = async () => {
   try {
-    isLoading.value = true
+    appActionIsLoadingData.value = true
     // get the passed in item barcodes data
     if (verificationJob.value.trayed) {
       // tray items will be marked as verified when getting their data since these match the verification job
@@ -547,7 +554,7 @@ const validateItemBarcode = async () => {
       autoClose: true
     })
   } finally {
-    isLoading.value = false
+    appActionIsLoadingData.value = false
   }
 }
 const addContainerItem = async () => {
@@ -647,6 +654,7 @@ const updateContainerItem = async (barcode_value) => {
 }
 const deleteContainerItem = async () => {
   try {
+    appActionIsLoadingData.value = true
     const itemsToRemove = selectedItems.value.map(item => item.id)
     if (verificationJob.value.trayed) {
       await deleteVerificationTrayItem(itemsToRemove)
@@ -679,6 +687,7 @@ const deleteContainerItem = async () => {
     })
   } finally {
     // clear out any selected items in the table
+    appActionIsLoadingData.value = false
     verificationTableComponent.value.clearSelectedData()
   }
 }
@@ -757,6 +766,7 @@ const updateVerificationJobStatus = async (status) => {
 }
 const completeVerificationJob = async () => {
   try {
+    appActionIsLoadingData.value = true
     const payload = {
       id: route.params.jobId,
       status: 'Completed'
@@ -782,6 +792,8 @@ const completeVerificationJob = async () => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appActionIsLoadingData.value = false
   }
 }
 </script>

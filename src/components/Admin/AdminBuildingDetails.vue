@@ -64,21 +64,13 @@
           >
             Side:
           </label>
-          <q-btn-toggle
+          <ToggleButtonInput
             v-model="shelfData.side"
-            spread
-            no-caps
-            unelevated
-            toggle-color="accent"
-            color="white"
-            text-color="black"
-            class="form-toggle"
-            :style="[ currentScreenSize == 'xs' ? 'height:40px;' : 'height:56px;' ]"
+            @update:model-value="handleShelfDataChange('Side')"
             :options="[
               {label: 'Left', value: 'left'},
               {label: 'Right', value: 'right'}
             ]"
-            @update:model-value="handleShelfDataChange('Side')"
           />
         </div>
       </div>
@@ -324,6 +316,7 @@ import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from 'src/components/EssentialTable.vue'
 import SelectInput from 'src/components/SelectInput.vue'
 import TextInput from 'src/components/TextInput.vue'
+import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 
 // Composables

@@ -4,6 +4,8 @@
     :padding="!route.params.jobId"
     class="verification column no-wrap"
   >
+    <LoadingOverlay />
+
     <VerificationDashboard v-if="!route.params.jobId" />
 
     <VerificationContainerDisplay
@@ -19,6 +21,7 @@ import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useVerificationStore } from 'src/stores/verification-store'
 import { useOptionStore } from '@/stores/option-store'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import VerificationDashboard from '@/components/Verification/VerificationDashboard.vue'
 import VerificationContainerDisplay from '@/components/Verification/VerificationContainerDisplay.vue'
 

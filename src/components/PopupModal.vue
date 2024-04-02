@@ -4,7 +4,10 @@
     persistent
     @hide="emit('reset')"
   >
-    <q-card class="popup-modal">
+    <q-card
+      class="popup-modal"
+      :style="[ `width:${modalWidth}; max-width:${modalWidth};` ]"
+    >
       <!-- header section -->
       <slot
         name="header-content"
@@ -50,6 +53,7 @@
             color="accent"
             label="Confirm"
             class="popup-modal-btn text-body1 full-width"
+            :loading="appActionIsLoadingData"
             @click="emit('confirm'); showPopupModal = false;"
           />
 
@@ -70,6 +74,8 @@
 
 <script setup>
 import { ref } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useGlobalStore } from '@/stores/global-store'
 
 // Props
 defineProps({
@@ -84,6 +90,10 @@ defineProps({
   showActions: {
     type: Boolean,
     default: true
+  },
+  modalWidth: {
+    type: String,
+    default: '500px'
   }
 })
 
@@ -92,6 +102,9 @@ const emit = defineEmits([
   'reset',
   'confirm'
 ])
+
+// Store Data
+const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 
 // Local Data
 const showPopupModal = ref(true)
@@ -105,8 +118,6 @@ defineExpose({ hideModal })
 
 <style lang="scss" scoped>
 .popup-modal {
-    width: 500px;
-
     @media (max-width: $breakpoint-sm-min) {
       width: 90vw;
     }

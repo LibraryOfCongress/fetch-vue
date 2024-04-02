@@ -10,6 +10,7 @@
       :class="buttonOneIcon == 'none' ? 'btn-hide-icon' : null"
       :outline="buttonOneOutline"
       :disabled="buttonOneDisabled"
+      :loading="buttonOneLoading"
       @click="emit('buttonOneClick', buttonOneLabel)"
     />
 
@@ -25,6 +26,7 @@
       :class="buttonTwoIcon == 'none' ? 'btn-hide-icon' : null"
       :outline="buttonTwoOutline"
       :disabled="buttonTwoDisabled"
+      :loading="buttonTwoLoading"
       @click="emit('buttonTwoClick', buttonTwoLabel)"
     />
   </div>
@@ -53,6 +55,10 @@ defineProps({
     type: Boolean,
     default: false
   },
+  buttonOneLoading: {
+    type: Boolean,
+    default: false
+  },
   buttonTwoIcon: {
     type: String,
     default: 'none'
@@ -70,6 +76,10 @@ defineProps({
     default: false
   },
   buttonTwoDisabled: {
+    type: Boolean,
+    default: false
+  },
+  buttonTwoLoading: {
     type: Boolean,
     default: false
   }

@@ -111,6 +111,7 @@
               color="accent"
               label="Save Edits"
               class="full-width text-body1"
+              :loading="appActionIsLoadingData"
               @click="!accessionContainer.id ? updateNonTrayJob() : updateNonTrayContainer()"
               :disabled="accessionJob.status == 'Paused'"
             />
@@ -135,6 +136,7 @@
         button-one-color="accent"
         button-one-label="Save Edits"
         :button-one-outline="false"
+        :button-one-loading="appActionIsLoadingData"
         @button-one-click="!accessionContainer.id ? updateNonTrayJob() : updateNonTrayContainer()"
         button-two-color="accent"
         button-two-label="Cancel"
@@ -150,6 +152,7 @@ import { ref, toRaw, inject } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { useGlobalStore } from '@/stores/global-store'
 import { useAccessionStore } from '@/stores/accession-store'
 import { useOptionStore } from '@/stores/option-store'
 import BarcodeBox from '@/components/BarcodeBox.vue'
@@ -163,6 +166,7 @@ const route = useRoute()
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
+const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   sizeClass,
   mediaTypes
@@ -201,6 +205,7 @@ const cancelNonTrayEdits = () => {
 }
 const updateNonTrayJob = async () => {
   try {
+    appActionIsLoadingData.value = true
     const payload = {
       id: route.params.jobId,
       media_type_id: accessionJob.value.media_type_id,
@@ -221,11 +226,13 @@ const updateNonTrayJob = async () => {
       autoClose: true
     })
   } finally {
+    appActionIsLoadingData.value = false
     editMode.value = false
   }
 }
 const updateNonTrayContainer = async () => {
   try {
+    appActionIsLoadingData.value = true
     // by default when updating a container we assume it has already been verified
     let addVerifiedAlert = false
     let itemPayload = {
@@ -265,6 +272,7 @@ const updateNonTrayContainer = async () => {
       autoClose: true
     })
   } finally {
+    appActionIsLoadingData.value = false
     editMode.value = false
   }
 }

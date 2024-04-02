@@ -105,6 +105,7 @@
               color="accent"
               label="Save Edits"
               class="full-width text-body1"
+              :loading="appActionIsLoadingData"
               @click="!accessionContainer.id ? updateTrayJob() : updateTrayContainer()"
               :disabled="accessionJob.status == 'Paused'"
             />
@@ -129,6 +130,7 @@
         button-one-color="accent"
         button-one-label="Save Edits"
         :button-one-outline="false"
+        :button-one-loading="appActionIsLoadingData"
         @button-one-click="!accessionContainer.id ? updateTrayJob() : updateTrayContainer()"
         button-two-color="accent"
         button-two-label="Cancel"
@@ -145,6 +147,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
+import { useGlobalStore } from '@/stores/global-store'
 import { useBarcodeStore } from '@/stores/barcode-store'
 import { useAccessionStore } from '@/stores/accession-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -161,6 +164,7 @@ const { currentScreenSize } = useCurrentScreenSize()
 const { compiledBarCode } = useBarcodeScanHandler()
 
 // Store Data
+const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { verifyBarcode } = useBarcodeStore()
 const { barcodeDetails } = storeToRefs(useBarcodeStore())
 const {
@@ -225,7 +229,6 @@ const handleTrayScan = async (barcode_value) => {
         accession_job_id: accessionJob.value.id,
         barcode_id: barcodeDetails.value.id,
         collection_accessioned: false,
-        container_type_id: 1, //TODO Remove once not need from api
         media_type_id: accessionJob.value.media_type_id,
         scanned_for_accession: false,
         shelved_dt: currentDate,
@@ -263,6 +266,7 @@ const cancelTrayEdits = () => {
 }
 const updateTrayJob = async () => {
   try {
+    appActionIsLoadingData.value = true
     const payload = {
       id: route.params.jobId,
       media_type_id: accessionJob.value.media_type_id
@@ -282,11 +286,13 @@ const updateTrayJob = async () => {
       autoClose: true
     })
   } finally {
+    appActionIsLoadingData.value = false
     editMode.value = false
   }
 }
 const updateTrayContainer = async () => {
   try {
+    appActionIsLoadingData.value = false
     const payload = {
       ...accessionContainer.value
     }
@@ -305,6 +311,7 @@ const updateTrayContainer = async () => {
       autoClose: true
     })
   } finally {
+    appActionIsLoadingData.value = false
     editMode.value = false
   }
 }
