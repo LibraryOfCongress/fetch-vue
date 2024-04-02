@@ -21,6 +21,7 @@ export function useBarcodeScanHandler () {
 
       compiledBarCode.value = scannedBarCode.value.join('')
       scannedBarCode.value = []
+      barcodeEnabled.value = false
     } else if (barcodeEnabled.value) {
       scannedBarCode.value.push(event.key)
     }

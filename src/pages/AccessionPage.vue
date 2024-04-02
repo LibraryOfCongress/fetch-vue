@@ -4,7 +4,7 @@
     :padding="!route.params.jobId"
     class="accession column no-wrap"
   >
-    <AccessionInit v-if="!route.params.jobId" />
+    <AccessionDashboard v-if="!route.params.jobId" />
 
     <AccessionContainerDisplay v-if="route.params.jobId" />
   </q-page>
@@ -16,7 +16,7 @@ import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAccessionStore } from 'src/stores/accession-store'
 import { useOptionStore } from '@/stores/option-store'
-import AccessionInit from '@/components/Accession/AccessionInit.vue'
+import AccessionDashboard from '@/components/Accession/AccessionDashboard.vue'
 import AccessionContainerDisplay from '@/components/Accession/AccessionContainerDisplay.vue'
 
 const route = useRoute()

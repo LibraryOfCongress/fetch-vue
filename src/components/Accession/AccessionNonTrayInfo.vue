@@ -130,11 +130,16 @@
       </div>
 
       <!-- mobile actions menu -->
-      <AccessionMobileActionBar
+      <MobileActionBar
         v-if="currentScreenSize == 'xs' && editMode"
-        :edit-mode="editMode"
-        @update-tray="!accessionContainer.id ? updateNonTrayJob() : updateNonTrayContainer()"
-        @cancel-tray="cancelNonTrayEdits"
+        button-one-color="accent"
+        button-one-label="Save Edits"
+        :button-one-outline="false"
+        @button-one-click="!accessionContainer.id ? updateNonTrayJob() : updateNonTrayContainer()"
+        button-two-color="accent"
+        button-two-label="Cancel"
+        :button-two-outline="true"
+        @button-two-click="cancelNonTrayEdits"
       />
     </div>
   </div>
@@ -150,7 +155,7 @@ import { useOptionStore } from '@/stores/option-store'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
-import AccessionMobileActionBar from '@/components/Accession/AccessionMobileActionBar.vue'
+import MobileActionBar from '@/components/MobileActionBar.vue'
 
 const route = useRoute()
 
@@ -229,8 +234,8 @@ const updateNonTrayContainer = async () => {
       size_class_id: accessionContainer.value.size_class_id
     }
 
-    // if the item were updating hasnt been verified we can trigger a verified status as long as a media_type was set
-    if (!accessionContainer.value.scanned_for_accession && accessionContainer.value.media_type_id) {
+    // if the item were updating hasnt been verified we can trigger a verified status as long as a media_type and size_class was set
+    if (!accessionContainer.value.scanned_for_accession && accessionContainer.value.media_type_id && accessionContainer.value.size_class_id) {
       itemPayload = {
         ...itemPayload,
         scanned_for_accession: true

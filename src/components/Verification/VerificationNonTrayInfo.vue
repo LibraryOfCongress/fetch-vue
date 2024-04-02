@@ -16,7 +16,7 @@
 
       <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12 q-mb-xs-md q-mb-sm-none q-mb-lg-lg">
         <BarcodeBox
-          :barcode="!verificationContainer.id ? 'Please Scan Non&nbsp;Tray' : verificationContainer.id"
+          :barcode="!verificationContainer.id ? 'Please Scan Non&nbsp;Tray' : verificationContainer.barcode?.value"
           class="q-mb-md-xl q-mb-lg-none"
         />
       </div>
@@ -45,7 +45,7 @@
             />
           </div>
 
-          <div class="col-xs-6 col-sm-12 verification-container-info-details">
+          <div class="col-xs-6 col-sm-12 q-mb-xs-none q-mb-sm-sm q-mb-lg-lg verification-container-info-details">
             <label class="text-h6 q-mb-xs">
               Container Type
             </label>
@@ -84,7 +84,7 @@
             />
           </div>
 
-          <div class="col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg verification-container-info-details">
+          <div class="col-xs-6 col-sm-12 verification-container-info-details">
             <label class="text-h6 q-mb-xs">
               Media Type
             </label>
@@ -150,6 +150,18 @@
       v-if="currentScreenSize == 'xs'"
       @handle-option-menu="handleOptionMenu"
     />
+
+    <MobileActionBar
+      v-if="currentScreenSize == 'xs' && editMode"
+      button-one-color="accent"
+      button-one-label="Save Edits"
+      :button-one-outline="false"
+      @button-one-click="!verificationContainer.id ? updateNonTrayJob() : updateNonTrayContainer()"
+      button-two-color="accent"
+      button-two-label="Cancel"
+      :button-two-outline="true"
+      @button-two-click="cancelNonTrayEdit()"
+    />
   </div>
 </template>
 
@@ -163,6 +175,7 @@ import BarcodeBox from '@/components/BarcodeBox.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import VerificationMobileInfo from '@/components/Verification/VerificationMobileInfo.vue'
+import MobileActionBar from '@/components/MobileActionBar.vue'
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
@@ -240,7 +253,7 @@ const updateNonTrayItem = async () => {
       id: verificationContainer.value.id,
       media_type_id: verificationContainer.value.media_type_id,
       size_class_id: verificationContainer.value.size_class_id,
-      verified: true //TODO: we'll need a verified tag to use for verification in the api
+      scanned_for_verification: true
     }
     await patchVerificationNonTrayItem(payload)
 
@@ -259,6 +272,8 @@ const updateNonTrayItem = async () => {
     editMode.value = false
   }
 }
+
+defineExpose({ editMode })
 </script>
 
 <style lang="scss" scoped>
