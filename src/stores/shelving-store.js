@@ -5,7 +5,7 @@ export const useShelvingStore = defineStore('shelving-store', {
   state: () => ({
     shelvingJobList: [],
     shelvingJob: {
-      type: 'Verification',
+      type: null,
       assignLocation: false,
       id: null,
       aisle_id: null,
@@ -30,7 +30,7 @@ export const useShelvingStore = defineStore('shelving-store', {
     },
     resetShelvingJob () {
       this.shelvingJob = {
-        type: 'Verification',
+        type: null,
         assignLocation: false,
         id: null,
         aisle_id: null,

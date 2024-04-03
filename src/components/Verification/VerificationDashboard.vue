@@ -214,6 +214,10 @@ const loadVerificationJob = async (jobId) => {
 
     @media (max-width: $breakpoint-sm-min) {
       flex-flow: row nowrap;
+
+      .q-card__section {
+        width: 50%;
+      }
     }
 
     &:hover:not(:disabled) {
@@ -234,6 +238,7 @@ const loadVerificationJob = async (jobId) => {
 
       @media (max-width: $breakpoint-sm-min) {
         padding: 1rem .75rem;
+        word-break: break-word;
       }
     }
 

@@ -403,6 +403,7 @@ const submitAccessionJob = async () => {
 
     @media (max-width: $breakpoint-sm-min) {
       flex-flow: row nowrap;
+      min-height: initial;
 
       .q-card__section {
         width: 50%;
@@ -427,6 +428,7 @@ const submitAccessionJob = async () => {
 
       @media (max-width: $breakpoint-sm-min) {
         padding: 1rem .75rem;
+        word-break: break-word;
       }
     }
 

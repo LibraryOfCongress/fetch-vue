@@ -276,9 +276,13 @@
           @click="handleConfirmation('completeJob'); hideModal();"
         />
 
-        <q-space class="q-mx-lg" />
+        <q-space
+          v-if="currentScreenSize !== 'xs'"
+          class="q-mx-lg"
+        />
 
         <q-btn
+          v-if="currentScreenSize !== 'xs'"
           outline
           no-caps
           label="Cancel"
