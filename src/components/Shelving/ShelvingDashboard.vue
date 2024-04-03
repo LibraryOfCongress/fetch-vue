@@ -71,8 +71,7 @@
             Create Shelving Job
           </h2>
           <template v-else>
-            <!-- removed since all shelving jobs are made from verification jobs for now -->
-            <!-- <q-btn
+            <q-btn
               icon="chevron_left"
               label="Back"
               no-caps
@@ -80,7 +79,7 @@
               dense
               class="text-body1"
               @click="shelvingJob.type = null"
-            /> -->
+            />
             <h2 class="text-h6 text-bold">
               Create Shelving Job
             </h2>
@@ -104,9 +103,9 @@
             outline
             no-caps
             padding="14px md"
-            label="From Scratch"
+            label="Direct To Shelve"
             class="full-width text-body1 q-mb-md"
-            @click="shelvingJob.type = 'Scratch'"
+            @click="null"
           />
 
           <q-btn
@@ -119,7 +118,7 @@
           />
         </q-card-section>
 
-        <q-card-section v-else>
+        <q-card-section v-else-if="shelvingJob.type == 'Verification'">
           <div class="row q-mb-md">
             <div class="col-xs-12 col-sm-8 flex items-center">
               <p :class="currentScreenSize !== 'xs' ? 'text-h6' : 'text-body1 q-mb-xs'">

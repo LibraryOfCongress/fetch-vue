@@ -19,7 +19,7 @@
           Barcode
         </label>
         <p class="text-body1">
-          {{ verificationContainer.id }}
+          {{ verificationContainer.barcode?.value }}
         </p>
       </div>
       <div class="verification-container-info-details-compressed">
@@ -43,7 +43,7 @@
           Container Size
         </label>
         <p class="text-body1">
-          {{ verificationContainer.size_class?.name }}
+          {{ !verificationContainer.id ? verificationJob.size_class?.name : verificationContainer.size_class?.name }}
         </p>
       </div>
       <div class="verification-container-info-details-compressed">
@@ -51,7 +51,7 @@
           Media Type
         </label>
         <p class="text-body1">
-          {{ verificationContainer.media_type?.name }}
+          {{ !verificationContainer.id ? verificationJob.media_type?.name : verificationContainer.media_type?.name }}
         </p>
       </div>
     </div>
@@ -91,7 +91,8 @@ const handleOptionInput = (option) => {
   &-compressed {
     position: fixed;
     width: 100%;
-    top: 95px;
+    left: 0;
+    top: 82px;
     z-index: 1000;
     padding: 8px 1rem;
     background-color: $color-white;
@@ -120,6 +121,7 @@ const handleOptionInput = (option) => {
       padding: 4px 8px;
       border: 1px solid $color-gray;
       border-radius: 3px;
+      height: 100%;
 
       &:not(:last-child) {
         margin-right: 5px;

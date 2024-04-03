@@ -24,7 +24,7 @@
             v-if="!verificationJob.trayed"
             :options="[{
               text: `${selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'}`,
-              disabled: !verificationContainer.id || verificationJob.status == 'Paused'
+              disabled: verificationJob.status == 'Paused'
             }, {
               text: 'Delete Items',
               disabled: selectedItems.length == 0 || verificationJob.status == 'Paused'
@@ -264,9 +264,76 @@
     v-if="showConfirmation !== null"
     :title="'Confirm'"
     :text="showConfirmation.text"
+    :show-actions="false"
     @reset="showConfirmation = null"
-    @confirm="handleConfirmationModal"
-  />
+  >
+    <template #footer-content="{ hideModal }">
+      <q-card-section
+        v-if="showConfirmation.type == 'completeJob'"
+        class="row no-wrap justify-between items-center q-pt-sm"
+      >
+        <q-btn
+          no-caps
+          unelevated
+          color="accent"
+          label="Complete & Print"
+          class="btn-no-wrap text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="handleConfirmationModal('completePrint'); hideModal();"
+        />
+
+        <q-space class="q-mx-xs" />
+
+        <q-btn
+          no-caps
+          unelevated
+          color="accent"
+          label="Complete"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="handleConfirmationModal('completeJob'); hideModal();"
+        />
+
+        <q-space
+          v-if="currentScreenSize !== 'xs'"
+          class="q-mx-lg"
+        />
+
+        <q-btn
+          v-if="currentScreenSize !== 'xs'"
+          outline
+          no-caps
+          label="Cancel"
+          class="text-body1 full-width"
+          @click="hideModal"
+        />
+      </q-card-section>
+      <q-card-section
+        v-else-if="showConfirmation.type == 'delete'"
+        class="row no-wrap justify-between items-center q-pt-sm"
+      >
+        <q-btn
+          no-caps
+          unelevated
+          color="accent"
+          label="Confirm"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="handleConfirmationModal('delete'); hideModal();"
+        />
+
+        <q-space class="q-mx-xs" />
+
+        <q-btn
+          outline
+          no-caps
+          label="Cancel"
+          class="text-body1 full-width"
+          @click="hideModal"
+        />
+      </q-card-section>
+    </template>
+  </PopupModal>
 
   <!-- next tray modal (only for trayed jobs) -->
   <PopupModal
@@ -703,11 +770,16 @@ const setBarcodeEditDisplay = () => {
   }
 }
 
-const handleConfirmationModal = async () => {
-  if (showConfirmation.value.type == 'delete') {
+const handleConfirmationModal = async (confirmType) => {
+  if (confirmType == 'delete') {
     await deleteContainerItem()
-  } else {
+  } else if (confirmType == 'completeJob') {
     await completeVerificationJob()
+  } else if (confirmType == 'completePrint') {
+    await completeVerificationJob()
+
+    // print the job after completion
+    batchSheetComponent.value.printBatchReport()
   }
 }
 const handleOptionMenu = (option) => {
