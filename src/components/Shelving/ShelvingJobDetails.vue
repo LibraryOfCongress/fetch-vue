@@ -415,10 +415,10 @@
   </div>
 
   <!-- print component: shelving job report -->
-  <!-- <ShelvingBatchSheet
+  <ShelvingBatchSheet
     ref="batchSheetComponent"
     :shelving-job-details="shelvingJob"
-  /> -->
+  />
 </template>
 
 <script setup>
@@ -436,7 +436,7 @@ import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
-// import ShelvingBatchSheet from '@/components/Shelving/ShelvingBatchSheet.vue'
+import ShelvingBatchSheet from '@/components/Shelving/ShelvingBatchSheet.vue'
 
 const router = useRouter()
 const route = useRoute()
