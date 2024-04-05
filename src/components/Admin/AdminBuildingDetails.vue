@@ -112,7 +112,6 @@
           :table-visible-columns="shelfItemsTableVisibleColumns"
           :filter-options="shelfItemsTableFilters"
           :table-data="shelfData.items"
-          :disable-table-reorder="currentScreenSize == 'xs' ? true : false"
           :heading-row-class="'q-mb-lg'"
           :heading-filter-class="'q-ml-auto'"
           :heading-rearrange-class="'q-mr-xs-md q-mr-sm-none'"

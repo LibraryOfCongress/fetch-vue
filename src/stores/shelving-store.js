@@ -22,7 +22,8 @@ export const useShelvingStore = defineStore('shelving-store', {
       side_id: 'left',
       status: '',
       verification_job_id: null
-    }
+    },
+    originalShelvingJob: null
   }),
   actions: {
     resetShelvingStore () {
@@ -48,6 +49,7 @@ export const useShelvingStore = defineStore('shelving-store', {
         status: '',
         verification_job_id: null
       }
+      this.originalShelvingJob = null
     },
     async getShelvingJobList () {
       try {
@@ -62,6 +64,7 @@ export const useShelvingStore = defineStore('shelving-store', {
         // TODO wire up shelving job detail endpoint
         // const res = await this.$api.get(`${inventoryServiceApi.shelvingJobs}${id}`)
         // this.shelvingJob = res.data
+        // this.originalShelvingJob = { ...res.data }
         this.shelvingJob = {
           id,
           building: {
@@ -125,6 +128,7 @@ export const useShelvingStore = defineStore('shelving-store', {
       try {
         const res = await this.$api.post(inventoryServiceApi.shelvingJobs, payload)
         // this.shelvingJob = res.data
+        // this.originalShelvingJob = { ...res.data }
         // TODO remove once shelving data from api is correct
         this.shelvingJob = {
           building: {
@@ -190,6 +194,7 @@ export const useShelvingStore = defineStore('shelving-store', {
         // TODO wire up shelving job detail endpoint to patch data
         // const res = await this.$api.patch(`${inventoryServiceApi.shelvingJobs}${payload.id}`, payload)
         // this.shelvingJob = res.data
+        // this.originalShelvingJob = { ...res.data }
         this.shelvingJob = {
           id: payload.id,
           building: {

@@ -3,12 +3,19 @@
     <div class="row justify-between q-mt-xs-md q-mt-md-xl q-mx-xs-sm q-mx-sm-md">
       <div class="col-xs-12 col-md-12 col-lg-3">
         <div class="shelving-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-lg-lg">
-          <label
-            id="jobNumber"
-            class="shelving-job-details-label text-h4 text-bold"
-          >
-            Job Number:
-          </label>
+          <div class="flex">
+            <MoreOptionsMenu
+              :options="[{ text: 'Edit', disabled: editJob || shelvingJob.status == 'Paused' }, { text: 'Print Job' }]"
+              class="q-mr-xs"
+              @click="handleOptionMenu"
+            />
+            <label
+              id="jobNumber"
+              class="shelving-job-details-label text-h4 text-bold"
+            >
+              Job Number:
+            </label>
+          </div>
           <p class="shelving-job-number-box text-h4 q-pa-md">
             {{ shelvingJob.id }}
           </p>
@@ -35,11 +42,14 @@
           >
             Assigned User:
           </label>
-          <!-- TODO display this read only option for non admin users -->
-          <!-- <p class="text-body1">
+          <p
+            v-if="!editJob"
+            class="text-body1"
+          >
             {{ shelvingJob.assigned_user?.name }}
-          </p> -->
+          </p>
           <SelectInput
+            v-else
             v-model="shelvingJob.assigned_user.name"
             :options="users"
             option-value="id"
@@ -78,7 +88,7 @@
           </label>
           <p
             class="text-body1"
-            :class="shelvingJob.status == 'Ready For Shelving' || shelvingJob.status == 'In Progress' ? 'outline text-highlight' : shelvingJob.status == 'Paused' ? 'outline text-highlight-yellow' : null"
+            :class="shelvingJob.status == 'Ready For Shelving' || shelvingJob.status == 'Running' ? 'outline text-highlight' : shelvingJob.status == 'Paused' ? 'outline text-highlight-yellow' : null"
           >
             {{ shelvingJob.status }}
           </p>
@@ -89,7 +99,33 @@
         v-if="currentScreenSize !== 'xs'"
         class="col-sm-12 col-md-12 col-lg-3 q-ml-auto"
       >
-        <div class="shelving-job-details-action q-mt-sm-sm q-mt-md-md">
+        <div
+          v-if="editJob"
+          class="shelving-job-details-action q-mt-sm-sm q-mt-md-md"
+        >
+          <q-btn
+            no-caps
+            unelevated
+            color="accent"
+            label="Save Edits"
+            class="btn-no-wrap text-body1 q-mr-sm"
+            :loading="appActionIsLoadingData"
+            @click="updateShelvingJob"
+          />
+          <q-btn
+            no-caps
+            unelevated
+            outline
+            color="accent"
+            label="Cancel"
+            class="btn-no-wrap text-body1"
+            @click="cancelShelvingJobEdits"
+          />
+        </div>
+        <div
+          v-else
+          class="shelving-job-details-action q-mt-sm-sm q-mt-md-md"
+        >
           <q-btn
             v-if="shelvingJob.status !== 'Ready For Shelving'"
             no-caps
@@ -99,7 +135,7 @@
             :icon="shelvingJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
             :label="shelvingJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
             class="btn-no-wrap text-body1 q-mr-sm"
-            @click="shelvingJob.status == 'Paused' ? updateShelvingJobStatus('In Progress') : updateShelvingJobStatus('Paused')"
+            @click="shelvingJob.status == 'Paused' ? updateShelvingJobStatus('Running') : updateShelvingJobStatus('Paused')"
           />
           <q-btn
             no-caps
@@ -108,10 +144,23 @@
             :label="shelvingJob.status == 'Ready For Shelving' ? 'Execute Job' : 'Complete Job'"
             class="btn-no-wrap text-body1"
             :disabled="shelvingJob.status == 'Paused'"
+            :loading="appActionIsLoadingData"
             @click="shelvingJob.status == 'Ready For Shelving' ? executeShelvingJob() : completeShelvingJob()"
           />
         </div>
       </div>
+      <MobileActionBar
+        v-else-if="currentScreenSize == 'xs' && editJob"
+        button-one-color="accent"
+        :button-one-label="'Save Edits'"
+        :button-one-outline="false"
+        :button-one-loading="appActionIsLoadingData"
+        @button-one-click="updateShelvingJob"
+        button-two-color="accent"
+        :button-two-label="'Cancel'"
+        :button-two-outline="true"
+        @button-two-click="cancelShelvingJobEdits"
+      />
       <MobileActionBar
         v-else
         button-one-color="accent"
@@ -119,11 +168,12 @@
         :button-one-label="shelvingJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
         :button-one-outline="true"
         :button-one-disabled="shelvingJob.status == 'Ready For Shelving'"
-        @button-one-click="shelvingJob.status == 'Paused' ? updateShelvingJobStatus('In Progress') : updateShelvingJobStatus('Paused')"
+        @button-one-click="shelvingJob.status == 'Paused' ? updateShelvingJobStatus('Running') : updateShelvingJobStatus('Paused')"
         button-two-color="positive"
         :button-two-label="shelvingJob.status == 'Ready For Shelving' ? 'Execute Job' : 'Complete Job'"
         :button-two-outline="false"
         :button-two-disabled="shelvingJob.status == 'Paused'"
+        :button-two-loading="appActionIsLoadingData"
         @button-two-click="shelvingJob.status == 'Ready For Shelving' ? executeShelvingJob() : completeShelvingJob()"
       />
     </div>
@@ -138,7 +188,6 @@
           :filter-options="shelfTableFilters"
           :table-data="shelvingJob.containers"
           :hide-table-rearrange="false"
-          :disable-table-reorder="true"
           :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
         >
@@ -364,10 +413,16 @@
       </template>
     </PopupModal>
   </div>
+
+  <!-- print component: shelving job report -->
+  <!-- <ShelvingBatchSheet
+    ref="batchSheetComponent"
+    :shelving-job-details="shelvingJob"
+  /> -->
 </template>
 
 <script setup>
-import { ref, inject, computed, onBeforeMount } from 'vue'
+import { ref, inject, computed, onBeforeMount, toRaw } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useShelvingStore } from '@/stores/shelving-store'
@@ -381,6 +436,7 @@ import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
+// import ShelvingBatchSheet from '@/components/Shelving/ShelvingBatchSheet.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -402,10 +458,17 @@ const {
   renderAisleLadders
 } = storeToRefs(useBuildingStore())
 const { patchShelvingJob } = useShelvingStore()
-const { shelvingJob } = storeToRefs(useShelvingStore())
-const { users, owners, sizeClass, buildings } = storeToRefs(useOptionStore())
+const { shelvingJob, originalShelvingJob } = storeToRefs(useShelvingStore())
+const {
+  users,
+  owners,
+  sizeClass,
+  buildings
+} = storeToRefs(useOptionStore())
 
 // Local Data
+const batchSheetComponent = ref(null)
+const editJob = ref(false)
 const shelfTableColumns = ref([
   {
     name: 'actions',
@@ -558,12 +621,22 @@ onBeforeMount(() => {
 })
 
 const handleOptionMenu = async (action, rowData) => {
-  // if the rowData contains a building_id we can get that buildings details to populate out any related fields
-  if (rowData.building_id) {
-    await getBuildingDetails(rowData.building_id)
+  console.log(action, rowData)
+
+  // if the rowData contains a building_id we can get the details to populate all the related fields
+  if (rowData && rowData.building_id) {
+    await Promise.all([
+      getBuildingDetails(rowData.building_id),
+      getModuleDetails(rowData.module_id),
+      getAisleDetails(rowData.aisle_id),
+      // getSideDetails(rowData.side_id) //TODO: do we need to get side details in order to get ladders?
+      getLadderDetails(rowData.ladder_id)
+    ])
   }
 
-  if (action.text == 'Edit Location') {
+  switch (action.text) {
+  case 'Edit Location':
+    console.log('test')
     locationForm.value.item_id = rowData.item_id
     locationForm.value.owner_id = rowData.owner_id
     locationForm.value.size_class_id = rowData.size_class_id
@@ -574,13 +647,21 @@ const handleOptionMenu = async (action, rowData) => {
     locationForm.value.ladder_id = rowData.ladder_id
     locationForm.value.shelf_id = rowData.shelf_id
     locationForm.value.shelf_position_id = rowData.shelf_position_id
-  } else if (action.text == 'Assign Location') {
+    showShelvingLocationModal.value = true
+    return
+  case 'Assign Location':
     locationForm.value.item_id = rowData.item_id
     locationForm.value.owner_id = rowData.owner_id
     locationForm.value.size_class_id = rowData.size_class_id
+    showShelvingLocationModal.value = true
+    return
+  case 'Edit':
+    editJob.value = true
+    return
+  case 'Print Job':
+    batchSheetComponent.value.printBatchReport()
+    return
   }
-
-  showShelvingLocationModal.value = true
 }
 
 const handleLocationFormChange = async (valueType) => {
@@ -662,11 +743,16 @@ const submitLocationForm = async () => {
   }
 }
 
+const cancelShelvingJobEdits = () => {
+  shelvingJob.value = { ...toRaw(originalShelvingJob.value) }
+  editJob.value = false
+}
 const executeShelvingJob = async () => {
   try {
+    appActionIsLoadingData.value = true
     const payload = {
       id: route.params.jobId,
-      status: 'In Progress'
+      status: 'Running'
     }
     await patchShelvingJob(payload)
 
@@ -681,6 +767,8 @@ const executeShelvingJob = async () => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appActionIsLoadingData.value = false
   }
 }
 const updateShelvingJobStatus = async (status) => {
@@ -705,8 +793,34 @@ const updateShelvingJobStatus = async (status) => {
     })
   }
 }
+const updateShelvingJob = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    const payload = {
+      id: route.params.jobId,
+      assigned_user_id: shelvingJob.value.assigned_user.name
+    }
+    await patchShelvingJob(payload)
+
+    handleAlert({
+      type: 'success',
+      text: 'The job has been updated.',
+      autoClose: true
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = false
+    editJob.value = false
+  }
+}
 const completeShelvingJob = async () => {
   try {
+    appActionIsLoadingData.value = true
     const payload = {
       id: route.params.jobId,
       status: 'Completed'
@@ -731,6 +845,8 @@ const completeShelvingJob = async () => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appActionIsLoadingData.value = false
   }
 }
 </script>

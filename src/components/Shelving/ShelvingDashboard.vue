@@ -3,11 +3,11 @@
     <div class="row">
       <div class="col-grow">
         <EssentialTable
-          :table-columns="shelfItemsTableColumns"
-          :table-visible-columns="shelfItemsTableVisibleColumns"
-          :filter-options="shelfItemTableFilters"
+          :table-columns="shelfTableColumns"
+          :table-visible-columns="shelfTableVisibleColumns"
+          :filter-options="shelfTableFilters"
           :table-data="shelvingJobList"
-          :disable-table-reorder="currentScreenSize == 'xs' ? true : false"
+          :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
         >
@@ -40,7 +40,7 @@
             <span
               v-if="colName == 'status'"
               class="outline text-nowrap"
-              :class="value == 'Created' ? 'text-highlight' : value == 'Paused' ? 'text-highlight-yellow' : 'text-highlight-red'"
+              :class="value == 'Created' || value == 'Running' ? 'text-highlight' : value == 'Paused' ? 'text-highlight-yellow' : 'text-highlight-red'"
             >
               {{ value }}
             </span>
@@ -355,20 +355,22 @@ const {
   shelvingJob
 } = storeToRefs(useShelvingStore())
 const {
+  resetShelvingStore,
   resetShelvingJob,
   getShelvingJobList,
   postShelvingJob
 } = useShelvingStore()
 
 // Local Data
-const shelfItemsTableVisibleColumns = ref([
+const shelfTableVisibleColumns = ref([
   'id',
   'containers',
   'status',
   'user_id',
-  'create_dt'
+  'create_dt',
+  'complete_dt'
 ])
-const shelfItemsTableColumns = ref([
+const shelfTableColumns = ref([
   {
     name: 'id',
     field: 'id',
@@ -408,26 +410,30 @@ const shelfItemsTableColumns = ref([
     align: 'left',
     sortable: true,
     order: 4
+  },
+  {
+    name: 'complete_dt',
+    field: 'complete_dt',
+    label: 'Completed Date',
+    align: 'left',
+    sortable: true,
+    order: 5
   }
 ])
-const shelfItemTableFilters =  ref([
+const shelfTableFilters =  ref([
   {
     field: 'status',
     options: [
+      {
+        text: 'Created',
+        value: false
+      },
       {
         text: 'Paused',
         value: false
       },
       {
-        text: 'In Queue',
-        value: false
-      },
-      {
-        text: 'Incomplete',
-        value: false
-      },
-      {
-        text: 'Cancelled',
+        text: 'Completed',
         value: false
       }
     ]
@@ -440,10 +446,11 @@ const completedVerificationJobs = ref([])
 const handleAlert = inject('handle-alert')
 
 onBeforeMount(() => {
+  resetShelvingStore()
   loadShelvingJobs()
 
   if (currentScreenSize.value == 'xs') {
-    shelfItemsTableVisibleColumns.value = [
+    shelfTableVisibleColumns.value = [
       'id',
       'status',
       'user_id',
@@ -513,7 +520,7 @@ const submitShelvingJob = async () => {
       run_time: new Date().toLocaleString('en-us', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).split(' ').shift(), //TODO Remove once api handles transition data
       verification_job_id: shelvingJob.value.verification_job_id[0] //TODO: this needs to be changed to allow multiple jobs to be combined on api
     }
-    await postShelvingJob(payload)
+    postShelvingJob(payload)
 
     // route the user to the shelving job detail page
     router.push({

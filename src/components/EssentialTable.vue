@@ -89,7 +89,7 @@
           @popup-hide="allowTableReorder = false"
         >
           <template
-            v-if="!disableTableReorder"
+            v-if="enableTableReorder"
             #before-options
           >
             <q-item>
@@ -205,7 +205,7 @@ const mainProps = defineProps({
     type: Boolean,
     default: false
   },
-  disableTableReorder: {
+  enableTableReorder: {
     type: Boolean,
     default: false
   },
