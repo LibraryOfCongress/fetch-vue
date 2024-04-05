@@ -569,7 +569,7 @@ const submitShelvingJob = async () => {
       run_time: new Date().toLocaleString('en-us', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).split(' ').shift(), //TODO Remove once api handles transition data
       verification_jobs: shelvingJob.value.verification_jobs //TODO: this needs to be changed to allow multiple jobs to be combined on api
     }
-    await postShelvingJob(payload)
+    postShelvingJob(payload)
 
     // route the user to the shelving job detail page
     router.push({

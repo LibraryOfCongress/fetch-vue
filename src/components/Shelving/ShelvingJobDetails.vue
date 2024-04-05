@@ -5,7 +5,11 @@
         <div class="shelving-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-lg-lg">
           <div class="flex">
             <MoreOptionsMenu
+<<<<<<< HEAD
               :options="[{ text: 'Edit', disabled: appIsOffline || editJob || shelvingJob.status == 'Paused' }, { text: 'Print Job' }]"
+=======
+              :options="[{ text: 'Edit', disabled: editJob || shelvingJob.status == 'Paused' }, { text: 'Print Job' }]"
+>>>>>>> a027468 (removed essentail table reorder by default, added assign ability to shelving job detail page, updated shelving dashboard table to include completed data, updated some of the current shelving related endpoints)
               class="q-mr-xs"
               @click="handleOptionMenu"
             />
