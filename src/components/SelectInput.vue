@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useOptionStore } from 'src/stores/option-store'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 
@@ -94,6 +94,10 @@ const { getOptions } = useOptionStore()
 const localOptions = ref(mainProps.options)
 
 // Logic
+watch(() => mainProps.options, (updatedOptions) => {
+  localOptions.value = updatedOptions
+})
+
 const updateModelValue = (value) => {
   emit('update:modelValue', value)
 }
