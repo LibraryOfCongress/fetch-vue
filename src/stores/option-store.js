@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import inventoryServiceApi from '@/http/InventoryService.js'
 
-export const useOptionStore = defineStore('options', {
+export const useOptionStore = defineStore('option-store', {
   state: () => ({
     buildings: [],
     containerTypes: [

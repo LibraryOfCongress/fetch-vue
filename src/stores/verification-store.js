@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import inventoryServiceApi from '@/http/InventoryService.js'
 
-export const useVerificationStore = defineStore('verification', {
+export const useVerificationStore = defineStore('verification-store', {
   state: () => ({
     verificationJobList: [],
     verificationJob: {

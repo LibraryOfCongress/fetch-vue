@@ -46,11 +46,11 @@
             v-if="!editJob"
             class="text-body1"
           >
-            {{ shelvingJob.assigned_user?.name }}
+            {{ shelvingJob.user?.name }}
           </p>
           <SelectInput
             v-else
-            v-model="shelvingJob.assigned_user.name"
+            v-model="shelvingJob.user_id"
             :options="users"
             option-value="id"
             option-label="name"
@@ -425,6 +425,7 @@
 import { ref, inject, computed, onBeforeMount, toRaw } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
+import { useUserStore } from '@/stores/user-store'
 import { useShelvingStore } from '@/stores/shelving-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useBuildingStore } from '@/stores/building-store'
@@ -446,6 +447,7 @@ const { currentScreenSize } = useCurrentScreenSize()
 
 // // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { userData } = storeToRefs(useUserStore())
 const {
   getBuildingDetails,
   getModuleDetails,
@@ -752,7 +754,8 @@ const executeShelvingJob = async () => {
     appActionIsLoadingData.value = true
     const payload = {
       id: route.params.jobId,
-      status: 'Running'
+      status: 'Running',
+      user_id: shelvingJob.value.user_id ? shelvingJob.value.user_id : userData.value.id
     }
     await patchShelvingJob(payload)
 
@@ -798,7 +801,7 @@ const updateShelvingJob = async () => {
     appActionIsLoadingData.value = true
     const payload = {
       id: route.params.jobId,
-      assigned_user_id: shelvingJob.value.assigned_user.name
+      user_id: shelvingJob.value.user_id
     }
     await patchShelvingJob(payload)
 

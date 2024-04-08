@@ -10,6 +10,7 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          @selected-table-row="loadShelvingJob($event.id)"
         >
           <template #heading-row>
             <div
@@ -358,6 +359,7 @@ const {
   resetShelvingStore,
   resetShelvingJob,
   getShelvingJobList,
+  getShelvingJob,
   postShelvingJob
 } = useShelvingStore()
 
@@ -495,6 +497,27 @@ const loadShelvingJobs = async () => {
   try {
     appIsLoadingData.value = true
     await getShelvingJobList()
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
+  }
+}
+const loadShelvingJob = async (jobId) => {
+  try {
+    appIsLoadingData.value = true
+    await getShelvingJob(jobId)
+
+    router.push({
+      name: 'shelving',
+      params: {
+        jobId
+      }
+    })
   } catch (error) {
     handleAlert({
       type: 'error',

@@ -9,10 +9,10 @@ export const useShelvingStore = defineStore('shelving-store', {
       assignLocation: false,
       id: null,
       aisle_id: null,
-      assigned_user: {
+      user: {
         name: ''
       },
-      assigned_user_id: null,
+      user_id: null,
       building_id: null,
       building: null,
       create_dt: null,
@@ -35,10 +35,10 @@ export const useShelvingStore = defineStore('shelving-store', {
         assignLocation: false,
         id: null,
         aisle_id: null,
-        assigned_user: {
+        user: {
           name: ''
         },
-        assigned_user_id: null,
+        user_id: null,
         building_id: null,
         building: null,
         create_dt: null,
@@ -61,19 +61,17 @@ export const useShelvingStore = defineStore('shelving-store', {
     },
     async getShelvingJob (id) {
       try {
-        // TODO wire up shelving job detail endpoint
-        // const res = await this.$api.get(`${inventoryServiceApi.shelvingJobs}${id}`)
-        // this.shelvingJob = res.data
-        // this.originalShelvingJob = { ...res.data }
+        const res = await this.$api.get(`${inventoryServiceApi.shelvingJobs}${id}`)
         this.shelvingJob = {
+          //TODO: remove the hardcoded data once shelving job endpoint returns the correct data
           id,
           building: {
             name: 'Fort Meade'
           },
-          assigned_user: {
+          user: {
             name: 'User1'
           },
-          assigned_user_id: 1,
+          user_id: 1,
           create_dt: new Date().toLocaleDateString(),
           status: 'Ready For Shelving',
           containers: [
@@ -118,8 +116,10 @@ export const useShelvingStore = defineStore('shelving-store', {
               shelf_id: null,
               shelf_position_id: null
             }
-          ]
+          ],
+          ...res.data
         }
+        this.originalShelvingJob = { ...this.shelvingJob }
       } catch (error) {
         throw error
       }
@@ -127,17 +127,15 @@ export const useShelvingStore = defineStore('shelving-store', {
     async postShelvingJob (payload) {
       try {
         const res = await this.$api.post(inventoryServiceApi.shelvingJobs, payload)
-        // this.shelvingJob = res.data
-        // this.originalShelvingJob = { ...res.data }
-        // TODO remove once shelving data from api is correct
         this.shelvingJob = {
+          // TODO remove hardcoded data once shelving data from api is correct
           building: {
             name: 'Fort Meade'
           },
-          assigned_user: {
+          user: {
             name: 'User1'
           },
-          assigned_user_id: 1,
+          user_id: 1,
           create_dt: new Date().toLocaleDateString(),
           status: payload.status,
           containers: [
@@ -185,6 +183,7 @@ export const useShelvingStore = defineStore('shelving-store', {
           ],
           ...res.data
         }
+        this.originalShelvingJob = { ...this.shelvingJob }
       } catch (error) {
         throw error
       }
@@ -200,10 +199,10 @@ export const useShelvingStore = defineStore('shelving-store', {
           building: {
             name: 'Fort Meade'
           },
-          assigned_user: {
+          user: {
             name: 'User1'
           },
-          assigned_user_id: 1,
+          user_id: 1,
           create_dt: new Date().toLocaleDateString(),
           status: payload.status,
           containers: [
