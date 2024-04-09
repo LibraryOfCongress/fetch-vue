@@ -23,8 +23,30 @@ export const useShelvingStore = defineStore('shelving-store', {
       status: '',
       verification_job_id: null
     },
-    originalShelvingJob: null
+    originalShelvingJob: null,
+    shelvingJobContainer: {
+      item_id: null,
+      barcode: {
+        value: ''
+      },
+      module_id: null,
+      aisle_id: null,
+      side_id: null,
+      ladder_id: null,
+      shelf_id: null,
+      shelf_position_id: null,
+      verified: false
+    }
   }),
+  getters: {
+    allContainersShelved: (state) => {
+      if (state.shelvingJob.status !== 'Ready For Shelving') {
+        return state.shelvingJob.containers.some(c => !c.verified) ? false : true
+      } else {
+        return true
+      }
+    }
+  },
   actions: {
     resetShelvingStore () {
       this.$reset()
@@ -50,6 +72,21 @@ export const useShelvingStore = defineStore('shelving-store', {
         verification_job_id: null
       }
       this.originalShelvingJob = null
+    },
+    resetShelvingJobContainer () {
+      this.shelvingJobContainer = {
+        item_id: null,
+        barcode: {
+          value: ''
+        },
+        module_id: null,
+        aisle_id: null,
+        side_id: null,
+        ladder_id: null,
+        shelf_id: null,
+        shelf_position_id: null,
+        verified: false
+      }
     },
     async getShelvingJobList () {
       try {
@@ -108,13 +145,14 @@ export const useShelvingStore = defineStore('shelving-store', {
               size_class: {
                 name: 'C Low'
               },
+              building_id: 1,
               size_class_id: 2,
-              module_id: null,
-              aisle_id: null,
-              side_id: null,
-              ladder_id: null,
-              shelf_id: null,
-              shelf_position_id: null
+              module_id: 3,
+              aisle_id: 56,
+              side_id: 'left',
+              ladder_id: 12,
+              shelf_id: 7,
+              shelf_position_id: 6
             }
           ],
           ...res.data
@@ -172,13 +210,14 @@ export const useShelvingStore = defineStore('shelving-store', {
               size_class: {
                 name: 'C Low'
               },
+              building_id: 1,
               size_class_id: 2,
-              module_id: null,
-              aisle_id: null,
-              side_id: null,
-              ladder_id: null,
-              shelf_id: null,
-              shelf_position_id: null
+              module_id: 3,
+              aisle_id: 56,
+              side_id: 'left',
+              ladder_id: 12,
+              shelf_id: 7,
+              shelf_position_id: 6
             }
           ],
           ...res.data
@@ -239,16 +278,40 @@ export const useShelvingStore = defineStore('shelving-store', {
               size_class: {
                 name: 'C Low'
               },
+              building_id: 1,
               size_class_id: 2,
-              module_id: null,
-              aisle_id: null,
-              side_id: null,
-              ladder_id: null,
-              shelf_id: null,
-              shelf_position_id: null
+              module_id: 3,
+              aisle_id: 56,
+              side_id: 'left',
+              ladder_id: 12,
+              shelf_id: 7,
+              shelf_position_id: 6
             }
           ]
         }
+      } catch (error) {
+        throw error
+      }
+    },
+    getShelvingJobContainer (barcode_value) {
+      // find the container with the matching barcode_value and set the data as the shelvingJobContainer
+      this.shelvingJobContainer = this.shelvingJob.containers.find(container => container.barcode.value == barcode_value)
+    },
+    async patchShelvingJobContainer (payload) {
+      try {
+        // TODO wire up shelving job container detail endpoint to patch data
+        // const res = await this.$api.patch(`${inventoryServiceApi.shelvingJobs}${payload.item_id}`, payload)
+        // this.shelvingJobContainer = res.data
+        this.shelvingJobContainer = {
+          ...this.shelvingJobContainer,
+          ...payload
+        }
+
+        // update the container at the shelving job level as well
+        // this.shelvingJob.containers[this.shelvingJob.containers.findIndex(container => container.item_id == payload.item_id)] = res.data
+        // TODO: replace and uncomment ^ once api is wired up
+        this.shelvingJob.containers[this.shelvingJob.containers.findIndex(container => container.item_id == payload.item_id)] = this.shelvingJobContainer
+        this.originalShelvingJob = { ...this.shelvingJob }
       } catch (error) {
         throw error
       }
