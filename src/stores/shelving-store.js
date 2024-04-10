@@ -40,7 +40,7 @@ export const useShelvingStore = defineStore('shelving-store', {
   }),
   getters: {
     allContainersShelved: (state) => {
-      if (state.shelvingJob.status !== 'Ready For Shelving') {
+      if (state.shelvingJob.status !== 'Created') {
         return state.shelvingJob.containers.some(c => !c.verified) ? false : true
       } else {
         return true

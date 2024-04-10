@@ -64,7 +64,7 @@
       @reset="resetCreateShelfJobModal"
     >
       <template #header-content="{ hideModal }">
-        <q-card-section class="row items-center justify-between q-pb-none">
+        <q-card-section class="row items-center q-pb-none">
           <h2
             v-if="shelvingJob.type == null"
             class="text-h6 text-bold"
@@ -74,14 +74,14 @@
           <template v-else>
             <q-btn
               icon="chevron_left"
-              label="Back"
+              name="back"
               no-caps
               flat
               dense
               class="text-body1"
               @click="shelvingJob.type = null"
             />
-            <h2 class="text-h6 text-bold">
+            <h2 class="text-h6 text-bold q-ml-xs">
               Create Shelving Job
             </h2>
           </template>
@@ -91,6 +91,7 @@
             flat
             round
             dense
+            class="q-ml-auto"
             @click="hideModal"
           />
         </q-card-section>

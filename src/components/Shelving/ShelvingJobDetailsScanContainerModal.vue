@@ -1,8 +1,41 @@
 <template>
   <PopupModal
-    :title="!selectNewLocation ? `Place Container` : 'New Location'"
     @reset="emit('hide')"
   >
+    <template #header-content="{ hideModal }">
+      <q-card-section class="row items-center q-pb-none">
+        <h2
+          v-if="!selectNewLocation"
+          class="text-h6 text-bold"
+        >
+          Place Container
+        </h2>
+        <template v-else>
+          <q-btn
+            icon="chevron_left"
+            name="back"
+            no-caps
+            flat
+            dense
+            class="text-body1"
+            @click="selectNewLocation = false"
+          />
+          <h2 class="text-h6 text-bold q-ml-xs">
+            New Location
+          </h2>
+        </template>
+
+        <q-btn
+          icon="close"
+          flat
+          round
+          dense
+          class="q-ml-auto"
+          @click="hideModal"
+        />
+      </q-card-section>
+    </template>
+
     <template #main-content>
       <q-card-section class="row q-pb-sm">
         <div class="col-12">

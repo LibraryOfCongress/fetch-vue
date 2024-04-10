@@ -88,7 +88,7 @@
           </label>
           <p
             class="text-body1"
-            :class="shelvingJob.status == 'Ready For Shelving' || shelvingJob.status == 'Running' ? 'outline text-highlight' : shelvingJob.status == 'Paused' ? 'outline text-highlight-yellow' : null"
+            :class="shelvingJob.status == 'Created' || shelvingJob.status == 'Running' ? 'outline text-highlight' : shelvingJob.status == 'Paused' ? 'outline text-highlight-yellow' : null"
           >
             {{ shelvingJob.status }}
           </p>
@@ -127,7 +127,7 @@
           class="shelving-job-details-action q-mt-sm-sm q-mt-md-md"
         >
           <q-btn
-            v-if="shelvingJob.status !== 'Ready For Shelving'"
+            v-if="shelvingJob.status !== 'Created'"
             no-caps
             unelevated
             outline
@@ -141,11 +141,11 @@
             no-caps
             unelevated
             color="positive"
-            :label="shelvingJob.status == 'Ready For Shelving' ? 'Execute Job' : 'Complete Job'"
+            :label="shelvingJob.status == 'Created' ? 'Execute Job' : 'Complete Job'"
             class="btn-no-wrap text-body1"
             :disabled="shelvingJob.status == 'Paused' || !allContainersShelved"
             :loading="appActionIsLoadingData"
-            @click="shelvingJob.status == 'Ready For Shelving' ? executeShelvingJob() : completeShelvingJob()"
+            @click="shelvingJob.status == 'Created' ? executeShelvingJob() : completeShelvingJob()"
           />
         </div>
       </div>
@@ -167,14 +167,14 @@
         :button-one-icon="shelvingJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
         :button-one-label="shelvingJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
         :button-one-outline="true"
-        :button-one-disabled="shelvingJob.status == 'Ready For Shelving'"
+        :button-one-disabled="shelvingJob.status == 'Created'"
         @button-one-click="shelvingJob.status == 'Paused' ? updateShelvingJobStatus('Running') : updateShelvingJobStatus('Paused')"
         button-two-color="positive"
-        :button-two-label="shelvingJob.status == 'Ready For Shelving' ? 'Execute Job' : 'Complete Job'"
+        :button-two-label="shelvingJob.status == 'Created' ? 'Execute Job' : 'Complete Job'"
         :button-two-outline="false"
         :button-two-disabled="shelvingJob.status == 'Paused' || !allContainersShelved"
         :button-two-loading="appActionIsLoadingData"
-        @button-two-click="shelvingJob.status == 'Ready For Shelving' ? executeShelvingJob() : completeShelvingJob()"
+        @button-two-click="shelvingJob.status == 'Created' ? executeShelvingJob() : completeShelvingJob()"
       />
     </div>
 
@@ -472,13 +472,18 @@ watch(compiledBarCode, (barcode) => {
   }
 })
 const triggerContainerScan = (barcode_value) => {
-  // check if the barcode is in the system
-  // TODO: verify if we need verification at barcode endpoint level, we may just wanna check if its in the containers of a shelving job since this can be done offline
-  // await verifyBarcode(barcode_value)
+  // check if the scanned barcode is in the containers data and that the barcode hasnt been shevled/verified already
   if (!shelvingJob.value.containers.some(c => c.barcode.value == barcode_value)) {
     handleAlert({
       type: 'error',
       text: 'The scanned container does not exist in this shelving job. Please try again.',
+      autoClose: true
+    })
+    return
+  } else if (shelvingJob.value.containers.some(c => c.barcode.value == barcode_value && c.verified)) {
+    handleAlert({
+      type: 'error',
+      text: 'The scanned container has already been marked as shelved.',
       autoClose: true
     })
     return
