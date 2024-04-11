@@ -6,10 +6,6 @@
     padding: 7px 10px;
     border-bottom-color: $secondary;
 
-    .q-icon {
-      display: inline;
-    }
-
     @media (max-width: $breakpoint-sm-min) {
       font-size: .98rem;
       vertical-align: baseline;

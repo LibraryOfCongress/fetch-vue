@@ -166,6 +166,24 @@
             />
           </template>
 
+          <template #header-cell="props">
+            <q-th
+              class="test"
+              :class="props.col.__thClass"
+            >
+              <span
+                class="flex no-wrap items-center"
+                @click="props.sort(props.col.name);"
+              >
+                {{ props.col.label }}
+                <q-icon
+                  name="arrow_upward"
+                  class="q-table__sort-icon q-table__sort-icon--left"
+                />
+              </span>
+            </q-th>
+          </template>
+
           <template #body-cell="props">
             <q-td
               :props="props"

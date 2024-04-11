@@ -164,7 +164,7 @@
           label="Submit"
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
-          :disabled="false"
+          :disabled="!manualShelfPosition"
           @click="updateContainerLocation(); hideModal();"
         />
 

@@ -107,7 +107,12 @@
             padding="14px md"
             label="Direct To Shelve"
             class="full-width text-body1 q-mb-md"
-            @click="null"
+            @click="router.push({
+              name: 'shelving-dts',
+              params: {
+                jobId: 1
+              },
+            })"
           />
 
           <q-btn

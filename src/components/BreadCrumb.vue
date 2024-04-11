@@ -174,6 +174,16 @@ const generateBreadCrumbs = () => {
       ]
     }
     break
+  case 'shelving-dts':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Shelving',
+        to: '/shelving'
+      },
+      { text: `${route.params.jobId}` }
+    ]
+    break
   default:
     break
   }

@@ -71,6 +71,11 @@ const routes = [
         component: () => import('@/pages/ShelvingPage.vue')
       },
       {
+        name: 'shelving-dts',
+        path: 'shelving/direct-to-shelve/:jobId?',
+        component: () => import('@/pages/ShelvingPage.vue')
+      },
+      {
         name: 'test',
         path: '/test',
         component: () => import('@/pages/TestPage.vue')

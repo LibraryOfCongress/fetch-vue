@@ -24,6 +24,18 @@ export const useShelvingStore = defineStore('shelving-store', {
       verification_job_id: null
     },
     originalShelvingJob: null,
+    directToShelfJob: {
+      shelf_id: null,
+      barcode: {
+        value: ''
+      },
+      user: {
+        name: ''
+      },
+      user_id: null,
+      create_dt: new Date().toLocaleDateString(),
+      containers : []
+    },
     shelvingJobContainer: {
       item_id: null,
       barcode: {

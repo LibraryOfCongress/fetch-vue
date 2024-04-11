@@ -213,7 +213,7 @@
             </span>
             <span
               v-if="colName == 'verified'"
-              class="text-bold"
+              class="text-bold text-nowrap"
               :class="value == true ? 'text-positive' : ''"
             >
               {{ value == true ? 'Shelved' : '' }}

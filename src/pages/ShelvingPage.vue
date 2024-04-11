@@ -6,9 +6,9 @@
   >
     <LoadingOverlay />
 
-    <ShelvingDashboard v-if="!route.params.jobId" />
-
-    <ShelvingJobDetails v-if="route.params.jobId" />
+    <ShelvingDashboard v-if="route.name == 'shelving' && !route.params.jobId" />
+    <ShelvingJobDetails v-else-if="route.name == 'shelving' && route.params.jobId" />
+    <ShelvingJobDirectToShelf v-else-if="route.name == 'shelving-dts'" />
   </q-page>
 </template>
 
@@ -20,6 +20,7 @@ import { useOptionStore } from '@/stores/option-store'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import ShelvingDashboard from '@/components/Shelving/ShelvingDashboard.vue'
 import ShelvingJobDetails from '@/components/Shelving/ShelvingJobDetails.vue'
+import ShelvingJobDirectToShelf from '@/components/Shelving/ShelvingJobDirectToShelf.vue'
 
 const route = useRoute()
 
