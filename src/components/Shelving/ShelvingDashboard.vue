@@ -107,12 +107,7 @@
             padding="14px md"
             label="Direct To Shelve"
             class="full-width text-body1 q-mb-md"
-            @click="router.push({
-              name: 'shelving-dts',
-              params: {
-                jobId: 1
-              },
-            })"
+            @click="loadDirectToShelfJob()"
           />
 
           <q-btn
@@ -366,7 +361,8 @@ const {
   resetShelvingJob,
   getShelvingJobList,
   getShelvingJob,
-  postShelvingJob
+  postShelvingJob,
+  getDirectShelvingJob
 } = useShelvingStore()
 
 // Local Data
@@ -572,6 +568,30 @@ const submitShelvingJob = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
+  }
+}
+
+const loadDirectToShelfJob = async (jobId) => {
+  try {
+    appIsLoadingData.value = true
+    if (jobId) {
+      await getDirectShelvingJob(jobId)
+    }
+
+    router.push({
+      name: 'shelving-dts',
+      params: {
+        jobId: jobId ? jobId : 'temp'
+      }
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 

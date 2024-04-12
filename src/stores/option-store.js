@@ -32,7 +32,7 @@ export const useOptionStore = defineStore('option-store', {
 
         this[optionType] = res.data.items
       } catch (error) {
-        return error
+        throw error
       }
     },
     async getOwnerTierList () {
@@ -40,7 +40,7 @@ export const useOptionStore = defineStore('option-store', {
         const res = await this.$api.get(inventoryServiceApi.ownersTiers)
         this.ownerTierOptions = res.data.items
       } catch (error) {
-        return error
+        throw error
       }
     },
     async postOwnerTier (payload) {
@@ -52,7 +52,7 @@ export const useOptionStore = defineStore('option-store', {
           res.data
         ]
       } catch (error) {
-        return error
+        throw error
       }
     }
   }

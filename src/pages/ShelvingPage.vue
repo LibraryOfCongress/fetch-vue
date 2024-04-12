@@ -25,7 +25,7 @@ import ShelvingJobDirectToShelf from '@/components/Shelving/ShelvingJobDirectToS
 const route = useRoute()
 
 // Store Data
-const { getShelvingJob } = useShelvingStore()
+const { getShelvingJob, getDirectShelvingJob } = useShelvingStore()
 const { getOptions } = useOptionStore()
 
 // Logic
@@ -40,8 +40,10 @@ onBeforeMount( async () => {
   ])
 
   // if there is an id in the url we need to load that shelving job
-  if (route.params.jobId) {
+  if (route.name == 'shelving' && route.params.jobId) {
     await getShelvingJob(route.params.jobId)
+  } else if (route.name == 'shelving-dts' && route.params.jobId && route.params.jobId !== 'temp') {
+    await getDirectShelvingJob(route.params.jobId)
   }
 })
 </script>

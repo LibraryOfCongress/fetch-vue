@@ -16,6 +16,35 @@
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-grow">
+        <div class="shelving-job-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+          <label
+            class="shelving-job-details-label-2 text-h6 text-bold"
+          >
+            Owner:
+          </label>
+          <p class="text-body1">
+            {{ directToShelfJob.owner.name }}
+          </p>
+        </div>
+      </div>
+
+      <div class="col-xs-6 col-sm-6 col-md-grow">
+        <div class="shelving-job-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+          <label
+            class="shelving-job-details-label-2 text-h6 text-bold"
+          >
+            Size Class:
+          </label>
+          <p
+            class="text-body1"
+            :class="directToShelfJob.size_class.name ? 'outline' : null"
+          >
+            {{ directToShelfJob.size_class.name }}
+          </p>
+        </div>
+      </div>
+
+      <div class="col-xs-6 col-sm-6 col-md-grow">
         <div class="shelving-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
           <label
             class="shelving-job-details-label-2 text-h6 text-bold"
@@ -207,7 +236,7 @@ const { currentScreenSize } = useCurrentScreenSize()
 const { compiledBarCode } = useBarcodeScanHandler()
 
 // // Store Data
-const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { userData } = storeToRefs(useUserStore())
 const { resetShelvingJobContainer } = useShelvingStore()
 const {
@@ -222,6 +251,20 @@ const shelfTableColumns = ref([
     name: 'barcode',
     field: row => row.barcode.value,
     label: 'Barcode',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'owner',
+    field: row => row.owner.name,
+    label: 'Owner',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'size_class',
+    field: row => row.size_class.name,
+    label: 'Size Class',
     align: 'left',
     sortable: true
   },
@@ -278,6 +321,8 @@ const shelfTableColumns = ref([
 ])
 const shelfTableVisibleColumns = ref([
   'barcode',
+  'owner',
+  'size_class',
   'module',
   'aisle',
   'side',
@@ -305,12 +350,30 @@ onBeforeMount(() => {
 watch(compiledBarCode, (barcode) => {
   if (barcode !== '' && !directToShelfJob.value.barcode.value) {
     // user is scanning a shelf barcode
-    directToShelfJob.value.barcode.value = barcode
+    triggerShelfScan(barcode)
   } else if (barcode !== '' && !shelvingJobContainer.value.barcode.value) {
     // user has a shelf scanned and is scanning containers to place on a shelf
     triggerContainerScan(barcode)
   }
 })
+const triggerShelfScan = async (barcode_value) => {
+  try {
+    appIsLoadingData.value = true
+
+    // if user is online send a get request to get the scanned shelfs data
+    // await getShelfData(barcode_value)
+    // else if offline assign the shelf barcode directly to the job
+    directToShelfJob.value.barcode.value = barcode_value
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
+  }
+}
 const triggerContainerScan = (barcode_value) => {
   // check if the scanned barcode is in the containers data and that the barcode hasnt been shevled/verified already
   if (directToShelfJob.value.containers.some(c => c.barcode.value == barcode_value && c.verified)) {

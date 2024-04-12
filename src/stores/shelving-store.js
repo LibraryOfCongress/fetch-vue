@@ -25,6 +25,7 @@ export const useShelvingStore = defineStore('shelving-store', {
     },
     originalShelvingJob: null,
     directToShelfJob: {
+      id: 'temp',
       shelf_id: null,
       barcode: {
         value: ''
@@ -33,6 +34,14 @@ export const useShelvingStore = defineStore('shelving-store', {
         name: ''
       },
       user_id: null,
+      owner: {
+        name: ''
+      },
+      owner_id: null,
+      size_class: {
+        name: ''
+      },
+      size_class_id: null,
       create_dt: new Date().toLocaleDateString(),
       containers : []
     },
@@ -41,6 +50,14 @@ export const useShelvingStore = defineStore('shelving-store', {
       barcode: {
         value: ''
       },
+      owner: {
+        name: ''
+      },
+      owner_id: null,
+      size_class: {
+        name: ''
+      },
+      size_class_id: null,
       module_id: null,
       aisle_id: null,
       side_id: null,
@@ -52,8 +69,12 @@ export const useShelvingStore = defineStore('shelving-store', {
   }),
   getters: {
     allContainersShelved: (state) => {
-      if (state.shelvingJob.status !== 'Created') {
+      if (state.shelvingJob.id && state.shelvingJob.status !== 'Created') {
+        // if were in a normal shelving job we can check the status to determine if containers need to be verfiied or not
         return state.shelvingJob.containers.some(c => !c.verified) ? false : true
+      } else if (state.directToShelfJob.id) {
+        // if were in a direct to shelving job we can check if ther is an id or temp id to determine if containers need to be verfiied or not
+        return state.directToShelfJob.containers.length == 0 || state.directToShelfJob.containers.some(c => !c.verified) ? false : true
       } else {
         return true
       }
@@ -91,6 +112,14 @@ export const useShelvingStore = defineStore('shelving-store', {
         barcode: {
           value: ''
         },
+        owner: {
+          name: ''
+        },
+        owner_id: null,
+        size_class: {
+          name: ''
+        },
+        size_class_id: null,
         module_id: null,
         aisle_id: null,
         side_id: null,
@@ -301,6 +330,36 @@ export const useShelvingStore = defineStore('shelving-store', {
             }
           ]
         }
+      } catch (error) {
+        throw error
+      }
+    },
+    async getDirectShelvingJob (id) {
+      try {
+        // TODO setup endpoint for getting direct to shelf jobs
+        // const res = await this.$api.get(`${inventoryServiceApi.shelvingJobs}${id}`)
+        // this.directToShelfJob = res.data
+        return id
+      } catch (error) {
+        throw error
+      }
+    },
+    async postDirectShelvingJob (payload) {
+      try {
+        // TODO setup endpoint for creating a direct to shelf jobs
+        // const res = await this.$api.post(inventoryServiceApi.shelvingJobs, payload)
+        // this.directToShelfJob = res.data
+        return payload
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchDirectShelvingJob (payload) {
+      try {
+        // TODO setup endpoint for patching a direct to shelf jobs
+        // const res = await this.$api.patch(`${inventoryServiceApi.shelvingJobs}${payload.id}`, payload)
+        // this.directToShelfJob = res.data
+        return payload
       } catch (error) {
         throw error
       }
