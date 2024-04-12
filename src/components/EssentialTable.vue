@@ -150,9 +150,10 @@
           :visible-columns="localTableVisibleColumns"
           :row-key="rowKey"
           :wrap-cells="true"
-          :hide-pagination="true"
           :hide-selected-banner="true"
           column-sort-order="da"
+          :hide-pagination="true"
+          :pagination="paginationConfig"
           :selection="enableSelection ? 'multiple' : 'none'"
           v-model:selected="selectedTableData"
           class="table-component-table"
@@ -314,6 +315,12 @@ const allowTableReorder = ref(false)
 const draggedItemElement = ref(null)
 const selectedTableData = ref([])
 const tableComponent = ref(null)
+const paginationConfig = ref({
+  sortBy: 'desc',
+  descending: false,
+  page: 1,
+  rowsPerPage: 0
+})
 
 // Logic
 onMounted(() => {
