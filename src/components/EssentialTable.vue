@@ -89,7 +89,7 @@
           @popup-hide="allowTableReorder = false"
         >
           <template
-            v-if="!disableTableReorder"
+            v-if="enableTableReorder"
             #before-options
           >
             <q-item>
@@ -150,8 +150,9 @@
           :visible-columns="localTableVisibleColumns"
           :row-key="rowKey"
           :wrap-cells="true"
-          :hide-pagination="true"
           :hide-selected-banner="true"
+          :hide-pagination="true"
+          :pagination="paginationConfig"
           column-sort-order="ad"
           :selection="enableSelection ? 'multiple' : 'none'"
           v-model:selected="selectedTableData"
@@ -164,6 +165,24 @@
               :auto-width="true"
               style="padding-left: 8px;"
             />
+          </template>
+
+          <template #header-cell="props">
+            <q-th
+              class="test"
+              :class="props.col.__thClass"
+            >
+              <span
+                class="flex no-wrap items-center"
+                @click="props.sort(props.col.name);"
+              >
+                {{ props.col.label }}
+                <q-icon
+                  name="arrow_upward"
+                  class="q-table__sort-icon q-table__sort-icon--left"
+                />
+              </span>
+            </q-th>
           </template>
 
           <template #body-cell="props">
@@ -205,7 +224,7 @@ const mainProps = defineProps({
     type: Boolean,
     default: false
   },
-  disableTableReorder: {
+  enableTableReorder: {
     type: Boolean,
     default: false
   },
@@ -296,6 +315,12 @@ const allowTableReorder = ref(false)
 const draggedItemElement = ref(null)
 const selectedTableData = ref([])
 const tableComponent = ref(null)
+const paginationConfig = ref({
+  sortBy: 'desc',
+  descending: false,
+  page: 1,
+  rowsPerPage: 0
+})
 
 // Logic
 onMounted(() => {
