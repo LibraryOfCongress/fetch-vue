@@ -59,6 +59,7 @@ const updateModelValue = (value) => {
 .custom-toggle {
   border: 1px solid $accent;
   width: 100%;
+  overflow: auto;
 
   button[aria-pressed=true] {
     border-radius: 0;

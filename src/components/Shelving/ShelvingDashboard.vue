@@ -298,6 +298,7 @@
             label="Submit"
             class="text-body1 full-width"
             :loading="appActionIsLoadingData"
+            :disabled="!isCreateShelvingjobFormValid"
             @click="submitShelvingJob(); hideModal();"
           />
 
@@ -317,7 +318,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, inject } from 'vue'
+import { onBeforeMount, ref, inject, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -451,6 +452,15 @@ const shelfTableFilters =  ref([
 ])
 const showShelvingJobModal = ref(false)
 const completedVerificationJobs = ref([])
+const isCreateShelvingjobFormValid = computed(() => {
+  if (!shelvingJob.value.assignLocation && !shelvingJob.value.verification_job_id) {
+    return false
+  } else if (shelvingJob.value.assignLocation && (!shelvingJob.value.verification_job_id || !shelvingJob.value.ladder)) {
+    return false
+  } else {
+    return true
+  }
+})
 
 // Logic
 const handleAlert = inject('handle-alert')
