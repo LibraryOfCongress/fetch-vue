@@ -25,8 +25,7 @@ export const useShelvingStore = defineStore('shelving-store', {
     },
     originalShelvingJob: null,
     directToShelfJob: {
-      id: 'temp',
-      shelf_id: null,
+      id: null,
       barcode: {
         value: ''
       },
@@ -63,6 +62,9 @@ export const useShelvingStore = defineStore('shelving-store', {
       side_id: null,
       ladder_id: null,
       shelf_id: null,
+      shelf_barcode: {
+        value: ''
+      },
       shelf_position_id: null,
       verified: false
     }
@@ -125,8 +127,27 @@ export const useShelvingStore = defineStore('shelving-store', {
         side_id: null,
         ladder_id: null,
         shelf_id: null,
+        shelf_barcode: {
+          value: ''
+        },
         shelf_position_id: null,
         verified: false
+      }
+    },
+    async getShelfDetails (barcode_value) {
+      try {
+        // TODO: setup endpoint to get shelf details by barcode
+        // const res = await this.$api.get(inventoryServiceApi.shelvingJobs)
+        // if (this.directToShelfJob.id) {
+        //   this.directToShelfJob = {
+        //     ...this.directToShelfJob,
+        //     res.data
+        //   }
+        // }
+        this.directToShelfJob.barcode.value = barcode_value
+        this.directToShelfJob.owner.name = 'John Doe'
+      } catch (error) {
+        throw error
       }
     },
     async getShelvingJobList () {
@@ -344,19 +365,19 @@ export const useShelvingStore = defineStore('shelving-store', {
         throw error
       }
     },
-    async postDirectShelvingJob (payload) {
+    async postDirectShelvingJob () {
       try {
         // TODO setup endpoint for creating a direct to shelf jobs
         // const res = await this.$api.post(inventoryServiceApi.shelvingJobs, payload)
         // this.directToShelfJob = res.data
-        return payload
+        this.directToShelfJob = { ...this.directToShelfJob, id: 1 }
       } catch (error) {
         throw error
       }
     },
     async patchDirectShelvingJob (payload) {
       try {
-        // TODO setup endpoint for patching a direct to shelf jobs
+        // TODO setup endpoint for patching data to a direct to shelf jobs
         // const res = await this.$api.patch(`${inventoryServiceApi.shelvingJobs}${payload.id}`, payload)
         // this.directToShelfJob = res.data
         return payload

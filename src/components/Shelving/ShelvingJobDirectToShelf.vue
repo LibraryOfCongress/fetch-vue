@@ -82,7 +82,7 @@
             label="Scan New Shelf"
             :disabled="!directToShelfJob.barcode.value"
             class="btn-no-wrap text-body1 q-mr-sm"
-            @click="null"
+            @click="clearShelfDetails()"
           />
           <q-btn
             no-caps
@@ -115,7 +115,6 @@
     <q-space class="divider q-my-xs-lg q-my-md-xl" />
 
     <div
-      v-if="directToShelfJob.barcode.value"
       class="row"
     >
       <div class="col-grow">
@@ -236,9 +235,17 @@ const { currentScreenSize } = useCurrentScreenSize()
 const { compiledBarCode } = useBarcodeScanHandler()
 
 // // Store Data
-const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const {
+  appIsLoadingData,
+  appActionIsLoadingData,
+  appIsOffline
+} = storeToRefs(useGlobalStore())
 const { userData } = storeToRefs(useUserStore())
-const { resetShelvingJobContainer } = useShelvingStore()
+const {
+  getShelfDetails,
+  patchDirectShelvingJob,
+  resetShelvingJobContainer
+} = useShelvingStore()
 const {
   directToShelfJob,
   shelvingJobContainer,
@@ -298,7 +305,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'shelf',
-    field: 'shelf_id',
+    field: row => row.shelf_barcode.value,
     label: 'Shelf',
     align: 'left',
     sortable: true
@@ -361,9 +368,12 @@ const triggerShelfScan = async (barcode_value) => {
     appIsLoadingData.value = true
 
     // if user is online send a get request to get the scanned shelfs data
-    // await getShelfData(barcode_value)
-    // else if offline assign the shelf barcode directly to the job
-    directToShelfJob.value.barcode.value = barcode_value
+    if (!appIsOffline.value) {
+      await getShelfDetails(barcode_value)
+    } else {
+      // else if offline assign the shelf barcode directly to the job
+      directToShelfJob.value.barcode.value = barcode_value
+    }
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -387,24 +397,31 @@ const triggerContainerScan = (barcode_value) => {
     shelvingJobContainer.value.barcode.value = barcode_value
     showScanContainerModal.value = true
   }
-}
 
+  // TODO add logic to get the container item details when online only, depends on how the endpoint for this will work
+}
 const assignContainerLocation = async () => {
   try {
     appActionIsLoadingData.value = true
 
     // if user is online send a patch request to add the container to the dts job
-    // const payload = {
-    //   item_id: shelvingJobContainer.value.item_id,
-    //   shelf_position_id: manualShelfPosition.value !== '' ? manualShelfPosition.value : shelvingJobContainer.value.shelf_position_id,
-    //   verified: true
-    // }
-    // await patchShelvingJobContainer(payload)
+    if (!appIsOffline.value) {
+      const payload = {
+        container_barcode: shelvingJobContainer.value.barcode.value,
+        shelf_barcode: directToShelfJob.value.barcode.value,
+        shelf_position_id: shelvingJobContainer.value.shelf_position_id
+      }
+      await patchDirectShelvingJob(payload)
+    }
+    // TODO: move this into an else block once patchDirectShelvingJob is wired to an endpoint
     // else if offline assign the shelve directly to the directToShelf containers
     directToShelfJob.value.containers = [
       ...directToShelfJob.value.containers,
       {
         ...shelvingJobContainer.value,
+        shelf_barcode: {
+          value: directToShelfJob.value.barcode.value
+        },
         verified: true
       }
     ]
@@ -429,12 +446,11 @@ const assignContainerLocation = async () => {
 const completeDirectToShelfJob = async () => {
   try {
     appActionIsLoadingData.value = true
-    // TODO: need to figure out how we plan to post a direct to shelve job, since this can be done fully offline
-    // const payload = {
-    //   id: route.params.jobId,
-    //   status: 'Completed'
-    // }
-    // await patchShelvingJob(payload)
+    const payload = {
+      id: directToShelfJob.value.id,
+      status: 'Completed'
+    }
+    await patchDirectShelvingJob(payload)
 
     handleAlert({
       type: 'success',
@@ -457,6 +473,15 @@ const completeDirectToShelfJob = async () => {
   } finally {
     appActionIsLoadingData.value = false
   }
+}
+
+const clearShelfDetails = () => {
+  // clears out any scanned shelf data from the directToShelf data
+  directToShelfJob.value.barcode.value = ''
+  directToShelfJob.value.owner.id = null
+  directToShelfJob.value.owner.name = ''
+  directToShelfJob.value.size_class_id = null
+  directToShelfJob.value.size_class.name = ''
 }
 </script>
 

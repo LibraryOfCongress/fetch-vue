@@ -107,7 +107,8 @@
             padding="14px md"
             label="Direct To Shelve"
             class="full-width text-body1 q-mb-md"
-            @click="loadDirectToShelfJob()"
+            :disabled="appIsOffline"
+            @click="submitDirectToShelfJob()"
           />
 
           <q-btn
@@ -336,7 +337,11 @@ const router = useRouter()
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const {
+  appIsLoadingData,
+  appActionIsLoadingData,
+  appIsOffline
+} = storeToRefs(useGlobalStore())
 const { buildings } = storeToRefs(useOptionStore())
 const { getVerificationJobList } = useVerificationStore()
 const { verificationJobList } = storeToRefs(useVerificationStore())
@@ -354,7 +359,8 @@ const {
 } = storeToRefs(useBuildingStore())
 const {
   shelvingJobList,
-  shelvingJob
+  shelvingJob,
+  directToShelfJob
 } = storeToRefs(useShelvingStore())
 const {
   resetShelvingStore,
@@ -362,7 +368,7 @@ const {
   getShelvingJobList,
   getShelvingJob,
   postShelvingJob,
-  getDirectShelvingJob
+  postDirectShelvingJob
 } = useShelvingStore()
 
 // Local Data
@@ -570,19 +576,22 @@ const submitShelvingJob = async () => {
     appActionIsLoadingData.value = false
   }
 }
-
-const loadDirectToShelfJob = async (jobId) => {
+const submitDirectToShelfJob = async () => {
   try {
     appIsLoadingData.value = true
-    if (jobId) {
-      await getDirectShelvingJob(jobId)
-    }
+    await postDirectShelvingJob()
 
     router.push({
       name: 'shelving-dts',
       params: {
-        jobId: jobId ? jobId : 'temp'
+        jobId: directToShelfJob.value.id
       }
+    })
+
+    handleAlert({
+      type: 'success',
+      text: 'A Direct Shelving Job has been successfully created.',
+      autoClose: true
     })
   } catch (error) {
     handleAlert({
