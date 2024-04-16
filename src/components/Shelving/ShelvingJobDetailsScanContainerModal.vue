@@ -217,7 +217,7 @@ watch(compiledBarCode, (barcode) => {
 })
 const triggerShelfScan = (barcode_value) => {
   if (selectNewLocation.value == false) {
-    if (barcode_value == shelvingJobContainer.value.shelf_position_id) {
+    if (barcode_value == shelvingJobContainer.value.shelf_barcode.value) {
       updateContainerLocation(barcode_value)
     } else {
       handleAlert({

@@ -172,7 +172,7 @@ export const useShelvingStore = defineStore('shelving-store', {
           },
           user_id: 1,
           create_dt: new Date().toLocaleDateString(),
-          status: 'Ready For Shelving',
+          status: 'Created',
           containers: [
             {
               item_id: 1,
@@ -193,6 +193,9 @@ export const useShelvingStore = defineStore('shelving-store', {
               side_id: 'left',
               ladder_id: 12,
               shelf_id: 7,
+              shelf_barcode: {
+                value: 'shelf1'
+              },
               shelf_position_id: 5
             },
             {
@@ -214,6 +217,9 @@ export const useShelvingStore = defineStore('shelving-store', {
               side_id: 'left',
               ladder_id: 12,
               shelf_id: 7,
+              shelf_barcode: {
+                value: 'shelf1'
+              },
               shelf_position_id: 6
             }
           ],
@@ -258,6 +264,9 @@ export const useShelvingStore = defineStore('shelving-store', {
               side_id: 'left',
               ladder_id: 12,
               shelf_id: 7,
+              shelf_barcode: {
+                value: 'shelf1'
+              },
               shelf_position_id: 5
             },
             {
@@ -279,6 +288,9 @@ export const useShelvingStore = defineStore('shelving-store', {
               side_id: 'left',
               ladder_id: 12,
               shelf_id: 7,
+              shelf_barcode: {
+                value: 'shelf1'
+              },
               shelf_position_id: 6
             }
           ],
@@ -326,6 +338,9 @@ export const useShelvingStore = defineStore('shelving-store', {
               side_id: 'left',
               ladder_id: 12,
               shelf_id: 7,
+              shelf_barcode: {
+                value: 'shelf1'
+              },
               shelf_position_id: 5
             },
             {
@@ -347,6 +362,9 @@ export const useShelvingStore = defineStore('shelving-store', {
               side_id: 'left',
               ladder_id: 12,
               shelf_id: 7,
+              shelf_barcode: {
+                value: 'shelf1'
+              },
               shelf_position_id: 6
             }
           ]

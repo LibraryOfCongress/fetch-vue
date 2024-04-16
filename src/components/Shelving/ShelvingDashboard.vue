@@ -32,6 +32,7 @@
                 color="accent"
                 label="Create Shelving Job"
                 class="btn-no-wrap text-body1 q-ml-xs-none q-ml-sm-sm"
+                :disabled="appIsOffline"
                 @click="showShelvingJobModal = !showShelvingJobModal"
               />
             </div>
@@ -107,7 +108,6 @@
             padding="14px md"
             label="Direct To Shelve"
             class="full-width text-body1 q-mb-md"
-            :disabled="appIsOffline"
             @click="submitDirectToShelfJob()"
           />
 

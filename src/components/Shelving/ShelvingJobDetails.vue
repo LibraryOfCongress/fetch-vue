@@ -5,7 +5,7 @@
         <div class="shelving-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-lg-lg">
           <div class="flex">
             <MoreOptionsMenu
-              :options="[{ text: 'Edit', disabled: editJob || shelvingJob.status == 'Paused' }, { text: 'Print Job' }]"
+              :options="[{ text: 'Edit', disabled: appIsOffline || editJob || shelvingJob.status == 'Paused' }, { text: 'Print Job' }]"
               class="q-mr-xs"
               @click="handleOptionMenu"
             />
@@ -143,7 +143,7 @@
             color="positive"
             :label="shelvingJob.status == 'Created' ? 'Execute Job' : 'Complete Job'"
             class="btn-no-wrap text-body1"
-            :disabled="shelvingJob.status == 'Paused' || !allContainersShelved"
+            :disabled="appIsOffline || shelvingJob.status == 'Paused' || !allContainersShelved"
             :loading="appActionIsLoadingData"
             @click="shelvingJob.status == 'Created' ? executeShelvingJob() : completeShelvingJob()"
           />
@@ -172,7 +172,7 @@
         button-two-color="positive"
         :button-two-label="shelvingJob.status == 'Created' ? 'Execute Job' : 'Complete Job'"
         :button-two-outline="false"
-        :button-two-disabled="shelvingJob.status == 'Paused' || !allContainersShelved"
+        :button-two-disabled="appIsOffline || shelvingJob.status == 'Paused' || !allContainersShelved"
         :button-two-loading="appActionIsLoadingData"
         @button-two-click="shelvingJob.status == 'Created' ? executeShelvingJob() : completeShelvingJob()"
       />
@@ -241,7 +241,7 @@
     <PopupModal
       v-if="showScanContainerNote"
       title="Be Aware"
-      text="Scan the containers to begin the shelving process."
+      text="Scan the containers to begin the shelving process. (the process can be done offline)"
       :show-actions="false"
     >
       <template #footer-content="{ hideModal }">
@@ -302,7 +302,10 @@ const { currentScreenSize } = useCurrentScreenSize()
 const { compiledBarCode } = useBarcodeScanHandler()
 
 // // Store Data
-const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const {
+  appActionIsLoadingData,
+  appIsOffline
+} = storeToRefs(useGlobalStore())
 const { userData } = storeToRefs(useUserStore())
 const {
   getBuildingDetails,
@@ -457,9 +460,8 @@ onBeforeMount(() => {
     shelfTableVisibleColumns.value = [
       'actions',
       'barcode',
-      'owner',
-      'size_class',
-      'module',
+      'shelf',
+      'shelf_position',
       'verified'
     ]
   }

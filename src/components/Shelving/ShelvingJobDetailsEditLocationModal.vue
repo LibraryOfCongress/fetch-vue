@@ -322,7 +322,7 @@ const resetLocationForm = () => {
 const submitLocationForm = async () => {
   try {
     appActionIsLoadingData.value = true
-    //TODO setup call to post/patch item location data to shelving job
+    //TODO setup call to post/patch item location data to shelving job also update the item at the job level incase offline
     console.log('submitting location data', locationForm.value)
     resetLocationForm()
   } catch (error) {
