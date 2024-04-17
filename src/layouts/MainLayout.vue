@@ -84,7 +84,6 @@ const route = useRoute()
 const $q = useQuasar()
 const { currentScreenSize } = useCurrentScreenSize()
 const { alerts, handleAlert, clearAlerts } = useAlertPopup()
-provide('handle-alert', handleAlert) // handleAlert is globally accessible via provide/inject
 
 // Local Data
 const breadCrumbComponent = ref(null)
@@ -139,6 +138,8 @@ const checkForServiceWorkerUpdates = () => {
   })
 }
 
+// Global Functions
+provide('handle-alert', handleAlert) // handleAlert is globally accessible via provide/inject
 const handlePageOffset = () => {
   // this is the global function will use to control the q-page components min-height generation
   // this is needed since we are adding breadcrumbs to all pages which the q-page components default offset only checks for the navigation bar
@@ -159,6 +160,17 @@ const handlePageOffset = () => {
   return { minHeight: `calc(100vh - ${headerOffset}px)` }
 }
 provide('handle-page-offset', handlePageOffset) // handlePageOffset is globally accessible via provide/inject
+const getNestedKeyPath = (obj, path) => {
+  if (typeof path === 'string') {
+    path = path.replace('?', '').split('.')
+  }
+
+  if (path.length === 0) {
+    return obj
+  }
+  return getNestedKeyPath(obj[path[0]], path.slice(1))
+}
+provide('get-nested-key-path', getNestedKeyPath) // handlePageOffset is globally accessible via provide/inject
 </script>
 
 <style lang="scss" scoped>

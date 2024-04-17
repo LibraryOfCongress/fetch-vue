@@ -7,6 +7,7 @@ export const useBuildingStore = defineStore('building-store', {
     buildingDetails: {},
     moduleDetails: {},
     aisleDetails: {},
+    sideDetails: {},
     ladderDetails: {}
   }),
   getters: {
@@ -26,10 +27,30 @@ export const useBuildingStore = defineStore('building-store', {
       }
       return aisles
     },
-    renderAisleLadders: (state) => {
+    renderAisleSides: (state) => {
+      let sides = [
+        {
+          id: null,
+          side_orientation: {
+            name: 'Left'
+          }
+        },
+        {
+          id: 0,
+          side_orientation: {
+            name: 'Right'
+          }
+        }
+      ]
+      if (state.aisleDetails.id && state.aisleDetails.sides) {
+        sides = state.aisleDetails.sides
+      }
+      return sides
+    },
+    renderSideLadders: (state) => {
       let ladders = []
-      if (state.aisleDetails.id && state.aisleDetails.ladders) {
-        ladders = state.aisleDetails.ladders
+      if (state.sideDetails.id && state.sideDetails.ladders) {
+        ladders = state.sideDetails.ladders
       }
       return ladders
     }
@@ -310,6 +331,14 @@ export const useBuildingStore = defineStore('building-store', {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.aisles}${id}`)
         this.aisleDetails = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async getSideDetails (id) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.sides}${id}`)
+        this.sideDetails = res.data
       } catch (error) {
         throw error
       }

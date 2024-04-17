@@ -42,7 +42,7 @@
             <span
               v-if="colName == 'status'"
               class="outline text-nowrap"
-              :class="value == 'Created' || value == 'Running' ? 'text-highlight' : value == 'Paused' ? 'text-highlight-yellow' : 'text-highlight-red'"
+              :class="value == 'Created' || value == 'Completed' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-yellow' : 'text-highlight-red'"
             >
               {{ value }}
             </span>
@@ -153,7 +153,7 @@
                   Please Select Verification Job(s)
                 </label>
                 <SelectInput
-                  v-model="shelvingJob.verification_job_id"
+                  v-model="shelvingJob.verification_jobs"
                   :multiple="true"
                   :use-chips="true"
                   :hide-selected="false"
@@ -184,10 +184,7 @@
             </div>
           </div>
 
-          <div
-            v-if="shelvingJob.assignLocation"
-            class="row q-mt-md"
-          >
+          <div class="row q-mt-md">
             <div class="col-12 q-mb-sm">
               <h3 class="text-h6 text-bold">
                 Please Select Shelving Location:
@@ -211,76 +208,79 @@
                 />
               </div>
 
-              <div
-                class="form-group q-mb-md"
-              >
-                <label class="form-group-label">
-                  Module
-                </label>
-                <SelectInput
-                  v-model="shelvingJob.module_id"
-                  :options="renderBuildingModules"
-                  option-value="id"
-                  option-label="id"
-                  :placeholder="'Select Module'"
-                  :disabled="renderBuildingModules.length == 0"
-                  @update:model-value="handleShelvingJobFormChange('Module')"
-                />
-              </div>
-
-              <div class="row">
+              <template v-if="shelvingJob.assignLocation">
                 <div
-                  class="col-xs-12 col-sm-6 q-pr-sm-xs q-mb-md"
+                  class="form-group q-mb-md"
                 >
-                  <div class="form-group">
-                    <label class="form-group-label">
-                      Aisle
-                    </label>
-                    <SelectInput
-                      v-model="shelvingJob.aisle_id"
-                      :options="renderBuildingOrModuleAisles"
-                      option-value="id"
-                      option-label="number"
-                      :placeholder="'Select Aisle'"
-                      :disabled="renderBuildingOrModuleAisles.length == 0"
-                      @update:model-value="handleShelvingJobFormChange('Aisle')"
-                    />
+                  <label class="form-group-label">
+                    Module
+                  </label>
+                  <SelectInput
+                    v-model="shelvingJob.module_id"
+                    :options="renderBuildingModules"
+                    option-value="id"
+                    option-label="id"
+                    :placeholder="'Select Module'"
+                    :disabled="renderBuildingModules.length == 0"
+                    @update:model-value="handleShelvingJobFormChange('Module')"
+                  />
+                </div>
+
+                <div class="row">
+                  <div
+                    class="col-xs-12 col-sm-6 q-pr-sm-xs q-mb-md"
+                  >
+                    <div class="form-group">
+                      <label class="form-group-label">
+                        Aisle
+                      </label>
+                      <SelectInput
+                        v-model="shelvingJob.aisle_id"
+                        :options="renderBuildingOrModuleAisles"
+                        option-value="id"
+                        :option-label="opt => opt.aisle_number?.number"
+                        :placeholder="'Select Aisle'"
+                        :disabled="renderBuildingOrModuleAisles.length == 0"
+                        @update:model-value="handleShelvingJobFormChange('Aisle')"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="col-xs-12 col-sm-6 q-pl-sm-xs q-mb-xs-md q-mb-sm-none"
+                  >
+                    <div class="form-group">
+                      <label class="form-group-label">
+                        Side
+                      </label>
+                      <ToggleButtonInput
+                        v-model="shelvingJob.side_id"
+                        :options="renderAisleSides"
+                        option-value="id"
+                        option-label="side_orientation.name"
+                        :disabled="!renderAisleSides[0].id"
+                        @update:model-value="handleShelvingJobFormChange('Side')"
+                      />
+                    </div>
                   </div>
                 </div>
-                <div
-                  class="col-xs-12 col-sm-6 q-pl-sm-xs q-mb-xs-md q-mb-sm-none"
-                >
-                  <div class="form-group">
-                    <label class="form-group-label">
-                      Side
-                    </label>
-                    <ToggleButtonInput
-                      v-model="shelvingJob.side_id"
-                      :options="[
-                        {label: 'Left', value: 'left'},
-                        {label: 'Right', value: 'right'}
-                      ]"
-                    />
-                  </div>
-                </div>
-              </div>
 
-              <div
-                class="form-group"
-              >
-                <label class="form-group-label">
-                  Ladder
-                </label>
-                <SelectInput
-                  v-model="shelvingJob.ladder_id"
-                  :options="renderAisleLadders"
-                  option-value="id"
-                  option-label="number"
-                  :placeholder="'Select Ladder'"
-                  :disabled="renderAisleLadders.length == 0"
-                  @update:model-value="handleShelvingJobFormChange('Ladder')"
-                />
-              </div>
+                <div
+                  class="form-group"
+                >
+                  <label class="form-group-label">
+                    Ladder
+                  </label>
+                  <SelectInput
+                    v-model="shelvingJob.ladder_id"
+                    :options="renderSideLadders"
+                    option-value="id"
+                    :option-label="opt => opt.ladder_number?.number"
+                    :placeholder="'Select Ladder'"
+                    :disabled="renderSideLadders.length == 0"
+                    @update:model-value="handleShelvingJobFormChange('Ladder')"
+                  />
+                </div>
+              </template>
             </div>
           </div>
         </q-card-section>
@@ -350,13 +350,15 @@ const {
   getBuildingDetails,
   getModuleDetails,
   getAisleDetails,
+  getSideDetails,
   getLadderDetails,
   resetBuildingStore
 } = useBuildingStore()
 const {
   renderBuildingModules,
   renderBuildingOrModuleAisles,
-  renderAisleLadders
+  renderAisleSides,
+  renderSideLadders
 } = storeToRefs(useBuildingStore())
 const {
   shelvingJobList,
@@ -424,7 +426,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'complete_dt',
-    field: 'complete_dt',
+    field: row => row.status == 'Completed' ? row.last_transition : '',
     label: 'Completed Date',
     align: 'left',
     sortable: true,
@@ -453,9 +455,7 @@ const shelfTableFilters =  ref([
 const showShelvingJobModal = ref(false)
 const completedVerificationJobs = ref([])
 const isCreateShelvingjobFormValid = computed(() => {
-  if (!shelvingJob.value.assignLocation && !shelvingJob.value.verification_job_id) {
-    return false
-  } else if (shelvingJob.value.assignLocation && (!shelvingJob.value.verification_job_id || !shelvingJob.value.ladder)) {
+  if (!shelvingJob.value.verification_jobs || !shelvingJob.value.building_id) {
     return false
   } else {
     return true
@@ -491,18 +491,22 @@ const handleShelvingJobFormChange = async (valueType) => {
     await getBuildingDetails(shelvingJob.value.building_id)
     shelvingJob.value.module_id = ''
     shelvingJob.value.aisle_id = ''
-    shelvingJob.value.side_id = 'left'
+    shelvingJob.value.side_id = ''
     shelvingJob.value.ladder_id = ''
     return
   case 'Module':
     await getModuleDetails(shelvingJob.value.module_id)
     shelvingJob.value.aisle_id = ''
-    shelvingJob.value.side_id = 'left'
+    shelvingJob.value.side_id = ''
     shelvingJob.value.ladder_id = ''
     return
   case 'Aisle':
     await getAisleDetails(shelvingJob.value.aisle_id)
-    shelvingJob.value.side_id = 'left'
+    shelvingJob.value.side_id = ''
+    shelvingJob.value.ladder_id = ''
+    return
+  case 'Side':
+    await getSideDetails(shelvingJob.value.side_id)
     shelvingJob.value.ladder_id = ''
     return
   case 'Ladder':
@@ -559,9 +563,9 @@ const submitShelvingJob = async () => {
       ladder_id: shelvingJob.value.ladder_id,
       last_transition: new Date(), //TODO Remove once api handles transition data
       run_time: new Date().toLocaleString('en-us', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).split(' ').shift(), //TODO Remove once api handles transition data
-      verification_job_id: shelvingJob.value.verification_job_id[0] //TODO: this needs to be changed to allow multiple jobs to be combined on api
+      verification_jobs: shelvingJob.value.verification_jobs //TODO: this needs to be changed to allow multiple jobs to be combined on api
     }
-    postShelvingJob(payload)
+    await postShelvingJob(payload)
 
     // route the user to the shelving job detail page
     router.push({

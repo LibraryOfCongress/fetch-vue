@@ -186,7 +186,8 @@
           :table-columns="shelfTableColumns"
           :table-visible-columns="shelfTableVisibleColumns"
           :filter-options="shelfTableFilters"
-          :table-data="shelvingJob.containers"
+          :table-data="shelvingJobContainers"
+          :row-key="'barcode.value'"
           :hide-table-rearrange="false"
           :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
@@ -320,6 +321,7 @@ const {
 const {
   shelvingJob,
   originalShelvingJob,
+  shelvingJobContainers,
   shelvingJobContainer,
   allContainersShelved
 } = storeToRefs(useShelvingStore())
@@ -348,7 +350,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'owner',
-    field: row => row.owner.name,
+    field: row => row.owner?.name,
     label: 'Owner',
     align: 'left',
     sortable: true,
@@ -356,7 +358,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'size_class',
-    field: row => row.size_class.name,
+    field: row => row.size_class?.name,
     label: 'Size Class',
     align: 'left',
     sortable: true,
@@ -475,14 +477,14 @@ watch(compiledBarCode, (barcode) => {
 })
 const triggerContainerScan = (barcode_value) => {
   // check if the scanned barcode is in the containers data and that the barcode hasnt been shevled/verified already
-  if (!shelvingJob.value.containers.some(c => c.barcode.value == barcode_value)) {
+  if (!shelvingJobContainers.value.some(c => c.barcode.value == barcode_value)) {
     handleAlert({
       type: 'error',
       text: 'The scanned container does not exist in this shelving job. Please try again.',
       autoClose: true
     })
     return
-  } else if (shelvingJob.value.containers.some(c => c.barcode.value == barcode_value && c.verified)) {
+  } else if (shelvingJobContainers.value.some(c => c.barcode.value == barcode_value && c.verified)) {
     handleAlert({
       type: 'error',
       text: 'The scanned container has already been marked as shelved.',
@@ -490,7 +492,7 @@ const triggerContainerScan = (barcode_value) => {
     })
     return
   } else {
-    // load the matching containers info
+    // load the matching containers info directly from the shelvingJob data
     getShelvingJobContainer(barcode_value)
     showScanContainerModal.value = true
   }

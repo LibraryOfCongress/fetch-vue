@@ -152,7 +152,7 @@
           :wrap-cells="true"
           :hide-pagination="true"
           :hide-selected-banner="true"
-          column-sort-order="ad"
+          column-sort-order="da"
           :selection="enableSelection ? 'multiple' : 'none'"
           v-model:selected="selectedTableData"
           class="table-component-table"
@@ -308,7 +308,7 @@ const { currentScreenSize } = useCurrentScreenSize()
 // Local Data
 const localTableVisibleColumns = ref(mainProps.tableVisibleColumns)
 const localTableColumns = ref(mainProps.tableColumns)
-const localTableData = ref(structuredClone(toRaw(mainProps.tableData))) // Creates a copy of the tableData prop so we dont mutate our passed in data
+const localTableData = ref(toRaw(mainProps.tableData)) // Creates a copy of the tableData prop so we dont mutate our original prop array when filtering
 const localFilterOptions = ref(mainProps.filterOptions)
 const allowTableReorder = ref(false)
 const draggedItemElement = ref(null)

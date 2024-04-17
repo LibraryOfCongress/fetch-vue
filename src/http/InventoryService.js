@@ -21,6 +21,7 @@ export default {
   owners: '/owners/',
   ownersTiers: '/owners/tiers/',
   shelvingJobs: '/shelving-jobs/',
+  sides: '/sides/',
   sizeClass: '/size_class/',
   trays: '/trays/',
   traysBarcode: '/trays/barcode/',

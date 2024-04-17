@@ -10,11 +10,13 @@
     :text-color="textColor"
     class="custom-toggle"
     :style="[ currentScreenSize == 'xs' ? 'height:40px;' : 'height:56px;' ]"
-    :options="mainProps.options"
+    :options="localOptions"
+    :disable="disabled"
   />
 </template>
 
 <script setup>
+import { computed, inject } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 
 // Props
@@ -29,6 +31,16 @@ const mainProps = defineProps({
       ]
     }
   },
+  optionValue: {
+    // option can be either 'value' or 'value.value2.value3'
+    type: String,
+    default: ''
+  },
+  optionLabel: {
+    // option can be either 'label' or 'label.label2.label3'
+    type: null,
+    default: ''
+  },
   toggleColor: {
     type: String,
     default: 'accent'
@@ -40,6 +52,10 @@ const mainProps = defineProps({
   textColor: {
     type: String,
     default: 'black'
+  },
+  disabled: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -49,7 +65,28 @@ const emit = defineEmits(['update:modelValue'])
 // Compasables
 const { currentScreenSize } = useCurrentScreenSize()
 
+// Local Data
+const localOptions = computed(() => {
+  let formattedOptions = []
+  // if we pass in a custom optionValue or optionLabel prop
+  // then we know the options are not in the needed value, label format and has to be formatted
+  if (mainProps.optionLabel !== '' || mainProps.optionValue !== '') {
+    formattedOptions = mainProps.options.map(opt => {
+      return {
+        label: mainProps.optionLabel.includes('.') ?  getNestedKeyPath(opt, mainProps.optionLabel) : opt[mainProps.optionLabel],
+        value: mainProps.optionValue.includes('.') ?  getNestedKeyPath(opt, mainProps.optionValue) : opt[mainProps.optionValue]
+      }
+    })
+  } else {
+    formattedOptions = mainProps.options
+  }
+
+  return formattedOptions
+})
+
 // Logic
+const getNestedKeyPath = inject('get-nested-key-path')
+
 const updateModelValue = (value) => {
   emit('update:modelValue', value)
 }
@@ -57,9 +94,15 @@ const updateModelValue = (value) => {
 
 <style lang="scss" scoped>
 .custom-toggle {
-  border: 1px solid $accent;
   width: 100%;
-  overflow: auto;
+
+  :deep(.q-btn) {
+    border: 1px solid $accent;
+
+    &:first-child {
+      border-right-width: 0px;
+    }
+  }
 
   button[aria-pressed=true] {
     border-radius: 0;

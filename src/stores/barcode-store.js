@@ -21,12 +21,13 @@ export const useBarcodeStore = defineStore('barcode-store', {
         await this.getBarcodeDetails(barcode)
         if (this.barcodeDetails.id) {
           return
-        } else {
+        }
+      } catch (error) {
+        if (error.response?.status == 404) {
           // if the barcode doesnt exist add it
           await this.postBarcode(barcode)
           return
         }
-      } catch (error) {
         throw error
       }
     },

@@ -85,7 +85,7 @@
               v-model="locationForm.aisle_id"
               :options="renderBuildingOrModuleAisles"
               option-value="id"
-              option-label="number"
+              :option-label="opt => opt.aisle_number?.number"
               :placeholder="'Select Aisle'"
               :disabled="renderBuildingOrModuleAisles.length == 0"
               @update:model-value="handleLocationFormChange('Aisle')"
@@ -101,10 +101,11 @@
             </label>
             <ToggleButtonInput
               v-model="locationForm.side_id"
-              :options="[
-                {label: 'Left', value: 'left'},
-                {label: 'Right', value: 'right'}
-              ]"
+              :options="renderAisleSides"
+              option-value="id"
+              option-label="side_orientation.name"
+              :disabled="!renderAisleSides[0].id"
+              @update:model-value="handleLocationFormChange('Side')"
             />
           </div>
         </div>
@@ -117,11 +118,11 @@
           </label>
           <SelectInput
             v-model="locationForm.ladder_id"
-            :options="renderAisleLadders"
+            :options="renderSideLadders"
             option-value="id"
-            option-label="number"
+            :option-label="opt => opt.ladder_number?.number"
             :placeholder="'Select Ladder'"
-            :disabled="renderAisleLadders.length == 0"
+            :disabled="renderSideLadders.length == 0"
             @update:model-value="handleLocationFormChange('Ladder')"
           />
         </div>
@@ -214,12 +215,14 @@ const {
   getBuildingDetails,
   getModuleDetails,
   getAisleDetails,
+  getSideDetails,
   getLadderDetails
 } = useBuildingStore()
 const {
   renderBuildingModules,
   renderBuildingOrModuleAisles,
-  renderAisleLadders
+  renderAisleSides,
+  renderSideLadders
 } = storeToRefs(useBuildingStore())
 const {
   owners,
@@ -235,7 +238,7 @@ const locationForm = ref({
   building_id: null,
   module_id: null,
   aisle_id: null,
-  side_id: 'left',
+  side_id: 1,
   ladder_id: null,
   shelf_id: null,
   shelf_position_id: null
@@ -265,7 +268,7 @@ const handleLocationFormChange = async (valueType) => {
     locationForm.value.building_id = ''
     locationForm.value.module_id = ''
     locationForm.value.aisle_id = ''
-    locationForm.value.side_id = 'left'
+    locationForm.value.side_id = ''
     locationForm.value.ladder_id = ''
     locationForm.value.shelf_id = ''
     locationForm.value.shelf_position_id = ''
@@ -274,7 +277,7 @@ const handleLocationFormChange = async (valueType) => {
     await getBuildingDetails(locationForm.value.building_id)
     locationForm.value.module_id = ''
     locationForm.value.aisle_id = ''
-    locationForm.value.side_id = 'left'
+    locationForm.value.side_id = ''
     locationForm.value.ladder_id = ''
     locationForm.value.shelf_id = ''
     locationForm.value.shelf_position_id = ''
@@ -282,14 +285,20 @@ const handleLocationFormChange = async (valueType) => {
   case 'Module':
     await getModuleDetails(locationForm.value.module_id)
     locationForm.value.aisle_id = ''
-    locationForm.value.side_id = 'left'
+    locationForm.value.side_id = ''
     locationForm.value.ladder_id = ''
     locationForm.value.shelf_id = ''
     locationForm.value.shelf_position_id = ''
     return
   case 'Aisle':
     await getAisleDetails(locationForm.value.aisle_id)
-    locationForm.value.side_id = 'left'
+    locationForm.value.side_id = ''
+    locationForm.value.ladder_id = ''
+    locationForm.value.shelf_id = ''
+    locationForm.value.shelf_position_id = ''
+    return
+  case 'Side':
+    await getSideDetails(locationForm.value.side_id)
     locationForm.value.ladder_id = ''
     locationForm.value.shelf_id = ''
     locationForm.value.shelf_position_id = ''
@@ -312,7 +321,7 @@ const resetLocationForm = () => {
     building_id: null,
     module_id: null,
     aisle_id: null,
-    side_id: 'left',
+    side_id: '',
     ladder_id: null,
     shelf_id: null,
     shelf_position_id: null
