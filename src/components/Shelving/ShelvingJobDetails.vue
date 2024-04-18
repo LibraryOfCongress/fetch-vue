@@ -74,7 +74,7 @@
             Date Created:
           </label>
           <p class="text-body1">
-            {{ shelvingJob.create_dt }}
+            {{ formatDateTime(shelvingJob.create_dt).date }}
           </p>
         </div>
       </div>
@@ -455,6 +455,7 @@ const showScanContainerNote = ref(false)
 const showScanContainerModal = ref(false)
 
 // Logic
+const formatDateTime = inject('format-date-time')
 const handleAlert = inject('handle-alert')
 
 onBeforeMount(() => {

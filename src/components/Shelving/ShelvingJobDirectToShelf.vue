@@ -65,7 +65,7 @@
             Date Created:
           </label>
           <p class="text-body1">
-            {{ directToShelfJob.create_dt }}
+            {{ formatDateTime(directToShelfJob.create_dt).date }}
           </p>
         </div>
       </div>
@@ -341,6 +341,7 @@ const shelfTableVisibleColumns = ref([
 const showScanContainerModal = ref(false)
 
 // Logic
+const formatDateTime = inject('format-date-time')
 const handleAlert = inject('handle-alert')
 
 onBeforeMount(() => {

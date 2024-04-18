@@ -170,7 +170,20 @@ const getNestedKeyPath = (obj, path) => {
   }
   return getNestedKeyPath(obj[path[0]], path.slice(1))
 }
-provide('get-nested-key-path', getNestedKeyPath) // handlePageOffset is globally accessible via provide/inject
+provide('get-nested-key-path', getNestedKeyPath)
+const formatDateTime = (dateTime) => {
+  if (!dateTime) {
+    return
+  }
+  const localTimeFormat = new Date(dateTime).toLocaleString()
+  const splitDateTime = localTimeFormat.split(',')
+  return {
+    date: splitDateTime[0],
+    time: splitDateTime[1],
+    dateTime: localTimeFormat
+  }
+}
+provide('format-date-time', formatDateTime)
 </script>
 
 <style lang="scss" scoped>

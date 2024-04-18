@@ -52,6 +52,9 @@
             >
               {{ value }} Containers
             </span>
+            <span v-else-if="colName == 'create_dt'">
+              {{ formatDateTime(value).date }}
+            </span>
           </template>
         </EssentialTable>
       </div>
@@ -464,6 +467,7 @@ const isCreateShelvingjobFormValid = computed(() => {
 
 // Logic
 const handleAlert = inject('handle-alert')
+const formatDateTime = inject('format-date-time')
 
 onBeforeMount(() => {
   resetShelvingStore()
