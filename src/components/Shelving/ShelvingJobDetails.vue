@@ -366,7 +366,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'module',
-    field: 'module_id',
+    field: row => row.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number,
     label: 'Module',
     align: 'left',
     sortable: true,
@@ -374,7 +374,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'aisle',
-    field: 'aisle_id',
+    field: row => row.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number,
     label: 'Aisle',
     align: 'left',
     sortable: true,
@@ -382,7 +382,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'side',
-    field: 'side',
+    field: row => row.shelf_position?.shelf?.ladder?.side?.side_orientation?.name,
     label: 'Side',
     align: 'left',
     sortable: true,
@@ -390,7 +390,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'ladder',
-    field: 'ladder_id',
+    field: row => row.shelf_position?.shelf?.ladder?.ladder_number?.number,
     label: 'Ladder',
     align: 'left',
     sortable: true,
@@ -406,7 +406,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'shelf_position',
-    field: 'shelf_position_id',
+    field: row => row.shelf_position?.shelf_position_number?.number,
     label: 'Shelf Position',
     align: 'left',
     sortable: true,

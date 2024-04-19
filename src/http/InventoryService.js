@@ -20,6 +20,7 @@ export default {
   ladders: '/ladders/',
   owners: '/owners/',
   ownersTiers: '/owners/tiers/',
+  shelves: '/shelves/',
   shelvingJobs: '/shelving-jobs/',
   sides: '/sides/',
   sizeClass: '/size_class/',

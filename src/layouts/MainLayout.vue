@@ -173,7 +173,11 @@ const getNestedKeyPath = (obj, path) => {
 provide('get-nested-key-path', getNestedKeyPath)
 const formatDateTime = (dateTime) => {
   if (!dateTime) {
-    return
+    return {
+      date: '',
+      time: '',
+      dateTime: ''
+    }
   }
   const localTimeFormat = new Date(dateTime).toLocaleString()
   const splitDateTime = localTimeFormat.split(',')

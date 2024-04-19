@@ -190,7 +190,7 @@
           <div class="row q-mt-md">
             <div class="col-12 q-mb-sm">
               <h3 class="text-h6 text-bold">
-                Please Select Shelving Location:
+                Please Select Shelving Locations:
               </h3>
             </div>
             <div class="col-12">
@@ -222,7 +222,7 @@
                     v-model="shelvingJob.module_id"
                     :options="renderBuildingModules"
                     option-value="id"
-                    option-label="id"
+                    :option-label="opt => opt.module_number?.number"
                     :placeholder="'Select Module'"
                     :disabled="renderBuildingModules.length == 0"
                     @update:model-value="handleShelvingJobFormChange('Module')"
@@ -625,7 +625,7 @@ const submitDirectToShelfJob = async () => {
 
 const loadVerificationJobs = async () => {
   try {
-    await getVerificationJobList()
+    await getVerificationJobList({ unshelved: true })
 
     // filter jobs by completed status
     if (verificationJobList.value.length > 0) {

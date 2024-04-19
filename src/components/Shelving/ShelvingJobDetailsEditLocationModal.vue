@@ -67,7 +67,7 @@
             v-model="locationForm.module_id"
             :options="renderBuildingModules"
             option-value="id"
-            option-label="id"
+            :option-label="opt => opt.module_number?.number"
             :placeholder="'Select Module'"
             :disabled="renderBuildingModules.length == 0"
             @update:model-value="handleLocationFormChange('Module')"
@@ -138,11 +138,11 @@
             </label>
             <SelectInput
               v-model="locationForm.shelf_id"
-              :options="selectedLadderShelves"
+              :options="renderLadderShelves"
               option-value="id"
-              option-label="number"
+              :option-label="opt => opt.shelf_number?.number"
               :placeholder="'Select Shelf'"
-              :disabled="selectedLadderShelves.length == 0"
+              :disabled="renderLadderShelves.length == 0"
               @update:model-value="handleLocationFormChange('Shelf')"
             />
           </div>
@@ -216,13 +216,15 @@ const {
   getModuleDetails,
   getAisleDetails,
   getSideDetails,
-  getLadderDetails
+  getLadderDetails,
+  getShelfDetails
 } = useBuildingStore()
 const {
   renderBuildingModules,
   renderBuildingOrModuleAisles,
   renderAisleSides,
-  renderSideLadders
+  renderSideLadders,
+  renderLadderShelves
 } = storeToRefs(useBuildingStore())
 const {
   owners,
@@ -248,10 +250,6 @@ const isLocationFormValid = computed(() => {
   return !Object.values(locationForm.value).some(v => v == null || v == '')
 })
 //TODO need to figure out how shelfs work and if they live in ladders?
-const selectedLadderShelves = computed(() => {
-  let shelves = []
-  return shelves
-})
 const selectedShelfPositions = computed(() => {
   let shelfPositions = []
   return shelfPositions
@@ -309,6 +307,7 @@ const handleLocationFormChange = async (valueType) => {
     locationForm.value.shelf_position_id = ''
     return
   case 'Shelf':
+    await getShelfDetails(locationForm.value.shelf_id)
     locationForm.value.shelf_position_id = ''
     return
   }

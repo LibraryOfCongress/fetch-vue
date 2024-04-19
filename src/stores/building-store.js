@@ -8,7 +8,8 @@ export const useBuildingStore = defineStore('building-store', {
     moduleDetails: {},
     aisleDetails: {},
     sideDetails: {},
-    ladderDetails: {}
+    ladderDetails: {},
+    shelfDetails: {}
   }),
   getters: {
     renderBuildingModules: (state) => {
@@ -53,6 +54,13 @@ export const useBuildingStore = defineStore('building-store', {
         ladders = state.sideDetails.ladders
       }
       return ladders
+    },
+    renderLadderShelves: (state) => {
+      let shelves = []
+      if (state.ladderDetails.id && state.ladderDetails.shelves) {
+        shelves = state.ladderDetails.shelves
+      }
+      return shelves
     }
   },
   actions: {
@@ -347,6 +355,14 @@ export const useBuildingStore = defineStore('building-store', {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.ladders}${id}`)
         this.ladderDetails = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async getShelfDetails (id) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.shelves}${id}`)
+        this.shelfDetails = res.data
       } catch (error) {
         throw error
       }

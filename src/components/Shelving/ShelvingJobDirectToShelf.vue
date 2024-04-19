@@ -242,7 +242,7 @@ const {
 } = storeToRefs(useGlobalStore())
 const { userData } = storeToRefs(useUserStore())
 const {
-  getShelfDetails,
+  getShelfByBarcode,
   patchDirectShelvingJob,
   resetShelvingJobContainer
 } = useShelvingStore()
@@ -370,7 +370,7 @@ const triggerShelfScan = async (barcode_value) => {
 
     // if user is online send a get request to get the scanned shelfs data
     if (!appIsOffline.value) {
-      await getShelfDetails(barcode_value)
+      await getShelfByBarcode(barcode_value)
     } else {
       // else if offline assign the shelf barcode directly to the job
       directToShelfJob.value.barcode.value = barcode_value

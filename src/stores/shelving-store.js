@@ -143,7 +143,7 @@ export const useShelvingStore = defineStore('shelving-store', {
         verified: false
       }
     },
-    async getShelfDetails (barcode_value) {
+    async getShelfByBarcode (barcode_value) {
       try {
         // TODO: setup endpoint to get shelf details by barcode
         // const res = await this.$api.get(inventoryServiceApi.shelvingJobs)
