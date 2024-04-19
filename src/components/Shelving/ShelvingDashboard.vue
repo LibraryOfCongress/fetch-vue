@@ -557,19 +557,20 @@ const loadShelvingJob = async (jobId) => {
 const submitShelvingJob = async () => {
   try {
     appActionIsLoadingData.value = true
-
-    const payload = {
-      status: 'Created',
-      building_id: shelvingJob.value.building_id,
+    const params = {
       module_id: shelvingJob.value.module_id,
       aisle_id: shelvingJob.value.aisle_id,
       side_id: shelvingJob.value.side_id,
-      ladder_id: shelvingJob.value.ladder_id,
+      ladder_id: shelvingJob.value.ladder_id
+    }
+    const payload = {
+      status: 'Created',
+      building_id: shelvingJob.value.building_id,
       last_transition: new Date(), //TODO Remove once api handles transition data
       run_time: new Date().toLocaleString('en-us', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).split(' ').shift(), //TODO Remove once api handles transition data
       verification_jobs: shelvingJob.value.verification_jobs //TODO: this needs to be changed to allow multiple jobs to be combined on api
     }
-    await postShelvingJob(payload)
+    await postShelvingJob(payload, params)
 
     // route the user to the shelving job detail page
     router.push({

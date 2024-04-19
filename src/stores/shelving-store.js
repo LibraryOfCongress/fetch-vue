@@ -240,9 +240,9 @@ export const useShelvingStore = defineStore('shelving-store', {
         throw error
       }
     },
-    async postShelvingJob (payload) {
+    async postShelvingJob (payload, qParams) {
       try {
-        const res = await this.$api.post(inventoryServiceApi.shelvingJobs, payload)
+        const res = await this.$api.post(inventoryServiceApi.shelvingJobs, payload, { params: qParams })
         this.shelvingJob = {
           // TODO remove hardcoded data once shelving data from api is correct
           building: {
