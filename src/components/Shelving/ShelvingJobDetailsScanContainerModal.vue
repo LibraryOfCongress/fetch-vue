@@ -56,7 +56,7 @@
               Module:
             </label>
             <p class="text-body1">
-              {{ shelvingJobContainer.module_id }}
+              {{ shelvingJobContainer.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number }}
             </p>
           </div>
         </div>
@@ -66,17 +66,7 @@
               Aisle:
             </label>
             <p class="text-body1">
-              {{ shelvingJobContainer.aisle_id }}
-            </p>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="container-details">
-            <label class="text-body1 text-bold">
-              Ladder:
-            </label>
-            <p class="text-body1">
-              {{ shelvingJobContainer.ladder_id }}
+              {{ shelvingJobContainer.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number }}
             </p>
           </div>
         </div>
@@ -86,7 +76,17 @@
               Side:
             </label>
             <p class="text-body1">
-              {{ shelvingJobContainer.side_id }}
+              {{ shelvingJobContainer.shelf_position?.shelf?.ladder?.side?.side_orientation?.name }}
+            </p>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="container-details">
+            <label class="text-body1 text-bold">
+              Ladder:
+            </label>
+            <p class="text-body1">
+              {{ shelvingJobContainer.shelf_position?.shelf?.ladder?.ladder_number?.number }}
             </p>
           </div>
         </div>
@@ -96,7 +96,7 @@
               Shelf:
             </label>
             <p class="text-body1">
-              {{ shelvingJobContainer.shelf_id }}
+              {{ shelvingJobContainer.shelf_position?.shelf?.barcode?.value }}
             </p>
           </div>
         </div>
@@ -106,7 +106,7 @@
               Shelf Position:
             </label>
             <p class="text-body1">
-              {{ shelvingJobContainer.shelf_position_id }}
+              {{ shelvingJobContainer.shelf_position?.shelf_position_number?.number }}
             </p>
           </div>
         </div>
@@ -200,7 +200,7 @@ const { compiledBarCode } = useBarcodeScanHandler()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
-const { patchShelvingJobContainer, resetShelvingJobContainer } = useShelvingStore()
+const { postShelvingJobContainer, resetShelvingJobContainer } = useShelvingStore()
 const { shelvingJobContainer } = storeToRefs(useShelvingStore())
 
 // Local Data
@@ -235,11 +235,13 @@ const updateContainerLocation = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
-      item_id: shelvingJobContainer.value.item_id,
-      shelf_position_id: manualShelfPosition.value !== '' ? manualShelfPosition.value : shelvingJobContainer.value.shelf_position_id,
-      verified: true
+      container_id: shelvingJobContainer.value.id,
+      trayed: shelvingJobContainer.value.trayed,
+      shelf_position_number: manualShelfPosition.value !== '' ? manualShelfPosition.value : shelvingJobContainer.value.shelf_position.shelf_position_number.number,
+      shelf_barcode_value: shelvingJobContainer.value.shelf_position.shelf.barcode.value,
+      verified: true // TODO: remove one we have a shevled indicator from api
     }
-    await patchShelvingJobContainer(payload)
+    await postShelvingJobContainer(payload)
 
     handleAlert({
       type: 'success',

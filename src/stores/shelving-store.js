@@ -171,70 +171,6 @@ export const useShelvingStore = defineStore('shelving-store', {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.shelvingJobs}${id}`)
         this.shelvingJob = res.data
-        // this.shelvingJob = {
-        //   //TODO: remove the hardcoded data once shelving job endpoint returns the correct data
-        //   id,
-        //   building: {
-        //     name: 'Fort Meade'
-        //   },
-        //   user: {
-        //     name: 'User1'
-        //   },
-        //   user_id: 1,
-        //   create_dt: new Date().toLocaleDateString(),
-        //   status: 'Created',
-        //   containers: [
-        //     {
-        //       item_id: 1,
-        //       barcode: {
-        //         value: 'DH120987'
-        //       },
-        //       owner: {
-        //         name: 'John Doe'
-        //       },
-        //       owner_id: 1,
-        //       size_class: {
-        //         name: 'C High'
-        //       },
-        //       building_id: 1,
-        //       size_class_id: 2,
-        //       module_id: 3,
-        //       aisle_id: 56,
-        //       side_id: '',
-        //       ladder_id: 12,
-        //       shelf_id: 7,
-        //       shelf_barcode: {
-        //         value: 'shelf1'
-        //       },
-        //       shelf_position_id: 5
-        //     },
-        //     {
-        //       item_id: 2,
-        //       barcode: {
-        //         value: 'DH120999'
-        //       },
-        //       owner: {
-        //         name: 'Harry Potter'
-        //       },
-        //       owner_id: 1,
-        //       size_class: {
-        //         name: 'C Low'
-        //       },
-        //       building_id: 1,
-        //       size_class_id: 2,
-        //       module_id: 3,
-        //       aisle_id: 56,
-        //       side_id: '',
-        //       ladder_id: 12,
-        //       shelf_id: 7,
-        //       shelf_barcode: {
-        //         value: 'shelf1'
-        //       },
-        //       shelf_position_id: 6
-        //     }
-        //   ],
-        //   ...res.data
-        // }
         this.originalShelvingJob = { ...this.shelvingJob }
       } catch (error) {
         throw error
@@ -243,69 +179,7 @@ export const useShelvingStore = defineStore('shelving-store', {
     async postShelvingJob (payload, qParams) {
       try {
         const res = await this.$api.post(inventoryServiceApi.shelvingJobs, payload, { params: qParams })
-        this.shelvingJob = {
-          // TODO remove hardcoded data once shelving data from api is correct
-          building: {
-            name: 'Fort Meade'
-          },
-          user: {
-            name: 'User1'
-          },
-          user_id: 1,
-          create_dt: new Date().toLocaleDateString(),
-          status: payload.status,
-          containers: [
-            {
-              item_id: 1,
-              barcode: {
-                value: 'DH120987'
-              },
-              owner: {
-                name: 'John Doe'
-              },
-              owner_id: 1,
-              size_class: {
-                name: 'C High'
-              },
-              building_id: 1,
-              size_class_id: 2,
-              module_id: 3,
-              aisle_id: 56,
-              side_id: '',
-              ladder_id: 12,
-              shelf_id: 7,
-              shelf_barcode: {
-                value: 'shelf1'
-              },
-              shelf_position_id: 5
-            },
-            {
-              item_id: 2,
-              barcode: {
-                value: 'DH120999'
-              },
-              owner: {
-                name: 'Harry Potter'
-              },
-              owner_id: 1,
-              size_class: {
-                name: 'C Low'
-              },
-              building_id: 1,
-              size_class_id: 2,
-              module_id: 3,
-              aisle_id: 56,
-              side_id: '',
-              ladder_id: 12,
-              shelf_id: 7,
-              shelf_barcode: {
-                value: 'shelf1'
-              },
-              shelf_position_id: 6
-            }
-          ],
-          ...res.data
-        }
+        this.shelvingJob = res.data
         this.originalShelvingJob = { ...this.shelvingJob }
       } catch (error) {
         throw error
@@ -313,74 +187,9 @@ export const useShelvingStore = defineStore('shelving-store', {
     },
     async patchShelvingJob (payload) {
       try {
-        // TODO wire up shelving job detail endpoint to patch data
-        // const res = await this.$api.patch(`${inventoryServiceApi.shelvingJobs}${payload.id}`, payload)
-        // this.shelvingJob = res.data
-        // this.originalShelvingJob = { ...res.data }
-        this.shelvingJob = {
-          id: payload.id,
-          building: {
-            name: 'Fort Meade'
-          },
-          user: {
-            name: 'User1'
-          },
-          user_id: 1,
-          create_dt: new Date().toLocaleDateString(),
-          status: payload.status,
-          trays: this.shelvingJob.trays,
-          non_tray_items: this.shelvingJob.non_tray_items,
-          containers: [
-            {
-              item_id: 1,
-              barcode: {
-                value: 'DH120987'
-              },
-              owner: {
-                name: 'John Doe'
-              },
-              owner_id: 1,
-              size_class: {
-                name: 'C High'
-              },
-              building_id: 1,
-              size_class_id: 2,
-              module_id: 3,
-              aisle_id: 56,
-              side_id: '',
-              ladder_id: 12,
-              shelf_id: 7,
-              shelf_barcode: {
-                value: 'shelf1'
-              },
-              shelf_position_id: 5
-            },
-            {
-              item_id: 2,
-              barcode: {
-                value: 'DH120999'
-              },
-              owner: {
-                name: 'Harry Potter'
-              },
-              owner_id: 1,
-              size_class: {
-                name: 'C Low'
-              },
-              building_id: 1,
-              size_class_id: 2,
-              module_id: 3,
-              aisle_id: 56,
-              side_id: '',
-              ladder_id: 12,
-              shelf_id: 7,
-              shelf_barcode: {
-                value: 'shelf1'
-              },
-              shelf_position_id: 6
-            }
-          ]
-        }
+        const res = await this.$api.patch(`${inventoryServiceApi.shelvingJobs}${payload.id}`, payload)
+        this.shelvingJob = res.data
+        this.originalShelvingJob = { ...res.data }
       } catch (error) {
         throw error
       }
@@ -419,20 +228,21 @@ export const useShelvingStore = defineStore('shelving-store', {
       // find the container with the matching barcode_value and set the data as the shelvingJobContainer
       this.shelvingJobContainer = this.shelvingJobContainers.find(container => container.barcode.value == barcode_value)
     },
-    async patchShelvingJobContainer (payload) {
+    async postShelvingJobContainer (payload) {
       try {
         // TODO wire up shelving job container detail endpoint to patch data
-        // const res = await this.$api.patch(`${inventoryServiceApi.shelvingJobs}${payload.item_id}`, payload)
-        // this.shelvingJobContainer = res.data
+        const res = await this.$api.patch(`${inventoryServiceApi.shelvingJobs}${payload.container_id}/reassign-container-location`, payload)
         this.shelvingJobContainer = {
           ...this.shelvingJobContainer,
-          ...payload
+          ...res.data
         }
 
         // update the container at the shelving job level as well
-        // this.shelvingJobContainers[this.shelvingJobContainers.findIndex(container => container.item_id == payload.item_id)] = res.data
-        // TODO: replace and uncomment ^ once api is wired up
-        this.shelvingJobContainers[this.shelvingJobContainers.findIndex(container => container.item_id == payload.item_id)] = this.shelvingJobContainer
+        if (payload.trayed) {
+          this.shelvingJob.trays[this.shelvingJob.trays.findIndex(container => container.id == payload.container_id)] = this.shelvingJobContainer
+        } else {
+          this.shelvingJob.non_tray_items[this.shelvingJob.non_tray_items.findIndex(container => container.id == payload.container_id)] = this.shelvingJobContainer
+        }
         this.originalShelvingJob = { ...this.shelvingJob }
       } catch (error) {
         throw error

@@ -398,7 +398,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'shelf',
-    field: 'shelf_id',
+    field: row => row.shelf_position?.shelf?.barcode?.value,
     label: 'Shelf',
     align: 'left',
     sortable: true,
@@ -515,15 +515,15 @@ const handleOptionMenu = async (action, rowData) => {
   case 'Edit Location':
     showShelvingLocationModal.value = true
     await nextTick()
-    locationModalComponent.value.locationForm.item_id = rowData.item_id
-    locationModalComponent.value.locationForm.owner_id = rowData.owner_id
-    locationModalComponent.value.locationForm.size_class_id = rowData.size_class_id
-    locationModalComponent.value.locationForm.building_id = rowData.building_id
-    locationModalComponent.value.locationForm.module_id = rowData.module_id
-    locationModalComponent.value.locationForm.aisle_id = rowData.aisle_id
-    locationModalComponent.value.locationForm.side_id = rowData.side_id
-    locationModalComponent.value.locationForm.ladder_id = rowData.ladder_id
-    locationModalComponent.value.locationForm.shelf_id = rowData.shelf_id
+    locationModalComponent.value.locationForm.item_id = rowData.id
+    locationModalComponent.value.locationForm.owner_id = rowData.owner?.id
+    locationModalComponent.value.locationForm.size_class_id = rowData.size_class?.id
+    locationModalComponent.value.locationForm.building_id = shelvingJob.value.building_id,
+    locationModalComponent.value.locationForm.module_id = rowData.shelf_position?.shelf?.ladder?.side?.aisle?.module?.id
+    locationModalComponent.value.locationForm.aisle_id = rowData.shelf_position?.shelf?.ladder?.side?.aisle?.id
+    locationModalComponent.value.locationForm.side_id = rowData.shelf_position?.shelf?.ladder?.side?.id
+    locationModalComponent.value.locationForm.ladder_id = rowData.shelf_position?.shelf?.ladder?.id
+    locationModalComponent.value.locationForm.shelf_id = rowData.shelf_position?.shelf?.id
     locationModalComponent.value.locationForm.shelf_position_id = rowData.shelf_position_id
     return
   case 'Edit':
