@@ -15,12 +15,12 @@ FROM develop-stage as build-stage
 RUN npm install
 
 # if you need to change env reference just change the "ENVIRONMENT=STRING"
-RUN ENVIRONMENT=local quasar build
+RUN ENVIRONMENT=local quasar build -m pwa --debug
 
 # production stage
 FROM nginx:1.17.5-alpine as production-stage
 
-COPY --from=build-stage /app/dist/spa /usr/share/nginx/html
+COPY --from=build-stage /app/dist/pwa /usr/share/nginx/html
 
 RUN rm /etc/nginx/conf.d/default.conf
 
