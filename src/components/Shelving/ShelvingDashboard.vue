@@ -111,6 +111,7 @@
             padding="14px md"
             label="Direct To Shelve"
             class="full-width text-body1 q-mb-md"
+            :disabled="appIsOffline"
             @click="submitDirectToShelfJob()"
           />
 
@@ -120,6 +121,7 @@
             padding="14px md"
             label="From Verification Job"
             class="full-width text-body1"
+            :disabled="appIsOffline"
             @click="shelvingJob.type = 'Verification'"
           />
         </q-card-section>
@@ -493,25 +495,25 @@ const handleShelvingJobFormChange = async (valueType) => {
   switch (valueType) {
   case 'Building':
     await getBuildingDetails(shelvingJob.value.building_id)
-    shelvingJob.value.module_id = ''
-    shelvingJob.value.aisle_id = ''
-    shelvingJob.value.side_id = ''
-    shelvingJob.value.ladder_id = ''
+    shelvingJob.value.module_id = null
+    shelvingJob.value.aisle_id = null
+    shelvingJob.value.side_id = null
+    shelvingJob.value.ladder_id = null
     return
   case 'Module':
     await getModuleDetails(shelvingJob.value.module_id)
-    shelvingJob.value.aisle_id = ''
-    shelvingJob.value.side_id = ''
-    shelvingJob.value.ladder_id = ''
+    shelvingJob.value.aisle_id = null
+    shelvingJob.value.side_id = null
+    shelvingJob.value.ladder_id = null
     return
   case 'Aisle':
     await getAisleDetails(shelvingJob.value.aisle_id)
-    shelvingJob.value.side_id = ''
-    shelvingJob.value.ladder_id = ''
+    shelvingJob.value.side_id = null
+    shelvingJob.value.ladder_id = null
     return
   case 'Side':
     await getSideDetails(shelvingJob.value.side_id)
-    shelvingJob.value.ladder_id = ''
+    shelvingJob.value.ladder_id = null
     return
   case 'Ladder':
     await getLadderDetails(shelvingJob.value.ladder_id)
@@ -566,9 +568,7 @@ const submitShelvingJob = async () => {
     const payload = {
       status: 'Created',
       building_id: shelvingJob.value.building_id,
-      last_transition: new Date(), //TODO Remove once api handles transition data
-      run_time: new Date().toLocaleString('en-us', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).split(' ').shift(), //TODO Remove once api handles transition data
-      verification_jobs: shelvingJob.value.verification_jobs //TODO: this needs to be changed to allow multiple jobs to be combined on api
+      verification_jobs: shelvingJob.value.verification_jobs
     }
     await postShelvingJob(payload, params)
 

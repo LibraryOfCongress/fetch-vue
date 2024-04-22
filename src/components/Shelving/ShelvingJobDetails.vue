@@ -1,6 +1,6 @@
 <template>
   <div class="shelving-job">
-    <div class="row justify-between q-mt-xs-md q-mt-md-xl q-mx-xs-sm q-mx-sm-md">
+    <div class="row justify-between q-pt-xs-md q-pt-md-xl q-mx-xs-sm q-mx-sm-md">
       <div class="col-xs-12 col-md-12 col-lg-3">
         <div class="shelving-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-lg-lg">
           <div class="flex">
@@ -304,6 +304,7 @@ const { compiledBarCode } = useBarcodeScanHandler()
 
 // // Store Data
 const {
+  appIsLoadingData,
   appActionIsLoadingData,
   appIsOffline
 } = storeToRefs(useGlobalStore())
@@ -312,7 +313,9 @@ const {
   getBuildingDetails,
   getModuleDetails,
   getAisleDetails,
-  getLadderDetails
+  getSideDetails,
+  getLadderDetails,
+  getShelfDetails
 } = useBuildingStore()
 const {
   patchShelvingJob,
@@ -471,7 +474,7 @@ onBeforeMount(() => {
 })
 
 watch(compiledBarCode, (barcode) => {
-  if (barcode !== '' && shelvingJob.value.status == 'Running' && !shelvingJobContainer.value.item_id) {
+  if (barcode !== '' && shelvingJob.value.status == 'Running' && !shelvingJobContainer.value.id) {
     // only allow scans if the shelving job is in a running state
     triggerContainerScan(barcode)
   }
@@ -500,31 +503,40 @@ const triggerContainerScan = (barcode_value) => {
 }
 
 const handleOptionMenu = async (action, rowData) => {
-  // if the rowData contains a building_id we can get the details to populate all the related fields
-  if (rowData && rowData.building_id) {
-    await Promise.all([
-      getBuildingDetails(rowData.building_id),
-      getModuleDetails(rowData.module_id),
-      getAisleDetails(rowData.aisle_id),
-      // getSideDetails(rowData.side_id) //TODO: do we need to get side details in order to get ladders?
-      getLadderDetails(rowData.ladder_id)
-    ])
-  }
-
   switch (action.text) {
   case 'Edit Location':
-    showShelvingLocationModal.value = true
-    await nextTick()
-    locationModalComponent.value.locationForm.item_id = rowData.id
-    locationModalComponent.value.locationForm.owner_id = rowData.owner?.id
-    locationModalComponent.value.locationForm.size_class_id = rowData.size_class?.id
-    locationModalComponent.value.locationForm.building_id = shelvingJob.value.building_id,
-    locationModalComponent.value.locationForm.module_id = rowData.shelf_position?.shelf?.ladder?.side?.aisle?.module?.id
-    locationModalComponent.value.locationForm.aisle_id = rowData.shelf_position?.shelf?.ladder?.side?.aisle?.id
-    locationModalComponent.value.locationForm.side_id = rowData.shelf_position?.shelf?.ladder?.side?.id
-    locationModalComponent.value.locationForm.ladder_id = rowData.shelf_position?.shelf?.ladder?.id
-    locationModalComponent.value.locationForm.shelf_id = rowData.shelf_position?.shelf?.id
-    locationModalComponent.value.locationForm.shelf_position_id = rowData.shelf_position_id
+    try {
+      appIsLoadingData.value = true
+      await Promise.all([
+        getBuildingDetails(shelvingJob.value.building_id),
+        getModuleDetails(rowData.shelf_position?.shelf?.ladder?.side?.aisle?.module?.id),
+        getAisleDetails(rowData.shelf_position?.shelf?.ladder?.side?.aisle?.id),
+        getSideDetails(rowData.shelf_position?.shelf?.ladder?.side?.id),
+        getLadderDetails(rowData.shelf_position?.shelf?.ladder?.id),
+        getShelfDetails(rowData.shelf_position?.shelf?.id)
+      ])
+    } catch (error) {
+      handleAlert({
+        type: 'error',
+        text: error,
+        autoClose: true
+      })
+    } finally {
+      appIsLoadingData.value = false
+      showShelvingLocationModal.value = true
+      await nextTick()
+      locationModalComponent.value.locationForm.id = rowData.id
+      locationModalComponent.value.locationForm.owner_id = rowData.owner?.id
+      locationModalComponent.value.locationForm.size_class_id = rowData.size_class?.id
+      locationModalComponent.value.locationForm.building_id = shelvingJob.value.building_id,
+      locationModalComponent.value.locationForm.module_id = rowData.shelf_position?.shelf?.ladder?.side?.aisle?.module?.id
+      locationModalComponent.value.locationForm.aisle_id = rowData.shelf_position?.shelf?.ladder?.side?.aisle?.id
+      locationModalComponent.value.locationForm.side_id = rowData.shelf_position?.shelf?.ladder?.side?.id
+      locationModalComponent.value.locationForm.ladder_id = rowData.shelf_position?.shelf?.ladder?.id
+      locationModalComponent.value.locationForm.shelf_id = rowData.shelf_position?.shelf?.id
+      locationModalComponent.value.locationForm.shelf_position_id = rowData.shelf_position_id
+    }
+
     return
   case 'Edit':
     editJob.value = true

@@ -5,7 +5,7 @@
   >
     <template #main-content>
       <q-card-section class="row items-end">
-        <div
+        <!-- <div
           class="form-group q-mb-md"
         >
           <label class="form-group-label">
@@ -37,7 +37,7 @@
             :placeholder="'Select Size Class'"
             @update:model-value="handleLocationFormChange('Size Class')"
           />
-        </div>
+        </div> -->
 
         <div
           class="form-group q-mb-md"
@@ -158,11 +158,11 @@
             </label>
             <SelectInput
               v-model="locationForm.shelf_position_id"
-              :options="selectedShelfPositions"
+              :options="renderShelfPositions"
               option-value="id"
-              option-label="number"
+              :option-label="opt => opt.shelf_position_number?.number"
               :placeholder="'Select Shelf Position'"
-              :disabled="selectedShelfPositions.length == 0"
+              :disabled="renderShelfPositions.length == 0"
             />
           </div>
         </div>
@@ -224,17 +224,18 @@ const {
   renderBuildingOrModuleAisles,
   renderAisleSides,
   renderSideLadders,
-  renderLadderShelves
+  renderLadderShelves,
+  renderShelfPositions
 } = storeToRefs(useBuildingStore())
 const {
-  owners,
-  sizeClass,
+  // owners,
+  // sizeClass,
   buildings
 } = storeToRefs(useOptionStore())
 
 // Local Data
 const locationForm = ref({
-  item_id: null,
+  id: null,
   owner_id: null,
   size_class_id: null,
   building_id: null,
@@ -248,11 +249,6 @@ const locationForm = ref({
 const isLocationFormValid = computed(() => {
   // validate that all needed fields are filled out in the building form
   return !Object.values(locationForm.value).some(v => v == null || v == '')
-})
-//TODO need to figure out how shelfs work and if they live in ladders?
-const selectedShelfPositions = computed(() => {
-  let shelfPositions = []
-  return shelfPositions
 })
 
 // Logic
@@ -314,7 +310,7 @@ const handleLocationFormChange = async (valueType) => {
 }
 const resetLocationForm = () => {
   locationForm.value = {
-    item_id: null,
+    id: null,
     owner_id: null,
     size_class_id: null,
     building_id: null,

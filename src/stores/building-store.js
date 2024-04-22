@@ -61,6 +61,13 @@ export const useBuildingStore = defineStore('building-store', {
         shelves = state.ladderDetails.shelves
       }
       return shelves
+    },
+    renderShelfPositions: (state) => {
+      let shelf_positions = []
+      if (state.shelfDetails.id && state.shelfDetails.shelf_positions) {
+        shelf_positions = state.shelfDetails.shelf_positions
+      }
+      return shelf_positions
     }
   },
   actions: {

@@ -19,7 +19,7 @@ export const useShelvingStore = defineStore('shelving-store', {
       containers: [],
       ladder_id: null,
       module_id: null,
-      side_id: '',
+      side_id: null,
       status: '',
       verification_job_id: null
     },
@@ -45,7 +45,7 @@ export const useShelvingStore = defineStore('shelving-store', {
       containers : []
     },
     shelvingJobContainer: {
-      item_id: null,
+      id: null,
       barcode: {
         value: ''
       },
@@ -81,7 +81,6 @@ export const useShelvingStore = defineStore('shelving-store', {
     allContainersShelved: (state) => {
       if (state.shelvingJob.id && state.shelvingJob.status !== 'Created') {
         // if were in a normal shelving job we can check the status to determine if containers need to be verfiied or not
-        console.log(state, state.shelvingJobContainers)
         return state.shelvingJobContainers.some(c => !c.verified) ? false : true
       } else if (state.directToShelfJob.id) {
         // if were in a direct to shelving job we can check if ther is an id or temp id to determine if containers need to be verfiied or not
@@ -111,7 +110,7 @@ export const useShelvingStore = defineStore('shelving-store', {
         containers: [],
         ladder_id: null,
         module_id: null,
-        side_id: '',
+        side_id: null,
         status: '',
         verification_job_id: null
       }
@@ -119,7 +118,7 @@ export const useShelvingStore = defineStore('shelving-store', {
     },
     resetShelvingJobContainer () {
       this.shelvingJobContainer = {
-        item_id: null,
+        id: null,
         barcode: {
           value: ''
         },
@@ -231,7 +230,7 @@ export const useShelvingStore = defineStore('shelving-store', {
     async postShelvingJobContainer (payload) {
       try {
         // TODO wire up shelving job container detail endpoint to patch data
-        const res = await this.$api.patch(`${inventoryServiceApi.shelvingJobs}${payload.container_id}/reassign-container-location`, payload)
+        const res = await this.$api.post(`${inventoryServiceApi.shelvingJobs}${payload.container_id}/reassign-container-location`, payload)
         this.shelvingJobContainer = {
           ...this.shelvingJobContainer,
           ...res.data

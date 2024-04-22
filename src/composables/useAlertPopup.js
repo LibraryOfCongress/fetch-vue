@@ -17,7 +17,7 @@ export function useAlertPopup () {
     if (alerts.value.some(alrt => alrt.type == 'error')) {
       alerts.value.forEach(alrt => {
         if (alrt.type == 'error' && typeof alrt.text == 'object') {
-          alrt.text = alrt.text.response.data ? alrt.text.response.data : alrt.text
+          alrt.text = alrt.text.response?.data ? alrt.text.response.data : alrt.text
         }
       })
     }

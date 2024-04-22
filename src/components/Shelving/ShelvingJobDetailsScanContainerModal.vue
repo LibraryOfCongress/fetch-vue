@@ -194,7 +194,6 @@ import TextInput from '@/components/TextInput.vue'
 
 // Emits
 const emit = defineEmits(['hide'])
-
 // Compasables
 const { compiledBarCode } = useBarcodeScanHandler()
 
@@ -217,7 +216,7 @@ watch(compiledBarCode, (barcode) => {
 })
 const triggerShelfScan = (barcode_value) => {
   if (selectNewLocation.value == false) {
-    if (barcode_value == shelvingJobContainer.value.shelf_barcode.value) {
+    if (barcode_value == shelvingJobContainer.value.shelf_position.shelf.barcode.value) {
       updateContainerLocation(barcode_value)
     } else {
       handleAlert({
@@ -236,7 +235,7 @@ const updateContainerLocation = async () => {
     appActionIsLoadingData.value = true
     const payload = {
       container_id: shelvingJobContainer.value.id,
-      trayed: shelvingJobContainer.value.trayed,
+      trayed: shelvingJobContainer.value.container_type.type == 'Tray' ? true : false,
       shelf_position_number: manualShelfPosition.value !== '' ? manualShelfPosition.value : shelvingJobContainer.value.shelf_position.shelf_position_number.number,
       shelf_barcode_value: shelvingJobContainer.value.shelf_position.shelf.barcode.value,
       verified: true // TODO: remove one we have a shevled indicator from api
