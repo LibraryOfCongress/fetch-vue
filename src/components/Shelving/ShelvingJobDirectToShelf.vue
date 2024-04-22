@@ -319,7 +319,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'verified',
-    field: 'verified',
+    field: 'scanned_for_shelving',
     label: '',
     align: 'right',
     sortable: false,
@@ -387,7 +387,7 @@ const triggerShelfScan = async (barcode_value) => {
 }
 const triggerContainerScan = (barcode_value) => {
   // check if the scanned barcode is in the containers data and that the barcode hasnt been shelved already
-  if (directToShelfJob.value.containers.some(c => c.barcode.value == barcode_value && c.verified)) {
+  if (directToShelfJob.value.containers.some(c => c.barcode.value == barcode_value && c.scanned_for_shelving)) {
     handleAlert({
       type: 'error',
       text: 'The scanned container has already been marked as shelved.',
@@ -421,7 +421,7 @@ const assignContainerLocation = async () => {
         shelf_barcode: {
           value: directToShelfJob.value.shelf_barcode.value
         },
-        verified: true
+        scanned_for_shelving: true
       }
     ]
 

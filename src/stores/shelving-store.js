@@ -66,7 +66,12 @@ export const useShelvingStore = defineStore('shelving-store', {
         value: ''
       },
       shelf_position_id: null,
-      verified: false
+      shelf_position: {
+        shelf_position_number: {
+          number: null
+        }
+      },
+      scanned_for_shelving: false
     }
   }),
   getters: {
@@ -81,10 +86,10 @@ export const useShelvingStore = defineStore('shelving-store', {
     allContainersShelved: (state) => {
       if (state.shelvingJob.id && state.shelvingJob.status !== 'Created') {
         // if were in a normal shelving job we can check the status to determine if containers need to be verfiied or not
-        return state.shelvingJobContainers.some(c => !c.verified) ? false : true
+        return state.shelvingJobContainers.some(c => !c.scanned_for_shelving) ? false : true
       } else if (state.directToShelfJob.id) {
         // if were in a direct to shelving job we can check if ther is an id or temp id to determine if containers need to be verfiied or not
-        return state.directToShelfJob.containers.length == 0 || state.directToShelfJob.containers.some(c => !c.verified) ? false : true
+        return state.directToShelfJob.containers.length == 0 || state.directToShelfJob.containers.some(c => !c.scanned_for_shelving) ? false : true
       } else {
         return true
       }
@@ -139,7 +144,12 @@ export const useShelvingStore = defineStore('shelving-store', {
           value: ''
         },
         shelf_position_id: null,
-        verified: false
+        shelf_position: {
+          shelf_position_number: {
+            number: null
+          }
+        },
+        scanned_for_shelving: false
       }
     },
     async getShelfByBarcode (barcode_value) {
@@ -230,8 +240,9 @@ export const useShelvingStore = defineStore('shelving-store', {
     },
     async postShelvingJobContainer (payload) {
       try {
-        // TODO wire up shelving job container detail endpoint to patch data
-        const res = await this.$api.post(`${inventoryServiceApi.shelvingJobs}${payload.container_id}/reassign-container-location`, payload)
+        const res = await this.$api.post(`${inventoryServiceApi.shelvingJobs}${payload.job_id}/reassign-container-location`, payload)
+        this.shelvingJobContainer.shelf_position_id = res.data.shelf_position_id
+        this.shelvingJobContainer.shelf_position.shelf_position_number.number = payload.shelf_position_number
         this.shelvingJobContainer = {
           ...this.shelvingJobContainer,
           ...res.data

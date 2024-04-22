@@ -176,6 +176,7 @@
 
 <script setup>
 import { ref, inject, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useBuildingStore } from '@/stores/building-store'
@@ -186,6 +187,8 @@ import SelectInput from '@/components/SelectInput.vue'
 import TextInput from '@/components/TextInput.vue'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
+
+const route = useRoute()
 
 // Emits
 const emit = defineEmits(['hide'])
@@ -302,6 +305,7 @@ const submitLocationForm = async () => {
     let payload
     if (appIsOffline.value) {
       payload = {
+        job_id: route.params.jobId,
         container_id: locationForm.value.id,
         trayed: locationForm.value.trayed,
         shelf_position_number: locationForm.value.shelf_position_number,
@@ -309,6 +313,7 @@ const submitLocationForm = async () => {
       }
     } else {
       payload = {
+        job_id: route.params.jobId,
         container_id: locationForm.value.id,
         trayed: locationForm.value.trayed,
         shelf_position_number: renderShelfPositions.value.find(shelf_pos => shelf_pos.id == locationForm.value.shelf_position_id)?.shelf_position_number.number,

@@ -184,6 +184,7 @@
 
 <script setup>
 import { ref, inject, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useShelvingStore } from '@/stores/shelving-store'
@@ -191,6 +192,8 @@ import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 import PopupModal from '@/components/PopupModal.vue'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 import TextInput from '@/components/TextInput.vue'
+
+const route = useRoute()
 
 // Emits
 const emit = defineEmits(['hide'])
@@ -234,11 +237,12 @@ const updateContainerLocation = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
+      job_id: route.params.jobId,
       container_id: shelvingJobContainer.value.id,
       trayed: shelvingJobContainer.value.container_type.type == 'Tray' ? true : false,
       shelf_position_number: manualShelfPosition.value !== '' ? manualShelfPosition.value : shelvingJobContainer.value.shelf_position.shelf_position_number.number,
       shelf_barcode_value: shelvingJobContainer.value.shelf_position.shelf.barcode.value,
-      verified: true // TODO: remove one we have a shevled indicator from api
+      scanned_for_shelving: true
     }
     await postShelvingJobContainer(payload)
 

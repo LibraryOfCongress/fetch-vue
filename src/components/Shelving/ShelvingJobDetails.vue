@@ -88,7 +88,7 @@
           </label>
           <p
             class="text-body1"
-            :class="shelvingJob.status == 'Created' || shelvingJob.status == 'Running' ? 'outline text-highlight' : shelvingJob.status == 'Paused' ? 'outline text-highlight-yellow' : null"
+            :class="shelvingJob.status == 'Created' || shelvingJob.status == 'Completed' ? 'outline text-highlight' : shelvingJob.status == 'Paused' || shelvingJob.status == 'Running' ? 'outline text-highlight-yellow' : null"
           >
             {{ shelvingJob.status }}
           </p>
@@ -465,7 +465,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'verified',
-    field: 'verified',
+    field: 'scanned_for_shelving',
     label: '',
     align: 'center',
     sortable: false,
@@ -529,7 +529,7 @@ watch(compiledBarCode, (barcode) => {
   }
 })
 const triggerContainerScan = (barcode_value) => {
-  // check if the scanned barcode is in the containers data and that the barcode hasnt been shevled/verified already
+  // check if the scanned barcode is in the containers data and that the barcode hasnt been shelved already
   if (!shelvingJobContainers.value.some(c => c.barcode.value == barcode_value)) {
     handleAlert({
       type: 'error',
@@ -537,7 +537,7 @@ const triggerContainerScan = (barcode_value) => {
       autoClose: true
     })
     return
-  } else if (shelvingJobContainers.value.some(c => c.barcode.value == barcode_value && c.verified)) {
+  } else if (shelvingJobContainers.value.some(c => c.barcode.value == barcode_value && c.scanned_for_shelving)) {
     handleAlert({
       type: 'error',
       text: 'The scanned container has already been marked as shelved.',
