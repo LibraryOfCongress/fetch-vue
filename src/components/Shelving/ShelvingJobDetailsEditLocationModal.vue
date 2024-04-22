@@ -4,59 +4,10 @@
     @reset="resetLocationForm"
   >
     <template #main-content>
-      <q-card-section class="row items-end">
-        <!-- <div
-          class="form-group q-mb-md"
-        >
-          <label class="form-group-label">
-            Owner
-          </label>
-          <SelectInput
-            v-model="locationForm.owner_id"
-            :options="owners"
-            option-type="owners"
-            option-value="id"
-            option-label="name"
-            :placeholder="'Select Owner'"
-            @update:model-value="handleLocationFormChange('Owner')"
-          />
-        </div>
-
-        <div
-          class="form-group q-mb-md"
-        >
-          <label class="form-group-label">
-            Size Class
-          </label>
-          <SelectInput
-            v-model="locationForm.size_class_id"
-            :options="sizeClass"
-            option-type="sizeClass"
-            option-value="id"
-            option-label="name"
-            :placeholder="'Select Size Class'"
-            @update:model-value="handleLocationFormChange('Size Class')"
-          />
-        </div> -->
-
-        <div
-          class="form-group q-mb-md"
-        >
-          <label class="form-group-label">
-            Building
-          </label>
-          <SelectInput
-            v-model="locationForm.building_id"
-            :options="buildings"
-            option-type="buildings"
-            option-value="id"
-            option-label="name"
-            :placeholder="'Select Building'"
-            :disabled="!locationForm.owner_id || !locationForm.size_class_id"
-            @update:model-value="handleLocationFormChange('Building')"
-          />
-        </div>
-
+      <q-card-section
+        v-if="!appIsOffline"
+        class="row items-end"
+      >
         <div
           class="form-group q-mb-md"
         >
@@ -167,6 +118,33 @@
           </div>
         </div>
       </q-card-section>
+      <q-card-section
+        v-else
+        class="row items-end"
+      >
+        <div class="col-12">
+          <BarcodeBox
+            :barcode="!locationForm.shelf_barcode ? 'Please Scan Shelf' : locationForm.shelf_barcode"
+            :min-height="'5rem'"
+          />
+        </div>
+        <div
+          class="col-12 q-mt-xs"
+        >
+          <div
+            class="form-group"
+          >
+            <label class="form-group-label">
+              Shelf Position
+            </label>
+            <TextInput
+              v-model="locationForm.shelf_position_number"
+              placeholder="Enter Shelf Postion"
+              :disabled="!locationForm.shelf_barcode"
+            />
+          </div>
+        </div>
+      </q-card-section>
     </template>
 
     <template #footer-content="{ hideModal }">
@@ -197,22 +175,27 @@
 </template>
 
 <script setup>
-import { ref, inject, computed } from 'vue'
+import { ref, inject, computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
-import { useOptionStore } from '@/stores/option-store'
 import { useBuildingStore } from '@/stores/building-store'
+import { useShelvingStore } from '@/stores/shelving-store'
+import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 import PopupModal from '@/components/PopupModal.vue'
 import SelectInput from '@/components/SelectInput.vue'
+import TextInput from '@/components/TextInput.vue'
+import BarcodeBox from '@/components/BarcodeBox.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 
 // Emits
 const emit = defineEmits(['hide'])
 
+// Compasables
+const { compiledBarCode } = useBarcodeScanHandler()
+
 // Store Data
-const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { appActionIsLoadingData, appIsOffline } = storeToRefs(useGlobalStore())
 const {
-  getBuildingDetails,
   getModuleDetails,
   getAisleDetails,
   getSideDetails,
@@ -227,55 +210,43 @@ const {
   renderLadderShelves,
   renderShelfPositions
 } = storeToRefs(useBuildingStore())
-const {
-  // owners,
-  // sizeClass,
-  buildings
-} = storeToRefs(useOptionStore())
+const { postShelvingJobContainer } = useShelvingStore()
 
 // Local Data
 const locationForm = ref({
   id: null,
-  owner_id: null,
-  size_class_id: null,
-  building_id: null,
   module_id: null,
   aisle_id: null,
   side_id: 1,
   ladder_id: null,
   shelf_id: null,
-  shelf_position_id: null
+  shelf_position_id: null,
+  shelf_barcode: null,
+  shelf_position_number: null,
+  trayed: false
 })
 const isLocationFormValid = computed(() => {
   // validate that all needed fields are filled out in the building form
-  return !Object.values(locationForm.value).some(v => v == null || v == '')
+  if (appIsOffline.value) {
+    return locationForm.value.shelf_position_number ?? false
+  } else {
+    return locationForm.value.shelf_position_id ?? false
+  }
 })
 
 // Logic
 const handleAlert = inject('handle-alert')
 
+watch(compiledBarCode, (barcode) => {
+  if (barcode !== '' && appIsOffline.value) {
+    locationForm.value.shelf_barcode = barcode
+    locationForm.value.shelf_position_number = null
+  }
+})
+
 const handleLocationFormChange = async (valueType) => {
   // reset the form depending on the edited form field type
   switch (valueType) {
-  case 'Owner':
-  case 'Size Class':
-    locationForm.value.building_id = ''
-    locationForm.value.module_id = ''
-    locationForm.value.aisle_id = ''
-    locationForm.value.side_id = ''
-    locationForm.value.ladder_id = ''
-    locationForm.value.shelf_id = ''
-    locationForm.value.shelf_position_id = ''
-    return
-  case 'Building':
-    await getBuildingDetails(locationForm.value.building_id)
-    locationForm.value.module_id = ''
-    locationForm.value.aisle_id = ''
-    locationForm.value.side_id = ''
-    locationForm.value.ladder_id = ''
-    locationForm.value.shelf_id = ''
-    locationForm.value.shelf_position_id = ''
-    return
   case 'Module':
     await getModuleDetails(locationForm.value.module_id)
     locationForm.value.aisle_id = ''
@@ -311,24 +282,41 @@ const handleLocationFormChange = async (valueType) => {
 const resetLocationForm = () => {
   locationForm.value = {
     id: null,
-    owner_id: null,
-    size_class_id: null,
-    building_id: null,
     module_id: null,
     aisle_id: null,
     side_id: '',
     ladder_id: null,
     shelf_id: null,
-    shelf_position_id: null
+    shelf_position_id: null,
+    shelf_barcode: null,
+    shelf_position_number: null,
+    trayed: false
   }
   emit('hide')
 }
 const submitLocationForm = async () => {
   try {
     appActionIsLoadingData.value = true
-    //TODO setup call to post/patch item location data to shelving job also update the item at the job level incase offline
-    console.log('submitting location data', locationForm.value)
-    resetLocationForm()
+
+    // if app is offline then we only allow the user to scan the shelf and enter a position
+    let payload
+    if (appIsOffline.value) {
+      payload = {
+        container_id: locationForm.value.id,
+        trayed: locationForm.value.trayed,
+        shelf_position_number: locationForm.value.shelf_position_number,
+        shelf_barcode_value: locationForm.value.shelf_barcode
+      }
+    } else {
+      payload = {
+        container_id: locationForm.value.id,
+        trayed: locationForm.value.trayed,
+        shelf_position_number: renderShelfPositions.value.find(shelf_pos => shelf_pos.id == locationForm.value.shelf_position_id)?.shelf_position_number.number,
+        shelf_id: locationForm.value.shelf_id
+      }
+    }
+
+    await postShelvingJobContainer(payload)
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -337,6 +325,7 @@ const submitLocationForm = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
+    resetLocationForm()
   }
 }
 

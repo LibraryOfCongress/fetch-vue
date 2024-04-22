@@ -325,7 +325,6 @@ const {
   shelvingJob,
   originalShelvingJob,
   shelvingJobContainers,
-  shelvingJobContainer,
   allContainersShelved
 } = storeToRefs(useShelvingStore())
 const { users } = storeToRefs(useOptionStore())
@@ -474,7 +473,7 @@ onBeforeMount(() => {
 })
 
 watch(compiledBarCode, (barcode) => {
-  if (barcode !== '' && shelvingJob.value.status == 'Running' && !shelvingJobContainer.value.id) {
+  if (barcode !== '' && shelvingJob.value.status == 'Running' && !showShelvingLocationModal.value && !showScanContainerModal.value) {
     // only allow scans if the shelving job is in a running state
     triggerContainerScan(barcode)
   }
@@ -506,15 +505,17 @@ const handleOptionMenu = async (action, rowData) => {
   switch (action.text) {
   case 'Edit Location':
     try {
-      appIsLoadingData.value = true
-      await Promise.all([
-        getBuildingDetails(shelvingJob.value.building_id),
-        getModuleDetails(rowData.shelf_position?.shelf?.ladder?.side?.aisle?.module?.id),
-        getAisleDetails(rowData.shelf_position?.shelf?.ladder?.side?.aisle?.id),
-        getSideDetails(rowData.shelf_position?.shelf?.ladder?.side?.id),
-        getLadderDetails(rowData.shelf_position?.shelf?.ladder?.id),
-        getShelfDetails(rowData.shelf_position?.shelf?.id)
-      ])
+      if (!appIsOffline.value) {
+        appIsLoadingData.value = true
+        await Promise.all([
+          getBuildingDetails(shelvingJob.value.building_id),
+          getModuleDetails(rowData.shelf_position?.shelf?.ladder?.side?.aisle?.module?.id),
+          getAisleDetails(rowData.shelf_position?.shelf?.ladder?.side?.aisle?.id),
+          getSideDetails(rowData.shelf_position?.shelf?.ladder?.side?.id),
+          getLadderDetails(rowData.shelf_position?.shelf?.ladder?.id),
+          getShelfDetails(rowData.shelf_position?.shelf?.id)
+        ])
+      }
     } catch (error) {
       handleAlert({
         type: 'error',
@@ -526,15 +527,13 @@ const handleOptionMenu = async (action, rowData) => {
       showShelvingLocationModal.value = true
       await nextTick()
       locationModalComponent.value.locationForm.id = rowData.id
-      locationModalComponent.value.locationForm.owner_id = rowData.owner?.id
-      locationModalComponent.value.locationForm.size_class_id = rowData.size_class?.id
-      locationModalComponent.value.locationForm.building_id = shelvingJob.value.building_id,
       locationModalComponent.value.locationForm.module_id = rowData.shelf_position?.shelf?.ladder?.side?.aisle?.module?.id
       locationModalComponent.value.locationForm.aisle_id = rowData.shelf_position?.shelf?.ladder?.side?.aisle?.id
       locationModalComponent.value.locationForm.side_id = rowData.shelf_position?.shelf?.ladder?.side?.id
       locationModalComponent.value.locationForm.ladder_id = rowData.shelf_position?.shelf?.ladder?.id
       locationModalComponent.value.locationForm.shelf_id = rowData.shelf_position?.shelf?.id
       locationModalComponent.value.locationForm.shelf_position_id = rowData.shelf_position_id
+      locationModalComponent.value.locationForm.trayed = rowData.container_type?.type == 'Tray' ? true : false
     }
 
     return
