@@ -26,7 +26,7 @@ export const useShelvingStore = defineStore('shelving-store', {
     originalShelvingJob: null,
     directToShelfJob: {
       id: null,
-      barcode: {
+      shelf_barcode: {
         value: ''
       },
       user: {
@@ -152,7 +152,8 @@ export const useShelvingStore = defineStore('shelving-store', {
         //     res.data
         //   }
         // }
-        this.directToShelfJob.barcode.value = barcode_value
+        console.log('getting scanned shelf data', barcode_value)
+        this.directToShelfJob.shelf_barcode.value = barcode_value
         this.directToShelfJob.owner.name = 'John Doe'
       } catch (error) {
         throw error
@@ -218,7 +219,7 @@ export const useShelvingStore = defineStore('shelving-store', {
         // TODO setup endpoint for patching data to a direct to shelf jobs
         // const res = await this.$api.patch(`${inventoryServiceApi.shelvingJobs}${payload.id}`, payload)
         // this.directToShelfJob = res.data
-        return payload
+        console.log('updating dts job', payload)
       } catch (error) {
         throw error
       }

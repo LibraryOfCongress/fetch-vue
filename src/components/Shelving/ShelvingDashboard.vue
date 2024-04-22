@@ -326,6 +326,7 @@
 import { onBeforeMount, ref, inject, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
+import { useUserStore } from '@/stores/user-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useVerificationStore } from 'src/stores/verification-store'
 import { useBuildingStore } from '@/stores/building-store'
@@ -348,6 +349,7 @@ const {
   appActionIsLoadingData,
   appIsOffline
 } = storeToRefs(useGlobalStore())
+const { userData } = storeToRefs(useUserStore())
 const { buildings } = storeToRefs(useOptionStore())
 const { getVerificationJobList } = useVerificationStore()
 const { verificationJobList } = storeToRefs(useVerificationStore())
@@ -598,7 +600,11 @@ const submitShelvingJob = async () => {
 const submitDirectToShelfJob = async () => {
   try {
     appIsLoadingData.value = true
-    await postDirectShelvingJob()
+    const payload = {
+      status: 'Created',
+      user_id: userData.value.id
+    }
+    await postDirectShelvingJob(payload)
 
     router.push({
       name: 'shelving-dts',

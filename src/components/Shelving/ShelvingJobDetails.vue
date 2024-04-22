@@ -145,7 +145,7 @@
             class="btn-no-wrap text-body1"
             :disabled="appIsOffline || shelvingJob.status == 'Paused' || !allContainersShelved"
             :loading="appActionIsLoadingData"
-            @click="shelvingJob.status == 'Created' ? executeShelvingJob() : completeShelvingJob()"
+            @click="shelvingJob.status == 'Created' ? executeShelvingJob() : showCompleteJobModal = true"
           />
         </div>
       </div>
@@ -174,7 +174,7 @@
         :button-two-outline="false"
         :button-two-disabled="appIsOffline || shelvingJob.status == 'Paused' || !allContainersShelved"
         :button-two-loading="appActionIsLoadingData"
-        @button-two-click="shelvingJob.status == 'Created' ? executeShelvingJob() : completeShelvingJob()"
+        @button-two-click="shelvingJob.status == 'Created' ? executeShelvingJob() : showCompleteJobModal = true"
       />
     </div>
 
@@ -266,6 +266,55 @@
       v-if="showScanContainerModal"
       @hide="showScanContainerModal = false"
     />
+
+    <!-- complete job modal -->
+    <PopupModal
+      v-if="showCompleteJobModal"
+      :title="'Confirm'"
+      text="Are you sure you want to complete the job?"
+      :show-actions="false"
+      @reset="showCompleteJobModal = false"
+    >
+      <template #footer-content="{ hideModal }">
+        <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
+          <q-btn
+            no-caps
+            unelevated
+            color="accent"
+            label="Complete & Print"
+            class="btn-no-wrap text-body1 full-width"
+            :loading="appActionIsLoadingData"
+            @click="completeShelvingJob(true); hideModal();"
+          />
+
+          <q-space class="q-mx-xs" />
+
+          <q-btn
+            no-caps
+            unelevated
+            color="accent"
+            label="Complete"
+            class="text-body1 full-width"
+            :loading="appActionIsLoadingData"
+            @click="completeShelvingJob(false); hideModal();"
+          />
+
+          <q-space
+            v-if="currentScreenSize !== 'xs'"
+            class="q-mx-lg"
+          />
+
+          <q-btn
+            v-if="currentScreenSize !== 'xs'"
+            outline
+            no-caps
+            label="Cancel"
+            class="text-body1 full-width"
+            @click="hideModal"
+          />
+        </q-card-section>
+      </template>
+    </PopupModal>
   </div>
 
   <!-- print component: shelving job report -->
@@ -455,6 +504,7 @@ const shelfTableFilters = ref([
 const showShelvingLocationModal = ref(false)
 const showScanContainerNote = ref(false)
 const showScanContainerModal = ref(false)
+const showCompleteJobModal = ref(false)
 
 // Logic
 const formatDateTime = inject('format-date-time')
@@ -623,7 +673,7 @@ const updateShelvingJob = async () => {
     editJob.value = false
   }
 }
-const completeShelvingJob = async () => {
+const completeShelvingJob = async (printBool) => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
@@ -632,6 +682,9 @@ const completeShelvingJob = async () => {
     }
     await patchShelvingJob(payload)
 
+    if (printBool) {
+      batchSheetComponent.value.printBatchReport()
+    }
     handleAlert({
       type: 'success',
       text: 'The Shelving Job has been completed.',

@@ -10,7 +10,7 @@
             Shelf Number:
           </label>
           <p class="shelving-job-number-box text-h4 q-pa-md">
-            {{ !directToShelfJob.barcode.value ? 'Please Scan Shelf' : directToShelfJob.barcode.value }}
+            {{ !directToShelfJob.shelf_barcode.value ? 'Please Scan Shelf' : directToShelfJob.shelf_barcode.value }}
           </p>
         </div>
       </div>
@@ -80,7 +80,7 @@
             unelevated
             color="accent"
             label="Scan New Shelf"
-            :disabled="!directToShelfJob.barcode.value"
+            :disabled="!directToShelfJob.shelf_barcode.value"
             class="btn-no-wrap text-body1 q-mr-sm"
             @click="clearShelfDetails()"
           />
@@ -101,7 +101,7 @@
         button-one-color="accent"
         button-one-label="Scan New Shelf"
         :button-one-outline="false"
-        :button-one-disabled="!directToShelfJob.barcode.value"
+        :button-one-disabled="!directToShelfJob.shelf_barcode.value"
         @button-one-click="null"
         button-two-color="positive"
         button-two-label="Complete Job"
@@ -178,7 +178,7 @@
               Shelf Position
             </label>
             <TextInput
-              v-model="shelvingJobContainer.shelf_position_id"
+              v-model="shelvingJobContainer.shelf_position_number"
               placeholder="Enter Shelf Postion"
             />
           </div>
@@ -194,7 +194,7 @@
             label="Submit"
             class="text-body1 full-width"
             :loading="appActionIsLoadingData"
-            :disabled="!shelvingJobContainer.shelf_position_id"
+            :disabled="!shelvingJobContainer.shelf_position_number"
             @click="assignContainerLocation(); hideModal();"
           />
 
@@ -312,7 +312,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'shelf_position',
-    field: 'shelf_position_id',
+    field: 'shelf_position_number',
     label: 'Shelf Position',
     align: 'left',
     sortable: true
@@ -356,7 +356,7 @@ onBeforeMount(() => {
 })
 
 watch(compiledBarCode, (barcode) => {
-  if (barcode !== '' && !directToShelfJob.value.barcode.value) {
+  if (barcode !== '' && !directToShelfJob.value.shelf_barcode.value) {
     // user is scanning a shelf barcode
     triggerShelfScan(barcode)
   } else if (barcode !== '' && !shelvingJobContainer.value.barcode.value) {
@@ -373,7 +373,7 @@ const triggerShelfScan = async (barcode_value) => {
       await getShelfByBarcode(barcode_value)
     } else {
       // else if offline assign the shelf barcode directly to the job
-      directToShelfJob.value.barcode.value = barcode_value
+      directToShelfJob.value.shelf_barcode.value = barcode_value
     }
   } catch (error) {
     handleAlert({
@@ -386,7 +386,7 @@ const triggerShelfScan = async (barcode_value) => {
   }
 }
 const triggerContainerScan = (barcode_value) => {
-  // check if the scanned barcode is in the containers data and that the barcode hasnt been shevled/verified already
+  // check if the scanned barcode is in the containers data and that the barcode hasnt been shelved already
   if (directToShelfJob.value.containers.some(c => c.barcode.value == barcode_value && c.verified)) {
     handleAlert({
       type: 'error',
@@ -398,8 +398,6 @@ const triggerContainerScan = (barcode_value) => {
     shelvingJobContainer.value.barcode.value = barcode_value
     showScanContainerModal.value = true
   }
-
-  // TODO add logic to get the container item details when online only, depends on how the endpoint for this will work
 }
 const assignContainerLocation = async () => {
   try {
@@ -409,8 +407,8 @@ const assignContainerLocation = async () => {
     if (!appIsOffline.value) {
       const payload = {
         container_barcode: shelvingJobContainer.value.barcode.value,
-        shelf_barcode: directToShelfJob.value.barcode.value,
-        shelf_position_id: shelvingJobContainer.value.shelf_position_id
+        shelf_barcode_value: directToShelfJob.value.shelf_barcode.value,
+        shelf_position_number: shelvingJobContainer.value.shelf_position_number
       }
       await patchDirectShelvingJob(payload)
     }
@@ -421,7 +419,7 @@ const assignContainerLocation = async () => {
       {
         ...shelvingJobContainer.value,
         shelf_barcode: {
-          value: directToShelfJob.value.barcode.value
+          value: directToShelfJob.value.shelf_barcode.value
         },
         verified: true
       }
@@ -478,7 +476,7 @@ const completeDirectToShelfJob = async () => {
 
 const clearShelfDetails = () => {
   // clears out any scanned shelf data from the directToShelf data
-  directToShelfJob.value.barcode.value = ''
+  directToShelfJob.value.shelf_barcode.value = ''
   directToShelfJob.value.owner.id = null
   directToShelfJob.value.owner.name = ''
   directToShelfJob.value.size_class_id = null
