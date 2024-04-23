@@ -79,6 +79,8 @@ export const useShelvingStore = defineStore('shelving-store', {
       let containerList = []
       if (state.shelvingJob.id) {
         containerList = containerList.concat(state.shelvingJob.trays, state.shelvingJob.non_tray_items)
+      } else if (state.directToShelfJob.id) {
+        containerList = containerList.concat(state.directToShelfJob.trays, state.directToShelfJob.non_tray_items)
       }
       // return the list sorted alphnumerically
       return containerList.sort(new Intl.Collator('en', { numeric:true, sensitivity:'accent' }).compare)
@@ -154,17 +156,14 @@ export const useShelvingStore = defineStore('shelving-store', {
     },
     async getShelfByBarcode (barcode_value) {
       try {
-        // TODO: setup endpoint to get shelf details by barcode
-        // const res = await this.$api.get(inventoryServiceApi.shelvingJobs)
-        // if (this.directToShelfJob.id) {
-        //   this.directToShelfJob = {
-        //     ...this.directToShelfJob,
-        //     res.data
-        //   }
-        // }
-        console.log('getting scanned shelf data', barcode_value)
-        this.directToShelfJob.shelf_barcode.value = barcode_value
-        this.directToShelfJob.owner.name = 'John Doe'
+        const res = await this.$api.get(`${inventoryServiceApi.shelvesBarcode}${barcode_value}`)
+        if (this.directToShelfJob.id) {
+          this.directToShelfJob = {
+            ...this.directToShelfJob,
+            ...res.data
+          }
+          this.directToShelfJob.shelf_barcode.value = barcode_value
+        }
       } catch (error) {
         throw error
       }
@@ -206,30 +205,24 @@ export const useShelvingStore = defineStore('shelving-store', {
     },
     async getDirectShelvingJob (id) {
       try {
-        // TODO setup endpoint for getting direct to shelf jobs
-        // const res = await this.$api.get(`${inventoryServiceApi.shelvingJobs}${id}`)
-        // this.directToShelfJob = res.data
-        return id
+        const res = await this.$api.get(`${inventoryServiceApi.shelvingJobs}${id}`)
+        this.directToShelfJob = { ...this.directToShelfJob, ...res.data }
       } catch (error) {
         throw error
       }
     },
-    async postDirectShelvingJob () {
+    async postDirectShelvingJob (payload) {
       try {
-        // TODO setup endpoint for creating a direct to shelf jobs
-        // const res = await this.$api.post(inventoryServiceApi.shelvingJobs, payload)
-        // this.directToShelfJob = res.data
-        this.directToShelfJob = { ...this.directToShelfJob, id: 1 }
+        const res = await this.$api.post(inventoryServiceApi.shelvingJobs, payload)
+        this.directToShelfJob = { ...this.directToShelfJob, ...res.data }
       } catch (error) {
         throw error
       }
     },
     async patchDirectShelvingJob (payload) {
       try {
-        // TODO setup endpoint for patching data to a direct to shelf jobs
-        // const res = await this.$api.patch(`${inventoryServiceApi.shelvingJobs}${payload.id}`, payload)
-        // this.directToShelfJob = res.data
-        console.log('updating dts job', payload)
+        const res = await this.$api.patch(`${inventoryServiceApi.shelvingJobs}${payload.id}`, payload)
+        this.directToShelfJob = { ...this.directToShelfJob, ...res.data }
       } catch (error) {
         throw error
       }
@@ -255,6 +248,26 @@ export const useShelvingStore = defineStore('shelving-store', {
           this.shelvingJob.non_tray_items[this.shelvingJob.non_tray_items.findIndex(container => container.id == payload.container_id)] = this.shelvingJobContainer
         }
         this.originalShelvingJob = { ...this.shelvingJob }
+      } catch (error) {
+        throw error
+      }
+    },
+    async postDirectShelvingJobContainer (payload) {
+      try {
+        const res = await this.$api.post(`${inventoryServiceApi.shelvingJobs}${payload.job_id}/reassign-container-location`, payload)
+        this.shelvingJobContainer = {
+          ...this.shelvingJobContainer,
+          ...res.data
+        }
+
+        // update the container at the direct shelving job level
+        // barcode, shelf_barcode, shelf position number
+        // if (payload.trayed) {
+        //   this.shelvingJob.trays[this.shelvingJob.trays.findIndex(container => container.id == payload.container_id)] = this.shelvingJobContainer
+        // } else {
+        //   this.shelvingJob.non_tray_items[this.shelvingJob.non_tray_items.findIndex(container => container.id == payload.container_id)] = this.shelvingJobContainer
+        // }
+        // this.originalShelvingJob = { ...this.shelvingJob }
       } catch (error) {
         throw error
       }

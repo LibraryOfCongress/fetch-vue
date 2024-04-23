@@ -1,6 +1,6 @@
 <template>
   <div class="shelving-job">
-    <div class="row justify-between q-mt-xs-md q-mt-md-xl q-mx-xs-sm q-mx-sm-md">
+    <div class="row justify-between q-pt-xs-md q-pt-md-xl q-mx-xs-sm q-mx-sm-md">
       <div class="col-xs-12 col-md-12 col-lg-3">
         <div class="shelving-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-lg-lg">
           <label
@@ -52,7 +52,7 @@
             Assigned User:
           </label>
           <p class="text-body1">
-            {{ !directToShelfJob.user.name ? userData.name : directToShelfJob.user.name }}
+            {{ !directToShelfJob.user ? userData.name : directToShelfJob.user.name }}
           </p>
         </div>
       </div>
@@ -121,7 +121,7 @@
         <EssentialTable
           :table-columns="shelfTableColumns"
           :table-visible-columns="shelfTableVisibleColumns"
-          :table-data="directToShelfJob.containers"
+          :table-data="shelvingJobContainers"
           :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
         >
           <template #heading-row>
@@ -135,6 +135,9 @@
           </template>
 
           <template #table-td="{ colName, value }">
+            <span v-if="colName == 'side'">
+              {{ value.slice(0, 1) }}
+            </span>
             <span
               v-if="colName == 'verified'"
               class="text-bold text-nowrap"
@@ -244,10 +247,12 @@ const { userData } = storeToRefs(useUserStore())
 const {
   getShelfByBarcode,
   patchDirectShelvingJob,
+  postDirectShelvingJobContainer,
   resetShelvingJobContainer
 } = useShelvingStore()
 const {
   directToShelfJob,
+  shelvingJobContainers,
   shelvingJobContainer,
   allContainersShelved
 } = storeToRefs(useShelvingStore())
@@ -366,10 +371,9 @@ watch(compiledBarCode, (barcode) => {
 })
 const triggerShelfScan = async (barcode_value) => {
   try {
-    appIsLoadingData.value = true
-
     // if user is online send a get request to get the scanned shelfs data
     if (!appIsOffline.value) {
+      appIsLoadingData.value = true
       await getShelfByBarcode(barcode_value)
     } else {
       // else if offline assign the shelf barcode directly to the job
@@ -387,7 +391,7 @@ const triggerShelfScan = async (barcode_value) => {
 }
 const triggerContainerScan = (barcode_value) => {
   // check if the scanned barcode is in the containers data and that the barcode hasnt been shelved already
-  if (directToShelfJob.value.containers.some(c => c.barcode.value == barcode_value && c.scanned_for_shelving)) {
+  if (shelvingJobContainers.value.some(c => c.barcode.value == barcode_value && c.scanned_for_shelving)) {
     handleAlert({
       type: 'error',
       text: 'The scanned container has already been marked as shelved.',
@@ -410,14 +414,17 @@ const assignContainerLocation = async () => {
         shelf_barcode_value: directToShelfJob.value.shelf_barcode.value,
         shelf_position_number: shelvingJobContainer.value.shelf_position_number
       }
-      await patchDirectShelvingJob(payload)
+      await postDirectShelvingJobContainer(payload)
     }
-    // TODO: move this into an else block once patchDirectShelvingJob is wired to an endpoint
-    // else if offline assign the shelve directly to the directToShelf containers
-    directToShelfJob.value.containers = [
-      ...directToShelfJob.value.containers,
+    // TODO: move this into an else block once postDirectShelvingJobContainer is wired to an endpoint
+    // else if offline assign the shelve directly to the directToShelf containers as a tray temporarily since we wont know what the scanned container type is
+    directToShelfJob.value.trays = [
+      ...directToShelfJob.value.trays,
       {
         ...shelvingJobContainer.value,
+        barcode: {
+          value: shelvingJobContainer.value.barcode.value
+        },
         shelf_barcode: {
           value: directToShelfJob.value.shelf_barcode.value
         },

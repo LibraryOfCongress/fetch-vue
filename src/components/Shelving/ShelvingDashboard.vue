@@ -10,7 +10,7 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
-          @selected-table-row="loadShelvingJob($event.id)"
+          @selected-table-row="loadShelvingJob($event.id, $event.origin)"
         >
           <template #heading-row>
             <div
@@ -112,7 +112,7 @@
             label="Direct To Shelve"
             class="full-width text-body1 q-mb-md"
             :disabled="appIsOffline"
-            @click="submitDirectToShelfJob()"
+            @click="shelvingJob.type = 'Direct'"
           />
 
           <q-btn
@@ -162,7 +162,7 @@
                   :multiple="true"
                   :use-chips="true"
                   :hide-selected="false"
-                  :options="completedVerificationJobs"
+                  :options="verificationJobList"
                   option-value="id"
                   option-label="id"
                   :placeholder="'Select Verification Job(s) by Number'"
@@ -289,6 +289,33 @@
             </div>
           </div>
         </q-card-section>
+        <q-card-section v-else-if="shelvingJob.type == 'Direct'">
+          <div class="row">
+            <div class="col-12 q-mb-sm">
+              <h3 class="text-h6 text-bold">
+                Please Select Shelving Location:
+              </h3>
+            </div>
+            <div class="col-12">
+              <div
+                class="form-group"
+              >
+                <label class="form-group-label">
+                  Building
+                </label>
+                <SelectInput
+                  v-model="shelvingJob.building_id"
+                  :options="buildings"
+                  option-type="buildings"
+                  option-value="id"
+                  option-label="name"
+                  :placeholder="'Select Building'"
+                  @update:model-value="handleShelvingJobFormChange('Building')"
+                />
+              </div>
+            </div>
+          </div>
+        </q-card-section>
       </template>
 
       <template #footer-content="{ hideModal }">
@@ -297,6 +324,18 @@
           class="row no-wrap justify-between items-center q-pt-sm"
         >
           <q-btn
+            v-if="shelvingJob.type == 'Direct'"
+            no-caps
+            unelevated
+            color="accent"
+            label="Submit"
+            class="text-body1 full-width"
+            :loading="appActionIsLoadingData"
+            :disabled="!isCreateShelvingjobFormValid"
+            @click="submitDirectToShelfJob(); hideModal();"
+          />
+          <q-btn
+            v-else
             no-caps
             unelevated
             color="accent"
@@ -378,6 +417,7 @@ const {
   getShelvingJobList,
   getShelvingJob,
   postShelvingJob,
+  getDirectShelvingJob,
   postDirectShelvingJob
 } = useShelvingStore()
 
@@ -460,9 +500,10 @@ const shelfTableFilters =  ref([
   }
 ])
 const showShelvingJobModal = ref(false)
-const completedVerificationJobs = ref([])
 const isCreateShelvingjobFormValid = computed(() => {
-  if (!shelvingJob.value.verification_jobs || !shelvingJob.value.building_id) {
+  if (shelvingJob.value.type == 'Verification' && (!shelvingJob.value.verification_jobs || !shelvingJob.value.building_id)) {
+    return false
+  } else if (shelvingJob.value.type == 'Direct' && !shelvingJob.value.building_id) {
     return false
   } else {
     return true
@@ -537,17 +578,27 @@ const loadShelvingJobs = async () => {
     appIsLoadingData.value = false
   }
 }
-const loadShelvingJob = async (jobId) => {
+const loadShelvingJob = async (jobId, type) => {
   try {
     appIsLoadingData.value = true
-    await getShelvingJob(jobId)
 
-    router.push({
-      name: 'shelving',
-      params: {
-        jobId
-      }
-    })
+    if (type == 'Verification') {
+      await getShelvingJob(jobId)
+      router.push({
+        name: 'shelving',
+        params: {
+          jobId
+        }
+      })
+    } else if (type == 'Direct') {
+      await getDirectShelvingJob(jobId)
+      router.push({
+        name: 'shelving-dts',
+        params: {
+          jobId
+        }
+      })
+    }
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -602,10 +653,11 @@ const submitDirectToShelfJob = async () => {
     appIsLoadingData.value = true
     const payload = {
       status: 'Created',
-      user_id: userData.value.id
+      building_id: shelvingJob.value.building_id,
+      user_id: userData.value.id,
+      origin: 'Direct'
     }
     await postDirectShelvingJob(payload)
-
     router.push({
       name: 'shelving-dts',
       params: {
@@ -632,11 +684,6 @@ const submitDirectToShelfJob = async () => {
 const loadVerificationJobs = async () => {
   try {
     await getVerificationJobList({ unshelved: true })
-
-    // filter jobs by completed status
-    if (verificationJobList.value.length > 0) {
-      completedVerificationJobs.value = verificationJobList.value.filter(job => job.status == 'Completed')
-    }
   } catch (error) {
     handleAlert({
       type: 'error',
