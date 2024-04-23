@@ -16,15 +16,9 @@
           <SearchInput placeholder="Search" />
         </div>
 
-        <div>
-          <q-avatar
-            rounded
-            size="md"
-            icon="person"
-            color="secondary"
-            class="text-white"
-            font-size="25px"
-          />
+        <div class="nav-actions">
+          <UserLogin v-if="!userData.id" />
+          <UserMenu v-else />
         </div>
       </q-toolbar>
 
@@ -132,9 +126,12 @@ import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
+import { useUserStore } from '@/stores/user-store'
 import { useBackgroundSyncHandler } from '@/composables/useBackgroundSyncHandler.js'
 import EssentialLink from '@/components/EssentialLink.vue'
 import SearchInput from '@/components/SearchInput.vue'
+import UserLogin from '@/components/User/UserLogin.vue'
+import UserMenu from '@/components/User/UserMenu.vue'
 
 const route = useRoute()
 
@@ -143,6 +140,7 @@ const { bgSyncData, syncInProgress, triggerBackgroundSync } = useBackgroundSyncH
 
 // Store Data
 const { appIsOffline } = storeToRefs(useGlobalStore())
+const { userData } = storeToRefs(useUserStore())
 
 // Local Data
 const essentialLinks = ref([

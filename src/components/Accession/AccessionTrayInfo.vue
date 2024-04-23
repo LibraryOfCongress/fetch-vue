@@ -292,7 +292,7 @@ const updateTrayJob = async () => {
 }
 const updateTrayContainer = async () => {
   try {
-    appActionIsLoadingData.value = false
+    appActionIsLoadingData.value = true
     const payload = {
       ...accessionContainer.value
     }

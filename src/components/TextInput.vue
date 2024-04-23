@@ -7,7 +7,11 @@
     :placeholder="placeholder"
     :disable="disabled"
     class="custom-text full-width"
-  />
+  >
+    <template #append>
+      <slot name="append" />
+    </template>
+  </q-input>
 </template>
 
 <script setup>
