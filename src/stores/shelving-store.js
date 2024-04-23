@@ -90,8 +90,8 @@ export const useShelvingStore = defineStore('shelving-store', {
         // if were in a normal shelving job we can check the status to determine if containers need to be verfiied or not
         return state.shelvingJobContainers.some(c => !c.scanned_for_shelving) ? false : true
       } else if (state.directToShelfJob.id) {
-        // if were in a direct to shelving job we can check if ther is an id or temp id to determine if containers need to be verfiied or not
-        return state.directToShelfJob.containers.length == 0 || state.directToShelfJob.containers.some(c => !c.scanned_for_shelving) ? false : true
+        // if were in a direct to shelving job we can check if there is an id to determine if containers need to be verfiied or not
+        return state.shelvingJobContainers.length == 0 || state.shelvingJobContainers.some(c => !c.scanned_for_shelving) ? false : true
       } else {
         return true
       }
@@ -160,9 +160,10 @@ export const useShelvingStore = defineStore('shelving-store', {
         if (this.directToShelfJob.id) {
           this.directToShelfJob = {
             ...this.directToShelfJob,
-            ...res.data
+            shelf_barcode: res.data.barcode,
+            owner: res.data.owner,
+            size_class: res.data.size_class
           }
-          this.directToShelfJob.shelf_barcode.value = barcode_value
         }
       } catch (error) {
         throw error
@@ -260,14 +261,18 @@ export const useShelvingStore = defineStore('shelving-store', {
           ...res.data
         }
 
-        // update the container at the direct shelving job level
-        // barcode, shelf_barcode, shelf position number
-        // if (payload.trayed) {
-        //   this.shelvingJob.trays[this.shelvingJob.trays.findIndex(container => container.id == payload.container_id)] = this.shelvingJobContainer
-        // } else {
-        //   this.shelvingJob.non_tray_items[this.shelvingJob.non_tray_items.findIndex(container => container.id == payload.container_id)] = this.shelvingJobContainer
-        // }
-        // this.originalShelvingJob = { ...this.shelvingJob }
+        // update the containers at the direct shelving job level and add the new container
+        if (this.shelvingJobContainer.container_type?.type == 'Tray') {
+          this.directToShelfJob.trays = [
+            ...this.directToShelfJob.trays,
+            this.shelvingJobContainer
+          ]
+        } else {
+          this.directToShelfJob.non_tray_items = [
+            ...this.directToShelfJob.non_tray_items,
+            this.shelvingJobContainer
+          ]
+        }
       } catch (error) {
         throw error
       }

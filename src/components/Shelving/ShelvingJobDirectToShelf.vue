@@ -268,56 +268,56 @@ const shelfTableColumns = ref([
   },
   {
     name: 'owner',
-    field: row => row.owner.name,
+    field: row => row.owner?.name,
     label: 'Owner',
     align: 'left',
     sortable: true
   },
   {
     name: 'size_class',
-    field: row => row.size_class.name,
+    field: row => row.size_class?.name,
     label: 'Size Class',
     align: 'left',
     sortable: true
   },
   {
     name: 'module',
-    field: 'module_id',
+    field: row => row.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number,
     label: 'Module',
     align: 'left',
     sortable: true
   },
   {
     name: 'aisle',
-    field: 'aisle_id',
+    field: row => row.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number,
     label: 'Aisle',
     align: 'left',
     sortable: true
   },
   {
     name: 'side',
-    field: 'side',
+    field: row => row.shelf_position?.shelf?.ladder?.side?.side_orientation?.name,
     label: 'Side',
     align: 'left',
     sortable: true
   },
   {
     name: 'ladder',
-    field: 'ladder_id',
+    field: row => row.shelf_position?.shelf?.ladder?.ladder_number?.number,
     label: 'Ladder',
     align: 'left',
     sortable: true
   },
   {
     name: 'shelf',
-    field: row => row.shelf_barcode.value,
+    field: row => row.shelf_position?.shelf?.barcode?.value,
     label: 'Shelf',
     align: 'left',
     sortable: true
   },
   {
     name: 'shelf_position',
-    field: 'shelf_position_number',
+    field: row => row.shelf_position?.shelf_position_number?.number,
     label: 'Shelf Position',
     align: 'left',
     sortable: true
@@ -326,7 +326,7 @@ const shelfTableColumns = ref([
     name: 'verified',
     field: 'scanned_for_shelving',
     label: '',
-    align: 'right',
+    align: 'center',
     sortable: false,
     required: true
   }
@@ -410,34 +410,42 @@ const assignContainerLocation = async () => {
     // if user is online send a patch request to add the container to the dts job
     if (!appIsOffline.value) {
       const payload = {
-        container_barcode: shelvingJobContainer.value.barcode.value,
+        job_id: directToShelfJob.value.id,
+        container_barcode_value: shelvingJobContainer.value.barcode.value,
         shelf_barcode_value: directToShelfJob.value.shelf_barcode.value,
-        shelf_position_number: shelvingJobContainer.value.shelf_position_number
-      }
-      await postDirectShelvingJobContainer(payload)
-    }
-    // TODO: move this into an else block once postDirectShelvingJobContainer is wired to an endpoint
-    // else if offline assign the shelve directly to the directToShelf containers as a tray temporarily since we wont know what the scanned container type is
-    directToShelfJob.value.trays = [
-      ...directToShelfJob.value.trays,
-      {
-        ...shelvingJobContainer.value,
-        barcode: {
-          value: shelvingJobContainer.value.barcode.value
-        },
-        shelf_barcode: {
-          value: directToShelfJob.value.shelf_barcode.value
-        },
+        shelf_position_number: parseInt(shelvingJobContainer.value.shelf_position_number),
         scanned_for_shelving: true
       }
-    ]
+      await postDirectShelvingJobContainer(payload)
+    } else {
+      // else if offline assign the shelve directly to the directToShelf containers as a tray temporarily since we wont know what the scanned container type is
+      directToShelfJob.value.trays = [
+        ...directToShelfJob.value.trays,
+        {
+          ...shelvingJobContainer.value,
+          barcode: {
+            value: shelvingJobContainer.value.barcode.value
+          },
+          shelf_position: {
+            shelf: {
+              barcode: {
+                value: directToShelfJob.value.shelf_barcode.value
+              }
+            },
+            shelf_position_number: {
+              number: shelvingJobContainer.value.shelf_position_number
+            }
+          },
+          scanned_for_shelving: true
+        }
+      ]
+    }
 
     handleAlert({
       type: 'success',
       text: 'The container has been updated.',
       autoClose: true
     })
-    resetShelvingJobContainer()
     showScanContainerModal.value = false
   } catch (error) {
     handleAlert({

@@ -501,7 +501,7 @@ const shelfTableFilters =  ref([
 ])
 const showShelvingJobModal = ref(false)
 const isCreateShelvingjobFormValid = computed(() => {
-  if (shelvingJob.value.type == 'Verification' && (!shelvingJob.value.verification_jobs || !shelvingJob.value.building_id)) {
+  if (shelvingJob.value.type == 'Verification' && (shelvingJob.value.verification_jobs.length == 0 || !shelvingJob.value.building_id)) {
     return false
   } else if (shelvingJob.value.type == 'Direct' && !shelvingJob.value.building_id) {
     return false
