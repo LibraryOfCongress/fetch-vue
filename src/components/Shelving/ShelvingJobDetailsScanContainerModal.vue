@@ -224,7 +224,7 @@ const triggerShelfScan = (barcode_value) => {
     } else {
       handleAlert({
         type: 'error',
-        text: 'The scanned shelf barcode does not match. Please try again!',
+        text: `The scanned shelf barcode does not match the assigned container shelf barcode (${shelvingJobContainer.value.shelf_position.shelf.barcode.value}). Please try again!`,
         autoClose: true
       })
     }
