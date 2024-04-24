@@ -106,7 +106,6 @@
           :table-columns="nonTrayItemsTableColumns"
           :table-visible-columns="nonTrayItemsTableVisibleColumns"
           :table-data="nonTrayData.items"
-          :disable-table-reorder="true"
           :hide-table-rearrange="true"
           :heading-row-class="'q-mb-lg'"
           @selected-table-row="$emit('selected-item', $event)"

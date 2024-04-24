@@ -17,7 +17,7 @@
             Shelving Job Completed Data/Time: {{ new Date().toLocaleString() }}
           </p>
           <p class="text-bold">
-            Shelving Job User: {{ shelvingJobDetails.assigned_user ? shelvingJobDetails.assigned_user?.name : 'No Assignee' }}
+            Shelving Job User: {{ shelvingJobDetails.user ? shelvingJobDetails.user?.first_name : 'No Assignee' }}
           </p>
         </section>
 
@@ -47,6 +47,7 @@
             <thead>
               <tr>
                 <th>Barcode</th>
+                <th>Module</th>
                 <th>Aisle</th>
                 <th>Side</th>
                 <th>Ladder</th>
@@ -60,22 +61,24 @@
                 :key="containers.id"
               >
                 <td>{{ containers.barcode?.value }}</td>
-                <td>{{ containers.aisle_id }}</td>
-                <td>{{ containers.side_id }}</td>
-                <td>{{ containers.ladder_id }}</td>
-                <td>{{ containers.shelf_id }}</td>
-                <td>{{ containers.shelf_position_id }}</td>
+                <td>{{ containers.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number }}</td>
+                <td>{{ containers.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number }}</td>
+                <td>{{ containers.shelf_position?.shelf?.ladder?.side?.side_orientation?.name }}</td>
+                <td>{{ containers.shelf_position?.shelf?.ladder?.ladder_number?.number }}</td>
+                <td>{{ containers.shelf_position?.shelf?.barcode?.value }}</td>
+                <td>{{ containers.shelf_position?.shelf_position_number?.number }}</td>
               </tr>
               <tr
                 v-for="containers in shelvingJobDetails.non_tray_items"
                 :key="containers.id"
               >
                 <td>{{ containers.barcode?.value }}</td>
-                <td>{{ containers.aisle_id }}</td>
-                <td>{{ containers.side_id }}</td>
-                <td>{{ containers.ladder_id }}</td>
-                <td>{{ containers.shelf_id }}</td>
-                <td>{{ containers.shelf_position_id }}</td>
+                <td>{{ containers.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number }}</td>
+                <td>{{ containers.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number }}</td>
+                <td>{{ containers.shelf_position?.shelf?.ladder?.side?.side_orientation?.name }}</td>
+                <td>{{ containers.shelf_position?.shelf?.ladder?.ladder_number?.number }}</td>
+                <td>{{ containers.shelf_position?.shelf?.barcode?.value }}</td>
+                <td>{{ containers.shelf_position?.shelf_position_number?.number }}</td>
               </tr>
             </tbody>
           </table>

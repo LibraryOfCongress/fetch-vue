@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, inject } from 'vue'
 import { useOptionStore } from 'src/stores/option-store'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 
@@ -56,7 +56,7 @@ const mainProps = defineProps({
     default: ''
   },
   optionLabel: {
-    type: String,
+    type: null,
     default: ''
   },
   placeholder: {
@@ -94,6 +94,8 @@ const { getOptions } = useOptionStore()
 const localOptions = ref(mainProps.options)
 
 // Logic
+const getNestedKeyPath = inject('get-nested-key-path')
+
 watch(() => mainProps.options, (updatedOptions) => {
   localOptions.value = updatedOptions
 })
@@ -109,7 +111,16 @@ const filterOptions = async (val, update) => {
   }
 
   update(() => {
-    localOptions.value = mainProps.options.filter(opt => opt[mainProps.optionLabel].toString().toLowerCase().indexOf(val.toLowerCase()) > -1)
+    if (mainProps.optionLabel.toString().includes('.')) {
+      // if we pass in a arrow function label we convert it to read as a property key
+      // ex opt => opt.barcode.value we only need 'barcode.value' from that function
+      const paramPath = mainProps.optionLabel.toString().split('.').slice(1).join('.')
+      localOptions.value = mainProps.options.filter(opt => {
+        return getNestedKeyPath(opt, paramPath).toString().toLowerCase().indexOf(val.toLowerCase()) > -1
+      })
+    } else {
+      localOptions.value = mainProps.options.filter(opt => opt[mainProps.optionLabel].toString().toLowerCase().indexOf(val.toLowerCase()) > -1)
+    }
   })
 }
 </script>
@@ -123,6 +134,10 @@ const filterOptions = async (val, update) => {
   :deep(.q-field__control) {
     &::before {
       border-color: $color-black;
+    }
+
+    .q-chip__icon {
+      margin-top: 0;
     }
   }
 

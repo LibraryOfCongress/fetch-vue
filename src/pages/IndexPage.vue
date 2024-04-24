@@ -25,7 +25,6 @@
 <script setup>
 import { ref, onMounted, watch, inject } from 'vue'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
-// import inventoryServiceApi from '@/http/InventoryService.js';
 
 // Composables
 const { compiledBarCode } = useBarcodeScanHandler()
@@ -50,17 +49,6 @@ watch(compiledBarCode, (newValue) => {
     testData.value.push(newValue)
   }
 })
-
-// const testApiCall = async () => {
-//   try {
-//     const res = await this.$api.get(
-//       inventoryServiceApi.examplesNumbers + 12
-//     )
-//     testData.value = [res.data]
-//   } catch (err) {
-//     console.log(err)
-//   }
-// }
 </script>
 
 <style lang="scss" scoped>

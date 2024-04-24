@@ -69,7 +69,7 @@ defineProps({
   },
   buttonTwoLabel: {
     type: String,
-    default: 'cancel'
+    default: 'submit'
   },
   buttonTwoOutline: {
     type: Boolean,

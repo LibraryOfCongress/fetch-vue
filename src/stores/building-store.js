@@ -1,13 +1,16 @@
 import { defineStore } from 'pinia'
 import inventoryServiceApi from '@/http/InventoryService.js'
 
-export const useBuildingStore = defineStore('building-details', {
+export const useBuildingStore = defineStore('building-store', {
   state: () => ({
     buildings: [],
     buildingDetails: {},
     moduleDetails: {},
     aisleDetails: {},
-    ladderDetails: {}
+    sideDetails: {},
+    ladderDetails: {},
+    shelfDetails: {},
+    shelfPositions: []
   }),
   getters: {
     renderBuildingModules: (state) => {
@@ -26,12 +29,46 @@ export const useBuildingStore = defineStore('building-details', {
       }
       return aisles
     },
-    renderAisleLadders: (state) => {
+    renderAisleSides: (state) => {
+      let sides = [
+        {
+          id: null,
+          side_orientation: {
+            name: 'Left'
+          }
+        },
+        {
+          id: 0,
+          side_orientation: {
+            name: 'Right'
+          }
+        }
+      ]
+      if (state.aisleDetails.id && state.aisleDetails.sides) {
+        sides = state.aisleDetails.sides
+      }
+      return sides
+    },
+    renderSideLadders: (state) => {
       let ladders = []
-      if (state.aisleDetails.id && state.aisleDetails.ladders) {
-        ladders = state.aisleDetails.ladders
+      if (state.sideDetails.id && state.sideDetails.ladders) {
+        ladders = state.sideDetails.ladders
       }
       return ladders
+    },
+    renderLadderShelves: (state) => {
+      let shelves = []
+      if (state.ladderDetails.id && state.ladderDetails.shelves) {
+        shelves = state.ladderDetails.shelves
+      }
+      return shelves
+    },
+    renderShelfPositions: (state) => {
+      let shelf_positions = []
+      if (state.shelfDetails.id && state.shelfDetails.shelf_positions) {
+        shelf_positions = state.shelfDetails.shelf_positions
+      }
+      return shelf_positions
     }
   },
   actions: {
@@ -314,10 +351,34 @@ export const useBuildingStore = defineStore('building-details', {
         throw error
       }
     },
+    async getSideDetails (id) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.sides}${id}`)
+        this.sideDetails = res.data
+      } catch (error) {
+        throw error
+      }
+    },
     async getLadderDetails (id) {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.ladders}${id}`)
         this.ladderDetails = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async getShelfDetails (id) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.shelves}${id}`)
+        this.shelfDetails = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async getShelfPositionsList (shelf_id, available = false) {
+      try {
+        const res = await this.$api.get(inventoryServiceApi.shelvesPositions, { params: { shelf_id, empty: available } })
+        this.shelfPositions = res.data.items
       } catch (error) {
         throw error
       }

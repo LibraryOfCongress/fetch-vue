@@ -1,14 +1,21 @@
 <template>
   <div class="shelving-job">
-    <div class="row justify-between q-mt-xs-md q-mt-md-xl q-mx-xs-sm q-mx-sm-md">
+    <div class="row justify-between q-pt-xs-md q-pt-md-xl q-mx-xs-sm q-mx-sm-md">
       <div class="col-xs-12 col-md-12 col-lg-3">
         <div class="shelving-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-lg-lg">
-          <label
-            id="jobNumber"
-            class="shelving-job-details-label text-h4 text-bold"
-          >
-            Job Number:
-          </label>
+          <div class="flex">
+            <MoreOptionsMenu
+              :options="[{ text: 'Edit', disabled: appIsOffline || editJob || shelvingJob.status == 'Paused' || shelvingJob.status == 'Completed' }, { text: 'Print Job' }]"
+              class="q-mr-xs"
+              @click="handleOptionMenu"
+            />
+            <label
+              id="jobNumber"
+              class="shelving-job-details-label text-h4 text-bold"
+            >
+              Job Number:
+            </label>
+          </div>
           <p class="shelving-job-number-box text-h4 q-pa-md">
             {{ shelvingJob.id }}
           </p>
@@ -35,15 +42,18 @@
           >
             Assigned User:
           </label>
-          <!-- TODO display this read only option for non admin users -->
-          <!-- <p class="text-body1">
-            {{ shelvingJob.assigned_user?.name }}
-          </p> -->
+          <p
+            v-if="!editJob"
+            class="text-body1"
+          >
+            {{ shelvingJob.user?.first_name }}
+          </p>
           <SelectInput
-            v-model="shelvingJob.assigned_user.name"
+            v-else
+            v-model="shelvingJob.user_id"
             :options="users"
             option-value="id"
-            option-label="name"
+            option-label="first_name"
           >
             <template #no-option>
               <q-item>
@@ -64,7 +74,7 @@
             Date Created:
           </label>
           <p class="text-body1">
-            {{ shelvingJob.create_dt }}
+            {{ formatDateTime(shelvingJob.create_dt).date }}
           </p>
         </div>
       </div>
@@ -78,7 +88,7 @@
           </label>
           <p
             class="text-body1"
-            :class="shelvingJob.status == 'Ready For Shelving' || shelvingJob.status == 'In Progress' ? 'outline text-highlight' : shelvingJob.status == 'Paused' ? 'outline text-highlight-yellow' : null"
+            :class="shelvingJob.status == 'Created' || shelvingJob.status == 'Completed' ? 'outline text-highlight' : shelvingJob.status == 'Paused' || shelvingJob.status == 'Running' ? 'outline text-highlight-yellow' : null"
           >
             {{ shelvingJob.status }}
           </p>
@@ -89,9 +99,35 @@
         v-if="currentScreenSize !== 'xs'"
         class="col-sm-12 col-md-12 col-lg-3 q-ml-auto"
       >
-        <div class="shelving-job-details-action q-mt-sm-sm q-mt-md-md">
+        <div
+          v-if="editJob"
+          class="shelving-job-details-action q-mt-sm-sm q-mt-md-md"
+        >
           <q-btn
-            v-if="shelvingJob.status !== 'Ready For Shelving'"
+            no-caps
+            unelevated
+            color="accent"
+            label="Save Edits"
+            class="btn-no-wrap text-body1 q-mr-sm"
+            :loading="appActionIsLoadingData"
+            @click="updateShelvingJob"
+          />
+          <q-btn
+            no-caps
+            unelevated
+            outline
+            color="accent"
+            label="Cancel"
+            class="btn-no-wrap text-body1"
+            @click="cancelShelvingJobEdits"
+          />
+        </div>
+        <div
+          v-else-if="shelvingJob.status !== 'Completed'"
+          class="shelving-job-details-action q-mt-sm-sm q-mt-md-md"
+        >
+          <q-btn
+            v-if="shelvingJob.status !== 'Created'"
             no-caps
             unelevated
             outline
@@ -99,32 +135,46 @@
             :icon="shelvingJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
             :label="shelvingJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
             class="btn-no-wrap text-body1 q-mr-sm"
-            @click="shelvingJob.status == 'Paused' ? updateShelvingJobStatus('In Progress') : updateShelvingJobStatus('Paused')"
+            @click="shelvingJob.status == 'Paused' ? updateShelvingJobStatus('Running') : updateShelvingJobStatus('Paused')"
           />
           <q-btn
             no-caps
             unelevated
             color="positive"
-            :label="shelvingJob.status == 'Ready For Shelving' ? 'Execute Job' : 'Complete Job'"
+            :label="shelvingJob.status == 'Created' ? 'Execute Job' : 'Complete Job'"
             class="btn-no-wrap text-body1"
-            :disabled="shelvingJob.status == 'Paused'"
-            @click="shelvingJob.status == 'Ready For Shelving' ? executeShelvingJob() : completeShelvingJob()"
+            :disabled="appIsOffline || shelvingJob.status == 'Paused' || !allContainersShelved"
+            :loading="appActionIsLoadingData"
+            @click="shelvingJob.status == 'Created' ? executeShelvingJob() : showCompleteJobModal = true"
           />
         </div>
       </div>
       <MobileActionBar
-        v-else
+        v-else-if="currentScreenSize == 'xs' && editJob"
+        button-one-color="accent"
+        :button-one-label="'Save Edits'"
+        :button-one-outline="false"
+        :button-one-loading="appActionIsLoadingData"
+        @button-one-click="updateShelvingJob"
+        button-two-color="accent"
+        :button-two-label="'Cancel'"
+        :button-two-outline="true"
+        @button-two-click="cancelShelvingJobEdits"
+      />
+      <MobileActionBar
+        v-else-if="shelvingJob.status !== 'Completed'"
         button-one-color="accent"
         :button-one-icon="shelvingJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
         :button-one-label="shelvingJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
         :button-one-outline="true"
-        :button-one-disabled="shelvingJob.status == 'Ready For Shelving'"
-        @button-one-click="shelvingJob.status == 'Paused' ? updateShelvingJobStatus('In Progress') : updateShelvingJobStatus('Paused')"
+        :button-one-disabled="shelvingJob.status == 'Created'"
+        @button-one-click="shelvingJob.status == 'Paused' ? updateShelvingJobStatus('Running') : updateShelvingJobStatus('Paused')"
         button-two-color="positive"
-        :button-two-label="shelvingJob.status == 'Ready For Shelving' ? 'Execute Job' : 'Complete Job'"
+        :button-two-label="shelvingJob.status == 'Created' ? 'Execute Job' : 'Complete Job'"
         :button-two-outline="false"
-        :button-two-disabled="shelvingJob.status == 'Paused'"
-        @button-two-click="shelvingJob.status == 'Ready For Shelving' ? executeShelvingJob() : completeShelvingJob()"
+        :button-two-disabled="appIsOffline || shelvingJob.status == 'Paused' || !allContainersShelved"
+        :button-two-loading="appActionIsLoadingData"
+        @button-two-click="shelvingJob.status == 'Created' ? executeShelvingJob() : showCompleteJobModal = true"
       />
     </div>
 
@@ -136,9 +186,9 @@
           :table-columns="shelfTableColumns"
           :table-visible-columns="shelfTableVisibleColumns"
           :filter-options="shelfTableFilters"
-          :table-data="shelvingJob.containers"
+          :table-data="shelvingJobContainers"
+          :row-key="'barcode.value'"
           :hide-table-rearrange="false"
-          :disable-table-reorder="true"
           :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
         >
@@ -152,14 +202,31 @@
             </div>
           </template>
 
-          <template #table-td="{ colName, props }">
+          <template #table-td="{ colName, props, value }">
             <span
               v-if="colName == 'actions'"
             >
               <MoreOptionsMenu
-                :options="!props.row.module_id ? [{ text: 'Assign Location' }] : [{ text: 'Edit Location' }]"
+                :options="[{ text: 'Edit Location', disabled: shelvingJob.status == 'Paused' || shelvingJob.status == 'Completed' }]"
                 class=""
                 @click="handleOptionMenu($event, props.row)"
+              />
+            </span>
+            <span v-if="colName == 'side'">
+              {{ value.slice(0, 1) }}
+            </span>
+            <span
+              v-if="colName == 'verified'"
+              class="text-bold text-nowrap"
+              :class="value == true ? 'text-positive' : ''"
+            >
+              {{ value == true ? 'Shelved' : '' }}
+              <q-icon
+                v-if="value == true"
+                name="mdi-check-circle"
+                color="positive"
+                size="25px"
+                class="text-bold q-ml-xs"
               />
             </span>
           </template>
@@ -167,245 +234,164 @@
       </div>
     </div>
 
-    <!-- Location Form Modal -->
-    <PopupModal
+    <!-- Edit Location Form Modal -->
+    <ShelvingJobDetailsEditLocationModal
       v-if="showShelvingLocationModal"
-      :title="!locationForm.module_id ? 'Assign Shelving Location' : `Edit Shelving Location`"
-      @reset="resetLocationForm"
+      ref="locationModalComponent"
+      @hide="showShelvingLocationModal = false"
+    />
+
+    <!-- scan container note -->
+    <PopupModal
+      v-if="showScanContainerNote"
+      title="Be Aware"
+      text="Scan the containers to begin the shelving process. (the process can be done offline)"
+      :show-actions="false"
     >
-      <template #main-content>
-        <q-card-section class="row items-end">
-          <div
-            class="form-group q-mb-md"
-          >
-            <label class="form-group-label">
-              Owner
-            </label>
-            <SelectInput
-              v-model="locationForm.owner_id"
-              :options="owners"
-              option-type="owners"
-              option-value="id"
-              option-label="name"
-              :placeholder="'Select Owner'"
-              @update:model-value="handleLocationFormChange('Owner')"
-            />
-          </div>
-
-          <div
-            class="form-group q-mb-md"
-          >
-            <label class="form-group-label">
-              Size Class
-            </label>
-            <SelectInput
-              v-model="locationForm.size_class_id"
-              :options="sizeClass"
-              option-type="sizeClass"
-              option-value="id"
-              option-label="name"
-              :placeholder="'Select Size Class'"
-              @update:model-value="handleLocationFormChange('Size Class')"
-            />
-          </div>
-
-          <div
-            class="form-group q-mb-md"
-          >
-            <label class="form-group-label">
-              Building
-            </label>
-            <SelectInput
-              v-model="locationForm.building_id"
-              :options="buildings"
-              option-type="buildings"
-              option-value="id"
-              option-label="name"
-              :placeholder="'Select Building'"
-              :disabled="!locationForm.owner_id || !locationForm.size_class_id"
-              @update:model-value="handleLocationFormChange('Building')"
-            />
-          </div>
-
-          <div
-            class="form-group q-mb-md"
-          >
-            <label class="form-group-label">
-              Module
-            </label>
-            <SelectInput
-              v-model="locationForm.module_id"
-              :options="renderBuildingModules"
-              option-value="id"
-              option-label="id"
-              :placeholder="'Select Module'"
-              :disabled="renderBuildingModules.length == 0"
-              @update:model-value="handleLocationFormChange('Module')"
-            />
-          </div>
-
-          <div
-            class="col-xs-12 col-sm-6 q-pr-sm-xs"
-          >
-            <div class="form-group">
-              <label class="form-group-label">
-                Aisle
-              </label>
-              <SelectInput
-                v-model="locationForm.aisle_id"
-                :options="renderBuildingOrModuleAisles"
-                option-value="id"
-                option-label="number"
-                :placeholder="'Select Aisle'"
-                :disabled="renderBuildingOrModuleAisles.length == 0"
-                @update:model-value="handleLocationFormChange('Aisle')"
-              />
-            </div>
-          </div>
-          <div
-            class="col-xs-12 col-sm-6 q-pl-sm-xs q-mt-xs-md q-mt-sm-none"
-          >
-            <div class="form-group">
-              <label class="form-group-label">
-                Side
-              </label>
-              <ToggleButtonInput
-                v-model="locationForm.side_id"
-                :options="[
-                  {label: 'Left', value: 'left'},
-                  {label: 'Right', value: 'right'}
-                ]"
-              />
-            </div>
-          </div>
-
-          <div
-            class="form-group q-my-md"
-          >
-            <label class="form-group-label">
-              Ladder
-            </label>
-            <SelectInput
-              v-model="locationForm.ladder_id"
-              :options="renderAisleLadders"
-              option-value="id"
-              option-label="number"
-              :placeholder="'Select Ladder'"
-              :disabled="renderAisleLadders.length == 0"
-              @update:model-value="handleLocationFormChange('Ladder')"
-            />
-          </div>
-
-          <div
-            class="col-xs-12 col-sm-6 q-pr-sm-xs"
-          >
-            <div
-              class="form-group"
-            >
-              <label class="form-group-label">
-                Shelf
-              </label>
-              <SelectInput
-                v-model="locationForm.shelf_id"
-                :options="selectedLadderShelves"
-                option-value="id"
-                option-label="number"
-                :placeholder="'Select Shelf'"
-                :disabled="selectedLadderShelves.length == 0"
-                @update:model-value="handleLocationFormChange('Shelf')"
-              />
-            </div>
-          </div>
-          <div
-            class="col-xs-12 col-sm-6 q-pl-sm-xs q-mt-xs-md q-mt-sm-none"
-          >
-            <div
-              class="form-group"
-            >
-              <label class="form-group-label">
-                Shelf Position
-              </label>
-              <SelectInput
-                v-model="locationForm.shelf_position_id"
-                :options="selectedShelfPositions"
-                option-value="id"
-                option-label="number"
-                :placeholder="'Select Shelf Position'"
-                :disabled="selectedShelfPositions.length == 0"
-              />
-            </div>
-          </div>
+      <template #footer-content="{ hideModal }">
+        <q-card-section
+          class="row no-wrap justify-between items-center q-pt-sm"
+        >
+          <q-btn
+            outline
+            no-caps
+            color="accent"
+            label="Confirm"
+            class="text-body1 full-width"
+            @click="hideModal"
+          />
         </q-card-section>
       </template>
+    </PopupModal>
 
+    <!-- scan container modal -->
+    <ShelvingJobDetailsScanContainerModal
+      v-if="showScanContainerModal"
+      @hide="showScanContainerModal = false"
+    />
+
+    <!-- complete job modal -->
+    <PopupModal
+      v-if="showCompleteJobModal"
+      :title="'Confirm'"
+      text="Are you sure you want to complete the job?"
+      :show-actions="false"
+      @reset="showCompleteJobModal = false"
+    >
       <template #footer-content="{ hideModal }">
         <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
           <q-btn
             no-caps
             unelevated
             color="accent"
-            label="Submit"
-            class="text-body1 full-width"
+            label="Complete & Print"
+            class="btn-no-wrap text-body1 full-width"
             :loading="appActionIsLoadingData"
-            :disabled="!isLocationFormValid || shelvingJob.status == 'Paused'"
-            @click="submitLocationForm(); hideModal();"
+            @click="completeShelvingJob(true); hideModal();"
           />
 
           <q-space class="q-mx-xs" />
 
           <q-btn
+            no-caps
+            unelevated
+            color="accent"
+            label="Complete"
+            class="text-body1 full-width"
+            :loading="appActionIsLoadingData"
+            @click="completeShelvingJob(false); hideModal();"
+          />
+
+          <q-space
+            v-if="currentScreenSize !== 'xs'"
+            class="q-mx-lg"
+          />
+
+          <q-btn
+            v-if="currentScreenSize !== 'xs'"
             outline
             no-caps
             label="Cancel"
             class="text-body1 full-width"
-            @click="hideModal()"
+            @click="hideModal"
           />
         </q-card-section>
       </template>
     </PopupModal>
   </div>
+
+  <!-- print component: shelving job report -->
+  <ShelvingBatchSheet
+    ref="batchSheetComponent"
+    :shelving-job-details="shelvingJob"
+  />
 </template>
 
 <script setup>
-import { ref, inject, computed, onBeforeMount } from 'vue'
+import { ref, inject, onBeforeMount, toRaw, nextTick, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
+import { useUserStore } from '@/stores/user-store'
 import { useShelvingStore } from '@/stores/shelving-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useBuildingStore } from '@/stores/building-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
+import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import SelectInput from '@/components/SelectInput.vue'
-import PopupModal from '@/components/PopupModal.vue'
-import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
+import PopupModal from '@/components/PopupModal.vue'
+import ShelvingBatchSheet from '@/components/Shelving/ShelvingBatchSheet.vue'
+import ShelvingJobDetailsEditLocationModal from '@/components/Shelving/ShelvingJobDetailsEditLocationModal.vue'
+import ShelvingJobDetailsScanContainerModal from '@/components/Shelving/ShelvingJobDetailsScanContainerModal.vue'
 
 const router = useRouter()
 const route = useRoute()
 
 // Compasables
 const { currentScreenSize } = useCurrentScreenSize()
+const { compiledBarCode } = useBarcodeScanHandler()
+const {
+  registerIndexDb,
+  addDataToIndexDb,
+  getDataInIndexDb
+} = useIndexDbHandler()
 
 // // Store Data
-const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const {
+  appIsLoadingData,
+  appActionIsLoadingData,
+  appIsOffline
+} = storeToRefs(useGlobalStore())
+const { userData } = storeToRefs(useUserStore())
 const {
   getBuildingDetails,
   getModuleDetails,
   getAisleDetails,
-  getLadderDetails
+  getSideDetails,
+  getLadderDetails,
+  getShelfDetails,
+  getShelfPositionsList
 } = useBuildingStore()
 const {
-  renderBuildingModules,
-  renderBuildingOrModuleAisles,
-  renderAisleLadders
-} = storeToRefs(useBuildingStore())
-const { patchShelvingJob } = useShelvingStore()
-const { shelvingJob } = storeToRefs(useShelvingStore())
-const { users, owners, sizeClass, buildings } = storeToRefs(useOptionStore())
+  patchShelvingJob,
+  getShelvingJobContainer
+} = useShelvingStore()
+const {
+  shelvingJob,
+  originalShelvingJob,
+  shelvingJobContainers,
+  allContainersShelved
+} = storeToRefs(useShelvingStore())
+const { users } = storeToRefs(useOptionStore())
 
 // Local Data
+const batchSheetComponent = ref(null)
+const locationModalComponent = ref(null)
+const editJob = ref(false)
 const shelfTableColumns = ref([
   {
     name: 'actions',
@@ -425,7 +411,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'owner',
-    field: row => row.owner.name,
+    field: row => row.owner?.name,
     label: 'Owner',
     align: 'left',
     sortable: true,
@@ -433,7 +419,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'size_class',
-    field: row => row.size_class.name,
+    field: row => row.size_class?.name,
     label: 'Size Class',
     align: 'left',
     sortable: true,
@@ -441,7 +427,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'module',
-    field: 'module_id',
+    field: row => row.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number,
     label: 'Module',
     align: 'left',
     sortable: true,
@@ -449,7 +435,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'aisle',
-    field: 'aisle_id',
+    field: row => row.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number,
     label: 'Aisle',
     align: 'left',
     sortable: true,
@@ -457,7 +443,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'side',
-    field: 'side',
+    field: row => row.shelf_position?.shelf?.ladder?.side?.side_orientation?.name,
     label: 'Side',
     align: 'left',
     sortable: true,
@@ -465,7 +451,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'ladder',
-    field: 'ladder_id',
+    field: row => row.shelf_position?.shelf?.ladder?.ladder_number?.number,
     label: 'Ladder',
     align: 'left',
     sortable: true,
@@ -473,7 +459,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'shelf',
-    field: 'shelf_id',
+    field: row => row.shelf_position?.shelf?.shelf_number?.number,
     label: 'Shelf',
     align: 'left',
     sortable: true,
@@ -481,11 +467,20 @@ const shelfTableColumns = ref([
   },
   {
     name: 'shelf_position',
-    field: 'shelf_position_id',
+    field: row => row.shelf_position?.shelf_position_number?.number,
     label: 'Shelf Position',
     align: 'left',
     sortable: true,
     order: 9
+  },
+  {
+    name: 'verified',
+    field: 'scanned_for_shelving',
+    label: '',
+    align: 'center',
+    sortable: false,
+    required: true,
+    order: 10
   }
 ])
 const shelfTableVisibleColumns = ref([
@@ -498,7 +493,8 @@ const shelfTableVisibleColumns = ref([
   'side',
   'ladder',
   'shelf',
-  'shelf_position'
+  'shelf_position',
+  'verified'
 ])
 const shelfTableFilters = ref([
   {
@@ -516,33 +512,12 @@ const shelfTableFilters = ref([
   }
 ])
 const showShelvingLocationModal = ref(false)
-const locationForm = ref({
-  item_id: null,
-  owner_id: null,
-  size_class_id: null,
-  building_id: null,
-  module_id: null,
-  aisle_id: null,
-  side_id: 'left',
-  ladder_id: null,
-  shelf_id: null,
-  shelf_position_id: null
-})
-const isLocationFormValid = computed(() => {
-  // validate that all needed fields are filled out in the building form
-  return !Object.values(locationForm.value).some(v => v == null || v == '')
-})
-//TODO need to figure out how shelfs work and if they live in ladders?
-const selectedLadderShelves = computed(() => {
-  let shelves = []
-  return shelves
-})
-const selectedShelfPositions = computed(() => {
-  let shelfPositions = []
-  return shelfPositions
-})
+const showScanContainerNote = ref(false)
+const showScanContainerModal = ref(false)
+const showCompleteJobModal = ref(false)
 
 // Logic
+const formatDateTime = inject('format-date-time')
 const handleAlert = inject('handle-alert')
 
 onBeforeMount(() => {
@@ -550,125 +525,121 @@ onBeforeMount(() => {
     shelfTableVisibleColumns.value = [
       'actions',
       'barcode',
-      'owner',
-      'size_class',
-      'module'
+      'shelf',
+      'shelf_position',
+      'verified'
     ]
   }
 })
 
-const handleOptionMenu = async (action, rowData) => {
-  // if the rowData contains a building_id we can get that buildings details to populate out any related fields
-  if (rowData.building_id) {
-    await getBuildingDetails(rowData.building_id)
+onMounted(async () => {
+  // register indexDb so it can be used here
+  await registerIndexDb()
+  // when user is online and loads a job we store the current shelving job data and original in indexdb for reference offline
+  if (!appIsOffline.value) {
+    addDataToIndexDb('shelvingStore', 'shelvingJob', JSON.parse(JSON.stringify(shelvingJob.value)))
+    addDataToIndexDb('shelvingStore', 'originalShelvingJob', JSON.parse(JSON.stringify(originalShelvingJob.value)))
+  } else {
+    // get saved shelving job data if were offline and page was reloaded/refreshed
+    const res = await getDataInIndexDb('shelvingStore')
+    console.log('getting shelving data from indexdb', res.data)
   }
+})
 
-  if (action.text == 'Edit Location') {
-    locationForm.value.item_id = rowData.item_id
-    locationForm.value.owner_id = rowData.owner_id
-    locationForm.value.size_class_id = rowData.size_class_id
-    locationForm.value.building_id = rowData.building_id
-    locationForm.value.module_id = rowData.module_id
-    locationForm.value.aisle_id = rowData.aisle_id
-    locationForm.value.side_id = rowData.side_id
-    locationForm.value.ladder_id = rowData.ladder_id
-    locationForm.value.shelf_id = rowData.shelf_id
-    locationForm.value.shelf_position_id = rowData.shelf_position_id
-  } else if (action.text == 'Assign Location') {
-    locationForm.value.item_id = rowData.item_id
-    locationForm.value.owner_id = rowData.owner_id
-    locationForm.value.size_class_id = rowData.size_class_id
+watch(compiledBarCode, (barcode) => {
+  if (barcode !== '' && shelvingJob.value.status == 'Running' && !showShelvingLocationModal.value && !showScanContainerModal.value) {
+    // only allow scans if the shelving job is in a running state
+    triggerContainerScan(barcode)
   }
-
-  showShelvingLocationModal.value = true
-}
-
-const handleLocationFormChange = async (valueType) => {
-  // reset the form depending on the edited form field type
-  switch (valueType) {
-  case 'Owner':
-  case 'Size Class':
-    locationForm.value.building_id = ''
-    locationForm.value.module_id = ''
-    locationForm.value.aisle_id = ''
-    locationForm.value.side_id = 'left'
-    locationForm.value.ladder_id = ''
-    locationForm.value.shelf_id = ''
-    locationForm.value.shelf_position_id = ''
-    return
-  case 'Building':
-    await getBuildingDetails(locationForm.value.building_id)
-    locationForm.value.module_id = ''
-    locationForm.value.aisle_id = ''
-    locationForm.value.side_id = 'left'
-    locationForm.value.ladder_id = ''
-    locationForm.value.shelf_id = ''
-    locationForm.value.shelf_position_id = ''
-    return
-  case 'Module':
-    await getModuleDetails(locationForm.value.module_id)
-    locationForm.value.aisle_id = ''
-    locationForm.value.side_id = 'left'
-    locationForm.value.ladder_id = ''
-    locationForm.value.shelf_id = ''
-    locationForm.value.shelf_position_id = ''
-    return
-  case 'Aisle':
-    await getAisleDetails(locationForm.value.aisle_id)
-    locationForm.value.side_id = 'left'
-    locationForm.value.ladder_id = ''
-    locationForm.value.shelf_id = ''
-    locationForm.value.shelf_position_id = ''
-    return
-  case 'Ladder':
-    await getLadderDetails(locationForm.value.ladder_id)
-    locationForm.value.shelf_id = ''
-    locationForm.value.shelf_position_id = ''
-    return
-  case 'Shelf':
-    locationForm.value.shelf_position_id = ''
-    return
-  }
-}
-const resetLocationForm = () => {
-  locationForm.value = {
-    item_id: null,
-    owner_id: null,
-    size_class_id: null,
-    building_id: null,
-    module_id: null,
-    aisle_id: null,
-    side_id: 'left',
-    ladder_id: null,
-    shelf_id: null,
-    shelf_position_id: null
-  }
-  showShelvingLocationModal.value = false
-}
-const submitLocationForm = async () => {
-  try {
-    appActionIsLoadingData.value = true
-    //TODO setup call to post/patch item location data to shelving job
-    console.log('submitting location data', locationForm.value)
-    resetLocationForm()
-  } catch (error) {
+})
+const triggerContainerScan = (barcode_value) => {
+  // check if the scanned barcode is in the containers data and that the barcode hasnt been shelved already
+  if (!shelvingJobContainers.value.some(c => c.barcode.value == barcode_value)) {
     handleAlert({
       type: 'error',
-      text: error,
+      text: 'The scanned container does not exist in this shelving job. Please try again.',
       autoClose: true
     })
-  } finally {
-    appActionIsLoadingData.value = false
+    return
+  } else if (shelvingJobContainers.value.some(c => c.barcode.value == barcode_value && c.scanned_for_shelving)) {
+    handleAlert({
+      type: 'error',
+      text: 'The scanned container has already been marked as shelved.',
+      autoClose: true
+    })
+    return
+  } else {
+    // load the matching containers info directly from the shelvingJob data
+    getShelvingJobContainer(barcode_value)
+    showScanContainerModal.value = true
   }
 }
 
+const handleOptionMenu = async (action, rowData) => {
+  switch (action.text) {
+  case 'Edit Location':
+    try {
+      if (!appIsOffline.value) {
+        appIsLoadingData.value = true
+        await Promise.all([
+          getBuildingDetails(shelvingJob.value.building_id),
+          getModuleDetails(rowData.shelf_position?.shelf?.ladder?.side?.aisle?.module?.id),
+          getAisleDetails(rowData.shelf_position?.shelf?.ladder?.side?.aisle?.id),
+          getSideDetails(rowData.shelf_position?.shelf?.ladder?.side?.id),
+          getLadderDetails(rowData.shelf_position?.shelf?.ladder?.id),
+          getShelfDetails(rowData.shelf_position?.shelf?.id),
+          getShelfPositionsList(rowData.shelf_position?.shelf?.id, true)
+        ])
+      }
+    } catch (error) {
+      handleAlert({
+        type: 'error',
+        text: error,
+        autoClose: true
+      })
+    } finally {
+      appIsLoadingData.value = false
+      showShelvingLocationModal.value = true
+      await nextTick()
+      locationModalComponent.value.locationForm.id = rowData.id
+      locationModalComponent.value.locationForm.module_id = rowData.shelf_position?.shelf?.ladder?.side?.aisle?.module?.id
+      locationModalComponent.value.locationForm.aisle_id = rowData.shelf_position?.shelf?.ladder?.side?.aisle?.id
+      locationModalComponent.value.locationForm.side_id = rowData.shelf_position?.shelf?.ladder?.side?.id
+      locationModalComponent.value.locationForm.ladder_id = rowData.shelf_position?.shelf?.ladder?.id
+      locationModalComponent.value.locationForm.shelf_id = rowData.shelf_position?.shelf?.id
+      locationModalComponent.value.locationForm.shelf_position_id = rowData.shelf_position_id
+      locationModalComponent.value.locationForm.trayed = rowData.container_type?.type == 'Tray' ? true : false
+    }
+
+    return
+  case 'Edit':
+    editJob.value = true
+    return
+  case 'Print Job':
+    batchSheetComponent.value.printBatchReport()
+    return
+  }
+}
+
+const cancelShelvingJobEdits = () => {
+  shelvingJob.value = { ...toRaw(originalShelvingJob.value) }
+  editJob.value = false
+}
 const executeShelvingJob = async () => {
   try {
+    appActionIsLoadingData.value = true
     const payload = {
       id: route.params.jobId,
-      status: 'In Progress'
+      status: 'Running',
+      user_id: shelvingJob.value.user_id ? shelvingJob.value.user_id : userData.value.id
     }
     await patchShelvingJob(payload)
+
+    // store the current shelving job data in indexdb for reference offline
+    // await addDataToIndexDb('shelvingStore', toRaw({
+    //   shelvingJob: shelvingJob.value,
+    //   originalShelvingJob: originalShelvingJob.value
+    // }))
 
     handleAlert({
       type: 'success',
@@ -681,6 +652,9 @@ const executeShelvingJob = async () => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appActionIsLoadingData.value = false
+    showScanContainerNote.value = true
   }
 }
 const updateShelvingJobStatus = async (status) => {
@@ -705,14 +679,43 @@ const updateShelvingJobStatus = async (status) => {
     })
   }
 }
-const completeShelvingJob = async () => {
+const updateShelvingJob = async () => {
   try {
+    appActionIsLoadingData.value = true
+    const payload = {
+      id: route.params.jobId,
+      user_id: shelvingJob.value.user_id
+    }
+    await patchShelvingJob(payload)
+
+    handleAlert({
+      type: 'success',
+      text: 'The job has been updated.',
+      autoClose: true
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = false
+    editJob.value = false
+  }
+}
+const completeShelvingJob = async (printBool) => {
+  try {
+    appActionIsLoadingData.value = true
     const payload = {
       id: route.params.jobId,
       status: 'Completed'
     }
     await patchShelvingJob(payload)
 
+    if (printBool) {
+      batchSheetComponent.value.printBatchReport()
+    }
     handleAlert({
       type: 'success',
       text: 'The Shelving Job has been completed.',
@@ -731,6 +734,8 @@ const completeShelvingJob = async () => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appActionIsLoadingData.value = false
   }
 }
 </script>

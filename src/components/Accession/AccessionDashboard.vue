@@ -102,6 +102,7 @@
           <q-btn
             v-else
             icon="chevron_left"
+            name="back"
             label="Back"
             no-caps
             flat

@@ -21,13 +21,14 @@ export const useBarcodeStore = defineStore('barcode-store', {
         await this.getBarcodeDetails(barcode)
         if (this.barcodeDetails.id) {
           return
-        } else {
+        }
+      } catch (error) {
+        if (error.response?.status == 404) {
           // if the barcode doesnt exist add it
           await this.postBarcode(barcode)
           return
         }
-      } catch (error) {
-        return error
+        throw error
       }
     },
     async getBarcodeDetails (barcode) {
@@ -35,7 +36,7 @@ export const useBarcodeStore = defineStore('barcode-store', {
         const res = await this.$api.get(`${inventoryServiceApi.barcodesValue}${barcode}`)
         this.barcodeDetails = res.data
       } catch (error) {
-        return error
+        throw error
       }
     },
     async postBarcode (barcode) {
@@ -47,7 +48,7 @@ export const useBarcodeStore = defineStore('barcode-store', {
 
         this.barcodeDetails = res.data
       } catch (error) {
-        return error
+        throw error
       }
     },
     async patchBarcode (barcode_id, barcode_value) {
@@ -58,7 +59,7 @@ export const useBarcodeStore = defineStore('barcode-store', {
 
         this.barcodeDetails = res.data
       } catch (error) {
-        return error
+        throw error
       }
     },
     async deleteBarcode (barcode_id) {
@@ -67,7 +68,7 @@ export const useBarcodeStore = defineStore('barcode-store', {
 
         this.barcodeDetails = res.data
       } catch (error) {
-        return error
+        throw error
       }
     }
   }

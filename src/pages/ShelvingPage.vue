@@ -6,9 +6,9 @@
   >
     <LoadingOverlay />
 
-    <ShelvingDashboard v-if="!route.params.jobId" />
-
-    <ShelvingJobDetails v-if="route.params.jobId" />
+    <ShelvingDashboard v-if="route.name == 'shelving' && !route.params.jobId" />
+    <ShelvingJobDetails v-else-if="route.name == 'shelving' && route.params.jobId" />
+    <ShelvingJobDirectToShelf v-else-if="route.name == 'shelving-dts' && route.params.jobId" />
   </q-page>
 </template>
 
@@ -16,31 +16,25 @@
 import { inject, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
 import { useShelvingStore } from '@/stores/shelving-store'
-import { useOptionStore } from '@/stores/option-store'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import ShelvingDashboard from '@/components/Shelving/ShelvingDashboard.vue'
 import ShelvingJobDetails from '@/components/Shelving/ShelvingJobDetails.vue'
+import ShelvingJobDirectToShelf from '@/components/Shelving/ShelvingJobDirectToShelf.vue'
 
 const route = useRoute()
 
 // Store Data
-const { getShelvingJob } = useShelvingStore()
-const { getOptions } = useOptionStore()
+const { getShelvingJob, getDirectShelvingJob } = useShelvingStore()
 
 // Logic
 const handlePageOffset = inject('handle-page-offset')
 
 onBeforeMount( async () => {
-  // load any options info that will be needed in accession
-  await Promise.all([
-    getOptions('owners'),
-    getOptions('sizeClass'),
-    getOptions('buildings')
-  ])
-
   // if there is an id in the url we need to load that shelving job
-  if (route.params.jobId) {
+  if (route.name == 'shelving' && route.params.jobId) {
     await getShelvingJob(route.params.jobId)
+  } else if (route.name == 'shelving-dts' && route.params.jobId) {
+    await getDirectShelvingJob(route.params.jobId)
   }
 })
 </script>

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import inventoryServiceApi from '@/http/InventoryService.js'
 
-export const useVerificationStore = defineStore('verification', {
+export const useVerificationStore = defineStore('verification-store', {
   state: () => ({
     verificationJobList: [],
     verificationJob: {
@@ -70,9 +70,9 @@ export const useVerificationStore = defineStore('verification', {
         items: []
       }
     },
-    async getVerificationJobList () {
+    async getVerificationJobList (paramsObj) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.verificationJobs)
+        const res = await this.$api.get(inventoryServiceApi.verificationJobs, { params: paramsObj })
         this.verificationJobList = res.data.items
         // const res = {
         //   data: [
@@ -112,7 +112,7 @@ export const useVerificationStore = defineStore('verification', {
         // }
         return res
       } catch (error) {
-        return error
+        throw error
       }
     },
     async getVerificationJob (id) {
@@ -121,7 +121,7 @@ export const useVerificationStore = defineStore('verification', {
         this.verificationJob = res.data
         this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {
-        return error
+        throw error
       }
     },
     async patchVerificationJob (payload) {
@@ -130,7 +130,7 @@ export const useVerificationStore = defineStore('verification', {
         this.verificationJob = res.data
         this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {
-        return error
+        throw error
       }
     },
     async getVerificationTray (barcode) {
@@ -139,7 +139,7 @@ export const useVerificationStore = defineStore('verification', {
         this.verificationContainer = res.data
         this.originalVerificationContainer = { ...this.verificationContainer }
       } catch (error) {
-        return error
+        throw error
       }
     },
     // TODO: check if we can add trays ad the verificaiton level
@@ -170,7 +170,7 @@ export const useVerificationStore = defineStore('verification', {
         this.verificationJob.trays[this.verificationJob.trays.findIndex(tray => tray.id == payload.id)] = res.data
         this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {
-        return error
+        throw error
       }
     },
     async postVerificationTrayItem (payload) {
@@ -215,7 +215,7 @@ export const useVerificationStore = defineStore('verification', {
         }
         this.originalVerificationContainer = { ...this.verificationContainer }
       } catch (error) {
-        return error
+        throw error
       }
     },
     async getVerificationNonTrayItem (barcode) {
@@ -224,7 +224,7 @@ export const useVerificationStore = defineStore('verification', {
         this.verificationContainer = res.data
         this.originalVerificationContainer = { ...this.verificationContainer }
       } catch (error) {
-        return error
+        throw error
       }
     },
     async postVerificationNonTrayItem (payload) {
@@ -255,7 +255,7 @@ export const useVerificationStore = defineStore('verification', {
         this.verificationJob.non_tray_items[this.verificationJob.non_tray_items.findIndex(item => item.id == payload.id)] = res.data
         this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {
-        return error
+        throw error
       }
     },
     async deleteVerificationNonTrayItem (barcodeList) {
@@ -271,7 +271,7 @@ export const useVerificationStore = defineStore('verification', {
         }
         this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {
-        return error
+        throw error
       }
     },
     async verifyTrayItem (id) {
@@ -282,7 +282,7 @@ export const useVerificationStore = defineStore('verification', {
         this.verificationContainer.items[this.verificationContainer.items.findIndex(item => item.id == id)].scanned_for_verification = true
         this.originalVerificationContainer = { ...this.verificationContainer }
       } catch (error) {
-        return error
+        throw error
       }
     },
     async verifyNonTrayItem (id) {
@@ -292,7 +292,7 @@ export const useVerificationStore = defineStore('verification', {
         // update the non tray items verified state in the verificationJob data as well
         this.verificationJob.non_tray_items[this.verificationJob.non_tray_items.findIndex(item => item.id == id)].scanned_for_verification = true
       } catch (error) {
-        return error
+        throw error
       }
     }
   }

@@ -150,7 +150,6 @@
             ref="verificationTableComponent"
             :table-columns="verificationTableColumns"
             :table-data="verificationJob.trayed ? verificationContainer.items : verificationJob.non_tray_items"
-            :disable-table-reorder="true"
             :hide-table-rearrange="true"
             :enable-selection="true"
             @selected-data="selectedItems = $event"

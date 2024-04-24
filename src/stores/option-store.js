@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import inventoryServiceApi from '@/http/InventoryService.js'
 
-export const useOptionStore = defineStore('options', {
+export const useOptionStore = defineStore('option-store', {
   state: () => ({
     buildings: [],
     containerTypes: [
@@ -32,7 +32,7 @@ export const useOptionStore = defineStore('options', {
 
         this[optionType] = res.data.items
       } catch (error) {
-        return error
+        throw error
       }
     },
     async getOwnerTierList () {
@@ -40,7 +40,7 @@ export const useOptionStore = defineStore('options', {
         const res = await this.$api.get(inventoryServiceApi.ownersTiers)
         this.ownerTierOptions = res.data.items
       } catch (error) {
-        return error
+        throw error
       }
     },
     async postOwnerTier (payload) {
@@ -52,7 +52,7 @@ export const useOptionStore = defineStore('options', {
           res.data
         ]
       } catch (error) {
-        return error
+        throw error
       }
     }
   }

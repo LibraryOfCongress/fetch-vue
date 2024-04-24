@@ -36,15 +36,6 @@
           class="q-mr-sm"
         />
         You are in offline mode.
-        <template #action>
-          <q-btn
-            flat
-            color="black"
-            label="Dismiss"
-            class="text-body1"
-            @click="showOfflineBanner = !showOfflineBanner"
-          />
-        </template>
       </q-banner>
 
       <!-- online banner if user has pending api requests -->
