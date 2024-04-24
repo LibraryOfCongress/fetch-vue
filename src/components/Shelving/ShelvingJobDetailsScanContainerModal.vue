@@ -96,7 +96,7 @@
               Shelf:
             </label>
             <p class="text-body1">
-              {{ shelvingJobContainer.shelf_position?.shelf?.barcode?.value }}
+              {{ shelvingJobContainer.shelf_position?.shelf?.shelf_number?.number }}
             </p>
           </div>
         </div>

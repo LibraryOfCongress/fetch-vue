@@ -22,6 +22,7 @@ export default {
   ownersTiers: '/owners/tiers/',
   shelves: '/shelves/',
   shelvesBarcode: '/shelves/barcode/',
+  shelvesPositions: '/shelves/positions/',
   shelvingJobs: '/shelving-jobs/',
   sides: '/sides/',
   sizeClass: '/size_class/',

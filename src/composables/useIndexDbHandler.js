@@ -1,24 +1,26 @@
-import { ref, onBeforeMount } from 'vue'
+import { ref } from 'vue'
 
 export function useIndexDbHandler () {
 
   const indexDb = ref(null)
 
-  async function getIndexDb () {
+  async function registerIndexDb () {
     return new Promise((resolve, reject) => {
-
       let request = window.indexedDB.open('global-data')
 
       request.onupgradeneeded = () => {
         const db = request.result
         // build our store schema here for the global store will use for the app
         db.createObjectStore('ownerTiers', { keyPath: 'id' })
+        db.createObjectStore('shelvingStore', { keyPath: 'id' })
 
         // takes the stores name and key term path (can have multiple key terms) and if its unique (can have duplicates or just one)
         // store.createIndex('owner', ['name'], { unique: false })
       }
 
       request.onsuccess = (event) => {
+        // set the indexDb instance
+        indexDb.value = event.target.result
         resolve(event.target.result)
       }
 
@@ -45,7 +47,12 @@ export function useIndexDbHandler () {
       }
 
       trans.oncomplete = () => {
-        resolve(data[0])
+        // create a response object to return all entries in our indexDb data array
+        let response = { data: {} }
+        data.forEach(v => {
+          response.data[v.id] = v.data
+        })
+        resolve(response)
       }
 
       trans.onerror = (err) => {
@@ -55,11 +62,11 @@ export function useIndexDbHandler () {
     })
   }
 
-  async function addDataToIndexDb (dataStore, dataToAdd) {
+  async function addDataToIndexDb (dataStore, dataKeyName = 1, dataToAdd) {
     return new Promise((resolve, reject) => {
       const trans = indexDb.value.transaction([dataStore], 'readwrite')
       const store = trans.objectStore(dataStore)
-      store.put({ id: 1, data: dataToAdd })
+      store.put({ id: dataKeyName, data: dataToAdd })
 
       // const storeData = store.get(keyTerm)
       // // if storeData exists in defined store, we add/update the passed in data
@@ -101,12 +108,9 @@ export function useIndexDbHandler () {
     })
   }
 
-  onBeforeMount(async () => {
-    indexDb.value = await getIndexDb()
-  })
-
   return {
     indexDb,
+    registerIndexDb,
     getDataInIndexDb,
     addDataToIndexDb,
     deleteDataInIndexDb

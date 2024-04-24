@@ -9,7 +9,8 @@ export const useBuildingStore = defineStore('building-store', {
     aisleDetails: {},
     sideDetails: {},
     ladderDetails: {},
-    shelfDetails: {}
+    shelfDetails: {},
+    shelfPositions: []
   }),
   getters: {
     renderBuildingModules: (state) => {
@@ -370,6 +371,14 @@ export const useBuildingStore = defineStore('building-store', {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.shelves}${id}`)
         this.shelfDetails = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async getShelfPositionsList (shelf_id, available = false) {
+      try {
+        const res = await this.$api.get(inventoryServiceApi.shelvesPositions, { params: { shelf_id, empty: available } })
+        this.shelfPositions = res.data
       } catch (error) {
         throw error
       }

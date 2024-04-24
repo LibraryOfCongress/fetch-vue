@@ -17,7 +17,7 @@
             Shelving Job Completed Data/Time: {{ new Date().toLocaleString() }}
           </p>
           <p class="text-bold">
-            Shelving Job User: {{ shelvingJobDetails.user ? shelvingJobDetails.user?.name : 'No Assignee' }}
+            Shelving Job User: {{ shelvingJobDetails.user ? shelvingJobDetails.user?.first_name : 'No Assignee' }}
           </p>
         </section>
 

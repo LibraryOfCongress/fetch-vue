@@ -21,7 +21,7 @@ export const useShelvingStore = defineStore('shelving-store', {
       module_id: null,
       side_id: null,
       status: '',
-      verification_job_id: null
+      verification_jobs: []
     },
     originalShelvingJob: null,
     directToShelfJob: {
@@ -42,7 +42,7 @@ export const useShelvingStore = defineStore('shelving-store', {
       },
       size_class_id: null,
       create_dt: new Date().toLocaleDateString(),
-      containers : []
+      status: ''
     },
     shelvingJobContainer: {
       id: null,
@@ -119,7 +119,7 @@ export const useShelvingStore = defineStore('shelving-store', {
         module_id: null,
         side_id: null,
         status: '',
-        verification_job_id: null
+        verification_jobs: []
       }
       this.originalShelvingJob = null
     },

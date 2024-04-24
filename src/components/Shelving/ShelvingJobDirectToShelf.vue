@@ -71,7 +71,7 @@
       </div>
 
       <div
-        v-if="currentScreenSize !== 'xs'"
+        v-if="currentScreenSize !== 'xs' && directToShelfJob.status !== 'Completed'"
         class="col-sm-12 col-md-12 col-lg-3 q-ml-auto"
       >
         <div class="shelving-job-details-action q-mt-sm-sm q-mt-md-md">
@@ -97,7 +97,7 @@
         </div>
       </div>
       <MobileActionBar
-        v-else
+        v-else-if="currentScreenSize == 'xs' && directToShelfJob.status !== 'Completed'"
         button-one-color="accent"
         button-one-label="Scan New Shelf"
         :button-one-outline="false"
@@ -310,7 +310,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'shelf',
-    field: row => row.shelf_position?.shelf?.barcode?.value,
+    field: row => row.shelf_position?.shelf?.shelf_number?.number,
     label: 'Shelf',
     align: 'left',
     sortable: true
@@ -361,10 +361,10 @@ onBeforeMount(() => {
 })
 
 watch(compiledBarCode, (barcode) => {
-  if (barcode !== '' && !directToShelfJob.value.shelf_barcode.value) {
+  if (barcode !== '' && !directToShelfJob.value.shelf_barcode.value && directToShelfJob.value.status !== 'Completed') {
     // user is scanning a shelf barcode
     triggerShelfScan(barcode)
-  } else if (barcode !== '' && !shelvingJobContainer.value.barcode.value) {
+  } else if (barcode !== '' && !shelvingJobContainer.value.barcode.value && directToShelfJob.value.status !== 'Completed') {
     // user has a shelf scanned and is scanning containers to place on a shelf
     triggerContainerScan(barcode)
   }

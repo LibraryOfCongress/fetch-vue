@@ -5,7 +5,7 @@
         <div class="shelving-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-lg-lg">
           <div class="flex">
             <MoreOptionsMenu
-              :options="[{ text: 'Edit', disabled: appIsOffline || editJob || shelvingJob.status == 'Paused' }, { text: 'Print Job' }]"
+              :options="[{ text: 'Edit', disabled: appIsOffline || editJob || shelvingJob.status == 'Paused' || shelvingJob.status == 'Completed' }, { text: 'Print Job' }]"
               class="q-mr-xs"
               @click="handleOptionMenu"
             />
@@ -46,14 +46,14 @@
             v-if="!editJob"
             class="text-body1"
           >
-            {{ shelvingJob.user?.name }}
+            {{ shelvingJob.user?.first_name }}
           </p>
           <SelectInput
             v-else
             v-model="shelvingJob.user_id"
             :options="users"
             option-value="id"
-            option-label="name"
+            option-label="first_name"
           >
             <template #no-option>
               <q-item>
@@ -123,7 +123,7 @@
           />
         </div>
         <div
-          v-else
+          v-else-if="shelvingJob.status !== 'Completed'"
           class="shelving-job-details-action q-mt-sm-sm q-mt-md-md"
         >
           <q-btn
@@ -162,7 +162,7 @@
         @button-two-click="cancelShelvingJobEdits"
       />
       <MobileActionBar
-        v-else
+        v-else-if="shelvingJob.status !== 'Completed'"
         button-one-color="accent"
         :button-one-icon="shelvingJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
         :button-one-label="shelvingJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
@@ -207,10 +207,13 @@
               v-if="colName == 'actions'"
             >
               <MoreOptionsMenu
-                :options="[{ text: 'Edit Location', disabled: shelvingJob.status == 'Paused' }]"
+                :options="[{ text: 'Edit Location', disabled: shelvingJob.status == 'Paused' || shelvingJob.status == 'Completed' }]"
                 class=""
                 @click="handleOptionMenu($event, props.row)"
               />
+            </span>
+            <span v-if="colName == 'side'">
+              {{ value.slice(0, 1) }}
             </span>
             <span
               v-if="colName == 'verified'"
@@ -325,7 +328,7 @@
 </template>
 
 <script setup>
-import { ref, inject, onBeforeMount, toRaw, nextTick, watch } from 'vue'
+import { ref, inject, onBeforeMount, toRaw, nextTick, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
@@ -335,6 +338,7 @@ import { useBuildingStore } from '@/stores/building-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
+import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import SelectInput from '@/components/SelectInput.vue'
@@ -350,6 +354,11 @@ const route = useRoute()
 // Compasables
 const { currentScreenSize } = useCurrentScreenSize()
 const { compiledBarCode } = useBarcodeScanHandler()
+const {
+  registerIndexDb,
+  addDataToIndexDb,
+  getDataInIndexDb
+} = useIndexDbHandler()
 
 // // Store Data
 const {
@@ -364,7 +373,8 @@ const {
   getAisleDetails,
   getSideDetails,
   getLadderDetails,
-  getShelfDetails
+  getShelfDetails,
+  getShelfPositionsList
 } = useBuildingStore()
 const {
   patchShelvingJob,
@@ -449,7 +459,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'shelf',
-    field: row => row.shelf_position?.shelf?.barcode?.value,
+    field: row => row.shelf_position?.shelf?.shelf_number?.number,
     label: 'Shelf',
     align: 'left',
     sortable: true,
@@ -522,6 +532,20 @@ onBeforeMount(() => {
   }
 })
 
+onMounted(async () => {
+  // register indexDb so it can be used here
+  await registerIndexDb()
+  // when user is online and loads a job we store the current shelving job data and original in indexdb for reference offline
+  if (!appIsOffline.value) {
+    addDataToIndexDb('shelvingStore', 'shelvingJob', JSON.parse(JSON.stringify(shelvingJob.value)))
+    addDataToIndexDb('shelvingStore', 'originalShelvingJob', JSON.parse(JSON.stringify(originalShelvingJob.value)))
+  } else {
+    // get saved shelving job data if were offline and page was reloaded/refreshed
+    const res = await getDataInIndexDb('shelvingStore')
+    console.log('getting shelving data from indexdb', res.data)
+  }
+})
+
 watch(compiledBarCode, (barcode) => {
   if (barcode !== '' && shelvingJob.value.status == 'Running' && !showShelvingLocationModal.value && !showScanContainerModal.value) {
     // only allow scans if the shelving job is in a running state
@@ -563,7 +587,8 @@ const handleOptionMenu = async (action, rowData) => {
           getAisleDetails(rowData.shelf_position?.shelf?.ladder?.side?.aisle?.id),
           getSideDetails(rowData.shelf_position?.shelf?.ladder?.side?.id),
           getLadderDetails(rowData.shelf_position?.shelf?.ladder?.id),
-          getShelfDetails(rowData.shelf_position?.shelf?.id)
+          getShelfDetails(rowData.shelf_position?.shelf?.id),
+          getShelfPositionsList(rowData.shelf_position?.shelf?.id, true)
         ])
       }
     } catch (error) {
@@ -609,6 +634,12 @@ const executeShelvingJob = async () => {
       user_id: shelvingJob.value.user_id ? shelvingJob.value.user_id : userData.value.id
     }
     await patchShelvingJob(payload)
+
+    // store the current shelving job data in indexdb for reference offline
+    // await addDataToIndexDb('shelvingStore', toRaw({
+    //   shelvingJob: shelvingJob.value,
+    //   originalShelvingJob: originalShelvingJob.value
+    // }))
 
     handleAlert({
       type: 'success',

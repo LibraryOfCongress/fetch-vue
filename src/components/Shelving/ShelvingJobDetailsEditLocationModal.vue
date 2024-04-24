@@ -109,11 +109,11 @@
             </label>
             <SelectInput
               v-model="locationForm.shelf_position_id"
-              :options="renderShelfPositions"
+              :options="shelfPositions"
               option-value="id"
               :option-label="opt => opt.shelf_position_number?.number"
               :placeholder="'Select Shelf Position'"
-              :disabled="renderShelfPositions.length == 0"
+              :disabled="shelfPositions.length == 0"
             />
           </div>
         </div>
@@ -203,7 +203,7 @@ const {
   getAisleDetails,
   getSideDetails,
   getLadderDetails,
-  getShelfDetails
+  getShelfPositionsList
 } = useBuildingStore()
 const {
   renderBuildingModules,
@@ -211,9 +211,9 @@ const {
   renderAisleSides,
   renderSideLadders,
   renderLadderShelves,
-  renderShelfPositions
+  shelfPositions
 } = storeToRefs(useBuildingStore())
-const { postShelvingJobContainer } = useShelvingStore()
+const { postShelvingJobContainer, resetShelvingJobContainer } = useShelvingStore()
 
 // Local Data
 const locationForm = ref({
@@ -277,7 +277,7 @@ const handleLocationFormChange = async (valueType) => {
     locationForm.value.shelf_position_id = ''
     return
   case 'Shelf':
-    await getShelfDetails(locationForm.value.shelf_id)
+    await getShelfPositionsList(locationForm.value.shelf_id, true)
     locationForm.value.shelf_position_id = ''
     return
   }
@@ -316,12 +316,18 @@ const submitLocationForm = async () => {
         job_id: route.params.jobId,
         container_id: locationForm.value.id,
         trayed: locationForm.value.trayed,
-        shelf_position_number: renderShelfPositions.value.find(shelf_pos => shelf_pos.id == locationForm.value.shelf_position_id)?.shelf_position_number.number,
+        shelf_position_number: shelfPositions.value.find(shelf_pos => shelf_pos.id == locationForm.value.shelf_position_id)?.shelf_position_number?.number,
         shelf_id: locationForm.value.shelf_id
       }
     }
 
     await postShelvingJobContainer(payload)
+    handleAlert({
+      type: 'success',
+      text: 'The container has been updated.',
+      autoClose: true
+    })
+    resetShelvingJobContainer()
   } catch (error) {
     handleAlert({
       type: 'error',
