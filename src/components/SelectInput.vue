@@ -119,6 +119,7 @@ const filterOptions = async (val, update) => {
         return getNestedKeyPath(opt, paramPath).toString().toLowerCase().indexOf(val.toLowerCase()) > -1
       })
     } else {
+      // filter all passed in options based on user input value
       localOptions.value = mainProps.options.filter(opt => opt[mainProps.optionLabel].toString().toLowerCase().indexOf(val.toLowerCase()) > -1)
     }
   })

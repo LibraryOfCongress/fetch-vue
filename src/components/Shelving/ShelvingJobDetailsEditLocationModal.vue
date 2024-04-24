@@ -18,7 +18,7 @@
             v-model="locationForm.module_id"
             :options="renderBuildingModules"
             option-value="id"
-            :option-label="opt => opt.module_number?.number"
+            :option-label="opt => opt.module_number.number"
             :placeholder="'Select Module'"
             :disabled="renderBuildingModules.length == 0"
             @update:model-value="handleLocationFormChange('Module')"
@@ -36,7 +36,7 @@
               v-model="locationForm.aisle_id"
               :options="renderBuildingOrModuleAisles"
               option-value="id"
-              :option-label="opt => opt.aisle_number?.number"
+              :option-label="opt => opt.aisle_number.number"
               :placeholder="'Select Aisle'"
               :disabled="renderBuildingOrModuleAisles.length == 0"
               @update:model-value="handleLocationFormChange('Aisle')"
@@ -71,7 +71,7 @@
             v-model="locationForm.ladder_id"
             :options="renderSideLadders"
             option-value="id"
-            :option-label="opt => opt.ladder_number?.number"
+            :option-label="opt => opt.ladder_number.number"
             :placeholder="'Select Ladder'"
             :disabled="renderSideLadders.length == 0"
             @update:model-value="handleLocationFormChange('Ladder')"
@@ -91,7 +91,7 @@
               v-model="locationForm.shelf_id"
               :options="renderLadderShelves"
               option-value="id"
-              :option-label="opt => opt.shelf_number?.number"
+              :option-label="opt => opt.shelf_number.number"
               :placeholder="'Select Shelf'"
               :disabled="renderLadderShelves.length == 0"
               @update:model-value="handleLocationFormChange('Shelf')"
@@ -111,7 +111,7 @@
               v-model="locationForm.shelf_position_id"
               :options="shelfPositions"
               option-value="id"
-              :option-label="opt => opt.shelf_position_number?.number"
+              :option-label="opt => opt.shelf_position_number.number"
               :placeholder="'Select Shelf Position'"
               :disabled="shelfPositions.length == 0"
             />
@@ -252,33 +252,33 @@ const handleLocationFormChange = async (valueType) => {
   switch (valueType) {
   case 'Module':
     await getModuleDetails(locationForm.value.module_id)
-    locationForm.value.aisle_id = ''
-    locationForm.value.side_id = ''
-    locationForm.value.ladder_id = ''
-    locationForm.value.shelf_id = ''
-    locationForm.value.shelf_position_id = ''
+    locationForm.value.aisle_id = null
+    locationForm.value.side_id = null
+    locationForm.value.ladder_id = null
+    locationForm.value.shelf_id = null
+    locationForm.value.shelf_position_id = null
     return
   case 'Aisle':
     await getAisleDetails(locationForm.value.aisle_id)
-    locationForm.value.side_id = ''
-    locationForm.value.ladder_id = ''
-    locationForm.value.shelf_id = ''
-    locationForm.value.shelf_position_id = ''
+    locationForm.value.side_id = null
+    locationForm.value.ladder_id = null
+    locationForm.value.shelf_id = null
+    locationForm.value.shelf_position_id = null
     return
   case 'Side':
     await getSideDetails(locationForm.value.side_id)
-    locationForm.value.ladder_id = ''
-    locationForm.value.shelf_id = ''
-    locationForm.value.shelf_position_id = ''
+    locationForm.value.ladder_id = null
+    locationForm.value.shelf_id = null
+    locationForm.value.shelf_position_id = null
     return
   case 'Ladder':
     await getLadderDetails(locationForm.value.ladder_id)
-    locationForm.value.shelf_id = ''
-    locationForm.value.shelf_position_id = ''
+    locationForm.value.shelf_id = null
+    locationForm.value.shelf_position_id = null
     return
   case 'Shelf':
     await getShelfPositionsList(locationForm.value.shelf_id, true)
-    locationForm.value.shelf_position_id = ''
+    locationForm.value.shelf_position_id = null
     return
   }
 }
