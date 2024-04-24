@@ -607,7 +607,6 @@ const handleOptionMenu = async (action, rowData) => {
       locationModalComponent.value.locationForm.side_id = rowData.shelf_position?.shelf?.ladder?.side?.id
       locationModalComponent.value.locationForm.ladder_id = rowData.shelf_position?.shelf?.ladder?.id
       locationModalComponent.value.locationForm.shelf_id = rowData.shelf_position?.shelf?.id
-      locationModalComponent.value.locationForm.shelf_position_id = rowData.shelf_position_id
       locationModalComponent.value.locationForm.trayed = rowData.container_type?.type == 'Tray' ? true : false
     }
 
