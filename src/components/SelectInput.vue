@@ -135,6 +135,10 @@ const filterOptions = async (val, update) => {
     &::before {
       border-color: $color-black;
     }
+
+    .q-chip__icon {
+      margin-top: 0;
+    }
   }
 
   &.q-field--disabled {

@@ -378,7 +378,7 @@ export const useBuildingStore = defineStore('building-store', {
     async getShelfPositionsList (shelf_id, available = false) {
       try {
         const res = await this.$api.get(inventoryServiceApi.shelvesPositions, { params: { shelf_id, empty: available } })
-        this.shelfPositions = res.data
+        this.shelfPositions = res.data.items
       } catch (error) {
         throw error
       }

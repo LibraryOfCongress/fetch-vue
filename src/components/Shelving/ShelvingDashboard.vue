@@ -55,6 +55,9 @@
             <span v-else-if="colName == 'create_dt'">
               {{ formatDateTime(value).date }}
             </span>
+            <span v-else-if="colName == 'complete_dt'">
+              {{ formatDateTime(value).date }}
+            </span>
           </template>
         </EssentialTable>
       </div>
@@ -442,7 +445,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'containers',
-    field: 'containers',
+    field: row => (row.tray_count + row.non_tray_item_count),
     label: '# of Containers in Job',
     align: 'left',
     sortable: true,
