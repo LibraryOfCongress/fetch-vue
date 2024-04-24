@@ -102,7 +102,7 @@
         button-one-label="Scan New Shelf"
         :button-one-outline="false"
         :button-one-disabled="!directToShelfJob.shelf_barcode.value"
-        @button-one-click="null"
+        @button-one-click="clearShelfDetails()"
         button-two-color="positive"
         button-two-label="Complete Job"
         :button-two-outline="false"
