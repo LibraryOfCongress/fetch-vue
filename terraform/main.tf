@@ -14,6 +14,9 @@ terraform {
 variable vault_deployer_username { default = "deployer" }
 variable vault_deployer_password {}
 variable vault_addr {}
+variable app_name {}
+variable timestamp {}
+variable "image" {}
 
 provider "vault" {
   address = var.vault_addr
@@ -44,15 +47,14 @@ provider "kubernetes" {
   config_path = "${path.module}/kubeconfig"
 }
 
-variable "image" { default = "git.loc.gov:4567/fetch/vue:latest" }
-
 locals {
   namespace = "fetch"
 }
 
 module "app" {
   source = "./modules/app"
-  name = "vue"
+  name = var.app_name
+  timestamp = var.timestamp
   namespace = local.namespace
   image = var.image
   env_map = local.env_map
