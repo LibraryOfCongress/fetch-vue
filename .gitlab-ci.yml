@@ -137,7 +137,6 @@ deploy_test:
     - export TF_STATE_NAME=test
     - envsubst < backend.hcl.tmpl > backend.hcl
     - terraform init -backend-config=backend.hcl
-    - terraform destroy -auto-approve
     - terraform apply -auto-approve
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
