@@ -21,6 +21,7 @@ console.log('Custom service worker active')
 precacheAndRoute(self.__WB_MANIFEST)
 
 // Custom manual sync function for Queue class that can be triggered from the vue client
+let manualSyncErrorLog = []
 Queue.prototype.manualSync = async function () {
   let entry
   while ((entry = await this.shiftRequest())) {
@@ -37,9 +38,14 @@ Queue.prototype.manualSync = async function () {
       // Handle synchronization errors
       console.log('Queued Request Failed', entry.request, error)
 
-      // Put the failed request back in the queue if its a breaking error
-      await this.unshiftRequest(entry)
-      throw error
+      // Put the failed request back in the queue if its a breaking error otherwise log the error responses to send back to the clinet
+      manualSyncErrorLog.push(`some error occured that doesnt break the proccess ${error}`)
+      // if (error.response.status == 500) {
+      //   await this.unshiftRequest(entry)
+      //   throw error
+      // } else {
+      //   manualSyncErrorLog.push(error.response.detail ?? 'some error occured that doesnt break the proccess')
+      // }
     }
   }
 }
@@ -91,7 +97,8 @@ self.addEventListener('message', async (event) => {
       // Send message to client to notify sync is complete
       const clients = await self.clients.matchAll()
       for (const client of clients) {
-        client.postMessage({ message: 'sync complete' })
+        client.postMessage({ message: 'sync complete', error: manualSyncErrorLog })
+        manualSyncErrorLog = []
       }
     } catch (error) {
       // Send message to client to notify sync is failed

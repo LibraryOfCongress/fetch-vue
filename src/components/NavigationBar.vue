@@ -228,7 +228,7 @@ onMounted(() => {
 
   if ('serviceWorker' in navigator) {
     // listen for messages from the serviceworker scripts
-    navigator.serviceWorker.addEventListener('message', event => {
+    navigator.serviceWorker.addEventListener('message', async (event) => {
       if (event.data.message == 'pending sync') {
         // show online banner only if we have requests pending in queue
         appPendingSync.value = true
@@ -236,11 +236,29 @@ onMounted(() => {
         // when user triggers an offline sync, we need to wait for the syncComplete message from the serviceworker queue
         syncInProgress.value = 'Complete'
 
-        setTimeout(() => {
-          appPendingSync.value = false
-          syncInProgress.value = ''
+        // handle any non breaking errors passed back from bgSync
+        if (event.data.error && event.data.error.length > 0) {
+          event.data.error.forEach(err => {
+            handleAlert({
+              type: 'error',
+              text: err,
+              autoClose: true
+            })
+          })
+
+          await new Promise(resolve => setTimeout(() => {
+            appPendingSync.value = false
+            syncInProgress.value = ''
+            resolve()
+          }, 5200))
           window.location.reload()
-        }, 2500)
+        } else {
+          setTimeout(() => {
+            appPendingSync.value = false
+            syncInProgress.value = ''
+            window.location.reload()
+          }, 2500)
+        }
       } else if (event.data.message == 'sync error') {
         syncInProgress.value = ''
         handleAlert({

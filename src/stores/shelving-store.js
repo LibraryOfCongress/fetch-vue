@@ -23,6 +23,8 @@ export const useShelvingStore = defineStore('shelving-store', {
       module_id: null,
       side_id: null,
       status: '',
+      trays: [],
+      non_tray_items: [],
       verification_jobs: []
     },
     originalShelvingJob: null,
@@ -44,7 +46,9 @@ export const useShelvingStore = defineStore('shelving-store', {
       },
       size_class_id: null,
       create_dt: new Date().toLocaleDateString(),
-      status: ''
+      status: '',
+      trays: [],
+      non_tray_items: []
     },
     shelvingJobContainer: {
       id: null,
@@ -121,7 +125,9 @@ export const useShelvingStore = defineStore('shelving-store', {
         module_id: null,
         side_id: null,
         status: '',
-        verification_jobs: []
+        verification_jobs: [],
+        trays: [],
+        non_tray_items: []
       }
       this.originalShelvingJob = null
     },
@@ -264,6 +270,9 @@ export const useShelvingStore = defineStore('shelving-store', {
     },
     async postDirectShelvingJobContainer (payload) {
       try {
+        if (globalStore.appIsOffline) {
+          navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.shelvingJobs}${payload.job_id}/reassign-container-location` })
+        }
         const res = await this.$api.post(`${inventoryServiceApi.shelvingJobs}${payload.job_id}/reassign-container-location`, payload)
         this.shelvingJobContainer = {
           ...this.shelvingJobContainer,
@@ -283,7 +292,11 @@ export const useShelvingStore = defineStore('shelving-store', {
           ]
         }
       } catch (error) {
-        throw error
+        if (globalStore.appIsOffline) {
+          return
+        } else {
+          throw error
+        }
       }
     }
   }

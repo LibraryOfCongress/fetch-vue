@@ -599,7 +599,9 @@ const handleOptionMenu = async (action, rowData) => {
     } finally {
       appIsLoadingData.value = false
       showShelvingLocationModal.value = true
+      console.log('test before', locationModalComponent.value)
       await nextTick()
+      console.log('test', locationModalComponent.value)
       locationModalComponent.value.locationForm.id = rowData.id
       locationModalComponent.value.locationForm.module_id = rowData.shelf_position?.shelf?.ladder?.side?.aisle?.module?.id
       locationModalComponent.value.locationForm.aisle_id = rowData.shelf_position?.shelf?.ladder?.side?.aisle?.id

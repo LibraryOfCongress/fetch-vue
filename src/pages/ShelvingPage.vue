@@ -8,14 +8,16 @@
 
     <ShelvingDashboard v-if="route.name == 'shelving' && !route.params.jobId" />
     <ShelvingJobDetails v-else-if="route.name == 'shelving' && route.params.jobId" />
-    <ShelvingJobDirectToShelf v-else-if="route.name == 'shelving-dts' && route.params.jobId" />
+    <ShelvingJobDirectToShelf v-else-if="!appIsLoadingData && route.name == 'shelving-dts' && route.params.jobId" />
   </q-page>
 </template>
 
 <script setup>
 import { inject, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { useShelvingStore } from '@/stores/shelving-store'
+import { useGlobalStore } from '@/stores/global-store'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import ShelvingDashboard from '@/components/Shelving/ShelvingDashboard.vue'
 import ShelvingJobDetails from '@/components/Shelving/ShelvingJobDetails.vue'
@@ -25,6 +27,7 @@ const route = useRoute()
 
 // Store Data
 const { getShelvingJob, getDirectShelvingJob } = useShelvingStore()
+const { appIsLoadingData } = storeToRefs(useGlobalStore())
 
 // Logic
 const handlePageOffset = inject('handle-page-offset')
@@ -34,7 +37,10 @@ onBeforeMount( async () => {
   if (route.name == 'shelving' && route.params.jobId) {
     await getShelvingJob(route.params.jobId)
   } else if (route.name == 'shelving-dts' && route.params.jobId) {
+    // only load the direct shelving job page after dts data is retrieved since the store data is slightly different from whats returned from api
+    appIsLoadingData.value = true
     await getDirectShelvingJob(route.params.jobId)
+    appIsLoadingData.value = false
   }
 })
 </script>
