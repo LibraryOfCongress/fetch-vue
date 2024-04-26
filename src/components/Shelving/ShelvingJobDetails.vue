@@ -355,9 +355,9 @@ const route = useRoute()
 const { currentScreenSize } = useCurrentScreenSize()
 const { compiledBarCode } = useBarcodeScanHandler()
 const {
-  registerIndexDb,
   addDataToIndexDb,
-  getDataInIndexDb
+  getDataInIndexDb,
+  deleteDataInIndexDb
 } = useIndexDbHandler()
 
 // // Store Data
@@ -533,8 +533,6 @@ onBeforeMount(() => {
 })
 
 onMounted(async () => {
-  // register indexDb so it can be used here
-  await registerIndexDb()
   // when user is online and loads a job we store the current shelving job data and original in indexdb for reference offline
   if (!appIsOffline.value) {
     addDataToIndexDb('shelvingStore', 'shelvingJob', JSON.parse(JSON.stringify(shelvingJob.value)))
@@ -542,7 +540,8 @@ onMounted(async () => {
   } else {
     // get saved shelving job data if were offline and page was reloaded/refreshed
     const res = await getDataInIndexDb('shelvingStore')
-    console.log('getting shelving data from indexdb', res.data)
+    shelvingJob.value = res.data.shelvingJob
+    originalShelvingJob.value = res.data.originalShelvingJob
   }
 })
 
@@ -600,7 +599,9 @@ const handleOptionMenu = async (action, rowData) => {
     } finally {
       appIsLoadingData.value = false
       showShelvingLocationModal.value = true
+      console.log('test before', locationModalComponent.value)
       await nextTick()
+      console.log('test', locationModalComponent.value)
       locationModalComponent.value.locationForm.id = rowData.id
       locationModalComponent.value.locationForm.module_id = rowData.shelf_position?.shelf?.ladder?.side?.aisle?.module?.id
       locationModalComponent.value.locationForm.aisle_id = rowData.shelf_position?.shelf?.ladder?.side?.aisle?.id
@@ -634,11 +635,9 @@ const executeShelvingJob = async () => {
     }
     await patchShelvingJob(payload)
 
-    // store the current shelving job data in indexdb for reference offline
-    // await addDataToIndexDb('shelvingStore', toRaw({
-    //   shelvingJob: shelvingJob.value,
-    //   originalShelvingJob: originalShelvingJob.value
-    // }))
+    // store the current shelving job data in indexdb for reference offline whenever job is executed
+    addDataToIndexDb('shelvingStore', 'shelvingJob', JSON.parse(JSON.stringify(shelvingJob.value)))
+    addDataToIndexDb('shelvingStore', 'originalShelvingJob', JSON.parse(JSON.stringify(originalShelvingJob.value)))
 
     handleAlert({
       type: 'success',
@@ -734,6 +733,8 @@ const completeShelvingJob = async (printBool) => {
       autoClose: true
     })
   } finally {
+    deleteDataInIndexDb('shelvingStore', 'shelvingJob')
+    deleteDataInIndexDb('shelvingStore', 'originalShelvingJob')
     appActionIsLoadingData.value = false
   }
 }

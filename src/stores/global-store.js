@@ -4,6 +4,8 @@ export const useGlobalStore = defineStore('global-store', {
   state: () => ({
     appIsOffline: false,
     appIsLoadingData: false,
-    appActionIsLoadingData: false
+    appActionIsLoadingData: false,
+    appPendingSync: false,
+    appSyncGuard: null
   })
 })

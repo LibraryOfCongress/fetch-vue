@@ -90,7 +90,7 @@
             color="positive"
             label="Complete Job"
             class="btn-no-wrap text-body1"
-            :disabled="!allContainersShelved"
+            :disabled="appIsOffline || appPendingSync || !allContainersShelved"
             :loading="appActionIsLoadingData"
             @click="completeDirectToShelfJob()"
           />
@@ -106,7 +106,7 @@
         button-two-color="positive"
         button-two-label="Complete Job"
         :button-two-outline="false"
-        :button-two-disabled="!allContainersShelved"
+        :button-two-disabled="appIsOffline || appPendingSync || !allContainersShelved"
         :button-two-loading="appActionIsLoadingData"
         @button-two-click="completeDirectToShelfJob()"
       />
@@ -136,7 +136,7 @@
 
           <template #table-td="{ colName, value }">
             <span v-if="colName == 'side'">
-              {{ value.slice(0, 1) }}
+              {{ value ? value.slice(0, 1) : '' }}
             </span>
             <span
               v-if="colName == 'verified'"
@@ -217,7 +217,7 @@
 </template>
 
 <script setup>
-import { ref, inject, onBeforeMount, watch } from 'vue'
+import { ref, inject, onBeforeMount, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
@@ -225,6 +225,7 @@ import { useShelvingStore } from '@/stores/shelving-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
+import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
 import EssentialTable from '@/components/EssentialTable.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
 import PopupModal from '@/components/PopupModal.vue'
@@ -236,12 +237,18 @@ const router = useRouter()
 // Compasables
 const { currentScreenSize } = useCurrentScreenSize()
 const { compiledBarCode } = useBarcodeScanHandler()
+const {
+  addDataToIndexDb,
+  getDataInIndexDb,
+  deleteDataInIndexDb
+} = useIndexDbHandler()
 
 // // Store Data
 const {
   appIsLoadingData,
   appActionIsLoadingData,
-  appIsOffline
+  appIsOffline,
+  appPendingSync
 } = storeToRefs(useGlobalStore())
 const { userData } = storeToRefs(useUserStore())
 const {
@@ -310,7 +317,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'shelf',
-    field: row => row.shelf_position?.shelf?.shelf_number?.number,
+    field: row => !appIsOffline.value ? row.shelf_position?.shelf?.shelf_number?.number : row.shelf_position?.shelf?.barcode?.value,
     label: 'Shelf',
     align: 'left',
     sortable: true
@@ -357,6 +364,19 @@ onBeforeMount(() => {
       'shelf_position',
       'verified'
     ]
+  }
+})
+
+onMounted(async () => {
+  // when user is online and loads a job we store the current shelving job data in indexdb for reference offline
+  if (!appIsOffline.value) {
+    await nextTick()
+    console.log('adding to indexdb', directToShelfJob.value)
+    addDataToIndexDb('shelvingStore', 'directToShelfJob', JSON.parse(JSON.stringify(directToShelfJob.value)))
+  } else {
+    // get saved shelving job data if were offline and page was reloaded/refreshed
+    const res = await getDataInIndexDb('shelvingStore')
+    directToShelfJob.value = res.data.directToShelfJob
   }
 })
 
@@ -407,18 +427,17 @@ const assignContainerLocation = async () => {
   try {
     appActionIsLoadingData.value = true
 
-    // if user is online send a patch request to add the container to the dts job
-    if (!appIsOffline.value) {
-      const payload = {
-        job_id: directToShelfJob.value.id,
-        container_barcode_value: shelvingJobContainer.value.barcode.value,
-        shelf_barcode_value: directToShelfJob.value.shelf_barcode.value,
-        shelf_position_number: parseInt(shelvingJobContainer.value.shelf_position_number),
-        scanned_for_shelving: true
-      }
-      await postDirectShelvingJobContainer(payload)
-    } else {
-      // else if offline assign the shelve directly to the directToShelf containers as a tray temporarily since we wont know what the scanned container type is
+    const payload = {
+      job_id: directToShelfJob.value.id,
+      container_barcode_value: shelvingJobContainer.value.barcode.value,
+      shelf_barcode_value: directToShelfJob.value.shelf_barcode.value,
+      shelf_position_number: parseInt(shelvingJobContainer.value.shelf_position_number),
+      scanned_for_shelving: true
+    }
+    await postDirectShelvingJobContainer(payload)
+
+    // if offline assign the shelve directly to the directToShelf containers as a tray temporarily since we wont know what the scanned container type is
+    if (appIsOffline.value) {
       directToShelfJob.value.trays = [
         ...directToShelfJob.value.trays,
         {
@@ -440,6 +459,9 @@ const assignContainerLocation = async () => {
         }
       ]
     }
+
+    // store the current shelving job state in indexdb for reference offline whenever job is executed
+    addDataToIndexDb('shelvingStore', 'directToShelfJob', JSON.parse(JSON.stringify(directToShelfJob.value)))
 
     handleAlert({
       type: 'success',
@@ -485,6 +507,7 @@ const completeDirectToShelfJob = async () => {
       autoClose: true
     })
   } finally {
+    deleteDataInIndexDb('shelvingStore', 'directToShelfJob')
     appActionIsLoadingData.value = false
   }
 }
@@ -496,6 +519,9 @@ const clearShelfDetails = () => {
   directToShelfJob.value.owner.name = ''
   directToShelfJob.value.size_class_id = null
   directToShelfJob.value.size_class.name = ''
+
+  // store the current shelving job state in indexdb for reference offline whenever job is executed
+  addDataToIndexDb('shelvingStore', 'directToShelfJob', JSON.parse(JSON.stringify(directToShelfJob.value)))
 }
 </script>
 

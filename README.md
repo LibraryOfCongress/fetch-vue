@@ -164,6 +164,15 @@ Using that url you can now load the application on mobile or desktop and pwa ser
 
 You should now be able to test out any pwa related functionality within the application!
 
+Now if you need to test local api connection, this is a bit more of a process since you now have to expose your api's localhost as well, one way to do this is to use [adb tools](https://www.xda-developers.com/install-adb-windows-macos-linux/) and expose your computers localhost ports to anything on your network using the following command
+
+```bash
+// change the 8001 portion to whatever your local api host is using
+adb reverse tcp:8001 tcp:8001
+```
+
+you should now be able to access localhost:8001 directly from your mobile devices web browser and be able to interact with the local api!
+
 **Helpful Related Quasar PWA Links:**
 
 

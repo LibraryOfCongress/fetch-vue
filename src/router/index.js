@@ -1,11 +1,12 @@
 import { route } from 'quasar/wrappers'
 import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router'
 import routes from './routes'
+import { useGlobalStore } from '@/stores/global-store'
 
 export default route(function () {
   const createHistory = process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory
 
-  const Router = createRouter({
+  const router = createRouter({
     scrollBehavior: () => ({ left: 0, top: 0 }),
     routes,
 
@@ -15,5 +16,14 @@ export default route(function () {
     history: createHistory(process.env.VUE_ROUTER_BASE)
   })
 
-  return Router
+  router.beforeEach((to) => {
+    const globalStore = useGlobalStore()
+    if (globalStore.appPendingSync) {
+      globalStore.appSyncGuard = to
+      // explicitly return false to cancel the navigation if were pending sync requests
+      return false
+    }
+  })
+
+  return router
 })

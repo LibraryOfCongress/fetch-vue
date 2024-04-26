@@ -32,6 +32,9 @@ export function useIndexDbHandler () {
   }
 
   async function getDataInIndexDb (dataStore) {
+    if (!indexDb.value) {
+      await registerIndexDb()
+    }
     return new Promise((resolve, reject) => {
       const trans = indexDb.value.transaction([dataStore], 'readonly')
       const store = trans.objectStore(dataStore)
@@ -63,6 +66,9 @@ export function useIndexDbHandler () {
   }
 
   async function addDataToIndexDb (dataStore, dataKeyName = 1, dataToAdd) {
+    if (!indexDb.value) {
+      await registerIndexDb()
+    }
     return new Promise((resolve, reject) => {
       const trans = indexDb.value.transaction([dataStore], 'readwrite')
       const store = trans.objectStore(dataStore)
@@ -87,6 +93,9 @@ export function useIndexDbHandler () {
   }
 
   async function deleteDataInIndexDb (dataStore, keyTerm = 1) {
+    if (!indexDb.value) {
+      await registerIndexDb()
+    }
     return new Promise((resolve, reject) => {
       const trans = indexDb.value.transaction([dataStore], 'readwrite')
       const store = trans.objectStore(dataStore)
@@ -110,7 +119,6 @@ export function useIndexDbHandler () {
 
   return {
     indexDb,
-    registerIndexDb,
     getDataInIndexDb,
     addDataToIndexDb,
     deleteDataInIndexDb

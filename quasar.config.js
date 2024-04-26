@@ -126,9 +126,9 @@ module.exports = configure(function (ctx) {
       // extendPWACustomSWConf (esbuildConf) {}
     },
     sourceFiles: {
-      pwaManifestFile: 'src-pwa/manifest.json',
       pwaRegisterServiceWorker: 'src-pwa/register-service-worker',
-      pwaServiceWorker: 'src-pwa/custom-service-worker' // only used if workboxMode is injectManifest
+      pwaServiceWorker: 'src-pwa/custom-service-worker', // only used if workboxMode is injectManifest
+      pwaManifestFile: 'src-pwa/manifest.json'
     }
   }
 })

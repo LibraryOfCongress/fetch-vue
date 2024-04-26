@@ -21,11 +21,12 @@ console.log('Custom service worker active')
 precacheAndRoute(self.__WB_MANIFEST)
 
 // Custom manual sync function for Queue class that can be triggered from the vue client
+let manualSyncErrorLog = []
 Queue.prototype.manualSync = async function () {
   let entry
   while ((entry = await this.shiftRequest())) {
     try {
-      const res = await fetch(entry.request)
+      const res = await fetch(entry.request.clone())
       const resdata = await res.json()
       // Data successfully synchronized send response data back to client
       console.log('Queued Request Successfully Sent', res, resdata)
@@ -37,9 +38,14 @@ Queue.prototype.manualSync = async function () {
       // Handle synchronization errors
       console.log('Queued Request Failed', entry.request, error)
 
-      // Put the failed request back in the queue
-      await this.unshiftRequest(entry)
-      throw error
+      // Put the failed request back in the queue if its a breaking error otherwise log the error responses to send back to the clinet
+      manualSyncErrorLog.push(`some error occured that doesnt break the proccess ${error}`)
+      // if (error.response.status == 500) {
+      //   await this.unshiftRequest(entry)
+      //   throw error
+      // } else {
+      //   manualSyncErrorLog.push(error.response.detail ?? 'some error occured that doesnt break the proccess')
+      // }
     }
   }
 }
@@ -81,21 +87,47 @@ const offlineQueue = new Queue('offlineQueue', {
 //   }
 // })
 
-// Listen for replayRequest message from frontend to trigger sync on the offline queue
+// Listen for messages from frontend and trigger something in our service worker file
 self.addEventListener('message', async (event) => {
+  // if we get a replayRequest (triggerBackgroundSync) message from frontend, trigger sync on the offline queue
   if (event.data === 'triggerBackgroundSync') {
-    await offlineQueue.manualSync()
+    try {
+      await offlineQueue.manualSync()
 
-    // Send message to client to notify sync is complete
-    const clients = await self.clients.matchAll()
-    for (const client of clients) {
-      client.postMessage({ message: 'sync complete' })
+      // Send message to client to notify sync is complete
+      const clients = await self.clients.matchAll()
+      for (const client of clients) {
+        client.postMessage({ message: 'sync complete', error: manualSyncErrorLog })
+        manualSyncErrorLog = []
+      }
+    } catch (error) {
+      // Send message to client to notify sync is failed
+      const clients = await self.clients.matchAll()
+      for (const client of clients) {
+        client.postMessage({ message: 'sync error', error })
+      }
     }
+  } else if (typeof event.data == 'object' && event.data.queueIncomingApiCall) {
+    // application is offline and we need to queue the passed in api request url
+    clientApiCallUrl = event.data.queueIncomingApiCall
   }
 })
 
-// If a test page api call fails due to absense of network connection we send that request to the offline queue
+// if api call fails due to absense of network connection client will send that request url in a message to be stored in the offline queue using clientApiCallUrl
+let clientApiCallUrl = '/url-recieved-from-client'
 self.addEventListener('fetch', (event) => {
+  if (event.request.url.startsWith(process.env.VITE_INV_SERVCE_API) && event.request.url.includes(clientApiCallUrl)) {
+    if (!self.navigator.onLine) {
+      const promiseChain = fetch(event.request.clone()).catch(() => {
+        console.log('Request failed to send no internet available storing in queue')
+        return offlineQueue.pushRequest({ request: event.request })
+      })
+
+      event.waitUntil(promiseChain)
+    }
+  }
+
+  // test scenerio setup for test page owner tiers
   if (event.request.url.startsWith(process.env.VITE_INV_SERVCE_API) && event.request.url.includes('/owners/tiers')) {
     if (!self.navigator.onLine) {
       const promiseChain = fetch(event.request.clone()).catch(() => {

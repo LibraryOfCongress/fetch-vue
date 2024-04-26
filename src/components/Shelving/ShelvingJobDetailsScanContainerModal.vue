@@ -189,6 +189,7 @@ import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useShelvingStore } from '@/stores/shelving-store'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
+import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
 import PopupModal from '@/components/PopupModal.vue'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 import TextInput from '@/components/TextInput.vue'
@@ -197,13 +198,15 @@ const route = useRoute()
 
 // Emits
 const emit = defineEmits(['hide'])
+
 // Compasables
 const { compiledBarCode } = useBarcodeScanHandler()
+const { addDataToIndexDb } = useIndexDbHandler()
 
 // Store Data
-const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { appActionIsLoadingData, appIsOffline } = storeToRefs(useGlobalStore())
 const { postShelvingJobContainer, resetShelvingJobContainer } = useShelvingStore()
-const { shelvingJobContainer } = storeToRefs(useShelvingStore())
+const { shelvingJobContainer, shelvingJob } = storeToRefs(useShelvingStore())
 
 // Local Data
 const selectNewLocation = ref(false)
@@ -245,6 +248,19 @@ const updateContainerLocation = async () => {
       scanned_for_shelving: true
     }
     await postShelvingJobContainer(payload)
+
+    // when offline we need to directly update the shelving status and shelving job container as the job level
+    if (appIsOffline.value) {
+      shelvingJobContainer.value.shelf_position.shelf_position_number.number = payload.shelf_position_number
+      if (payload.trayed) {
+        shelvingJob.value.trays[shelvingJob.value.trays.findIndex(container => container.id == payload.container_id)] = { ...shelvingJobContainer.value, scanned_for_shelving: payload.scanned_for_shelving }
+      } else {
+        shelvingJob.value.non_tray_items[shelvingJob.value.non_tray_items.findIndex(container => container.id == payload.container_id)] = { ...shelvingJobContainer.value, scanned_for_shelving: payload.scanned_for_shelving }
+      }
+    }
+
+    // update the stored shelvingJob since the container will get changed at the shelvingJob level
+    addDataToIndexDb('shelvingStore', 'shelvingJob', JSON.parse(JSON.stringify(shelvingJob.value)))
 
     handleAlert({
       type: 'success',
