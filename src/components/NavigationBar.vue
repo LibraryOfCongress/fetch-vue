@@ -40,7 +40,7 @@
 
       <!-- online banner if user has pending api requests -->
       <q-banner
-        v-if="showOnlineBanner"
+        v-if="appPendingSync && !appIsOffline"
         class="offline-banner bg-color-gray-light text-color-black"
         inline-actions
         dense
@@ -60,14 +60,7 @@
             :label="syncInProgress == 'Complete' ? 'Sync Completed' : 'Send Requests'"
             class="text-body1"
             @click="triggerBackgroundSync"
-          >
-            <template #loading>
-              <q-spinner-bars
-                color="white"
-                size="1rem"
-              />
-            </template>
-          </q-btn>
+          />
         </template>
       </q-banner>
     </q-header>
@@ -118,28 +111,68 @@
         />
       </q-list>
     </q-drawer>
+
+    <!-- sync navigation guard modal-->
+    <PopupModal
+      v-if="appSyncGuard"
+      title="Warning"
+      text="You have pending requests. Are you sure you want to leave?"
+      :show-actions="false"
+    >
+      <template #footer-content>
+        <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
+          <q-btn
+            no-caps
+            unelevated
+            color="negative"
+            label="Yes, Ignore Requests"
+            class="text-body1 full-width"
+            @click="handleRouteSyncGuard(appSyncGuard.name)"
+          />
+          <q-space class="q-mx-xs" />
+          <q-btn
+            outline
+            no-caps
+            label="Cancel"
+            class="text-body1 full-width"
+            @click="appSyncGuard = null"
+          />
+        </q-card-section>
+      </template>
+    </PopupModal>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { onMounted, ref, watch, inject } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
 import { useBackgroundSyncHandler } from '@/composables/useBackgroundSyncHandler.js'
 import EssentialLink from '@/components/EssentialLink.vue'
 import SearchInput from '@/components/SearchInput.vue'
+import PopupModal from '@/components/PopupModal.vue'
 import UserLogin from '@/components/User/UserLogin.vue'
 import UserMenu from '@/components/User/UserMenu.vue'
 
 const route = useRoute()
+const router = useRouter()
 
 // Composables
-const { bgSyncData, syncInProgress, triggerBackgroundSync } = useBackgroundSyncHandler()
+const {
+  bgSyncData,
+  syncInProgress,
+  triggerBackgroundSync,
+  deleteDataInBackgroundSyncDb
+} = useBackgroundSyncHandler()
 
 // Store Data
-const { appIsOffline } = storeToRefs(useGlobalStore())
+const {
+  appIsOffline,
+  appPendingSync,
+  appSyncGuard
+} = storeToRefs(useGlobalStore())
 const { userData } = storeToRefs(useUserStore())
 
 // Local Data
@@ -177,12 +210,12 @@ const adminLink = ref({
 })
 const leftDrawerOpen = ref(false)
 const showOfflineBanner = ref(false)
-const showOnlineBanner = ref(false)
 
 // Logic
+const handleAlert = inject('handle-alert')
+
 onMounted(() => {
   window.addEventListener('offline', () => {
-    showOnlineBanner.value = false
     showOfflineBanner.value = true
 
     // set offline state in store
@@ -197,25 +230,35 @@ onMounted(() => {
     // listen for messages from the serviceworker scripts
     navigator.serviceWorker.addEventListener('message', event => {
       if (event.data.message == 'pending sync') {
-      // show online banner only if we have requests pending in queue
-        showOnlineBanner.value = true
+        // show online banner only if we have requests pending in queue
+        appPendingSync.value = true
       } else if (event.data.message == 'sync complete') {
-      // when user triggers an offline sync, we need to wait for the syncComplete message from the serviceworker queue
+        // when user triggers an offline sync, we need to wait for the syncComplete message from the serviceworker queue
         syncInProgress.value = 'Complete'
 
         setTimeout(() => {
-          showOnlineBanner.value = false
+          appPendingSync.value = false
           syncInProgress.value = ''
-        }, 3000)
+          window.location.reload()
+        }, 2500)
+      } else if (event.data.message == 'sync error') {
+        syncInProgress.value = ''
+        handleAlert({
+          type: 'error',
+          text: event.data.error,
+          autoClose: true
+        })
       }
     })
   }
 })
 
-// watch the bgSyncData and if we detect any requests that are still pending display the online banner
+// watch the bgSyncData and if we detect any requests that are still pending display the online banner with requests pending action
 watch(bgSyncData, () => {
   if (bgSyncData.value.length > 0 && navigator.onLine) {
-    showOnlineBanner.value = true
+    appPendingSync.value = true
+  } else {
+    appPendingSync.value = false
   }
 })
 
@@ -229,6 +272,15 @@ const isActiveLink = (linkObj) => {
   } else {
     return false
   }
+}
+const handleRouteSyncGuard = async (pathName) => {
+  // delete all requests from background queue and reset app sync status, guard and banner
+  await deleteDataInBackgroundSyncDb()
+  appPendingSync.value = false
+  appSyncGuard.value = null
+  router.push({
+    name: pathName
+  })
 }
 </script>
 

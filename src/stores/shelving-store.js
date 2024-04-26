@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import inventoryServiceApi from '@/http/InventoryService.js'
+import { useGlobalStore } from './global-store'
+const globalStore = useGlobalStore()
 
 export const useShelvingStore = defineStore('shelving-store', {
   state: () => ({
@@ -234,6 +236,9 @@ export const useShelvingStore = defineStore('shelving-store', {
     },
     async postShelvingJobContainer (payload) {
       try {
+        if (globalStore.appIsOffline) {
+          navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.shelvingJobs}${payload.job_id}/reassign-container-location` })
+        }
         const res = await this.$api.post(`${inventoryServiceApi.shelvingJobs}${payload.job_id}/reassign-container-location`, payload)
         this.shelvingJobContainer.shelf_position_id = res.data.shelf_position_id
         this.shelvingJobContainer.shelf_position.shelf_position_number.number = payload.shelf_position_number
@@ -250,7 +255,11 @@ export const useShelvingStore = defineStore('shelving-store', {
         }
         this.originalShelvingJob = { ...this.shelvingJob }
       } catch (error) {
-        throw error
+        if (globalStore.appIsOffline) {
+          return
+        } else {
+          throw error
+        }
       }
     },
     async postDirectShelvingJobContainer (payload) {

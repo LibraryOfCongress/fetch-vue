@@ -33,10 +33,10 @@ export function useBackgroundSyncHandler () {
     })
   }
 
-  async function getDataInBackgroundSyncDb (dataName) {
+  async function getDataInBackgroundSyncDb (dataStore) {
     return new Promise((resolve, reject) => {
-      const trans = indexDb.value.transaction([dataName], 'readonly')
-      const store = trans.objectStore(dataName)
+      const trans = indexDb.value.transaction([dataStore], 'readonly')
+      const store = trans.objectStore(dataStore)
       let data = []
       trans.oncomplete = () => {
         resolve(data)
@@ -57,6 +57,27 @@ export function useBackgroundSyncHandler () {
     })
   }
 
+  async function deleteDataInBackgroundSyncDb () {
+    return new Promise((resolve, reject) => {
+      const trans = indexDb.value.transaction('requests', 'readwrite')
+      const store = trans.objectStore('requests')
+      const storeToDelete = store.clear()
+
+      storeToDelete.onsuccess = () => {
+        return
+      }
+
+      trans.oncomplete = () => {
+        resolve()
+      }
+
+      trans.onerror = (err) => {
+        console.log('Error getting data from db', err)
+        reject('Error')
+      }
+    })
+  }
+
   onBeforeMount(async () => {
     indexDb.value = await getBackgroundSyncDb('workbox-background-sync')
     bgSyncData.value = await getDataInBackgroundSyncDb('requests')
@@ -65,6 +86,7 @@ export function useBackgroundSyncHandler () {
   return {
     bgSyncData,
     syncInProgress,
-    triggerBackgroundSync
+    triggerBackgroundSync,
+    deleteDataInBackgroundSyncDb
   }
 }
