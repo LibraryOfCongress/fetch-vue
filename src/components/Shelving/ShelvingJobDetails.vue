@@ -134,6 +134,7 @@
             color="accent"
             :icon="shelvingJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
             :label="shelvingJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
+            :disabled="appPendingSync"
             class="btn-no-wrap text-body1 q-mr-sm"
             @click="shelvingJob.status == 'Paused' ? updateShelvingJobStatus('Running') : updateShelvingJobStatus('Paused')"
           />
@@ -143,7 +144,7 @@
             color="positive"
             :label="shelvingJob.status == 'Created' ? 'Execute Job' : 'Complete Job'"
             class="btn-no-wrap text-body1"
-            :disabled="appIsOffline || shelvingJob.status == 'Paused' || !allContainersShelved"
+            :disabled="appIsOffline || appPendingSync || shelvingJob.status == 'Paused' || !allContainersShelved"
             :loading="appActionIsLoadingData"
             @click="shelvingJob.status == 'Created' ? executeShelvingJob() : showCompleteJobModal = true"
           />
@@ -167,12 +168,12 @@
         :button-one-icon="shelvingJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
         :button-one-label="shelvingJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
         :button-one-outline="true"
-        :button-one-disabled="shelvingJob.status == 'Created'"
+        :button-one-disabled="appPendingSync || shelvingJob.status == 'Created'"
         @button-one-click="shelvingJob.status == 'Paused' ? updateShelvingJobStatus('Running') : updateShelvingJobStatus('Paused')"
         button-two-color="positive"
         :button-two-label="shelvingJob.status == 'Created' ? 'Execute Job' : 'Complete Job'"
         :button-two-outline="false"
-        :button-two-disabled="appIsOffline || shelvingJob.status == 'Paused' || !allContainersShelved"
+        :button-two-disabled="appIsOffline || appPendingSync || shelvingJob.status == 'Paused' || !allContainersShelved"
         :button-two-loading="appActionIsLoadingData"
         @button-two-click="shelvingJob.status == 'Created' ? executeShelvingJob() : showCompleteJobModal = true"
       />
@@ -360,10 +361,11 @@ const {
   deleteDataInIndexDb
 } = useIndexDbHandler()
 
-// // Store Data
+// Store Data
 const {
   appIsLoadingData,
   appActionIsLoadingData,
+  appPendingSync,
   appIsOffline
 } = storeToRefs(useGlobalStore())
 const { userData } = storeToRefs(useUserStore())
@@ -659,10 +661,21 @@ const updateShelvingJobStatus = async (status) => {
   try {
     const payload = {
       id: route.params.jobId,
-      status
+      status,
+      timestamp: new Date().toISOString()
     }
 
     await patchShelvingJob(payload)
+
+    if (appIsOffline.value) {
+      // when offline we update the status directly
+      shelvingJob.value.status = payload.status
+      originalShelvingJob.value.status = payload.status
+    }
+
+    // store the current shelving job data in indexdb for reference offline whenever job is executed
+    addDataToIndexDb('shelvingStore', 'shelvingJob', JSON.parse(JSON.stringify(shelvingJob.value)))
+    addDataToIndexDb('shelvingStore', 'originalShelvingJob', JSON.parse(JSON.stringify(originalShelvingJob.value)))
 
     handleAlert({
       type: 'success',
