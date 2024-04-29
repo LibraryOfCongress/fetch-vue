@@ -205,11 +205,19 @@ export const useShelvingStore = defineStore('shelving-store', {
     },
     async patchShelvingJob (payload) {
       try {
+        if (globalStore.appIsOffline) {
+          // this will only occur when user is pausing/resuming when offline
+          navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.shelvingJobs}${payload.id}` })
+        }
         const res = await this.$api.patch(`${inventoryServiceApi.shelvingJobs}${payload.id}`, payload)
         this.shelvingJob = res.data
         this.originalShelvingJob = { ...res.data }
       } catch (error) {
-        throw error
+        if (globalStore.appIsOffline) {
+          return
+        } else {
+          throw error
+        }
       }
     },
     async getDirectShelvingJob (id) {
