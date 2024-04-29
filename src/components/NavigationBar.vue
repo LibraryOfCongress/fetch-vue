@@ -22,10 +22,37 @@
         </div>
       </q-toolbar>
 
+      <!-- barcode scan banner -->
+      <q-banner
+        v-if="barcodeScanAllowed"
+        class="nav-banner bg-color-gray-light text-color-black"
+        inline-actions
+        dense
+      >
+        <q-icon
+          name="mdi-barcode-scan"
+          color="black"
+          size="25px"
+          class="q-mr-sm"
+        />
+        Barcode scanning is enabled.
+        <template #action>
+          <q-btn
+            dense
+            no-caps
+            unelevated
+            color="negative"
+            label="Disable Scan"
+            class="text-body1"
+            @click="barcodeScanAllowed = false"
+          />
+        </template>
+      </q-banner>
+
       <!-- offline banner -->
       <q-banner
         v-if="showOfflineBanner"
-        class="offline-banner bg-color-gray-light text-color-black"
+        class="nav-banner bg-color-gray-light text-color-black"
         inline-actions
         dense
       >
@@ -41,7 +68,7 @@
       <!-- online banner if user has pending api requests -->
       <q-banner
         v-if="appPendingSync && !appIsOffline"
-        class="offline-banner bg-color-gray-light text-color-black"
+        class="nav-banner bg-color-gray-light text-color-black"
         inline-actions
         dense
       >
@@ -54,6 +81,8 @@
         You are back online! There are pending requests to be sent.
         <template #action>
           <q-btn
+            dense
+            no-caps
             unelevated
             :loading="syncInProgress == 'In Progress'"
             color="positive"
@@ -152,6 +181,7 @@ import { onMounted, ref, watch, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
+import { useBarcodeStore } from '@/stores/barcode-store'
 import { useUserStore } from '@/stores/user-store'
 import { useBackgroundSyncHandler } from '@/composables/useBackgroundSyncHandler.js'
 import EssentialLink from '@/components/EssentialLink.vue'
@@ -177,6 +207,7 @@ const {
   appPendingSync,
   appSyncGuard
 } = storeToRefs(useGlobalStore())
+const { barcodeScanAllowed } = storeToRefs(useBarcodeStore())
 const { userData } = storeToRefs(useUserStore())
 
 // Local Data
@@ -334,6 +365,10 @@ const handleRouteSyncGuard = async (pathName) => {
         height: auto;
       }
     }
+  }
+
+  &-banner {
+    border-top: 1px solid $secondary;
   }
 }
 </style>

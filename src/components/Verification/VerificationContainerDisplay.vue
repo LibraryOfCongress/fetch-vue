@@ -24,7 +24,7 @@
             v-if="!verificationJob.trayed"
             :options="[{
               text: `${selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'}`,
-              disabled: verificationJob.status == 'Paused'
+              disabled: verificationJob.status == 'Paused' || barcodeScanAllowed
             }, {
               text: 'Delete Items',
               disabled: selectedItems.length == 0 || verificationJob.status == 'Paused'
@@ -39,7 +39,7 @@
               disabled: !allItemsVerified || verificationJob.status == 'Paused' || verificationJob.trays.length <= 1
             }, {
               text: `${selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'}`,
-              disabled: !verificationContainer.id || verificationJob.status == 'Paused'
+              disabled: !verificationContainer.id || verificationJob.status == 'Paused' || barcodeScanAllowed
             }, {
               text: 'Delete Items',
               disabled: selectedItems.length == 0 || verificationJob.status == 'Paused'
@@ -99,7 +99,7 @@
             color="accent"
             :label="selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'"
             class="btn-no-wrap text-body1 q-mr-sm-md"
-            :disabled="verificationJob.trayed && !verificationContainer.id || verificationJob.status == 'Paused'"
+            :disabled="verificationJob.trayed && !verificationContainer.id || verificationJob.status == 'Paused' || barcodeScanAllowed"
             @click="setBarcodeEditDisplay"
           />
 
@@ -470,7 +470,7 @@ const {
   patchBarcode,
   deleteBarcode
 } = useBarcodeStore()
-const { barcodeDetails } = storeToRefs(useBarcodeStore())
+const { barcodeDetails, barcodeScanAllowed } = storeToRefs(useBarcodeStore())
 const {
   resetVerificationContainer,
   patchVerificationJob,
