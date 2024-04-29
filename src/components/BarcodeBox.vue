@@ -1,7 +1,7 @@
 <template>
   <div
     class="barcode text-h4 text-center"
-    :style="[ `min-height:${minHeight};`]"
+    :style="[ minHeight ? `min-height:${minHeight};` : null]"
   >
     {{ barcode }}
   </div>
@@ -15,7 +15,7 @@ defineProps({
   },
   minHeight: {
     type: String,
-    default: '18rem'
+    default: ''
   }
 })
 </script>
@@ -27,6 +27,7 @@ defineProps({
   align-items: center;
   width: 100%;
   height: 100%;
+  min-height: 18rem;
   background-color: $secondary;
   color: $color-white;
   border-radius: 3px;

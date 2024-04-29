@@ -3,6 +3,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useBarcodeStore = defineStore('barcode-store', {
   state: () => ({
+    barcodeScanAllowed: false,
     barcodeDetails: {
       id: null,
       type_id: null,
@@ -11,7 +12,11 @@ export const useBarcodeStore = defineStore('barcode-store', {
   }),
   actions: {
     resetBarcodeStore () {
-      this.$reset()
+      this.barcodeDetails = {
+        id: null,
+        type_id: null,
+        value: null
+      }
     },
     async verifyBarcode (barcode) {
       try {

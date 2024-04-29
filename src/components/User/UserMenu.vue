@@ -12,6 +12,23 @@
       :offset="[11, 10]"
     >
       <q-list style="min-width: 200px">
+        <q-item
+          tag="label"
+          v-ripple
+        >
+          <q-item-section>
+            <q-item-label class="text-body1 text-nowrap">
+              Toggle Barcode Scan
+            </q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-toggle
+              name="barcode_scan_active"
+              v-model="barcodeScanAllowed"
+            />
+          </q-item-section>
+        </q-item>
+        <q-space class="divider" />
         <q-item>
           <q-item-section>
             <h1 class="text-h6">
@@ -51,11 +68,13 @@
 <script setup>
 import { ref, inject } from 'vue'
 import { useUserStore } from '@/stores/user-store'
+import { useBarcodeStore } from '@/stores/barcode-store'
 import { storeToRefs } from 'pinia'
 
 // Store Data
 const { userData } = storeToRefs(useUserStore())
 const { patchLogout } = useUserStore()
+const { barcodeScanAllowed } = storeToRefs(useBarcodeStore())
 
 // Local Data
 const userOptions = ref([
