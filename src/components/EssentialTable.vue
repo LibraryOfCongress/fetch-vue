@@ -169,8 +169,8 @@
 
           <template #header-cell="props">
             <q-th
-              class="test"
               :class="props.col.__thClass"
+              class=""
             >
               <span
                 class="flex no-wrap items-center"
@@ -454,6 +454,13 @@ defineExpose({ clearSelectedData })
   }
 
   &-table {
+    :deep(thead) {
+      & th.q-table--col-auto-width {
+        // center aligns the special checkbox th element
+        vertical-align: middle;
+      }
+    }
+
     :deep(tbody) {
       & tr {
         cursor: pointer;

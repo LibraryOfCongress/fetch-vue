@@ -46,6 +46,26 @@ const routes = [
         component: () => import('@/pages/ItemManagementPage.vue')
       },
       {
+        name: 'request',
+        path: 'request',
+        component: () => import('@/pages/RequestPage.vue')
+      },
+      {
+        name: 'shelving',
+        path: 'shelving/:jobId?',
+        component: () => import('@/pages/ShelvingPage.vue')
+      },
+      {
+        name: 'shelving-dts',
+        path: 'shelving/direct-to-shelve/:jobId?',
+        component: () => import('@/pages/ShelvingPage.vue')
+      },
+      {
+        name: 'test',
+        path: '/test',
+        component: () => import('@/pages/TestPage.vue')
+      },
+      {
         name: 'verification',
         path: 'verification/:jobId?',
         component: () => import('@/pages/VerificationPage.vue')
@@ -64,21 +84,6 @@ const routes = [
             }
           }
         }
-      },
-      {
-        name: 'shelving',
-        path: 'shelving/:jobId?',
-        component: () => import('@/pages/ShelvingPage.vue')
-      },
-      {
-        name: 'shelving-dts',
-        path: 'shelving/direct-to-shelve/:jobId?',
-        component: () => import('@/pages/ShelvingPage.vue')
-      },
-      {
-        name: 'test',
-        path: '/test',
-        component: () => import('@/pages/TestPage.vue')
       }
     ]
   },

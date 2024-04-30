@@ -126,6 +126,39 @@ const generateBreadCrumbs = () => {
       ]
     }
     break
+  case 'request':
+    breadCrumbs = [
+      ...breadCrumbs,
+      { text: 'Request' }
+    ]
+    break
+  case 'shelving':
+    if (!route.params.jobId) {
+      breadCrumbs = [
+        ...breadCrumbs,
+        { text: 'Shelving' }
+      ]
+    } else {
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Shelving',
+          to: '/shelving'
+        },
+        { text: `${route.params.jobId}` }
+      ]
+    }
+    break
+  case 'shelving-dts':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Shelving',
+        to: '/shelving'
+      },
+      { text: `${route.params.jobId}` }
+    ]
+    break
   case 'verification':
     if (!route.params.jobId) {
       breadCrumbs = [
@@ -155,33 +188,6 @@ const generateBreadCrumbs = () => {
         to: `/verification/${route.params.jobId}`
       },
       { text: route.params.containerId }
-    ]
-    break
-  case 'shelving':
-    if (!route.params.jobId) {
-      breadCrumbs = [
-        ...breadCrumbs,
-        { text: 'Shelving' }
-      ]
-    } else {
-      breadCrumbs = [
-        ...breadCrumbs,
-        {
-          text: 'Shelving',
-          to: '/shelving'
-        },
-        { text: `${route.params.jobId}` }
-      ]
-    }
-    break
-  case 'shelving-dts':
-    breadCrumbs = [
-      ...breadCrumbs,
-      {
-        text: 'Shelving',
-        to: '/shelving'
-      },
-      { text: `${route.params.jobId}` }
     ]
     break
   default:
