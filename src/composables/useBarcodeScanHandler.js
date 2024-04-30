@@ -6,13 +6,15 @@ export function useBarcodeScanHandler () {
   const scannedBarCode = ref([])
   const compiledBarCode = ref('')
 
-  function debounce (callback, wait) {
+  const { barcodeScanAllowed, barcodeInputDelay } = storeToRefs(useBarcodeStore())
+
+  function debounce (callback) {
     let timeoutId = null
     return (...args) => {
       window.clearTimeout(timeoutId)
       timeoutId = window.setTimeout(() => {
         callback(...args)
-      }, wait)
+      }, (barcodeInputDelay.value * 1000))
     }
   }
 
@@ -28,9 +30,8 @@ export function useBarcodeScanHandler () {
 
     compiledBarCode.value = scannedBarCode.value.join('')
     scannedBarCode.value = []
-  }, 200)
+  })
 
-  const { barcodeScanAllowed } = storeToRefs(useBarcodeStore())
   watch(barcodeScanAllowed, (val) => {
     if (val == true) {
       document.addEventListener('keypress', barcodeScanEntry)

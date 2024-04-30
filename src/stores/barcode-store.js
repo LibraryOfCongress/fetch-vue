@@ -4,6 +4,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 export const useBarcodeStore = defineStore('barcode-store', {
   state: () => ({
     barcodeScanAllowed: false,
+    barcodeInputDelay: .25,
     barcodeDetails: {
       id: null,
       type_id: null,
