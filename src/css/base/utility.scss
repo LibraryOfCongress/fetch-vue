@@ -25,9 +25,29 @@ $color-map: (
   .text-#{$colorName} {
       color: $colorValue !important;
   }
+  .text-highlight-#{$colorName} {
+    padding: 1px 5px;
+    color: $colorValue;
+    background-color: rgba($colorValue, .2);
+    border-color: $colorValue !important;
+    border-radius: 2px;
+  }
   .border-#{$colorName} {
     border-color: $colorValue !important;
   }
+}
+
+.text-highlight {
+  padding: 1px 5px;
+  color: $positive;
+  background-color: rgba($positive, .2);
+  border-color: $positive !important;
+  border-radius: 2px;
+}
+
+.text-nowrap {
+  text-wrap: nowrap;
+  white-space: nowrap;
 }
 
 // General Utilities

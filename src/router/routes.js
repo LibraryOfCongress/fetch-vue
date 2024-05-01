@@ -47,7 +47,7 @@ const routes = [
       },
       {
         name: 'request',
-        path: 'request',
+        path: 'request/:jobId?',
         component: () => import('@/pages/RequestPage.vue')
       },
       {

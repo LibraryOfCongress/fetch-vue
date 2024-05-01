@@ -127,10 +127,21 @@ const generateBreadCrumbs = () => {
     }
     break
   case 'request':
-    breadCrumbs = [
-      ...breadCrumbs,
-      { text: 'Request' }
-    ]
+    if (!route.params.jobId) {
+      breadCrumbs = [
+        ...breadCrumbs,
+        { text: 'Request' }
+      ]
+    } else {
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Request',
+          to: '/request'
+        },
+        { text: `${route.params.jobId}` }
+      ]
+    }
     break
   case 'shelving':
     if (!route.params.jobId) {

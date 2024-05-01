@@ -334,11 +334,26 @@ watch(selectedTableData, () => {
   emit('selected-data', selectedTableData.value)
 })
 
+// update any of the main table column/filter related options if prop data changes
+watch(() => mainProps.tableVisibleColumns, (updatedPropData) => {
+  localTableVisibleColumns.value = updatedPropData
+},
+{ deep: true })
+watch(() => mainProps.tableColumns, (updatedPropData) => {
+  localTableColumns.value = updatedPropData
+},
+{ deep: true })
+watch(() => mainProps.filterOptions, (updatedPropData) => {
+  localFilterOptions.value = updatedPropData
+},
+{ deep: true })
+
 // watch the tableData props for a change update the localTableData with a copy/non reactive clone
 watch(() => mainProps.tableData, (updatedTableData) => {
   localTableData.value = toRaw(updatedTableData)
 },
 { deep: true })
+
 const clearSelectedData = () => {
   tableComponent.value.clearSelection()
 }
@@ -454,13 +469,6 @@ defineExpose({ clearSelectedData })
   }
 
   &-table {
-    :deep(thead) {
-      & th.q-table--col-auto-width {
-        // center aligns the special checkbox th element
-        vertical-align: middle;
-      }
-    }
-
     :deep(tbody) {
       & tr {
         cursor: pointer;

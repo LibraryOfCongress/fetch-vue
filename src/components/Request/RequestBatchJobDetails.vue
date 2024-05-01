@@ -1,27 +1,94 @@
 <template>
-  <div class="request-dashboard">
+  <div class="request-job">
+    <div class="row justify-between q-pt-xs-md q-pt-md-xl q-mx-xs-sm q-mx-sm-md">
+      <div class="col-xs-12 col-md-12 col-lg-3">
+        <div class="request-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-lg-lg">
+          <label
+            id="requestJobId"
+            class="request-job-details-label text-h4 text-bold q-mb-xs"
+          >
+            Request List:
+          </label>
+          <p class="request-job-number-box text-h4 q-pa-md">
+            {{ requestBatchJob.id }}
+          </p>
+        </div>
+      </div>
+
+      <div class="col-xs-6 col-sm-6 col-md-grow">
+        <div class="request-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+          <label
+            class="request-job-details-label-2 text-h6 text-bold"
+          >
+            Import Source:
+          </label>
+          <p class="text-body1">
+            {{ requestBatchJob.import_source }}
+          </p>
+        </div>
+      </div>
+      <div class="col-xs-6 col-sm-6 col-md-grow">
+        <div class="request-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+          <label
+            class="request-job-details-label-2 text-h6 text-bold"
+          >
+            Uploaded By:
+          </label>
+          <p class="text-body1">
+            {{ requestBatchJob.uploaded_by }}
+          </p>
+        </div>
+      </div>
+      <div class="col-xs-6 col-sm-6 col-md-grow">
+        <div class="request-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+          <label
+            class="request-job-details-label-2 text-h6 text-bold"
+          >
+            # of Requests
+          </label>
+          <p class="text-body1">
+            {{ requestBatchJob.request_count }}
+          </p>
+        </div>
+      </div>
+      <div class="col-xs-6 col-sm-6 col-md-grow">
+        <div class="request-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+          <label
+            class="request-job-details-label-2 text-h6 text-bold"
+          >
+            Date Imported:
+          </label>
+          <p class="text-body1">
+            {{ formatDateTime(requestBatchJob.import_dt).date }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <q-space class="divider q-my-xs-lg q-my-md-xl" />
+
     <div class="row q-mb-xs-xl q-mb-sm-none">
       <div class="col-grow q-mb-xs-md q-mb-sm-none">
         <EssentialTable
           ref="requestTableComponent"
-          :table-columns="requestDisplayType == 'request_view' ? requestTableColumns : requestBatchTableColumns"
-          :table-visible-columns="requestDisplayType == 'request_view' ? requestTableVisibleColumns : requestBatchTableVisibleColumns"
-          :filter-options="requestDisplayType == 'request_view' ? requestTableFilters : requestBatchTableFilters"
-          :table-data="requestJobList"
+          :table-columns="requestTableColumns"
+          :table-visible-columns="requestTableVisibleColumns"
+          :filter-options="requestTableFilters"
+          :table-data="requestBatchJob.items"
           :enable-table-reorder="false"
           :enable-selection="showCreatePickList || showAddPickList"
-          :heading-row-class="'q-mb-xs-md q-mb-md-xl'"
+          :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
-          @selected-table-row="loadRequestJob($event.id)"
+          @selected-table-row="selectedRequestItem = $event"
           @selected-data="selectedRequestItems = $event"
         >
           <template #heading-row>
             <div
-              class="col-sm-5 col-md-12 q-mb-md-sm"
+              class="col-xs-7 col-sm-5 q-mb-md-sm"
               :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
             >
               <label class="text-h4 text-bold">
-                Requests
+                Items in List:
               </label>
             </div>
 
@@ -39,7 +106,7 @@
                 :disabled="showCreatePickList || showAddPickList"
               >
                 <q-menu>
-                  <q-list>
+                  <q-list class="text-no-wrap">
                     <q-item
                       clickable
                       v-close-popup
@@ -66,49 +133,9 @@
                         </q-item-label>
                       </q-item-section>
                     </q-item>
-                    <q-item
-                      clickable
-                      v-close-popup
-                      @click="null"
-                    >
-                      <q-item-section>
-                        <q-item-label>
-                          <span>
-                            Create Manual Requests
-                          </span>
-                        </q-item-label>
-                      </q-item-section>
-                    </q-item>
-                    <q-item
-                      clickable
-                      v-close-popup
-                      @click="null"
-                    >
-                      <q-item-section>
-                        <q-item-label>
-                          <span class="text-no-wrap">
-                            Import Requests from File
-                          </span>
-                        </q-item-label>
-                      </q-item-section>
-                    </q-item>
                   </q-list>
                 </q-menu>
               </q-btn>
-            </div>
-
-            <div
-              class="col-xs-12 col-sm-auto col-md-auto q-mb-xs-md q-mb-sm-none"
-            >
-              <ToggleButtonInput
-                v-model="requestDisplayType"
-                :options="[
-                  {label: 'Request View', value: 'request_view'},
-                  {label: 'Batch View', value: 'batch_view'}
-                ]"
-                @update:model-value="clearTableSelection(); loadRequestJobs();"
-                class="text-no-wrap"
-              />
             </div>
 
             <div
@@ -148,58 +175,6 @@
               :button-two-outline="true"
               @button-two-click="showCreatePickList = false; showAddPickList = false; clearTableSelection();"
             />
-            <!-- <div
-              class="col-xs-12 col-sm-auto col-md-auto q-mb-xs-md q-mb-sm-none"
-            >
-              <div class="row">
-                <div class="col-xs-12 col-sm-auto">
-                  <ToggleButtonInput
-                    v-model="requestDisplayType"
-                    :options="[
-                      {label: 'Request View', value: 'request_view'},
-                      {label: 'Batch View', value: 'batch_view'}
-                    ]"
-                    @update:model-value="clearTableSelection(); loadRequestJobs();"
-                    class="text-no-wrap"
-                  />
-                </div>
-
-                <div
-                  v-if="showCreatePickList || showAddPickList && currentScreenSize !== 'xs'"
-                  class="col-auto q-ml-auto"
-                >
-                  <q-btn
-                    no-caps
-                    unelevated
-                    :color="showCreatePickList ? 'accent' : 'positive'"
-                    :label="`(${selectedRequestItems.length}) ${showCreatePickList ? 'Create Pick List' : 'Add To Pick List'}`"
-                    class="btn-no-wrap text-body1 q-mr-xs full-height"
-                    :disabled="selectedRequestItems.length == 0"
-                    :loading="appActionIsLoadingData"
-                    @click="showCreatePickList ? createPickListJob() : updatePickListJob()"
-                  />
-                  <q-btn
-                    no-caps
-                    outline
-                    label="Cancel"
-                    class="btn-no-wrap text-body1 q-ml-xs full-height"
-                    @click="showCreatePickList = false; showAddPickList = false; clearTableSelection();"
-                  />
-                </div>
-                <MobileActionBar
-                  v-else-if="showCreatePickList || showAddPickList && currentScreenSize == 'xs'"
-                  button-one-color="accent"
-                  :button-one-label="`(${selectedRequestItems.length}) ${showCreatePickList ? 'Create Pick List' : 'Add To Pick List'}`"
-                  :button-one-outline="false"
-                  :button-one-loading="appActionIsLoadingData"
-                  :button-one-disabled="selectedRequestItems.length == 0"
-                  @button-one-click="showCreatePickList ? createPickListJob() : updatePickListJob()"
-                  :button-two-label="'Cancel'"
-                  :button-two-outline="true"
-                  @button-two-click="showCreatePickList = false; showAddPickList = false; clearTableSelection();"
-                />
-              </div>
-            </div> -->
           </template>
 
           <template #table-td="{ colName, value }">
@@ -227,9 +202,6 @@
             <span v-else-if="colName == 'create_dt'">
               {{ formatDateTime(value).date }}
             </span>
-            <span v-else-if="colName == 'import_dt'">
-              {{ formatDateTime(value).date }}
-            </span>
           </template>
         </EssentialTable>
       </div>
@@ -237,40 +209,29 @@
 
     <!-- Request Item Overlay-->
     <RequestItemOverlay
-      v-if="requestJob.id && requestDisplayType == 'request_view'"
-      :item-data="requestJob"
-      @close="resetRequestJob()"
+      v-if="selectedRequestItem"
+      :item-data="selectedRequestItem"
+      @close="selectedRequestItem = null"
     />
   </div>
 </template>
 
 <script setup>
 import { onBeforeMount, ref, inject } from 'vue'
-import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useRequestStore } from '@/stores/request-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from '@/components/EssentialTable.vue'
-import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
 import RequestItemOverlay from '@/components/Request/RequestItemOverlay.vue'
-
-const router = useRouter()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
-const {
-  resetRequestJob,
-  resetRequestStore,
-  getRequestJobList,
-  getRequestJob,
-  getRequestBatchJob
-} = useRequestStore()
-const { requestJobList, requestJob } = storeToRefs(useRequestStore())
+const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { requestBatchJob } = storeToRefs(useRequestStore())
 
 // Local Data
 const requestTableComponent = ref(null)
@@ -389,98 +350,22 @@ const requestTableFilters =  ref([
     ]
   }
 ])
-const requestBatchTableVisibleColumns = ref([
-  'import_source',
-  'request_count',
-  'status',
-  'uploaded_by',
-  'import_dt'
-])
-const requestBatchTableColumns = ref([
-  {
-    name: 'import_source',
-    field: 'import_source',
-    label: 'Import Source',
-    align: 'left',
-    sortable: true
-  },
-  {
-    name: 'request_count',
-    field: 'request_count',
-    label: '# of Requests',
-    align: 'left',
-    sortable: true
-  },
-  {
-    name: 'status',
-    field: 'status',
-    label: 'Status',
-    align: 'left',
-    sortable: true
-  },
-  {
-    name: 'uploaded_by',
-    field: 'uploaded_by',
-    label: 'Uploaded By',
-    align: 'left',
-    sortable: true
-  },
-  {
-    name: 'import_dt',
-    field: 'import_dt',
-    label: 'Date Imported',
-    align: 'left',
-    sortable: true
-  }
-])
-const requestBatchTableFilters =  ref([
-  {
-    field: 'status',
-    options: [
-      {
-        text: 'Created',
-        value: false
-      },
-      {
-        text: 'Pick List',
-        value: false
-      },
-      {
-        text: 'On Hold',
-        value: false
-      },
-      {
-        text: 'Completed',
-        value: false
-      }
-    ]
-  }
-])
-const requestDisplayType = ref('request_view')
 const showCreatePickList = ref(false)
 const showAddPickList = ref(false)
 const selectedRequestItems = ref([])
+const selectedRequestItem = ref(null)
 
 // Logic
 const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
 
 onBeforeMount(() => {
-  resetRequestStore()
-  loadRequestJobs()
-
   if (currentScreenSize.value == 'xs') {
     requestTableVisibleColumns.value = [
       'id',
       'request_type',
       'barcode',
       'requestor_name'
-    ]
-    requestBatchTableVisibleColumns.value = [
-      'import_source',
-      'request_count',
-      'status',
-      'import_dt'
     ]
   }
 })
@@ -490,45 +375,6 @@ const clearTableSelection = () => {
   selectedRequestItems.value = []
 }
 
-const loadRequestJobs = async () => {
-  try {
-    appIsLoadingData.value = true
-    await getRequestJobList(requestDisplayType.value)
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
-  } finally {
-    appIsLoadingData.value = false
-  }
-}
-const loadRequestJob = async (id) => {
-  try {
-    appIsLoadingData.value = true
-
-    if (requestDisplayType.value == 'batch_view') {
-      await getRequestBatchJob(id)
-      router.push({
-        name: 'request',
-        params: {
-          jobId: id
-        }
-      })
-    } else {
-      await getRequestJob(id)
-    }
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
-  } finally {
-    appIsLoadingData.value = false
-  }
-}
 const createPickListJob = async () => {
   try {
     appActionIsLoadingData.value = true
@@ -562,4 +408,33 @@ const updatePickListJob = async () => {
 </script>
 
 <style lang="scss" scoped>
+.request-job {
+  position: relative;
+
+  &-number-box {
+    background-color: $secondary;
+    color: $color-white;
+    text-align: center;
+    border-radius: 3px;
+    width: 100%;
+  }
+
+  &-details {
+    position: relative;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    justify-content: flex-start;
+
+    &-label {
+      &-2 {
+        margin-top: 2.25rem;
+
+        @media (max-width: $breakpoint-sm-max) {
+          margin-top: 0;
+        }
+      }
+    }
+  }
+}
 </style>
