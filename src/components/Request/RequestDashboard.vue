@@ -69,7 +69,7 @@
                     <q-item
                       clickable
                       v-close-popup
-                      @click="null"
+                      @click="showCreateRequestByType = 'manual'"
                     >
                       <q-item-section>
                         <q-item-label>
@@ -82,7 +82,7 @@
                     <q-item
                       clickable
                       v-close-popup
-                      @click="null"
+                      @click="showCreateRequestByType = 'bulk'"
                     >
                       <q-item-section>
                         <q-item-label>
@@ -241,6 +241,13 @@
       :item-data="requestJob"
       @close="resetRequestJob()"
     />
+
+    <!-- Request Creation Modal -->
+    <RequestCreateModal
+      v-if="showCreateRequestByType"
+      :type="showCreateRequestByType"
+      @hide="showCreateRequestByType = null"
+    />
   </div>
 </template>
 
@@ -255,6 +262,7 @@ import EssentialTable from '@/components/EssentialTable.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
 import RequestItemOverlay from '@/components/Request/RequestItemOverlay.vue'
+import RequestCreateModal from '@/components/Request/RequestCreateModal.vue'
 
 const router = useRouter()
 
@@ -460,6 +468,7 @@ const requestDisplayType = ref('request_view')
 const showCreatePickList = ref(false)
 const showAddPickList = ref(false)
 const selectedRequestItems = ref([])
+const showCreateRequestByType = ref(null)
 
 // Logic
 const handleAlert = inject('handle-alert')
