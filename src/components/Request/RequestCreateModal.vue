@@ -27,7 +27,7 @@
         <div class="col-12 q-mb-md">
           <div class="form-group">
             <label class="form-group-label">
-              Item Barcode (Required)
+              Item Barcode <span class="text-caption text-negative">(Required)</span>
             </label>
             <TextInput
               v-model="manualRequestForm.barcode"
@@ -40,7 +40,7 @@
         <div class="col-12 q-mb-md">
           <div class="form-group">
             <label class="form-group-label">
-              External Request Id (Required)
+              External Request Id
             </label>
             <TextInput
               v-model="manualRequestForm.external_request_id"
@@ -51,7 +51,7 @@
         <div class="col-12 q-mb-md">
           <div class="form-group">
             <label class="form-group-label">
-              Requestor Name (Required)
+              Requestor Name <span class="text-caption text-negative">(Required)</span>
             </label>
             <TextInput
               v-model="manualRequestForm.requestor_name"
@@ -63,7 +63,7 @@
         <div class="col-12 q-mb-md">
           <div class="form-group">
             <label class="form-group-label">
-              Priority (Optional)
+              Priority
             </label>
             <SelectInput
               v-model="manualRequestForm.priority"
@@ -78,7 +78,7 @@
         <div class="col-12 q-mb-md">
           <div class="form-group">
             <label class="form-group-label">
-              Select Request Type (Required)
+              Select Request Type <span class="text-caption text-negative">(Required)</span>
             </label>
             <SelectInput
               v-model="manualRequestForm.request_type_id"
@@ -93,7 +93,7 @@
         <div class="col-12">
           <div class="form-group">
             <label class="form-group-label">
-              Delivery Location (Required)
+              Delivery Location <span class="text-caption text-negative">(Required)</span>
             </label>
             <SelectInput
               v-model="manualRequestForm.building_id"
@@ -208,7 +208,11 @@ const isCreateRequestjobFormValid = computed(() => {
   let formIsValid = false
   if (mainProps.type == 'manual') {
     // if any value in our form is null or empty form is not valid except for priority since thats optional
-    formIsValid = Object.keys(manualRequestForm.value).every(key => key == 'priority' || (manualRequestForm.value[key] !== null && manualRequestForm.value[key] !== ''))
+    const optionalFields = [
+      'external_request_id',
+      'priority'
+    ]
+    formIsValid = Object.keys(manualRequestForm.value).every(key => optionalFields.includes(key) || (manualRequestForm.value[key] !== null && manualRequestForm.value[key] !== ''))
   } else {
     formIsValid = requestFile.value.length == 0 ? false : true
   }
