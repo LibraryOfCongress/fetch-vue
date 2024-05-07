@@ -2,6 +2,7 @@
   <q-item
     :clickable="!disabled"
     tag="a"
+    role="link"
     :to="link"
     class="essential-link"
     :dense="dense"

@@ -71,11 +71,14 @@
       show-if-above
       class="bg-primary"
     >
-      <q-list class="nav-list">
+      <q-list
+        class="nav-list"
+      >
         <q-item
           class="q-mb-lg align-center"
           clickable
           tag="a"
+          role="link"
           :to="'/'"
         >
           <q-item-section>
