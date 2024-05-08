@@ -153,6 +153,7 @@
       v-if="showOwnerTierCreation"
       title="Create A New Owner Tier"
       @reset="reset"
+      aria-label="newOwnerTierModal"
     >
       <template #main-content>
         <q-card-section

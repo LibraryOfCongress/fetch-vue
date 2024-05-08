@@ -1,6 +1,7 @@
 <template>
   <PopupModal
     @reset="emit('hide')"
+    aria-label="shelvingJobDetailScanModal"
   >
     <template #header-content="{ hideModal }">
       <q-card-section class="row items-center q-pb-none">

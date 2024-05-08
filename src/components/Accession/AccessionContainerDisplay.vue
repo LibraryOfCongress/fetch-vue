@@ -199,6 +199,7 @@
     v-if="showBarcodeEdit"
     :title="selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'"
     @reset="resetBarcodeEdit"
+    aria-label="barcodeEditModal"
   >
     <template #main-content>
       <q-card-section class="column no-wrap items-center">
@@ -247,6 +248,7 @@
     :text="showConfirmation.text"
     :show-actions="false"
     @reset="showConfirmation = null"
+    aria-label="confirmationModal"
   >
     <template #footer-content="{ hideModal }">
       <q-card-section
@@ -322,6 +324,7 @@
     :title="'Select Tray'"
     :show-actions="false"
     @reset="showNextTrayModal = false"
+    aria-label="nextTrayModal"
   >
     <template #main-content="{ hideModal }">
       <q-card-section class="row accession-next-tray">
@@ -329,6 +332,7 @@
           v-for="tray in accessionJob.trays"
           :key="tray.id"
           class="col-12 q-mb-sm"
+          role="list"
         >
           <q-item class="accession-next-tray-item">
             <div class="col-12 text-left">

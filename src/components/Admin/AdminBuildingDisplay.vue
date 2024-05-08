@@ -143,6 +143,7 @@
       v-if="showBuildingForm"
       :title="buildingFormTitle == '' ? 'Create Location Hierarchy' : `Add New ${buildingFormTitle}`"
       @reset="resetBuildingForm"
+      aria-label="newBuildingModal"
     >
       <template #main-content>
         <q-card-section class="row items-end">
@@ -166,6 +167,7 @@
               option-label="name"
               :placeholder="'Select Building'"
               @update:model-value="handleBuildingFormChange('Building')"
+              aria-label="building"
             />
           </div>
 
@@ -191,6 +193,7 @@
               :placeholder="'Select Module'"
               :disabled="selectedBuildingModules.length == 0"
               @update:model-value="handleBuildingFormChange('Module')"
+              aria-label="module"
             />
           </div>
 
@@ -217,6 +220,7 @@
                 :placeholder="'Select Aisle'"
                 :disabled="selectedBuildingOrModuleAisles.length == 0"
                 @update:model-value="handleBuildingFormChange('Aisle')"
+                aria-label="aisle"
               />
             </div>
           </div>
@@ -259,6 +263,7 @@
               option-label="id"
               :placeholder="'Select Ladder'"
               :disabled="selectedAisleLadders.length == 0"
+              aria-label="ladder"
             />
           </div>
         </q-card-section>
@@ -295,6 +300,7 @@
       v-if="showBulkUploadForm"
       title="Bulk Upload File(s)"
       @reset="resetBulkUploadForm"
+      aria-label="bulkEditModal"
     >
       <template #main-content>
         <q-card-section class="row items-end">
@@ -341,6 +347,7 @@
               option-label="name"
               :placeholder="'Select Building'"
               @update:model-value="handleBuildingFormChange('Building')"
+              aria-label="building"
             />
           </div>
 
@@ -358,6 +365,7 @@
               :placeholder="'Select Module'"
               :disabled="selectedBuildingModules.length == 0"
               @update:model-value="handleBuildingFormChange('Module')"
+              aria-label="module"
             />
           </div>
 
@@ -376,6 +384,7 @@
                 :placeholder="'Select Aisle'"
                 :disabled="selectedBuildingOrModuleAisles.length == 0"
                 @update:model-value="handleBuildingFormChange('Aisle')"
+                aria-label="aisle"
               />
             </div>
           </div>
@@ -409,6 +418,7 @@
               option-label="id"
               :placeholder="'Select Ladder'"
               :disabled="selectedAisleLadders.length == 0"
+              aria-label="ladder"
             />
           </div>
         </q-card-section>

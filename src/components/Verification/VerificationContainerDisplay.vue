@@ -217,6 +217,7 @@
     v-if="showBarcodeEdit"
     :title="selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'"
     @reset="resetBarcodeEdit"
+    aria-label="barcodeEditModal"
   >
     <template #main-content>
       <q-card-section class="column no-wrap items-center">
@@ -265,6 +266,7 @@
     :text="showConfirmation.text"
     :show-actions="false"
     @reset="showConfirmation = null"
+    aria-label="confirmationModal"
   >
     <template #footer-content="{ hideModal }">
       <q-card-section
@@ -340,6 +342,7 @@
     :title="'Select Tray'"
     :show-actions="false"
     @reset="showNextTrayModal = false"
+    aria-label="nextTrayModal"
   >
     <template #main-content="{ hideModal }">
       <q-card-section class="row verification-next-tray">
@@ -365,7 +368,7 @@
             <div class="col-auto">
               <p
                 class="text-body1 outline"
-                :class="tray.collection_verified ? 'text-highlight' : !tray.collection_verified && tray.scanned_for_verification ? 'text-highlight-yellow' : 'text-highlight-red'"
+                :class="tray.collection_verified ? 'text-highlight' : !tray.collection_verified && tray.scanned_for_verification ? 'text-highlight-warning' : 'text-highlight-negative'"
               >
                 {{ tray.collection_verified ? 'Completed' : !tray.collection_verified && tray.scanned_for_verification ? 'In Progress' : 'Not Started' }}
               </p>
@@ -412,7 +415,7 @@
             <div class="col-auto">
               <p
                 class="text-body1 outline"
-                :class="tray.collection_verified ? 'text-highlight' : !tray.collection_verified && tray.scanned_for_verification ? 'text-highlight-yellow' : 'text-highlight-red'"
+                :class="tray.collection_verified ? 'text-highlight' : !tray.collection_verified && tray.scanned_for_verification ? 'text-highlight-warning' : 'text-highlight-negative'"
               >
                 {{ tray.collection_verified ? 'Completed' : !tray.collection_verified && tray.scanned_for_verification ? 'In Progress' : 'Not Started' }}
               </p>

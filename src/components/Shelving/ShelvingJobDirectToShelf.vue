@@ -162,6 +162,7 @@
       v-if="showScanContainerModal"
       title="Container Location"
       @reset="showScanContainerModal = false"
+      aria-label="scanContainerModal"
     >
       <template #main-content>
         <q-card-section class="row q-pb-sm">

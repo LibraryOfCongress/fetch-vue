@@ -3,6 +3,7 @@
     flat
     icon="more_vert"
     class="more-menu"
+    aria-label="optionsMenu"
   >
     <q-menu>
       <q-list class="more-menu-list">

@@ -74,7 +74,7 @@
                 <label class="text-body1">Status:</label>
                 <p
                   class="text-body1 outline"
-                  :class="[ job.status == 'Paused' ? 'text-highlight-yellow' : 'text-highlight' ]"
+                  :class="[ job.status == 'Paused' ? 'text-highlight-warning' : 'text-highlight' ]"
                 >
                   {{ job.status }}
                 </p>
@@ -90,6 +90,7 @@
       v-if="showAccessionModal"
       :show-actions="false"
       @reset="reset"
+      aria-label="AccessionJobCreationModal"
     >
       <template #header-content>
         <q-card-section class="row items-center justify-between q-pb-none">
@@ -116,6 +117,7 @@
             flat
             round
             dense
+            aria-label="Close"
             @click="reset"
           />
         </q-card-section>
@@ -160,6 +162,7 @@
                 option-value="id"
                 option-label="name"
                 :placeholder="'Select Owner'"
+                aria-label="owner"
               />
             </div>
 
@@ -177,6 +180,7 @@
                 option-value="id"
                 option-label="name"
                 :placeholder="'Select Size Class'"
+                aria-label="containerSize"
               />
             </div>
 
@@ -191,6 +195,7 @@
                 option-value="id"
                 option-label="name"
                 :placeholder="'Select Media Type'"
+                aria-label="mediaType"
               />
             </div>
           </q-card-section>

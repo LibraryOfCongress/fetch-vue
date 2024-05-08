@@ -18,6 +18,7 @@
           flat
           round
           dense
+          aria-label="dismissAlert"
           @click="emit('reset')"
         />
       </template>
@@ -53,6 +54,7 @@
             label="Cancel"
             color="negative"
             class="text-body1 full-width"
+            aria-label="dismissAlert"
             @click="showAlertModal = false"
           />
         </q-card-section>

@@ -167,9 +167,16 @@
             />
           </template>
 
+          <template #header-selection="scope">
+            <q-checkbox
+              v-model="scope.selected"
+              aria-label="tableSelectAll"
+            />
+          </template>
+
           <template #header-cell="props">
             <q-th
-              class="test"
+              class=""
               :class="props.col.__thClass"
             >
               <span
@@ -183,6 +190,13 @@
                 />
               </span>
             </q-th>
+          </template>
+
+          <template #body-selection="scope">
+            <q-checkbox
+              v-model="scope.selected"
+              aria-label="tableRowSelect"
+            />
           </template>
 
           <template #body-cell="props">
