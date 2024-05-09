@@ -92,7 +92,7 @@
       @reset="reset"
       aria-label="AccessionJobCreationModal"
     >
-      <template #header-content>
+      <template #header-content="{ hideModal }">
         <q-card-section class="row items-center justify-between q-pb-none">
           <h2
             v-if="accessionJob.trayed == null"
@@ -118,7 +118,7 @@
             round
             dense
             aria-label="Close"
-            @click="reset"
+            @click="hideModal"
           />
         </q-card-section>
       </template>
@@ -202,7 +202,7 @@
         </template>
       </template>
 
-      <template #footer-content>
+      <template #footer-content="{ hideModal }">
         <q-card-section
           v-if="accessionJob.trayed !== null"
           class="row no-wrap justify-between items-center q-pt-sm"
@@ -215,7 +215,7 @@
             class="text-body1 full-width"
             :disable="!canSubmitAccessionJob"
             :loading="appActionIsLoadingData"
-            @click="submitAccessionJob"
+            @click="submitAccessionJob(); hideModal();"
           />
 
           <q-space class="q-mx-xs" />
@@ -225,7 +225,7 @@
             no-caps
             label="Cancel"
             class="accession-modal-btn text-body1 full-width"
-            @click="reset"
+            @click="hideModal"
           />
         </q-card-section>
       </template>

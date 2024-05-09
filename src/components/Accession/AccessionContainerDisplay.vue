@@ -215,7 +215,7 @@
       </q-card-section>
     </template>
 
-    <template #footer-content>
+    <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
         <q-btn
           no-caps
@@ -225,7 +225,7 @@
           class="text-body1 full-width"
           :disabled="!manualBarcodeEdit"
           :loading="appActionIsLoadingData"
-          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); resetBarcodeEdit();"
+          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); hideModal();"
         />
 
         <q-space class="q-mx-xs" />
@@ -235,7 +235,7 @@
           no-caps
           label="Cancel"
           class="text-body1 full-width"
-          @click="resetBarcodeEdit"
+          @click="hideModal"
         />
       </q-card-section>
     </template>

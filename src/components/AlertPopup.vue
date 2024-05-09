@@ -30,6 +30,7 @@
       v-model="showAlertModal"
       persistent
       @hide="emit('reset')"
+      aria-label="alertModal"
     >
       <q-card
         class="alert-modal"

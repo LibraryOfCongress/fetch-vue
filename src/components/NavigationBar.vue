@@ -123,7 +123,7 @@
       :show-actions="false"
       aria-label="navigationGuardAlert"
     >
-      <template #footer-content>
+      <template #footer-content="{ hideModal }">
         <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
           <q-btn
             no-caps
@@ -131,7 +131,7 @@
             color="negative"
             label="Yes, Ignore Requests"
             class="text-body1 full-width"
-            @click="handleRouteSyncGuard(appSyncGuard.name)"
+            @click="handleRouteSyncGuard(appSyncGuard.name); hideModal();"
           />
           <q-space class="q-mx-xs" />
           <q-btn
@@ -139,7 +139,7 @@
             no-caps
             label="Cancel"
             class="text-body1 full-width"
-            @click="appSyncGuard = null"
+            @click="appSyncGuard = null; hideModal();"
           />
         </q-card-section>
       </template>

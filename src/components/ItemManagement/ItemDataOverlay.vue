@@ -4,6 +4,7 @@
     :position="'right'"
     full-height
     :class="$style.overlay"
+    aria-label="informationalOverlay"
   >
     <q-card class="item-content">
       <q-card-section

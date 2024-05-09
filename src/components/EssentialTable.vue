@@ -19,6 +19,7 @@
           :label="currentScreenSize == 'xs' ? 'Filter' : ''"
           class="table-component-filter"
           :class="currentScreenSize == 'xs' ? 'text-accent' : ''"
+          aria-label="tableFilter"
         >
           <q-menu
             :transition-show="currentScreenSize == 'xs' ? 'scale' : 'fade'"
@@ -29,10 +30,13 @@
               Filter Options
             </q-item-label>
             <q-space class="divider" />
-            <q-list class="table-component-filter-list q-mt-sm">
+            <q-list
+              class="table-component-filter-list q-mt-sm"
+            >
               <q-item
                 v-for="(data, i) in localFilterOptions"
                 :key="i"
+                role="menuitem"
               >
                 <q-item-section>
                   <q-item-label header>
@@ -45,6 +49,7 @@
                     tag="label"
                     v-ripple
                     :class="opt.value ? 'active' : ''"
+                    role=""
                   >
                     <q-item-section
                       side
@@ -53,6 +58,7 @@
                       <q-checkbox
                         v-model="opt.value"
                         @update:model-value="filterTableData(opt)"
+                        aria-label="tableFilterOptionCheckbox"
                       />
                     </q-item-section>
 

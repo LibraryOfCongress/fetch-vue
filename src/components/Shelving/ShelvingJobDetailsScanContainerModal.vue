@@ -20,6 +20,7 @@
             dense
             class="text-body1"
             @click="selectNewLocation = false"
+            aria-label="backIcon"
           />
           <h2 class="text-h6 text-bold q-ml-xs">
             New Location
@@ -33,6 +34,7 @@
           dense
           class="q-ml-auto"
           @click="hideModal"
+          aria-label="closeModal"
         />
       </q-card-section>
     </template>
