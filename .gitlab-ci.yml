@@ -1,7 +1,7 @@
 stages:
   - build
   - trigger
-  - terraform
+  - deploy
 
 build_image_dev:
   stage: build
@@ -77,11 +77,12 @@ build_image_test:
 
 build_image_staging:
   stage: build
-  image:
-    name: git.loc.gov:4567/fetch/build/kaniko-project/executor:1.0.0
-    entrypoint: [""]
+  tags: 
+    - stage-shell
+  before_script:
+    - docker info
   variables:
-    IMAGE_FULL_TAG: $CI_REGISTRY_IMAGE/stage:latest
+    IMAGE_FULL_TAG: $REGISTRY_STAGE/vue/stage:latest
   script:
     - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
     - cp -v images/web.stage.Containerfile Dockerfile
@@ -89,16 +90,12 @@ build_image_staging:
     - echo $STAGING_VITE_INV_SERVCE_API >> env/.env
     - echo $STAGING_VITE_API_BASE_URI >> env/.env
     - cat -A env/.env
-    - /kaniko/executor
-      --context $CI_PROJECT_DIR
-      --build-arg VITE_ENV=$STAGING_VITE_ENV
-      --dockerfile $CI_PROJECT_DIR/Dockerfile
-      --destination $IMAGE_FULL_TAG
-  rules:
-    - if: $CI_COMMIT_BRANCH == 'staging'
+    - docker build -t $IMAGE_FULL_TAG .
+    - docker push $IMAGE_FULL_TAG
+  when: manual
 
 deploy_dev:
-  stage: terraform
+  stage: deploy
   image:
     name: git.loc.gov:4567/fetch/build/terraform:alt
     entrypoint: [""]
@@ -120,7 +117,7 @@ deploy_dev:
     - if: $CI_COMMIT_BRANCH == 'develop'
 
 deploy_test:
-  stage: terraform
+  stage: deploy
   image:
     name: git.loc.gov:4567/fetch/build/terraform:alt
     entrypoint: [""]
@@ -140,3 +137,25 @@ deploy_test:
     - terraform apply -auto-approve
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
+
+deploy_stage:
+  stage: deploy
+  tags:
+    - stage
+  image:
+    name: $REGISTRY_STAGE/utils/terraform:alt
+    entrypoint: [""]
+  script:
+    - export TF_VAR_vault_deployer_password=$VAULT_DEPLOYER_PASSWORD_STAGE
+    - export TF_VAR_vault_addr=$VAULT_ADDR_STAGE
+    - export TF_VAR_app_name="vue"
+    - export TF_VAR_image="${REGISTRY_STAGE}/vue/stage:latest"
+    - export TF_VAR_timestamp=$CI_COMMIT_TIMESTAMP
+    - terraform --version
+    - cd terraform
+    - cp -v $FETCH_DEPLOYER_K8S_CONFIG_STAGE kubeconfig
+    - export TF_STATE_NAME=stage
+    - envsubst < backend.hcl.tmpl > backend.hcl
+    - terraform init -backend-config=backend.hcl
+    - terraform apply -auto-approve
+  when: manual
