@@ -1,34 +1,44 @@
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, nextTick, watch } from 'vue'
+import { useBarcodeStore } from '@/stores/barcode-store'
+import { storeToRefs } from 'pinia'
 
 export function useBarcodeScanHandler () {
-
-  const barcodeEnabled = ref(false)
   const scannedBarCode = ref([])
   const compiledBarCode = ref('')
 
-  async function barcodeScanHandler (event) {
-    if (event.key == '!' && barcodeEnabled.value == false) {
-      // if the appended key ! is passed we know the barcode key events are about to be received
-      // so enable barcode reading
-      barcodeEnabled.value = true
-    } else if (event.key == '!' && barcodeEnabled.value) {
-      // if the appended key ! is passed and barcode is current enabled we know the barcode key events are completed
-      // so will emit the compiled barcode and reset the barcode scanning state
+  const { barcodeScanAllowed, barcodeInputDelay } = storeToRefs(useBarcodeStore())
 
-      // initially reset compileBarCode each scan incase the same bar code is scanned again
-      compiledBarCode.value = ''
-      await nextTick()
-
-      compiledBarCode.value = scannedBarCode.value.join('')
-      scannedBarCode.value = []
-      barcodeEnabled.value = false
-    } else if (barcodeEnabled.value) {
-      scannedBarCode.value.push(event.key)
+  function debounce (callback) {
+    let timeoutId = null
+    return (...args) => {
+      window.clearTimeout(timeoutId)
+      timeoutId = window.setTimeout(() => {
+        callback(...args)
+      }, (barcodeInputDelay.value * 1000))
     }
   }
 
-  onMounted(() => document.addEventListener('keypress', barcodeScanHandler))
-  onUnmounted(() => document.removeEventListener('keypress', barcodeScanHandler))
+  function barcodeScanEntry (event) {
+    scannedBarCode.value.push(event.key)
+    handleBarcodeCompile()
+  }
+  const handleBarcodeCompile = debounce(async () => {
+    // if half a second (200ms) passes inbetween barcode key inputs it means the scanner has completed typing a barcode value
+    // once scan is complete we render the compiled barcode and reset the barcode scanning state
+    compiledBarCode.value = ''
+    await nextTick()
+
+    compiledBarCode.value = scannedBarCode.value.join('')
+    scannedBarCode.value = []
+  })
+
+  watch(barcodeScanAllowed, (val) => {
+    if (val == true) {
+      document.addEventListener('keypress', barcodeScanEntry)
+    } else {
+      document.removeEventListener('keypress', barcodeScanEntry)
+    }
+  })
 
   return {
     scannedBarCode,
