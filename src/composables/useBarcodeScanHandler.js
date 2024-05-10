@@ -1,4 +1,4 @@
-import { ref, nextTick, watch } from 'vue'
+import { ref, nextTick, watch, onBeforeMount } from 'vue'
 import { useBarcodeStore } from '@/stores/barcode-store'
 import { storeToRefs } from 'pinia'
 
@@ -37,6 +37,12 @@ export function useBarcodeScanHandler () {
       document.addEventListener('keypress', barcodeScanEntry)
     } else {
       document.removeEventListener('keypress', barcodeScanEntry)
+    }
+  })
+
+  onBeforeMount(() => {
+    if (barcodeScanAllowed.value) {
+      document.addEventListener('keypress', barcodeScanEntry)
     }
   })
 
