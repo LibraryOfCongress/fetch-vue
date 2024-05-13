@@ -85,7 +85,7 @@
             <SelectInput
               v-model="manualRequestForm.request_type_id"
               :options="buildings"
-              option-type="buildings"
+              option-type="requestType"
               option-value="id"
               option-label="name"
               :placeholder="'Select Request Type'"
@@ -169,7 +169,7 @@
 import { ref, inject, computed, watch } from 'vue'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
-// import { useRequestStore } from '@/stores/request-store'
+import { useRequestStore } from '@/stores/request-store'
 import { storeToRefs } from 'pinia'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 import PopupModal from '@/components/PopupModal.vue'
