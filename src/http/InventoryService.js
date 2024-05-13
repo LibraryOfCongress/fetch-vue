@@ -20,6 +20,7 @@ export default {
   ladders: '/ladders/',
   owners: '/owners/',
   ownersTiers: '/owners/tiers/',
+  requests: 'requests/',
   shelves: '/shelves/',
   shelvesBarcode: '/shelves/barcode/',
   shelvesPositions: '/shelves/positions/',

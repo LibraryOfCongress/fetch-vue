@@ -194,7 +194,7 @@ const { compiledBarCode } = useBarcodeScanHandler()
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { buildings } = storeToRefs(useOptionStore())
-// const { postRequestJob } = useRequestStore()
+const { postRequestJob } = useRequestStore()
 
 // Local Data
 const requestFile = ref([])
@@ -236,11 +236,26 @@ const createRequestJob = async () => {
   try {
     appActionIsLoadingData.value = true
     // TODO setup api call to sumbit request job by type
+    let payload
     if (mainProps.type == 'manual') {
+      payload = {
+        request_type_id: manualRequestForm.value.request_type_id,
+        external_request_id: manualRequestForm.value.external_request_id,
+        requestor_name: manualRequestForm.value.requestor_name,
+        barcode_value: manualRequestForm.value.barcode, //TODO this is currently id in api needs to change to value
+        delivery_location_id: manualRequestForm.value.building_id,
+        priority: manualRequestForm.value.priority //TODO this is missing from the api endpoint
+      }
       console.log(manualRequestForm.value)
     } else {
+      payload = {
+        request_type_id: 'file',
+        request_file: requestFile.value //TODO this is missing from the api endpoint
+      }
       console.log(requestFile.value)
     }
+
+    await postRequestJob(payload)
   } catch (error) {
     handleAlert({
       type: 'error',
