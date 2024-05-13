@@ -5,6 +5,7 @@
     full-height
     :class="$style.requestOverlay"
     @hide="emit('close')"
+    aria-label="itemDetailOverlay"
   >
     <q-card class="request-item-content">
       <q-card-section
@@ -17,6 +18,7 @@
           round
           dense
           v-close-popup
+          aria-label="closeOverlay"
         />
       </q-card-section>
 

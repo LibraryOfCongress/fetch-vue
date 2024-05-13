@@ -184,7 +184,6 @@
             <q-th
               class=""
               :class="props.col.__thClass"
-              class=""
             >
               <span
                 class="flex no-wrap items-center"

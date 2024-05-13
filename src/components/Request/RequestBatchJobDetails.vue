@@ -111,6 +111,7 @@
                       clickable
                       v-close-popup
                       @click="showAddPickList = true"
+                      role="menuitem"
                     >
                       <q-item-section>
                         <q-item-label>
@@ -124,6 +125,7 @@
                       clickable
                       v-close-popup
                       @click="showCreatePickList = true"
+                      role="menuitem"
                     >
                       <q-item-section>
                         <q-item-label>

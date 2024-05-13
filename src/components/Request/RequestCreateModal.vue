@@ -2,6 +2,7 @@
   <PopupModal
     :show-actions="false"
     @reset="emit('hide')"
+    aria-label="manualRequestModal"
   >
     <template #header-content="{ hideModal }">
       <q-card-section class="row items-center q-pb-none">
@@ -16,6 +17,7 @@
           dense
           class="q-ml-auto"
           @click="hideModal"
+          aria-label="close"
         />
       </q-card-section>
     </template>

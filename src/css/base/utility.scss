@@ -29,7 +29,7 @@ $color-map: (
   .text-highlight-#{$colorName} {
     padding: 1px 5px;
     color: $colorValue;
-    background-color: rgba($colorValue, .2);
+    background-color: rgba($colorValue, .08);
     border-color: $colorValue !important;
     border-radius: 2px;
   }
@@ -48,7 +48,7 @@ $color-map: (
 .text-highlight-warning {
   padding: 1px 5px;
   color: $positive;
-  background-color: rgba($warning, .2);
+  background-color: rgba($warning, .08);
   border-color: $warning !important;
   border-radius: 2px;
 }
