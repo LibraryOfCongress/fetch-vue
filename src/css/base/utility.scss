@@ -15,7 +15,8 @@ $color-map: (
   color-gray-light: $color-gray-light,
   color-gray-dark: $color-gray-dark,
   color-pink: $color-pink,
-  color-green-light: $color-green-light
+  color-green-light: $color-green-light,
+  color-brown: $color-brown
 );
 
 @each $colorName, $colorValue in $color-map {
@@ -40,8 +41,15 @@ $color-map: (
 .text-highlight {
   padding: 1px 5px;
   color: $positive;
-  background-color: rgba($positive, .2);
+  background-color: rgba($positive, .08);
   border-color: $positive !important;
+  border-radius: 2px;
+}
+.text-highlight-warning {
+  padding: 1px 5px;
+  color: $positive;
+  background-color: rgba($warning, .2);
+  border-color: $warning !important;
   border-radius: 2px;
 }
 
@@ -65,7 +73,7 @@ $color-map: (
 }
 
 .disabled, [disabled] {
-  opacity: 0.4 !important;
+  opacity: 0.54 !important;
 }
 
 .overlay {

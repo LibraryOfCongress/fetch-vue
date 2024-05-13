@@ -42,7 +42,7 @@
             <span
               v-if="colName == 'status'"
               class="outline text-nowrap"
-              :class="value == 'Created' || value == 'Completed' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-yellow' : 'text-highlight-red'"
+              :class="value == 'Created' || value == 'Completed' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-warning' : 'text-highlight-negative'"
             >
               {{ value }}
             </span>
@@ -69,6 +69,7 @@
       :show-actions="false"
       :modal-width="'600px'"
       @reset="resetCreateShelfJobModal"
+      aria-label="createShelvingJobModal"
     >
       <template #header-content="{ hideModal }">
         <q-card-section class="row items-center q-pb-none">
@@ -87,6 +88,7 @@
               dense
               class="text-body1"
               @click="shelvingJob.type = null"
+              aria-label="backIcon"
             />
             <h2 class="text-h6 text-bold q-ml-xs">
               Create Shelving Job
@@ -100,6 +102,7 @@
             dense
             class="q-ml-auto"
             @click="hideModal"
+            aria-label="closeModal"
           />
         </q-card-section>
       </template>
@@ -170,6 +173,7 @@
                   option-label="id"
                   :placeholder="'Select Verification Job(s) by Number'"
                   @focus="loadVerificationJobs"
+                  aria-label="verificationJobSelection"
                 >
                   <template #option="{ itemProps, opt, selected, toggleOption }">
                     <q-item v-bind="itemProps">
@@ -213,6 +217,7 @@
                   option-label="name"
                   :placeholder="'Select Building'"
                   @update:model-value="handleShelvingJobFormChange('Building')"
+                  aria-label="building"
                 />
               </div>
 
@@ -231,6 +236,7 @@
                     :placeholder="'Select Module'"
                     :disabled="renderBuildingModules.length == 0"
                     @update:model-value="handleShelvingJobFormChange('Module')"
+                    aria-label="module"
                   />
                 </div>
 
@@ -250,6 +256,7 @@
                         :placeholder="'Select Aisle'"
                         :disabled="renderBuildingOrModuleAisles.length == 0"
                         @update:model-value="handleShelvingJobFormChange('Aisle')"
+                        aria-label="aisle"
                       />
                     </div>
                   </div>
@@ -286,6 +293,7 @@
                     :placeholder="'Select Ladder'"
                     :disabled="renderSideLadders.length == 0"
                     @update:model-value="handleShelvingJobFormChange('Ladder')"
+                    aria-label="ladder"
                   />
                 </div>
               </template>
@@ -314,6 +322,7 @@
                   option-label="name"
                   :placeholder="'Select Building'"
                   @update:model-value="handleShelvingJobFormChange('Building')"
+                  aria-label="building"
                 />
               </div>
             </div>

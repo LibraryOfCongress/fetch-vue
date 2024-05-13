@@ -52,7 +52,7 @@
                 <label class="text-body1">Status:</label>
                 <p
                   class="text-body1 outline"
-                  :class="[ job.status == 'Paused' ? 'text-highlight-yellow' : 'text-highlight' ]"
+                  :class="[ job.status == 'Paused' ? 'text-highlight-warning' : 'text-highlight' ]"
                 >
                   {{ job.status }}
                 </p>

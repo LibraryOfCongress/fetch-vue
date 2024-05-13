@@ -34,6 +34,7 @@
                 clickable
                 v-close-popup
                 @click="showBuildingForm = !showBuildingForm; buildingFormTitle = label;"
+                role="menuitem"
               >
                 <q-item-section>
                   <q-item-label>
@@ -64,6 +65,7 @@
                 clickable
                 v-close-popup
                 @click="showBulkUploadForm = !showBulkUploadForm;"
+                role="menuitem"
               >
                 <q-item-section>
                   <q-item-label>
@@ -77,6 +79,7 @@
                 clickable
                 v-close-popup
                 @click="showBuildingForm = !showBuildingForm;"
+                role="menuitem"
               >
                 <q-item-section>
                   <q-item-label>
@@ -143,6 +146,7 @@
       v-if="showBuildingForm"
       :title="buildingFormTitle == '' ? 'Create Location Hierarchy' : `Add New ${buildingFormTitle}`"
       @reset="resetBuildingForm"
+      aria-label="newBuildingModal"
     >
       <template #main-content>
         <q-card-section class="row items-end">
@@ -166,6 +170,7 @@
               option-label="name"
               :placeholder="'Select Building'"
               @update:model-value="handleBuildingFormChange('Building')"
+              aria-label="building"
             />
           </div>
 
@@ -191,6 +196,7 @@
               :placeholder="'Select Module'"
               :disabled="selectedBuildingModules.length == 0"
               @update:model-value="handleBuildingFormChange('Module')"
+              aria-label="module"
             />
           </div>
 
@@ -217,6 +223,7 @@
                 :placeholder="'Select Aisle'"
                 :disabled="selectedBuildingOrModuleAisles.length == 0"
                 @update:model-value="handleBuildingFormChange('Aisle')"
+                aria-label="aisle"
               />
             </div>
           </div>
@@ -259,12 +266,13 @@
               option-label="id"
               :placeholder="'Select Ladder'"
               :disabled="selectedAisleLadders.length == 0"
+              aria-label="ladder"
             />
           </div>
         </q-card-section>
       </template>
 
-      <template #footer-content>
+      <template #footer-content="{ hideModal }">
         <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
           <q-btn
             no-caps
@@ -274,7 +282,7 @@
             class="text-body1 full-width"
             :disabled="!isBuildingFormValid"
             :loading="appActionIsLoadingData"
-            @click="submitBuildingForm"
+            @click="submitBuildingForm(); hideModal();"
           />
 
           <q-space class="q-mx-xs" />
@@ -284,7 +292,7 @@
             no-caps
             label="Cancel"
             class="text-body1 full-width"
-            @click="resetBuildingForm"
+            @click="hideModal"
           />
         </q-card-section>
       </template>
@@ -295,6 +303,7 @@
       v-if="showBulkUploadForm"
       title="Bulk Upload File(s)"
       @reset="resetBulkUploadForm"
+      aria-label="bulkEditModal"
     >
       <template #main-content>
         <q-card-section class="row items-end">
@@ -341,6 +350,7 @@
               option-label="name"
               :placeholder="'Select Building'"
               @update:model-value="handleBuildingFormChange('Building')"
+              aria-label="building"
             />
           </div>
 
@@ -358,6 +368,7 @@
               :placeholder="'Select Module'"
               :disabled="selectedBuildingModules.length == 0"
               @update:model-value="handleBuildingFormChange('Module')"
+              aria-label="module"
             />
           </div>
 
@@ -376,6 +387,7 @@
                 :placeholder="'Select Aisle'"
                 :disabled="selectedBuildingOrModuleAisles.length == 0"
                 @update:model-value="handleBuildingFormChange('Aisle')"
+                aria-label="aisle"
               />
             </div>
           </div>
@@ -409,12 +421,13 @@
               option-label="id"
               :placeholder="'Select Ladder'"
               :disabled="selectedAisleLadders.length == 0"
+              aria-label="ladder"
             />
           </div>
         </q-card-section>
       </template>
 
-      <template #footer-content>
+      <template #footer-content="{ hideModal }">
         <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
           <q-btn
             no-caps
@@ -424,7 +437,7 @@
             class="text-body1 full-width"
             :disabled="!isBulkUploadValid"
             :loading="appActionIsLoadingData"
-            @click="submitBulkUploadForm"
+            @click="submitBulkUploadForm(); hideModal();"
           />
 
           <q-space class="q-mx-xs" />
@@ -434,7 +447,7 @@
             no-caps
             label="Cancel"
             class="text-body1 full-width"
-            @click="resetBulkUploadForm"
+            @click="hideModal"
           />
         </q-card-section>
       </template>

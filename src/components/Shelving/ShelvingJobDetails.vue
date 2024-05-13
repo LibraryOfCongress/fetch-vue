@@ -54,6 +54,7 @@
             :options="users"
             option-value="id"
             option-label="first_name"
+            aria-label="user"
           >
             <template #no-option>
               <q-item>
@@ -88,7 +89,7 @@
           </label>
           <p
             class="text-body1"
-            :class="shelvingJob.status == 'Created' || shelvingJob.status == 'Completed' ? 'outline text-highlight' : shelvingJob.status == 'Paused' || shelvingJob.status == 'Running' ? 'outline text-highlight-yellow' : null"
+            :class="shelvingJob.status == 'Created' || shelvingJob.status == 'Completed' ? 'outline text-highlight' : shelvingJob.status == 'Paused' || shelvingJob.status == 'Running' ? 'outline text-highlight-warning' : null"
           >
             {{ shelvingJob.status }}
           </p>
@@ -181,8 +182,8 @@
 
     <q-space class="divider q-my-xs-lg q-my-md-xl" />
 
-    <div class="row">
-      <div class="col-grow">
+    <div class="row q-mb-xs-xl q-mb-sm-none">
+      <div class="col-grow q-mb-xs-md q-mb-sm-none">
         <EssentialTable
           :table-columns="shelfTableColumns"
           :table-visible-columns="shelfTableVisibleColumns"
@@ -248,6 +249,7 @@
       title="Be Aware"
       text="Scan the containers to begin the shelving process. (the process can be done offline)"
       :show-actions="false"
+      aria-label="scanContainerAlert"
     >
       <template #footer-content="{ hideModal }">
         <q-card-section
@@ -278,6 +280,7 @@
       text="Are you sure you want to complete the job?"
       :show-actions="false"
       @reset="showCompleteJobModal = false"
+      aria-label="confirmationModal"
     >
       <template #footer-content="{ hideModal }">
         <q-card-section class="row no-wrap justify-between items-center q-pt-sm">

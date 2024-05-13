@@ -22,10 +22,37 @@
         </div>
       </q-toolbar>
 
+      <!-- barcode scan banner -->
+      <q-banner
+        v-if="barcodeScanAllowed"
+        class="nav-banner bg-color-gray-light text-color-black"
+        inline-actions
+        dense
+      >
+        <q-icon
+          name="mdi-barcode-scan"
+          color="black"
+          size="25px"
+          class="q-mr-sm"
+        />
+        Barcode scanning is enabled.
+        <template #action>
+          <q-btn
+            dense
+            no-caps
+            unelevated
+            color="negative"
+            label="Disable Scan"
+            class="text-body1"
+            @click="barcodeScanAllowed = false"
+          />
+        </template>
+      </q-banner>
+
       <!-- offline banner -->
       <q-banner
         v-if="showOfflineBanner"
-        class="offline-banner bg-color-gray-light text-color-black"
+        class="nav-banner bg-color-gray-light text-color-black"
         inline-actions
         dense
       >
@@ -41,7 +68,7 @@
       <!-- online banner if user has pending api requests -->
       <q-banner
         v-if="appPendingSync && !appIsOffline"
-        class="offline-banner bg-color-gray-light text-color-black"
+        class="nav-banner bg-color-gray-light text-color-black"
         inline-actions
         dense
       >
@@ -54,6 +81,8 @@
         You are back online! There are pending requests to be sent.
         <template #action>
           <q-btn
+            dense
+            no-caps
             unelevated
             :loading="syncInProgress == 'In Progress'"
             color="positive"
@@ -71,11 +100,14 @@
       show-if-above
       class="bg-primary"
     >
-      <q-list class="nav-list">
+      <q-list
+        class="nav-list"
+      >
         <q-item
           class="q-mb-lg align-center"
           clickable
           tag="a"
+          role="link"
           :to="'/'"
         >
           <q-item-section>
@@ -87,7 +119,7 @@
           </q-item-section>
 
           <q-item-section>
-            <q-item-label class="text-secondary text-bold">
+            <q-item-label class="text-white text-bold">
               FETCH LOGO
             </q-item-label>
           </q-item-section>
@@ -118,8 +150,9 @@
       title="Warning"
       text="You have pending requests. Are you sure you want to leave?"
       :show-actions="false"
+      aria-label="navigationGuardAlert"
     >
-      <template #footer-content>
+      <template #footer-content="{ hideModal }">
         <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
           <q-btn
             no-caps
@@ -127,7 +160,7 @@
             color="negative"
             label="Yes, Ignore Requests"
             class="text-body1 full-width"
-            @click="handleRouteSyncGuard(appSyncGuard.name)"
+            @click="handleRouteSyncGuard(appSyncGuard.name); hideModal();"
           />
           <q-space class="q-mx-xs" />
           <q-btn
@@ -135,7 +168,7 @@
             no-caps
             label="Cancel"
             class="text-body1 full-width"
-            @click="appSyncGuard = null"
+            @click="appSyncGuard = null; hideModal();"
           />
         </q-card-section>
       </template>
@@ -148,6 +181,7 @@ import { onMounted, ref, watch, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
+import { useBarcodeStore } from '@/stores/barcode-store'
 import { useUserStore } from '@/stores/user-store'
 import { useBackgroundSyncHandler } from '@/composables/useBackgroundSyncHandler.js'
 import EssentialLink from '@/components/EssentialLink.vue'
@@ -173,6 +207,7 @@ const {
   appPendingSync,
   appSyncGuard
 } = storeToRefs(useGlobalStore())
+const { barcodeScanAllowed } = storeToRefs(useBarcodeStore())
 const { userData } = storeToRefs(useUserStore())
 
 // Local Data
@@ -330,6 +365,10 @@ const handleRouteSyncGuard = async (pathName) => {
         height: auto;
       }
     }
+  }
+
+  &-banner {
+    border-top: 1px solid $secondary;
   }
 }
 </style>

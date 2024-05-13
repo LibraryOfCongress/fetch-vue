@@ -74,7 +74,7 @@
                 <label class="text-body1">Status:</label>
                 <p
                   class="text-body1 outline"
-                  :class="[ job.status == 'Paused' ? 'text-highlight-yellow' : 'text-highlight' ]"
+                  :class="[ job.status == 'Paused' ? 'text-highlight-warning' : 'text-highlight' ]"
                 >
                   {{ job.status }}
                 </p>
@@ -90,8 +90,9 @@
       v-if="showAccessionModal"
       :show-actions="false"
       @reset="reset"
+      aria-label="AccessionJobCreationModal"
     >
-      <template #header-content>
+      <template #header-content="{ hideModal }">
         <q-card-section class="row items-center justify-between q-pb-none">
           <h2
             v-if="accessionJob.trayed == null"
@@ -116,7 +117,8 @@
             flat
             round
             dense
-            @click="reset"
+            aria-label="Close"
+            @click="hideModal"
           />
         </q-card-section>
       </template>
@@ -160,6 +162,7 @@
                 option-value="id"
                 option-label="name"
                 :placeholder="'Select Owner'"
+                aria-label="owner"
               />
             </div>
 
@@ -177,6 +180,7 @@
                 option-value="id"
                 option-label="name"
                 :placeholder="'Select Size Class'"
+                aria-label="containerSize"
               />
             </div>
 
@@ -191,13 +195,14 @@
                 option-value="id"
                 option-label="name"
                 :placeholder="'Select Media Type'"
+                aria-label="mediaType"
               />
             </div>
           </q-card-section>
         </template>
       </template>
 
-      <template #footer-content>
+      <template #footer-content="{ hideModal }">
         <q-card-section
           v-if="accessionJob.trayed !== null"
           class="row no-wrap justify-between items-center q-pt-sm"
@@ -210,7 +215,7 @@
             class="text-body1 full-width"
             :disable="!canSubmitAccessionJob"
             :loading="appActionIsLoadingData"
-            @click="submitAccessionJob"
+            @click="submitAccessionJob(); hideModal();"
           />
 
           <q-space class="q-mx-xs" />
@@ -220,7 +225,7 @@
             no-caps
             label="Cancel"
             class="accession-modal-btn text-body1 full-width"
-            @click="reset"
+            @click="hideModal"
           />
         </q-card-section>
       </template>

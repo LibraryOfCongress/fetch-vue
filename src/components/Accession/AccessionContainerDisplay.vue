@@ -21,7 +21,7 @@
             v-if="!accessionJob.trayed"
             :options="[{
               text: `${selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'}`,
-              disabled: accessionJob.trayed && !accessionContainer.id || accessionJob.status == 'Paused'
+              disabled: accessionJob.trayed && !accessionContainer.id || accessionJob.status == 'Paused' || barcodeScanAllowed
             }, {
               text: 'Delete Items',
               disabled: selectedItems.length == 0 || accessionJob.status == 'Paused'
@@ -36,7 +36,7 @@
               disabled: !accessionContainer.id || !allItemsVerified || accessionJob.status == 'Paused'
             }, {
               text: `${selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'}`,
-              disabled: accessionJob.trayed && !accessionContainer.id || accessionJob.status == 'Paused'
+              disabled: accessionJob.trayed && !accessionContainer.id || accessionJob.status == 'Paused' || barcodeScanAllowed
             }, {
               text: 'Delete Items',
               disabled: selectedItems.length == 0 || accessionJob.status == 'Paused'
@@ -87,7 +87,7 @@
             color="accent"
             :label="selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'"
             class="btn-no-wrap text-body1 q-mr-sm-md"
-            :disabled="accessionJob.trayed && !accessionContainer.id || accessionJob.status == 'Paused'"
+            :disabled="accessionJob.trayed && !accessionContainer.id || accessionJob.status == 'Paused' || barcodeScanAllowed"
             @click="setBarcodeEditDisplay"
           />
           <q-btn
@@ -142,8 +142,8 @@
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-12">
+      <div class="row q-mb-xs-xl q-mb-sm-none">
+        <div class="col-12 q-mb-xs-md q-mb-sm-none">
           <EssentialTable
             ref="accessionTableComponent"
             :table-columns="accessionTableColumns"
@@ -199,6 +199,7 @@
     v-if="showBarcodeEdit"
     :title="selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'"
     @reset="resetBarcodeEdit"
+    aria-label="barcodeEditModal"
   >
     <template #main-content>
       <q-card-section class="column no-wrap items-center">
@@ -214,7 +215,7 @@
       </q-card-section>
     </template>
 
-    <template #footer-content>
+    <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
         <q-btn
           no-caps
@@ -224,7 +225,7 @@
           class="text-body1 full-width"
           :disabled="!manualBarcodeEdit"
           :loading="appActionIsLoadingData"
-          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); resetBarcodeEdit();"
+          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); hideModal();"
         />
 
         <q-space class="q-mx-xs" />
@@ -234,7 +235,7 @@
           no-caps
           label="Cancel"
           class="text-body1 full-width"
-          @click="resetBarcodeEdit"
+          @click="hideModal"
         />
       </q-card-section>
     </template>
@@ -247,6 +248,7 @@
     :text="showConfirmation.text"
     :show-actions="false"
     @reset="showConfirmation = null"
+    aria-label="confirmationModal"
   >
     <template #footer-content="{ hideModal }">
       <q-card-section
@@ -322,6 +324,7 @@
     :title="'Select Tray'"
     :show-actions="false"
     @reset="showNextTrayModal = false"
+    aria-label="nextTrayModal"
   >
     <template #main-content="{ hideModal }">
       <q-card-section class="row accession-next-tray">
@@ -329,6 +332,7 @@
           v-for="tray in accessionJob.trays"
           :key="tray.id"
           class="col-12 q-mb-sm"
+          role="list"
         >
           <q-item class="accession-next-tray-item">
             <div class="col-12 text-left">
@@ -398,7 +402,7 @@ const {
   patchBarcode,
   deleteBarcode
 } = useBarcodeStore()
-const { barcodeDetails } = storeToRefs(useBarcodeStore())
+const { barcodeDetails, barcodeScanAllowed } = storeToRefs(useBarcodeStore())
 const {
   resetAccessionContainer,
   patchAccessionJob,

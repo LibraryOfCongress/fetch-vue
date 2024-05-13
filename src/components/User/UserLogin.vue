@@ -15,7 +15,7 @@
       :class="$style['authentication-menu']"
     >
       <q-list>
-        <q-item>
+        <q-item role="menuitem">
           <q-item-section>
             <div class="form-group">
               <label class="form-group-label">
@@ -29,7 +29,10 @@
             </div>
           </q-item-section>
         </q-item>
-        <q-item class="q-pt-none">
+        <q-item
+          class="q-pt-none"
+          role="menuitem"
+        >
           <q-item-section>
             <div class="form-group">
               <label class="form-group-label">
@@ -52,7 +55,7 @@
             </div>
           </q-item-section>
         </q-item>
-        <q-item>
+        <q-item role="menuitem">
           <q-btn
             no-caps
             unelevated

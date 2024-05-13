@@ -4,6 +4,7 @@
     :position="'right'"
     full-height
     :class="$style.overlay"
+    aria-label="informationalOverlay"
   >
     <q-card class="item-content">
       <q-card-section
@@ -115,7 +116,7 @@
           <label class="item-details-label">
             Condition:
           </label>
-          <p class="item-details-text text-highlight-red">
+          <p class="item-details-text text-highlight-negative">
             {{ itemData.condition }}
           </p>
         </div>
@@ -202,7 +203,7 @@
         </h1>
 
         <div class="item-details">
-          <p class="item-details-text text-highlight-yellow q-mr-sm">
+          <p class="item-details-text text-highlight-warning q-mr-sm">
             Requested
           </p>
           <p class="item-details-text outline">
