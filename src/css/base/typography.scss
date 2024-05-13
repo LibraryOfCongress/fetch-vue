@@ -27,32 +27,3 @@
   line-height: 1.2rem;
   letter-spacing: 0.03333em;
 }
-
-.text-highlight {
-  padding: 1px 5px;
-  color: $positive;
-  background-color: rgba($positive, .2);
-  border-color: $positive !important;
-  border-radius: 2px;
-
-  &-red {
-    padding: 1px 5px;
-    color: $negative;
-    background-color: rgba($negative, .2);
-    border-color: $negative !important;
-    border-radius: 2px;
-  }
-
-  &-yellow {
-    padding: 1px 5px;
-    color: $warning;
-    background-color: rgba($warning, .2);
-    border-color: $warning !important;
-    border-radius: 2px;
-  }
-}
-
-.text-nowrap {
-  text-wrap: nowrap;
-  white-space: nowrap;
-}

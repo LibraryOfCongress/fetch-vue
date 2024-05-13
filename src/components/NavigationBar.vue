@@ -100,11 +100,14 @@
       show-if-above
       class="bg-primary"
     >
-      <q-list class="nav-list">
+      <q-list
+        class="nav-list"
+      >
         <q-item
           class="q-mb-lg align-center"
           clickable
           tag="a"
+          role="link"
           :to="'/'"
         >
           <q-item-section>
@@ -116,7 +119,7 @@
           </q-item-section>
 
           <q-item-section>
-            <q-item-label class="text-secondary text-bold">
+            <q-item-label class="text-white text-bold">
               FETCH LOGO
             </q-item-label>
           </q-item-section>
@@ -147,8 +150,9 @@
       title="Warning"
       text="You have pending requests. Are you sure you want to leave?"
       :show-actions="false"
+      aria-label="navigationGuardAlert"
     >
-      <template #footer-content>
+      <template #footer-content="{ hideModal }">
         <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
           <q-btn
             no-caps
@@ -156,7 +160,7 @@
             color="negative"
             label="Yes, Ignore Requests"
             class="text-body1 full-width"
-            @click="handleRouteSyncGuard(appSyncGuard.name)"
+            @click="handleRouteSyncGuard(appSyncGuard.name); hideModal();"
           />
           <q-space class="q-mx-xs" />
           <q-btn
@@ -164,7 +168,7 @@
             no-caps
             label="Cancel"
             class="text-body1 full-width"
-            @click="appSyncGuard = null"
+            @click="appSyncGuard = null; hideModal();"
           />
         </q-card-section>
       </template>

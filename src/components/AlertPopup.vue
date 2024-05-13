@@ -18,6 +18,7 @@
           flat
           round
           dense
+          aria-label="dismissAlert"
           @click="emit('reset')"
         />
       </template>
@@ -29,6 +30,7 @@
       v-model="showAlertModal"
       persistent
       @hide="emit('reset')"
+      aria-label="alertModal"
     >
       <q-card
         class="alert-modal"
@@ -53,6 +55,7 @@
             label="Cancel"
             color="negative"
             class="text-body1 full-width"
+            aria-label="dismissAlert"
             @click="showAlertModal = false"
           />
         </q-card-section>

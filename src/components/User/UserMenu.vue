@@ -13,24 +13,33 @@
     >
       <q-list style="min-width: 200px">
         <q-item
-          tag="label"
-          v-ripple
+          class="q-pa-none"
+          role="menuitem"
         >
-          <q-item-section>
-            <q-item-label class="text-body1 text-nowrap">
-              Toggle Barcode Scan
-            </q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-toggle
-              name="barcode_scan_active"
-              v-model="barcodeScanAllowed"
-            />
-          </q-item-section>
+          <q-item
+            tag="label"
+            v-ripple
+            class="full-width"
+            role=""
+          >
+            <q-item-section>
+              <q-item-label class="text-body1 text-nowrap">
+                Toggle Barcode Scan
+              </q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-toggle
+                name="barcode_scan_active"
+                v-model="barcodeScanAllowed"
+                aria-label="barcodeToggle"
+              />
+            </q-item-section>
+          </q-item>
         </q-item>
         <q-item
           dense
           class="items-center q-pb-sm"
+          role="menuitem"
         >
           <div class="col-8">
             <p class="text-body2 text-color-gray-dark">
@@ -43,11 +52,12 @@
               type="number"
               v-model="barcodeInputDelay"
               :disabled="barcodeScanAllowed"
+              aria-label="barcodeInputDelay"
             />
           </div>
         </q-item>
         <q-space class="divider" />
-        <q-item>
+        <q-item role="menuitem">
           <q-item-section>
             <h1 class="text-h6">
               {{ userData.first_name }} {{ userData.last_name }}
@@ -64,6 +74,7 @@
           clickable
           v-close-popup
           @click="handleOptions(opt.text)"
+          role="menuitem"
         >
           <q-item-section>
             <q-item-label class="flex items-center text-body1">

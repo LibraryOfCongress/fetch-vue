@@ -153,6 +153,7 @@
       v-if="showOwnerTierCreation"
       title="Create A New Owner Tier"
       @reset="reset"
+      aria-label="newOwnerTierModal"
     >
       <template #main-content>
         <q-card-section
@@ -165,7 +166,7 @@
         </q-card-section>
       </template>
 
-      <template #footer-content>
+      <template #footer-content="{ hideModal }">
         <q-card-section class="row no-wrap justify-between items-center">
           <q-btn
             no-caps
@@ -173,7 +174,7 @@
             color="accent"
             label="Confirm"
             class="text-body1 full-width"
-            @click="createNewOwnerTier"
+            @click="createNewOwnerTier(); hideModal();"
           />
 
           <q-space class="q-mx-xs" />
@@ -183,7 +184,7 @@
             no-caps
             label="Cancel"
             class="text-body1 full-width"
-            @click="reset"
+            @click="hideModal"
           />
         </q-card-section>
       </template>

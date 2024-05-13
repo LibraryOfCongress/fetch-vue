@@ -16,6 +16,7 @@
             option-value="id"
             option-label="name"
             @update:model-value="handleShelfDataChange('Module')"
+            aria-label="module"
           >
             <template #no-option>
               <q-item>
@@ -43,6 +44,7 @@
             option-value="id"
             option-label="id"
             @update:model-value="handleShelfDataChange('Aisle')"
+            aria-label="aisle"
           >
             <template #no-option>
               <q-item>
@@ -90,6 +92,7 @@
             option-value="id"
             option-label="id"
             @update:model-value="handleShelfDataChange('Ladder')"
+            aria-label="ladder"
           >
             <template #no-option>
               <q-item>
@@ -165,25 +168,13 @@
     </div>
 
     <!-- Create Shelf Modal -->
-    <q-dialog
-      :persistent="true"
-      v-model="showShelfModal"
+    <PopupModal
+      v-if="showShelfModal"
+      :title="shelfItemDetails.id ? 'Edit Shelf' : 'Add Shelf'"
+      @reset="resetModal"
+      aria-label="addOrEditShelfModal"
     >
-      <q-card class="building-modal">
-        <q-card-section class="row items-center justify-between q-pb-none">
-          <h2 class="text-h6">
-            {{ shelfItemDetails.id ? 'Edit Shelf' : 'Add Shelf' }}
-          </h2>
-
-          <q-btn
-            icon="close"
-            flat
-            round
-            dense
-            @click="resetModal"
-          />
-        </q-card-section>
-
+      <template #main-content>
         <q-card-section class="row items-center">
           <div class="form-group q-mb-md">
             <label class="form-group-label">
@@ -205,6 +196,7 @@
               option-value="id"
               option-label="name"
               :placeholder="'Select Owner'"
+              aria-label="owner"
             />
           </div>
 
@@ -218,6 +210,7 @@
               option-value="id"
               option-label="name"
               :placeholder="'Select Container Size'"
+              aria-label="containerSize"
             />
           </div>
 
@@ -277,10 +270,13 @@
               option-value="id"
               option-label="name"
               :placeholder="'Select Shelf Barcode'"
+              aria-label="shelfBarcode"
             />
           </div>
         </q-card-section>
+      </template>
 
+      <template #footer-content="{ hideModal }">
         <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
           <q-btn
             no-caps
@@ -288,7 +284,7 @@
             color="accent"
             :label="shelfItemDetails.id ? 'Update' : 'Create'"
             class="text-body1 full-width"
-            @click="resetModal"
+            @click="hideModal"
           />
 
           <q-space class="q-mx-xs" />
@@ -298,11 +294,11 @@
             no-caps
             label="Cancel"
             class="building-modal-btn text-body1 full-width"
-            @click="resetModal"
+            @click="hideModal"
           />
         </q-card-section>
-      </q-card>
-    </q-dialog>
+      </template>
+    </PopupModal>
   </div>
 </template>
 
@@ -317,6 +313,7 @@ import SelectInput from 'src/components/SelectInput.vue'
 import TextInput from 'src/components/TextInput.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
+import PopupModal from '@/components/PopupModal.vue'
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()

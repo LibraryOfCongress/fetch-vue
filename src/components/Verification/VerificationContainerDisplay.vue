@@ -217,6 +217,7 @@
     v-if="showBarcodeEdit"
     :title="selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'"
     @reset="resetBarcodeEdit"
+    aria-label="barcodeEditModal"
   >
     <template #main-content>
       <q-card-section class="column no-wrap items-center">
@@ -232,7 +233,7 @@
       </q-card-section>
     </template>
 
-    <template #footer-content>
+    <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
         <q-btn
           no-caps
@@ -242,7 +243,7 @@
           class="text-body1 full-width"
           :disabled="!manualBarcodeEdit"
           :loading="appActionIsLoadingData"
-          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); resetBarcodeEdit();"
+          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); hideModal();"
         />
 
         <q-space class="q-mx-xs" />
@@ -252,7 +253,7 @@
           no-caps
           label="Cancel"
           class="text-body1 full-width"
-          @click="resetBarcodeEdit"
+          @click="hideModal"
         />
       </q-card-section>
     </template>
@@ -265,6 +266,7 @@
     :text="showConfirmation.text"
     :show-actions="false"
     @reset="showConfirmation = null"
+    aria-label="confirmationModal"
   >
     <template #footer-content="{ hideModal }">
       <q-card-section
@@ -340,6 +342,7 @@
     :title="'Select Tray'"
     :show-actions="false"
     @reset="showNextTrayModal = false"
+    aria-label="nextTrayModal"
   >
     <template #main-content="{ hideModal }">
       <q-card-section class="row verification-next-tray">
@@ -347,6 +350,7 @@
           v-for="tray in verificationJob.trays"
           :key="tray.id"
           class="col-12 q-mb-sm"
+          role="list"
         >
           <q-item
             v-if="!verificationContainer.id"
@@ -365,7 +369,7 @@
             <div class="col-auto">
               <p
                 class="text-body1 outline"
-                :class="tray.collection_verified ? 'text-highlight' : !tray.collection_verified && tray.scanned_for_verification ? 'text-highlight-yellow' : 'text-highlight-red'"
+                :class="tray.collection_verified ? 'text-highlight' : !tray.collection_verified && tray.scanned_for_verification ? 'text-highlight-warning' : 'text-highlight-negative'"
               >
                 {{ tray.collection_verified ? 'Completed' : !tray.collection_verified && tray.scanned_for_verification ? 'In Progress' : 'Not Started' }}
               </p>
@@ -391,33 +395,37 @@
               </p>
             </div>
           </q-item>
-          <q-btn
+          <q-item
             v-else
-            no-caps
-            outline
-            color="secondary"
-            class="verification-next-tray-action full-width"
-            @click="setNextVerificationTray(); hideModal();"
+            class="q-pa-none"
           >
-            <div class="col-12 text-left">
-              <p class="text-h6 text-color-black">
-                Tray #: {{ tray.barcode?.value }}
-              </p>
-            </div>
-            <div class="col-grow text-left">
-              <p class="text-body1">
-                Trayed
-              </p>
-            </div>
-            <div class="col-auto">
-              <p
-                class="text-body1 outline"
-                :class="tray.collection_verified ? 'text-highlight' : !tray.collection_verified && tray.scanned_for_verification ? 'text-highlight-yellow' : 'text-highlight-red'"
-              >
-                {{ tray.collection_verified ? 'Completed' : !tray.collection_verified && tray.scanned_for_verification ? 'In Progress' : 'Not Started' }}
-              </p>
-            </div>
-          </q-btn>
+            <q-btn
+              no-caps
+              outline
+              color="secondary"
+              class="verification-next-tray-action full-width"
+              @click="setNextVerificationTray(); hideModal();"
+            >
+              <div class="col-12 text-left">
+                <p class="text-h6 text-color-black">
+                  Tray #: {{ tray.barcode?.value }}
+                </p>
+              </div>
+              <div class="col-grow text-left">
+                <p class="text-body1">
+                  Trayed
+                </p>
+              </div>
+              <div class="col-auto">
+                <p
+                  class="text-body1 outline"
+                  :class="tray.collection_verified ? 'text-highlight' : !tray.collection_verified && tray.scanned_for_verification ? 'text-highlight-warning' : 'text-highlight-negative'"
+                >
+                  {{ tray.collection_verified ? 'Completed' : !tray.collection_verified && tray.scanned_for_verification ? 'In Progress' : 'Not Started' }}
+                </p>
+              </div>
+            </q-btn>
+          </q-item>
         </div>
       </q-card-section>
     </template>
