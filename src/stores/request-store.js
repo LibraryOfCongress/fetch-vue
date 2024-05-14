@@ -85,7 +85,7 @@ export const useRequestStore = defineStore('request-store', {
     async getRequestJobList (filter) {
       try {
         // TODO setup api endpoint to get request job list using a query param or seperate endpoint to differentiate batch requests vs single item requests
-        // const res = await this.$api.get(inventoryServiceApi.request)
+        // const res = await this.$api.get(inventoryServiceApi.requests)
         // this.requestJobList = res.data.items
         if (filter == 'request_view') {
           this.requestJobList = [
@@ -126,7 +126,7 @@ export const useRequestStore = defineStore('request-store', {
     async getRequestJob (id) {
       try {
         // TODO setup api endpoint to get request job details
-        // const res = await this.$api.get(`${inventoryServiceApi.request}${id}`)
+        // const res = await this.$api.get(`${inventoryServiceApi.requests}${id}`)
         // this.requestJob = res.data
         this.requestJob = {
           id,
@@ -167,7 +167,7 @@ export const useRequestStore = defineStore('request-store', {
     },
     async postRequestJob (payload) {
       try {
-        // const res = await this.$api.post(inventoryServiceApi.request, payload)
+        // const res = await this.$api.post(inventoryServiceApi.requests, payload)
         // this.requestJob = res.data
         console.log('creating request job', payload)
       } catch (error) {
@@ -177,7 +177,7 @@ export const useRequestStore = defineStore('request-store', {
     async getRequestBatchJob (id) {
       try {
         // TODO setup api endpoint to get request batch job details
-        // const res = await this.$api.get(`${inventoryServiceApi.request}${id}`)
+        // const res = await this.$api.get(`${inventoryServiceApi.requests}${id}`)
         // this.requestBatchJob  = res.data
         this.requestBatchJob = {
           id,

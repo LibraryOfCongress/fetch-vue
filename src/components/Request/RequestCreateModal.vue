@@ -69,10 +69,10 @@
             </label>
             <SelectInput
               v-model="manualRequestForm.priority"
-              :options="buildings"
-              option-type="buildings"
+              :options="requestsPriorities"
+              option-type="requestsPriorities"
               option-value="id"
-              option-label="name"
+              option-label="value"
               :placeholder="'Select Priority'"
             />
           </div>
@@ -84,10 +84,10 @@
             </label>
             <SelectInput
               v-model="manualRequestForm.request_type_id"
-              :options="buildings"
-              option-type="requestType"
+              :options="requestsTypes"
+              option-type="requestsTypes"
               option-value="id"
-              option-label="name"
+              option-label="type"
               :placeholder="'Select Request Type'"
             />
           </div>
@@ -99,8 +99,8 @@
             </label>
             <SelectInput
               v-model="manualRequestForm.building_id"
-              :options="buildings"
-              option-type="buildings"
+              :options="requestsLocations"
+              option-type="requestsLocations"
               option-value="id"
               option-label="name"
               :placeholder="'Select Delivery Location'"
@@ -193,7 +193,11 @@ const { compiledBarCode } = useBarcodeScanHandler()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
-const { buildings } = storeToRefs(useOptionStore())
+const {
+  requestsTypes,
+  requestsPriorities,
+  requestsLocations
+} = storeToRefs(useOptionStore())
 const { postRequestJob } = useRequestStore()
 
 // Local Data
