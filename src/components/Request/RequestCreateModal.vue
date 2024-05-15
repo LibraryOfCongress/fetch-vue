@@ -57,7 +57,7 @@
             </label>
             <TextInput
               v-model="manualRequestForm.requestor_name"
-              placeholder="Enter Requestor Nanme"
+              placeholder="Enter Requestor Name"
             />
           </div>
         </div>
@@ -68,7 +68,7 @@
               Priority
             </label>
             <SelectInput
-              v-model="manualRequestForm.priority"
+              v-model="manualRequestForm.priority_id"
               :options="requestsPriorities"
               option-type="requestsPriorities"
               option-value="id"
@@ -167,6 +167,7 @@
 
 <script setup>
 import { ref, inject, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useRequestStore } from '@/stores/request-store'
@@ -176,6 +177,8 @@ import PopupModal from '@/components/PopupModal.vue'
 import TextInput from '@/components/TextInput.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import FileUploadInput from '@/components/FileUploadInput.vue'
+
+const router = useRouter()
 
 // Props
 const mainProps = defineProps({
@@ -199,6 +202,7 @@ const {
   requestsLocations
 } = storeToRefs(useOptionStore())
 const { postRequestJob } = useRequestStore()
+const { requestJob } = storeToRefs(useRequestStore())
 
 // Local Data
 const requestFile = ref([])
@@ -208,7 +212,7 @@ const manualRequestForm = ref({
   requestor_name: null,
   request_type_id: null,
   building_id: null,
-  priority: null
+  priority_id: null
 })
 const isCreateRequestjobFormValid = computed(() => {
   let formIsValid = false
@@ -216,7 +220,7 @@ const isCreateRequestjobFormValid = computed(() => {
     // if any value in our form is null or empty form is not valid except for priority since thats optional
     const optionalFields = [
       'external_request_id',
-      'priority'
+      'priority_id'
     ]
     formIsValid = Object.keys(manualRequestForm.value).every(key => optionalFields.includes(key) || (manualRequestForm.value[key] !== null && manualRequestForm.value[key] !== ''))
   } else {
@@ -239,27 +243,33 @@ watch(compiledBarCode, (barcode) => {
 const createRequestJob = async () => {
   try {
     appActionIsLoadingData.value = true
-    // TODO setup api call to sumbit request job by type
     let payload
     if (mainProps.type == 'manual') {
       payload = {
         request_type_id: manualRequestForm.value.request_type_id,
         external_request_id: manualRequestForm.value.external_request_id,
         requestor_name: manualRequestForm.value.requestor_name,
-        barcode_value: manualRequestForm.value.barcode, //TODO this is currently id in api needs to change to value
+        barcode_value: manualRequestForm.value.barcode,
         delivery_location_id: manualRequestForm.value.building_id,
-        priority: manualRequestForm.value.priority //TODO this is missing from the api endpoint
+        priority_id: manualRequestForm.value.priority_id
       }
-      console.log(manualRequestForm.value)
+      await postRequestJob(payload)
     } else {
+      // TODO setup api call to sumbit request batch job
       payload = {
         request_type_id: 'file',
-        request_file: requestFile.value //TODO this is missing from the api endpoint
+        request_file: requestFile.value
       }
       console.log(requestFile.value)
-    }
 
-    await postRequestJob(payload)
+      // route the user to the batch request detail page
+      router.push({
+        name: 'request',
+        params: {
+          jobId: requestJob.value.id
+        }
+      })
+    }
   } catch (error) {
     handleAlert({
       type: 'error',

@@ -152,58 +152,6 @@
               :button-two-outline="true"
               @button-two-click="showCreatePickList = false; showAddPickList = false; clearTableSelection();"
             />
-            <!-- <div
-              class="col-xs-12 col-sm-auto col-md-auto q-mb-xs-md q-mb-sm-none"
-            >
-              <div class="row">
-                <div class="col-xs-12 col-sm-auto">
-                  <ToggleButtonInput
-                    v-model="requestDisplayType"
-                    :options="[
-                      {label: 'Request View', value: 'request_view'},
-                      {label: 'Batch View', value: 'batch_view'}
-                    ]"
-                    @update:model-value="clearTableSelection(); loadRequestJobs();"
-                    class="text-no-wrap"
-                  />
-                </div>
-
-                <div
-                  v-if="showCreatePickList || showAddPickList && currentScreenSize !== 'xs'"
-                  class="col-auto q-ml-auto"
-                >
-                  <q-btn
-                    no-caps
-                    unelevated
-                    :color="showCreatePickList ? 'accent' : 'positive'"
-                    :label="`(${selectedRequestItems.length}) ${showCreatePickList ? 'Create Pick List' : 'Add To Pick List'}`"
-                    class="btn-no-wrap text-body1 q-mr-xs full-height"
-                    :disabled="selectedRequestItems.length == 0"
-                    :loading="appActionIsLoadingData"
-                    @click="showCreatePickList ? createPickListJob() : updatePickListJob()"
-                  />
-                  <q-btn
-                    no-caps
-                    outline
-                    label="Cancel"
-                    class="btn-no-wrap text-body1 q-ml-xs full-height"
-                    @click="showCreatePickList = false; showAddPickList = false; clearTableSelection();"
-                  />
-                </div>
-                <MobileActionBar
-                  v-else-if="showCreatePickList || showAddPickList && currentScreenSize == 'xs'"
-                  button-one-color="accent"
-                  :button-one-label="`(${selectedRequestItems.length}) ${showCreatePickList ? 'Create Pick List' : 'Add To Pick List'}`"
-                  :button-one-outline="false"
-                  :button-one-loading="appActionIsLoadingData"
-                  :button-one-disabled="selectedRequestItems.length == 0"
-                  @button-one-click="showCreatePickList ? createPickListJob() : updatePickListJob()"
-                  :button-two-label="'Cancel'"
-                  :button-two-outline="true"
-                  @button-two-click="showCreatePickList = false; showAddPickList = false; clearTableSelection();"
-                />
-              </div>
-            </div> -->
           </template>
 
           <template #table-td="{ colName, value }">
@@ -309,14 +257,14 @@ const requestTableColumns = ref([
   },
   {
     name: 'request_type',
-    field: 'type',
+    field: row => row.request_type?.type,
     label: 'Request Type',
     align: 'left',
     sortable: true
   },
   {
     name: 'barcode',
-    field: row => row.barcode?.value,
+    field: row => row.item ? row.item?.barcode?.value : row.non_tray_item?.barcode?.value,
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -337,35 +285,35 @@ const requestTableColumns = ref([
   },
   {
     name: 'status',
-    field: 'status',
+    field: row => row.item ? row.item?.status : row.non_tray_item?.status,
     label: 'Status',
     align: 'left',
     sortable: true
   },
   {
     name: 'priority',
-    field: 'priority',
+    field: row => row.priority?.value,
     label: 'Priority',
     align: 'left',
     sortable: true
   },
   {
     name: 'media_type',
-    field: row => row.media_type?.name,
+    field: row => row.item ? row.item?.media_type?.name : row.non_tray_item?.media_type?.name,
     label: 'Media Type',
     align: 'left',
     sortable: true
   },
   {
     name: 'item_location',
-    field: 'item_location',
+    field: row => getItemLocation(row),
     label: 'Item Location',
     align: 'left',
     sortable: true
   },
   {
     name: 'delivery_location',
-    field: 'delivery_location',
+    field: row => row.delivery_location?.name,
     label: 'Delivery Location',
     align: 'left',
     sortable: true
@@ -477,6 +425,7 @@ const showCreateRequestByType = ref(null)
 // Logic
 const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
+const getItemLocation = inject('get-item-location')
 
 onBeforeMount(() => {
   resetRequestStore()

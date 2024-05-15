@@ -260,14 +260,14 @@ const requestTableColumns = ref([
   },
   {
     name: 'request_type',
-    field: 'type',
+    field: row => row.request_type?.type,
     label: 'Request Type',
     align: 'left',
     sortable: true
   },
   {
     name: 'barcode',
-    field: row => row.barcode?.value,
+    field: row => row.item ? row.item?.barcode?.value : row.non_tray_item?.barcode?.value,
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -288,35 +288,35 @@ const requestTableColumns = ref([
   },
   {
     name: 'status',
-    field: 'status',
+    field: row => row.item ? row.item?.status : row.non_tray_item?.status,
     label: 'Status',
     align: 'left',
     sortable: true
   },
   {
     name: 'priority',
-    field: 'priority',
+    field: row => row.priority?.value,
     label: 'Priority',
     align: 'left',
     sortable: true
   },
   {
     name: 'media_type',
-    field: row => row.media_type?.name,
+    field: row => row.item ? row.item?.media_type?.name : row.non_tray_item?.media_type?.name,
     label: 'Media Type',
     align: 'left',
     sortable: true
   },
   {
     name: 'item_location',
-    field: 'item_location',
+    field: row => getItemLocation(row),
     label: 'Item Location',
     align: 'left',
     sortable: true
   },
   {
     name: 'delivery_location',
-    field: 'delivery_location',
+    field: row => row.delivery_location?.name,
     label: 'Delivery Location',
     align: 'left',
     sortable: true
@@ -360,6 +360,7 @@ const selectedRequestItem = ref(null)
 // Logic
 const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
+const getItemLocation = inject('get-item-location')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {

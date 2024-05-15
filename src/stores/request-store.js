@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-// import inventoryServiceApi from '@/http/InventoryService.js'
+import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useRequestStore = defineStore('request-store', {
   state: () => ({
@@ -84,30 +84,12 @@ export const useRequestStore = defineStore('request-store', {
     },
     async getRequestJobList (filter) {
       try {
-        // TODO setup api endpoint to get request job list using a query param or seperate endpoint to differentiate batch requests vs single item requests
-        // const res = await this.$api.get(inventoryServiceApi.requests)
-        // this.requestJobList = res.data.items
         if (filter == 'request_view') {
-          this.requestJobList = [
-            {
-              id: 'RID-1234567',
-              barcode: {
-                value: 'RS123456'
-              },
-              create_dt: new Date().toISOString(),
-              delivery_location: 'Capitol Hill',
-              external_request_id: '09123456',
-              item_location: '57L120401',
-              media_type: {
-                name: 'Record Storage'
-              },
-              priority: 'Low',
-              requestor_name: 'John Doe',
-              status: 'On Hold',
-              type: 'General Delivery'
-            }
-          ]
+          const res = await this.$api.get(inventoryServiceApi.requests)
+          this.requestJobList = res.data.items
         } else {
+          // TODO setup api endpoint to get request batch job list
+          // this.requestJobList = []
           this.requestJobList = [
             {
               id: 1,
@@ -125,51 +107,17 @@ export const useRequestStore = defineStore('request-store', {
     },
     async getRequestJob (id) {
       try {
-        // TODO setup api endpoint to get request job details
-        // const res = await this.$api.get(`${inventoryServiceApi.requests}${id}`)
-        // this.requestJob = res.data
-        this.requestJob = {
-          id,
-          accession_dt: new Date().toISOString(),
-          arrival_dt: new Date().toISOString(),
-          barcode: {
-            value: 'RS123456'
-          },
-          building: {
-            name: 'Fort Meade'
-          },
-          create_dt: new Date().toISOString(),
-          condition: 'Do Not Send',
-          delivery_location: 'Capitol Hill',
-          dimensions: '11.5" x 8.5 in.',
-          external_request_id: '09123456',
-          item_location: '57L120401',
-          media_type: {
-            name: 'Record Storage'
-          },
-          owner: {
-            name: 'John Doe'
-          },
-          priority: 'Low',
-          requestor_name: 'John Doe',
-          status: 'On Hold',
-          size_class: {
-            name: 'RS'
-          },
-          title: 'Some Book Title',
-          type: 'General Delivery',
-          volume: 1,
-          withdrawal_dt: new Date().toISOString()
-        }
+        const res = await this.$api.get(`${inventoryServiceApi.requests}${id}`)
+        this.requestJob = res.data
       } catch (error) {
         throw error
       }
     },
     async postRequestJob (payload) {
       try {
-        // const res = await this.$api.post(inventoryServiceApi.requests, payload)
-        // this.requestJob = res.data
-        console.log('creating request job', payload)
+        await this.$api.post(inventoryServiceApi.requests, payload)
+        // refresh the requestJobList using request view filter since this endpoint only triggers from the request view tab
+        await this.getRequestJobList('request_view')
       } catch (error) {
         throw error
       }
@@ -188,37 +136,109 @@ export const useRequestStore = defineStore('request-store', {
           import_dt: new Date().toISOString(),
           items: [
             {
-              id: 'RID-3141446',
-              accession_dt: new Date().toISOString(),
-              arrival_dt: new Date().toISOString(),
-              barcode: {
-                value: 'RS123456'
+              'id': 14,
+              'request_type_id': 1,
+              'item_id': 1,
+              'non_tray_item_id': null,
+              'delivery_location_id': 1,
+              'priority_id': 1,
+              'external_request_id': '1234',
+              'requestor_name': 'admin',
+              'item': {
+                'id': 1,
+                'title': 'Lord of The Ringss',
+                'volume': 'I',
+                'condition': 'Good',
+                'size_class': {
+                  'id': 3,
+                  'name': 'Record Storage Box',
+                  'short_name': 'RS'
+                },
+                'owner': {
+                  'id': 4,
+                  'name': 'Collections & Management'
+                },
+                'accession_dt': '2024-05-14T20:48:04.953000',
+                'withdrawal_dt': '2024-05-14T20:48:04.953000',
+                'status': 'In',
+                'media_type': {
+                  'id': 2,
+                  'name': 'Sheet Music'
+                },
+                'barcode': {
+                  'id': 'ca2bbd83-e4b5-44d3-b0b7-b34ef60ee8c4',
+                  'value': 'RSBK1',
+                  'type_id': 1,
+                  'create_dt': '2024-05-14T20:37:41.486897',
+                  'update_dt': '2024-05-14T20:37:41.486883'
+                },
+                'tray': {
+                  'id': 1,
+                  'barcode': {
+                    'id': 'c783c1ff-68d4-45a2-ae5f-833666920440',
+                    'value': 'RS1',
+                    'type_id': 1,
+                    'create_dt': '2024-05-14T20:37:41.486897',
+                    'update_dt': '2024-05-14T20:37:41.486883'
+                  },
+                  'shelf_position': {
+                    'id': 25949,
+                    'shelf_id': 8650,
+                    'shelf_position_number': {
+                      'number': 2
+                    },
+                    'shelf': {
+                      'id': 8650,
+                      'ladder': {
+                        'id': 4325,
+                        'ladder_number': {
+                          'number': 31
+                        },
+                        'side': {
+                          'id': 114,
+                          'aisle': {
+                            'id': 24,
+                            'aisle_number': {
+                              'number': 4
+                            },
+                            'module': {
+                              'id': 3,
+                              'module_number': {
+                                'number': 3
+                              },
+                              'building': {
+                                'id': 1,
+                                'name': 'Fort Meade'
+                              }
+                            },
+                            'building': null
+                          },
+                          'side_orientation': {
+                            'id': 2,
+                            'name': 'Right'
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
               },
-              building: {
-                name: 'Fort Meade'
+              'non_tray_item': null,
+              'priority': {
+                'id': 1,
+                'value': 'Low'
               },
-              create_dt: new Date().toISOString(),
-              condition: 'Do Not Send',
-              delivery_location: 'Capitol Hill',
-              dimensions: '11.5" x 8.5 in.',
-              external_request_id: '09123456',
-              item_location: '57L120401',
-              media_type: {
-                name: 'Record Storage'
+              'delivery_location': {
+                'id': 1,
+                'name': 'Senator Ron McRonderson',
+                'address': '1 Imaginary St, Washington D.C. 20001'
               },
-              owner: {
-                name: 'John Doe'
+              'request_type': {
+                'id': 1,
+                'type': 'General Delivery'
               },
-              priority: 'Low',
-              requestor_name: 'John Doe',
-              status: 'On Hold',
-              size_class: {
-                name: 'RS'
-              },
-              title: 'Some Book Title',
-              type: 'General Delivery',
-              volume: 1,
-              withdrawal_dt: new Date().toISOString()
+              'create_dt': '2024-05-14T21:46:36.381890',
+              'update_dt': '2024-05-14T21:46:36.381907'
             }
           ]
         }

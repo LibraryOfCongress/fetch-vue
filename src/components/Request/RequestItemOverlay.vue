@@ -24,7 +24,7 @@
 
       <q-card-section>
         <BarcodeBox
-          :barcode="itemData.barcode.value"
+          :barcode="itemData.item ? itemData.item.barcode.value : itemData.non_tray_item.barcode.value"
         />
       </q-card-section>
 
@@ -33,7 +33,7 @@
           v-if="itemData.title"
           class="text-h4 q-mb-xs-sm q-mb-sm-md"
         >
-          {{ itemData.title }}
+          {{ itemData.item ? itemData.item.title : itemData.non_tray_item.title }}
         </h1>
 
         <div class="request-item-details">
@@ -41,7 +41,7 @@
             Barcode:
           </label>
           <p class="request-item-details-text">
-            {{ itemData.barcode.value }}
+            {{ itemData.item ? itemData.item.barcode.value : itemData.non_tray_item.barcode.value }}
           </p>
         </div>
 
@@ -50,7 +50,7 @@
             Media Type:
           </label>
           <p class="request-item-details-text outline">
-            {{ itemData.media_type.name }}
+            {{ itemData.item ? itemData.item.media_type.name : itemData.non_tray_item.media_type.name }}
           </p>
         </div>
 
@@ -61,7 +61,7 @@
             Size Class:
           </label>
           <p class="request-item-details-text outline">
-            {{ itemData.size_class.name }}
+            {{ itemData.item ? itemData.item.size_class.name : itemData.non_tray_item.size_class.name }}
           </p>
         </div>
 
@@ -72,7 +72,7 @@
             Volume:
           </label>
           <p class="request-item-details-text">
-            {{ itemData.volume }}
+            {{ itemData.item ? itemData.item.volume : itemData.non_tray_item.volume }}
           </p>
         </div>
 
@@ -81,6 +81,7 @@
             Dimensions:
           </label>
           <p class="request-item-details-text">
+            <!-- TODO change this once api returns correct dimensions -->
             {{ itemData.dimensions }}
           </p>
         </div>
@@ -92,7 +93,7 @@
             Condition:
           </label>
           <p class="request-item-details-text text-highlight-red">
-            {{ itemData.condition }}
+            {{ itemData.item ? itemData.item.condition : itemData.non_tray_item.condition }}
           </p>
         </div>
       </q-card-section>
@@ -104,7 +105,7 @@
 
         <div class="request-item-details">
           <p class="request-item-details-text outline">
-            {{ itemData.owner.name }}
+            {{ itemData.item ? itemData.item.owner.name : itemData.non_tray_item.owner.name }}
           </p>
         </div>
       </q-card-section>
@@ -119,7 +120,7 @@
             Accession Date:
           </label>
           <p class="request-item-details-text">
-            {{ formatDateTime(itemData.accession_dt).date }}
+            {{ formatDateTime(itemData.item ? itemData.item.accession_dt : itemData.non_tray_item.accession_dt).date }}
           </p>
         </div>
 
@@ -130,7 +131,7 @@
             Withdrawal Date:
           </label>
           <p class="request-item-details-text">
-            {{ formatDateTime(itemData.withdrawal_dt).date }}
+            {{ formatDateTime(itemData.item ? itemData.item.withdrawal_dt : itemData.non_tray_item.withdrawal_dt).date }}
           </p>
         </div>
 
@@ -141,7 +142,8 @@
             Arrival Date:
           </label>
           <p class="request-item-details-text">
-            {{ formatDateTime(itemData.arrival_dt).date }}
+            <!-- TODO change this once api returns correct arrival date -->
+            {{ formatDateTime(itemData.item ? itemData.item.accession_dt : itemData.non_tray_item.accession_dt).date }}
           </p>
         </div>
       </q-card-section>
@@ -155,13 +157,13 @@
 
         <div class="request-item-details">
           <p class="request-item-details-text text-highlight q-mr-sm">
-            {{ itemData.status }}
+            {{ itemData.item ? itemData.item.status : itemData.non_tray_item.status }}
           </p>
           <p class="request-item-details-text outline q-mr-sm">
-            {{ itemData.building.name }}
+            {{ renderItemBuilding(itemData) }}
           </p>
           <p class="request-item-details-text outline">
-            {{ itemData.item_location }}
+            {{ getItemLocation(itemData) }}
           </p>
         </div>
       </q-card-section>
@@ -206,6 +208,18 @@ const showItemOverlay = ref(true)
 
 // Logic
 const formatDateTime = inject('format-date-time')
+const getItemLocation = inject('get-item-location')
+
+const renderItemBuilding = (itemData) => {
+  let building = ''
+  if (itemData.item && itemData.item.tray.shelf_position) {
+    building = itemData.item.tray.shelf_position.shelf.ladder.side.aisle.module.building.name
+  } else if (itemData.non_tray_item && itemData.non_tray_item.shelf_position) {
+    building = itemData.non_tray_item.shelf_position.shelf.ladder.side.aisle.module.building.name
+  }
+
+  return building
+}
 </script>
 
 <style lang="scss" scoped>
