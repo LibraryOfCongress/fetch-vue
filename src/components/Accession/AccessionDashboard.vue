@@ -153,7 +153,7 @@
           <q-card-section class="column no-wrap items-center">
             <div class="form-group q-mb-md">
               <label class="form-group-label">
-                Owner (Required)
+                Owner <span class="text-caption text-negative">(Required)</span>
               </label>
               <SelectInput
                 v-model="accessionJob.owner"
@@ -171,7 +171,7 @@
               class="form-group q-mb-md"
             >
               <label class="form-group-label">
-                Container Size (Optional)
+                Container Size <span class="text-caption">(Optional)</span>
               </label>
               <SelectInput
                 v-model="accessionJob.size_class"
@@ -186,7 +186,7 @@
 
             <div class="form-group">
               <label class="form-group-label">
-                Media Type (Optional)
+                Media Type <span class="text-caption">(Optional)</span>
               </label>
               <SelectInput
                 v-model="accessionJob.media_type"

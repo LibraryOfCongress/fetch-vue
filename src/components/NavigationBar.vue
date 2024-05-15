@@ -230,7 +230,7 @@ const essentialLinks = ref([
   {
     title: 'Request',
     icon: 'manage_search',
-    link: '/'
+    link: '/request'
   },
   {
     title: 'Refile',

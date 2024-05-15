@@ -18,6 +18,9 @@ export const useOptionStore = defineStore('option-store', {
     mediaTypes: [],
     owners: [],
     ownerTierOptions: [],
+    requestsLocations: [],
+    requestsPriorities: [],
+    requestsTypes: [],
     users: []
   }),
   actions: {
