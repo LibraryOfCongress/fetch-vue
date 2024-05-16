@@ -196,22 +196,22 @@ const getItemLocation = (itemData) => {
   let shelf = ''
   let shelfPosition = ''
   if (itemData.item && itemData.item.tray.shelf_position) {
-    module = itemData.item.tray.shelf_position.shelf.ladder.side.aisle.module.module_number.number
-    aisle = itemData.item.tray.shelf_position.shelf.ladder.side.aisle.aisle_number.number
-    side = itemData.item.tray.shelf_position.shelf.ladder.side.side_orientation.name
-    ladder = itemData.item.tray.shelf_position.shelf.ladder.ladder_number.number
-    shelf = itemData.item.tray.shelf_position.shelf.id
-    shelfPosition = itemData.item.tray.shelf_position.shelf_position_number.number
+    module = itemData.item.tray.shelf_position.shelf.ladder.side.aisle.module?.module_number.number
+    aisle = itemData.item.tray.shelf_position.shelf.ladder.side.aisle?.aisle_number.number
+    side = itemData.item.tray.shelf_position.shelf.ladder.side?.side_orientation.name
+    ladder = itemData.item.tray.shelf_position.shelf.ladder?.ladder_number.number
+    shelf = itemData.item.tray.shelf_position?.shelf.id
+    shelfPosition = itemData.item.tray.shelf_position?.shelf_position_number.number
   } else if (itemData.non_tray_item && itemData.non_tray_item.shelf_position) {
-    module = itemData.non_tray_item.shelf_position.shelf.ladder.side.aisle.module.module_number.number
-    aisle = itemData.non_tray_item.shelf_position.shelf.ladder.side.aisle.aisle_number.number
-    side = itemData.non_tray_item.shelf_position.shelf.ladder.side.side_orientation.name
-    ladder = itemData.non_tray_item.shelf_position.shelf.ladder.ladder_number.number
-    shelf = itemData.non_tray_item.shelf_position.shelf.id
-    shelfPosition = itemData.non_tray_item.shelf_position.shelf_position_number.number
+    module = itemData.non_tray_item.shelf_position.shelf.ladder.side.aisle.module?.module_number.number
+    aisle = itemData.non_tray_item.shelf_position.shelf.ladder.side.aisle?.aisle_number.number
+    side = itemData.non_tray_item.shelf_position.shelf.ladder.side?.side_orientation.name
+    ladder = itemData.non_tray_item.shelf_position.shelf.ladder?.ladder_number.number
+    shelf = itemData.non_tray_item.shelf_position?.shelf.id
+    shelfPosition = itemData.non_tray_item.shelf_position?.shelf_position_number.number
   }
 
-  return `${module}${aisle}${side == 'Right' ? 'R' : side == 'Left' ? 'L' : side}${ladder}${shelf}${shelfPosition}`
+  return `${module}-${aisle}-${side == 'Right' ? 'R' : side == 'Left' ? 'L' : side}-${ladder}-${shelf}-${shelfPosition}`.replace('undefined-', '')
 }
 provide('get-item-location', getItemLocation)
 </script>
