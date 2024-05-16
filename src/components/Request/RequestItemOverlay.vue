@@ -30,7 +30,6 @@
 
       <q-card-section class="column q-pt-xs-none q-pt-sm-md">
         <h1
-          v-if="itemData.title"
           class="text-h4 q-mb-xs-sm q-mb-sm-md"
         >
           {{ itemData.item ? itemData.item.title : itemData.non_tray_item.title }}
