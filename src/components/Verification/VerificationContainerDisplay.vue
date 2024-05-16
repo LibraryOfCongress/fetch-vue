@@ -556,7 +556,7 @@ const triggerItemScan = async (barcode_value) => {
   try {
     // example barcode for trayed item 'BK123'
     // check if the barcode is in the system otherwise create it
-    await verifyBarcode(barcode_value)
+    await verifyBarcode(barcode_value, 'Item')
 
     if (verificationJob.value.trayed) {
       // check if the scanned barcode already exists in the tray job if not add it

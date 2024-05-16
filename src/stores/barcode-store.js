@@ -19,7 +19,7 @@ export const useBarcodeStore = defineStore('barcode-store', {
         value: null
       }
     },
-    async verifyBarcode (barcode) {
+    async verifyBarcode (barcode, type) {
       try {
         this.resetBarcodeStore()
 
@@ -31,7 +31,7 @@ export const useBarcodeStore = defineStore('barcode-store', {
       } catch (error) {
         if (error.response?.status == 404) {
           // if the barcode doesnt exist add it
-          await this.postBarcode(barcode)
+          await this.postBarcode(barcode, type)
           return
         }
         throw error
@@ -45,10 +45,10 @@ export const useBarcodeStore = defineStore('barcode-store', {
         throw error
       }
     },
-    async postBarcode (barcode) {
+    async postBarcode (barcode, type) {
       try {
         const res = await this.$api.post(inventoryServiceApi.barcodes, {
-          type_id: 1, //TODO figure out how barcode types work
+          type_id: type,
           value: barcode
         })
 
