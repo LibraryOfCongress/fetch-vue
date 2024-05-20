@@ -48,7 +48,7 @@ export const useBarcodeStore = defineStore('barcode-store', {
     async postBarcode (barcode, type) {
       try {
         const res = await this.$api.post(inventoryServiceApi.barcodes, {
-          type_id: type,
+          type,
           value: barcode
         })
 
