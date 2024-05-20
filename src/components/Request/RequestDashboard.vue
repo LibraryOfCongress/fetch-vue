@@ -165,7 +165,7 @@
             <span
               v-else-if="colName == 'status'"
               class="outline text-nowrap"
-              :class="value == 'Completed' || value == 'New' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-yellow' : null "
+              :class="value == 'Completed' || value == 'New' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-warning' : null "
             >
               {{ value }}
             </span>
@@ -306,7 +306,7 @@ const requestTableColumns = ref([
   },
   {
     name: 'item_location',
-    field: row => getItemLocation(row),
+    field: row => row.item ? getItemLocation(row.item.tray) : getItemLocation(row.non_tray_item),
     label: 'Item Location',
     align: 'left',
     sortable: true
