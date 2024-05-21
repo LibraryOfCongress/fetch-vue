@@ -132,6 +132,83 @@ export const usePicklistStore = defineStore('picklist-store', {
         throw error
       }
     },
+    async postPicklistJob (payload) {
+      try {
+        // TODO: setup picklist endpoint to create a picklist job
+        // const res = await this.$api.post(inventoryServiceApi.picklist, payload)
+        // this.picklistJob = res.data
+        console.log('generating picklist with the following ids', payload)
+        this.picklistJob = {
+          id: 123456789,
+          building: {
+            name: 'Fort Meade'
+          },
+          user: {
+            first_name: 'Admin'
+          },
+          user_id: 1,
+          create_dt: new Date().toISOString(),
+          status: 'Created',
+          items: [
+            {
+              id: 1234567890,
+              barcode: {
+                value: 1234567890
+              },
+              owner: {
+                name: 'John Doe'
+              },
+              size_class: {
+                name: 'C High'
+              },
+              'shelf_position': {
+                'id': 25949,
+                'shelf_id': 8650,
+                'shelf_position_number': {
+                  'number': 2
+                },
+                'shelf': {
+                  'id': 8650,
+                  'ladder': {
+                    'id': 4325,
+                    'ladder_number': {
+                      'number': 31
+                    },
+                    'side': {
+                      'id': 114,
+                      'aisle': {
+                        'id': 24,
+                        'aisle_number': {
+                          'number': 4
+                        },
+                        'module': {
+                          'id': 3,
+                          'module_number': {
+                            'number': 3
+                          },
+                          'building': {
+                            'id': 1,
+                            'name': 'Fort Meade'
+                          }
+                        },
+                        'building': null
+                      },
+                      'side_orientation': {
+                        'id': 2,
+                        'name': 'Right'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+        this.originalPicklistJob = { ...this.picklistJob }
+      } catch (error) {
+        throw error
+      }
+    },
     async patchPicklistJob (payload) {
       try {
         // TODO: setup picklist endpoint to update picklist job
