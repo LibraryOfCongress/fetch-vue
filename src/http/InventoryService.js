@@ -32,5 +32,6 @@ export default {
   sizeClass: '/size_class/',
   trays: '/trays/',
   traysBarcode: '/trays/barcode/',
+  users: '/users/',
   verificationJobs: '/verification-jobs/'
 }

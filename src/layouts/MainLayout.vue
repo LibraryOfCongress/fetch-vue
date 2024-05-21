@@ -195,7 +195,6 @@ const getItemLocation = (itemData) => {
   let ladder = ''
   let shelf = ''
   let shelfPosition = ''
-  console.log(itemData)
   if (itemData.shelf_position) {
     module = itemData.shelf_position.shelf.ladder.side.aisle.module?.module_number.number
     aisle = itemData.shelf_position.shelf.ladder.side.aisle?.aisle_number.number

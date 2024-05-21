@@ -3,12 +3,19 @@
     <div class="row justify-between q-pt-xs-md q-pt-md-xl q-mx-xs-sm q-mx-sm-md">
       <div class="col-xs-12 col-md-12 col-lg-3">
         <div class="picklist-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-lg-lg">
-          <label
-            id="picklistJobId"
-            class="picklist-job-details-label text-h4 text-bold q-mb-xs"
-          >
-            Pick List #:
-          </label>
+          <div class="flex q-mb-xs">
+            <MoreOptionsMenu
+              :options="[{ text: 'Edit', disabled: editJob || picklistJob.status == 'Completed' }]"
+              class="q-mr-xs"
+              @click="handleOptionMenu"
+            />
+            <label
+              id="picklistJobId"
+              class="picklist-job-details-label text-h4 text-bold"
+            >
+              Pick List #:
+            </label>
+          </div>
           <p class="picklist-job-number-box text-h4 q-pa-md">
             {{ picklistJob.id }}
           </p>
@@ -34,9 +41,29 @@
           >
             Assigned User:
           </label>
-          <p class="text-body1">
-            {{ picklistJob.user.name }}
+          <p
+            v-if="!editJob"
+            class="text-body1"
+          >
+            {{ picklistJob.user?.first_name }}
           </p>
+          <SelectInput
+            v-else
+            v-model="picklistJob.user_id"
+            :options="users"
+            option-type="users"
+            option-value="id"
+            option-label="first_name"
+            aria-label="user"
+          >
+            <template #no-option>
+              <q-item>
+                <q-item-section class="text-italic text-grey">
+                  No Users Found
+                </q-item-section>
+              </q-item>
+            </template>
+          </SelectInput>
         </div>
       </div>
       <div class="col-xs-6 col-sm-6 col-md-grow">
@@ -72,6 +99,30 @@
         class="col-sm-12 col-md-12 col-lg-3 q-ml-auto"
       >
         <div
+          v-if="editJob"
+          class="picklist-job-details-action q-mt-sm-sm q-mt-md-md"
+        >
+          <q-btn
+            no-caps
+            unelevated
+            color="accent"
+            label="Save Edits"
+            class="btn-no-wrap text-body1 q-mr-sm"
+            :loading="appActionIsLoadingData"
+            @click="updatePicklistJob"
+          />
+          <q-btn
+            no-caps
+            unelevated
+            outline
+            color="accent"
+            label="Cancel"
+            class="btn-no-wrap text-body1"
+            @click="cancelPicklistJobEdits"
+          />
+        </div>
+        <div
+          v-else-if="picklistJob.status !== 'Completed'"
           class="picklist-job-details-action q-mt-sm-sm q-mt-md-md"
         >
           <q-btn
@@ -87,7 +138,19 @@
         </div>
       </div>
       <MobileActionBar
-        v-else
+        v-else-if="currentScreenSize == 'xs' && editJob"
+        button-one-color="accent"
+        :button-one-label="'Save Edits'"
+        :button-one-outline="false"
+        :button-one-loading="appActionIsLoadingData"
+        @button-one-click="updatePicklistJob"
+        button-two-color="accent"
+        :button-two-label="'Cancel'"
+        :button-two-outline="true"
+        @button-two-click="cancelPicklistJobEdits"
+      />
+      <MobileActionBar
+        v-else-if="picklistJob.status !== 'Completed'"
         :button-one-color="'accent'"
         :button-one-label="'Cancel'"
         :button-one-outline="true"
@@ -138,14 +201,17 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, inject } from 'vue'
+import { onBeforeMount, ref, inject, toRaw } from 'vue'
 import { useGlobalStore } from '@/stores/global-store'
+import { useOptionStore } from '@/stores/option-store'
 import { useUserStore } from '@/stores/user-store'
 import { usePicklistStore } from '@/stores/picklist-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from '@/components/EssentialTable.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
+import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
+import SelectInput from '@/components/SelectInput.vue'
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
@@ -153,10 +219,12 @@ const { currentScreenSize } = useCurrentScreenSize()
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { userData } = storeToRefs(useUserStore())
+const { users } = storeToRefs(useOptionStore())
 const { patchPicklistJob } = usePicklistStore()
-const { picklistJob } = storeToRefs(usePicklistStore())
+const { picklistJob, originalPicklistJob } = storeToRefs(usePicklistStore())
 
 // Local Data
+const editJob = ref(false)
 const itemTableVisibleColumns = ref([
   'item_location',
   'barcode',
@@ -224,6 +292,18 @@ onBeforeMount(() => {
   }
 })
 
+const handleOptionMenu = async (action) => {
+  switch (action.text) {
+  case 'Edit':
+    editJob.value = true
+    return
+  }
+}
+
+const cancelPicklistJobEdits = () => {
+  picklistJob.value = { ...toRaw(originalPicklistJob.value) }
+  editJob.value = false
+}
 const executePicklistJob = async () => {
   try {
     appActionIsLoadingData.value = true
@@ -247,6 +327,31 @@ const executePicklistJob = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
+  }
+}
+const updatePicklistJob = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    const payload = {
+      id: picklistJob.value.id,
+      user_id: picklistJob.value.user_id
+    }
+    await patchPicklistJob(payload)
+
+    handleAlert({
+      type: 'success',
+      text: 'The job has been updated.',
+      autoClose: true
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = false
+    editJob.value = false
   }
 }
 </script>

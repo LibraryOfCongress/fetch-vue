@@ -12,7 +12,8 @@ export const usePicklistStore = defineStore('picklist-store', {
       create_dt: null,
       status: null,
       items: []
-    }
+    },
+    originalPicklistJob: null
   }),
   actions: {
     resetPicklistStore () {
@@ -45,7 +46,7 @@ export const usePicklistStore = defineStore('picklist-store', {
             request_items: 3,
             status: 'Completed',
             user: {
-              name: 'Admin'
+              first_name: 'Admin'
             },
             create_dt: new Date().toISOString(),
             complete_dt: new Date().toISOString()
@@ -66,7 +67,7 @@ export const usePicklistStore = defineStore('picklist-store', {
             name: 'Fort Meade'
           },
           user: {
-            name: 'Admin'
+            first_name: 'Admin'
           },
           user_id: 1,
           create_dt: new Date().toISOString(),
@@ -126,6 +127,7 @@ export const usePicklistStore = defineStore('picklist-store', {
             }
           ]
         }
+        this.originalPicklistJob = { ...this.picklistJob }
       } catch (error) {
         throw error
       }
@@ -139,6 +141,7 @@ export const usePicklistStore = defineStore('picklist-store', {
           ...this.picklistJob,
           ...payload
         }
+        this.originalPicklistJob = { ...this.picklistJob }
       } catch (error) {
         throw error
       }

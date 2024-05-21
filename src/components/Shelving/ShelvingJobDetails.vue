@@ -52,6 +52,7 @@
             v-else
             v-model="shelvingJob.user_id"
             :options="users"
+            option-type="users"
             option-value="id"
             option-label="first_name"
             aria-label="user"
