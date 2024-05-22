@@ -1,31 +1,29 @@
 <template>
-  <div class="picklist-job">
-    <div class="row justify-between q-pt-xs-md q-pt-md-xl q-mx-xs-sm q-mx-sm-md">
-      <div class="col-xs-12 col-md-12 col-lg-3">
-        <div class="picklist-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-lg-lg">
-          <div class="flex q-mb-xs">
-            <MoreOptionsMenu
-              :options="[{ text: 'Edit', disabled: editJob || picklistJob.status == 'Completed' }]"
-              class="q-mr-xs"
-              @click="handleOptionMenu"
-            />
-            <label
-              id="picklistJobId"
-              class="picklist-job-details-label text-h4 text-bold"
-            >
-              Pick List #:
-            </label>
-          </div>
-          <p class="picklist-job-number-box text-h4 q-pa-md">
-            {{ picklistJob.id }}
-          </p>
-        </div>
+  <InfoDisplayLayout class="picklist-job">
+    <template #number-box-content>
+      <div class="flex q-mb-xs">
+        <MoreOptionsMenu
+          :options="[{ text: 'Edit', disabled: editJob || picklistJob.status == 'Completed' }]"
+          class="q-mr-xs"
+          @click="handleOptionMenu"
+        />
+        <label
+          id="picklistJobId"
+          class="info-display-details-label text-h4"
+        >
+          Pick List #:
+        </label>
       </div>
+      <p class="info-display-number-box text-h4">
+        {{ picklistJob.id }}
+      </p>
+    </template>
 
+    <template #details-content>
       <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="picklist-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
           <label
-            class="picklist-job-details-label-2 text-h6 text-bold"
+            class="info-display-details-label-2 text-h6"
           >
             Building:
           </label>
@@ -35,9 +33,9 @@
         </div>
       </div>
       <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="picklist-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
           <label
-            class="picklist-job-details-label-2 text-h6 text-bold"
+            class="info-display-details-label-2 text-h6"
           >
             Assigned User:
           </label>
@@ -67,9 +65,9 @@
         </div>
       </div>
       <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="picklist-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
           <label
-            class="picklist-job-details-label-2 text-h6 text-bold"
+            class="info-display-details-label-2 text-h6"
           >
             Date Created
           </label>
@@ -79,9 +77,9 @@
         </div>
       </div>
       <div class="col-xs-6 col-sm-auto col-md-auto q-mr-auto">
-        <div class="picklist-job-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-sm">
+        <div class="info-display-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-sm">
           <label
-            class="picklist-job-details-label-2 text-h6 text-bold"
+            class="info-display-details-label-2 text-h6"
           >
             Status
           </label>
@@ -100,7 +98,7 @@
       >
         <div
           v-if="editJob"
-          class="picklist-job-details-action q-mt-sm-sm q-mt-md-md"
+          class="info-display-details-action q-mt-sm-sm q-mt-md-md"
         >
           <q-btn
             no-caps
@@ -123,7 +121,7 @@
         </div>
         <div
           v-else-if="picklistJob.status !== 'Completed'"
-          class="picklist-job-details-action q-mt-sm-sm q-mt-md-md"
+          class="info-display-details-action q-mt-sm-sm q-mt-md-md"
         >
           <q-btn
             no-caps
@@ -161,31 +159,28 @@
         :button-two-outline="false"
         @button-two-click="executePicklistJob()"
       />
-    </div>
+    </template>
 
-    <q-space class="divider q-my-xs-lg q-my-md-xl" />
+    <template #table-content>
+      <EssentialTable
+        :table-columns="itemTableColumns"
+        :table-visible-columns="itemTableVisibleColumns"
+        :filter-options="itemTableFilters"
+        :table-data="picklistJob.items"
+        :enable-table-reorder="false"
+        :enable-selection="false"
+        :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
+        :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+      >
+        <template #heading-row>
+          <div class="col-xs-7 col-sm-5 q-mb-md-sm">
+            <label class="text-h4 text-bold">
+              Items in Job:
+            </label>
+          </div>
+        </template>
 
-    <div class="row q-mb-xs-xl q-mb-sm-none">
-      <div class="col-grow q-mb-xs-md q-mb-sm-none">
-        <EssentialTable
-          :table-columns="itemTableColumns"
-          :table-visible-columns="itemTableVisibleColumns"
-          :filter-options="itemTableFilters"
-          :table-data="picklistJob.items"
-          :enable-table-reorder="false"
-          :enable-selection="false"
-          :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
-          :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
-        >
-          <template #heading-row>
-            <div class="col-xs-7 col-sm-5 q-mb-md-sm">
-              <label class="text-h4 text-bold">
-                Items in Job:
-              </label>
-            </div>
-          </template>
-
-          <!-- <template #table-td="{ colName, value }">
+        <!-- <template #table-td="{ colName, value }">
             <span
               v-if="colName == 'request_type'"
               class="outline text-nowrap"
@@ -194,10 +189,9 @@
               {{ value }}
             </span>
           </template> -->
-        </EssentialTable>
-      </div>
-    </div>
-  </div>
+      </EssentialTable>
+    </template>
+  </InfoDisplayLayout>
 </template>
 
 <script setup>
@@ -208,6 +202,7 @@ import { useUserStore } from '@/stores/user-store'
 import { usePicklistStore } from '@/stores/picklist-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import InfoDisplayLayout from '@/components/InfoDisplayLayout.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
@@ -357,40 +352,4 @@ const updatePicklistJob = async () => {
 </script>
 
 <style lang="scss" scoped>
-.picklist-job {
-  position: relative;
-
-  &-number-box {
-    background-color: $secondary;
-    color: $color-white;
-    text-align: center;
-    border-radius: 3px;
-    width: 100%;
-  }
-
-  &-details {
-    position: relative;
-    display: flex;
-    height: 100%;
-    flex-direction: column;
-    justify-content: flex-start;
-
-    &-label {
-      &-2 {
-        margin-top: 2.25rem;
-
-        @media (max-width: $breakpoint-sm-max) {
-          margin-top: 0;
-        }
-      }
-    }
-
-    &-action {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      height: 100%;
-    }
-  }
-}
 </style>

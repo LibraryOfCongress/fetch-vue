@@ -1,24 +1,22 @@
 <template>
-  <div class="request-job">
-    <div class="row justify-between q-pt-xs-md q-pt-md-xl q-mx-xs-sm q-mx-sm-md">
-      <div class="col-xs-12 col-md-12 col-lg-3">
-        <div class="request-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-lg-lg">
-          <label
-            id="requestJobId"
-            class="request-job-details-label text-h4 text-bold q-mb-xs"
-          >
-            Request List:
-          </label>
-          <p class="request-job-number-box text-h4 q-pa-md">
-            {{ requestBatchJob.id }}
-          </p>
-        </div>
-      </div>
+  <InfoDisplayLayout class="request-job">
+    <template #number-box-content>
+      <label
+        id="requestJobId"
+        class="info-display-details-label text-h4 q-mb-xs"
+      >
+        Request List:
+      </label>
+      <p class="info-display-number-box text-h4">
+        {{ requestBatchJob.id }}
+      </p>
+    </template>
 
+    <template #details-content>
       <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="request-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
           <label
-            class="request-job-details-label-2 text-h6 text-bold"
+            class="info-display-details-label-2 text-h6"
           >
             Import Source:
           </label>
@@ -28,9 +26,9 @@
         </div>
       </div>
       <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="request-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
           <label
-            class="request-job-details-label-2 text-h6 text-bold"
+            class="info-display-details-label-2 text-h6"
           >
             Uploaded By:
           </label>
@@ -40,9 +38,9 @@
         </div>
       </div>
       <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="request-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
           <label
-            class="request-job-details-label-2 text-h6 text-bold"
+            class="info-display-details-label-2 text-h6"
           >
             # of Requests
           </label>
@@ -52,9 +50,9 @@
         </div>
       </div>
       <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="request-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
           <label
-            class="request-job-details-label-2 text-h6 text-bold"
+            class="info-display-details-label-2 text-h6"
           >
             Date Imported:
           </label>
@@ -63,159 +61,155 @@
           </p>
         </div>
       </div>
-    </div>
+    </template>
 
-    <q-space class="divider q-my-xs-lg q-my-md-xl" />
+    <template #table-content>
+      <EssentialTable
+        ref="requestTableComponent"
+        :table-columns="requestTableColumns"
+        :table-visible-columns="requestTableVisibleColumns"
+        :filter-options="requestTableFilters"
+        :table-data="requestBatchJob.items"
+        :enable-table-reorder="false"
+        :enable-selection="showCreatePickList || showAddPickList"
+        :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
+        :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+        @selected-table-row="selectedRequestItem = $event"
+        @selected-data="selectedRequestItems = $event"
+      >
+        <template #heading-row>
+          <div
+            class="col-xs-7 col-sm-5 q-mb-md-sm"
+            :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
+          >
+            <label class="text-h4 text-bold">
+              Items in List:
+            </label>
+          </div>
 
-    <div class="row q-mb-xs-xl q-mb-sm-none">
-      <div class="col-grow q-mb-xs-md q-mb-sm-none">
-        <EssentialTable
-          ref="requestTableComponent"
-          :table-columns="requestTableColumns"
-          :table-visible-columns="requestTableVisibleColumns"
-          :filter-options="requestTableFilters"
-          :table-data="requestBatchJob.items"
-          :enable-table-reorder="false"
-          :enable-selection="showCreatePickList || showAddPickList"
-          :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
-          :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
-          @selected-table-row="selectedRequestItem = $event"
-          @selected-data="selectedRequestItems = $event"
-        >
-          <template #heading-row>
-            <div
-              class="col-xs-7 col-sm-5 q-mb-md-sm"
-              :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
+          <div
+            class="col-xs-grow col-sm-7 col-md-auto flex"
+            :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? 'justify-end q-mb-md' : 'order-1'"
+          >
+            <q-btn
+              no-caps
+              unelevated
+              icon-right="arrow_drop_down"
+              color="accent"
+              label="Create"
+              class="text-body1 q-ml-xs-none q-ml-sm-sm"
+              :disabled="showCreatePickList || showAddPickList"
             >
-              <label class="text-h4 text-bold">
-                Items in List:
-              </label>
-            </div>
+              <q-menu>
+                <q-list class="text-no-wrap">
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click="showAddPickList = true"
+                    role="menuitem"
+                  >
+                    <q-item-section>
+                      <q-item-label>
+                        <span>
+                          Add to Pick List
+                        </span>
+                      </q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click="showCreatePickList = true"
+                    role="menuitem"
+                  >
+                    <q-item-section>
+                      <q-item-label>
+                        <span>
+                          Create a Pick List
+                        </span>
+                      </q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-btn>
+          </div>
 
-            <div
-              class="col-xs-grow col-sm-7 col-md-auto flex"
-              :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? 'justify-end q-mb-md' : 'order-1'"
-            >
+          <div
+            v-if="(showCreatePickList || showAddPickList) && currentScreenSize !== 'xs'"
+            class="col-12 order-2 flex"
+          >
+            <div class="request-dashboard-actions q-ml-auto q-mt-md">
               <q-btn
                 no-caps
                 unelevated
-                icon-right="arrow_drop_down"
-                color="accent"
-                label="Create"
-                class="text-body1 q-ml-xs-none q-ml-sm-sm"
-                :disabled="showCreatePickList || showAddPickList"
-              >
-                <q-menu>
-                  <q-list class="text-no-wrap">
-                    <q-item
-                      clickable
-                      v-close-popup
-                      @click="showAddPickList = true"
-                      role="menuitem"
-                    >
-                      <q-item-section>
-                        <q-item-label>
-                          <span>
-                            Add to Pick List
-                          </span>
-                        </q-item-label>
-                      </q-item-section>
-                    </q-item>
-                    <q-item
-                      clickable
-                      v-close-popup
-                      @click="showCreatePickList = true"
-                      role="menuitem"
-                    >
-                      <q-item-section>
-                        <q-item-label>
-                          <span>
-                            Create a Pick List
-                          </span>
-                        </q-item-label>
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-menu>
-              </q-btn>
+                :color="showCreatePickList ? 'accent' : 'positive'"
+                :label="`(${selectedRequestItems.length}) ${showCreatePickList ? 'Create Pick List' : 'Add To Pick List'}`"
+                class="btn-no-wrap text-body1 q-mr-xs full-height"
+                :disabled="selectedRequestItems.length == 0"
+                :loading="appActionIsLoadingData"
+                @click="showCreatePickList ? createPickListJob() : updatePickListJob()"
+              />
+              <q-btn
+                no-caps
+                outline
+                label="Cancel"
+                class="btn-no-wrap text-body1 q-ml-xs full-height"
+                @click="showCreatePickList = false; showAddPickList = false; clearTableSelection();"
+              />
             </div>
+          </div>
+          <MobileActionBar
+            v-else-if="(showCreatePickList || showAddPickList) && currentScreenSize == 'xs'"
+            :button-one-color="showCreatePickList ? 'accent' : 'positive'"
+            :button-one-label="`(${selectedRequestItems.length}) ${showCreatePickList ? 'Create Pick List' : 'Add To Pick List'}`"
+            :button-one-outline="false"
+            :button-one-loading="appActionIsLoadingData"
+            :button-one-disabled="selectedRequestItems.length == 0"
+            @button-one-click="showCreatePickList ? createPickListJob() : updatePickListJob()"
+            :button-two-color="'black'"
+            :button-two-label="'Cancel'"
+            :button-two-outline="true"
+            @button-two-click="showCreatePickList = false; showAddPickList = false; clearTableSelection();"
+          />
+        </template>
 
-            <div
-              v-if="(showCreatePickList || showAddPickList) && currentScreenSize !== 'xs'"
-              class="col-12 order-2 flex"
-            >
-              <div class="request-dashboard-actions q-ml-auto q-mt-md">
-                <q-btn
-                  no-caps
-                  unelevated
-                  :color="showCreatePickList ? 'accent' : 'positive'"
-                  :label="`(${selectedRequestItems.length}) ${showCreatePickList ? 'Create Pick List' : 'Add To Pick List'}`"
-                  class="btn-no-wrap text-body1 q-mr-xs full-height"
-                  :disabled="selectedRequestItems.length == 0"
-                  :loading="appActionIsLoadingData"
-                  @click="showCreatePickList ? createPickListJob() : updatePickListJob()"
-                />
-                <q-btn
-                  no-caps
-                  outline
-                  label="Cancel"
-                  class="btn-no-wrap text-body1 q-ml-xs full-height"
-                  @click="showCreatePickList = false; showAddPickList = false; clearTableSelection();"
-                />
-              </div>
-            </div>
-            <MobileActionBar
-              v-else-if="(showCreatePickList || showAddPickList) && currentScreenSize == 'xs'"
-              :button-one-color="showCreatePickList ? 'accent' : 'positive'"
-              :button-one-label="`(${selectedRequestItems.length}) ${showCreatePickList ? 'Create Pick List' : 'Add To Pick List'}`"
-              :button-one-outline="false"
-              :button-one-loading="appActionIsLoadingData"
-              :button-one-disabled="selectedRequestItems.length == 0"
-              @button-one-click="showCreatePickList ? createPickListJob() : updatePickListJob()"
-              :button-two-color="'black'"
-              :button-two-label="'Cancel'"
-              :button-two-outline="true"
-              @button-two-click="showCreatePickList = false; showAddPickList = false; clearTableSelection();"
-            />
-          </template>
+        <template #table-td="{ colName, value }">
+          <span
+            v-if="colName == 'request_type'"
+            class="outline text-nowrap"
+            :class="'text-highlight'"
+          >
+            {{ value }}
+          </span>
+          <span
+            v-else-if="colName == 'status'"
+            class="outline text-nowrap"
+            :class="value == 'Completed' || value == 'New' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-warning' : null "
+          >
+            {{ value }}
+          </span>
+          <span
+            v-else-if="colName == 'media_type'"
+            class="outline text-nowrap"
+            :class="'text-highlight'"
+          >
+            {{ value }}
+          </span>
+          <span v-else-if="colName == 'create_dt'">
+            {{ formatDateTime(value).date }}
+          </span>
+        </template>
+      </EssentialTable>
+    </template>
+  </InfoDisplayLayout>
 
-          <template #table-td="{ colName, value }">
-            <span
-              v-if="colName == 'request_type'"
-              class="outline text-nowrap"
-              :class="'text-highlight'"
-            >
-              {{ value }}
-            </span>
-            <span
-              v-else-if="colName == 'status'"
-              class="outline text-nowrap"
-              :class="value == 'Completed' || value == 'New' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-warning' : null "
-            >
-              {{ value }}
-            </span>
-            <span
-              v-else-if="colName == 'media_type'"
-              class="outline text-nowrap"
-              :class="'text-highlight'"
-            >
-              {{ value }}
-            </span>
-            <span v-else-if="colName == 'create_dt'">
-              {{ formatDateTime(value).date }}
-            </span>
-          </template>
-        </EssentialTable>
-      </div>
-    </div>
-
-    <!-- Request Item Overlay-->
-    <RequestItemOverlay
-      v-if="selectedRequestItem"
-      :item-data="selectedRequestItem"
-      @close="selectedRequestItem = null"
-    />
-  </div>
+  <!-- Request Item Overlay-->
+  <RequestItemOverlay
+    v-if="selectedRequestItem"
+    :item-data="selectedRequestItem"
+    @close="selectedRequestItem = null"
+  />
 </template>
 
 <script setup>
@@ -224,6 +218,7 @@ import { useGlobalStore } from '@/stores/global-store'
 import { useRequestStore } from '@/stores/request-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import InfoDisplayLayout from '@/components/InfoDisplayLayout.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
 import RequestItemOverlay from '@/components/Request/RequestItemOverlay.vue'
@@ -411,33 +406,4 @@ const updatePickListJob = async () => {
 </script>
 
 <style lang="scss" scoped>
-.request-job {
-  position: relative;
-
-  &-number-box {
-    background-color: $secondary;
-    color: $color-white;
-    text-align: center;
-    border-radius: 3px;
-    width: 100%;
-  }
-
-  &-details {
-    position: relative;
-    display: flex;
-    height: 100%;
-    flex-direction: column;
-    justify-content: flex-start;
-
-    &-label {
-      &-2 {
-        margin-top: 2.25rem;
-
-        @media (max-width: $breakpoint-sm-max) {
-          margin-top: 0;
-        }
-      }
-    }
-  }
-}
 </style>

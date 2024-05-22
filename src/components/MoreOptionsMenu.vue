@@ -14,6 +14,7 @@
           v-close-popup
           @click="emit('click', opt)"
           :class="opt.disabled ? 'disabled' : ''"
+          role="menuitem"
         >
           <q-item-section>
             {{ opt.text }}
