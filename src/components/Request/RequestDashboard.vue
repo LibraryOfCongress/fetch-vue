@@ -533,6 +533,7 @@ const clearTableSelection = () => {
 const resetPickListForm = () => {
   showCreatePickList.value = false
   showAddPickList.value = false
+  showAddPickListModal.value = false
   clearTableSelection()
 }
 

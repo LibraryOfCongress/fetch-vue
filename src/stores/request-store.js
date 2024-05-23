@@ -122,6 +122,14 @@ export const useRequestStore = defineStore('request-store', {
         throw error
       }
     },
+    async patchRequestJob (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.requests}${payload.id}`, payload)
+        this.requestJob = res.data
+      } catch (error) {
+        throw error
+      }
+    },
     async getRequestBatchJob (id) {
       try {
         // TODO setup api endpoint to get request batch job details

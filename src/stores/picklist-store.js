@@ -15,6 +15,16 @@ export const usePicklistStore = defineStore('picklist-store', {
     },
     originalPicklistJob: null
   }),
+  getters: {
+    allItemsRetrieved: (state) => {
+      if (state.picklistJob.id && state.picklistJob.status !== 'Created') {
+        // when a picklist job is active we can keep track of if all requested items have been pulled/retrieved
+        return state.picklistJob.items.some(itm => !itm.scanned_for_retrieval) ? false : true
+      } else {
+        return true
+      }
+    }
+  },
   actions: {
     resetPicklistStore () {
       this.$reset()
@@ -84,6 +94,7 @@ export const usePicklistStore = defineStore('picklist-store', {
               size_class: {
                 name: 'C High'
               },
+              scanned_for_retrieval: false,
               'shelf_position': {
                 'id': 25949,
                 'shelf_id': 8650,
@@ -161,6 +172,7 @@ export const usePicklistStore = defineStore('picklist-store', {
               size_class: {
                 name: 'C High'
               },
+              scanned_for_retrieval: false,
               'shelf_position': {
                 'id': 25949,
                 'shelf_id': 8650,
@@ -217,6 +229,20 @@ export const usePicklistStore = defineStore('picklist-store', {
         this.picklistJob = {
           ...this.picklistJob,
           ...payload
+        }
+        this.originalPicklistJob = { ...this.picklistJob }
+      } catch (error) {
+        throw error
+      }
+    },
+    async deletePicklistJobItem (itemId) {
+      try {
+        // TODO: setup picklist endpoint to delete a picklist job item
+        // const res = await this.$api.delete(`${inventoryServiceApi.picklist}${this.picklistJob.id}`, itemId)
+        // this.picklistJob = res.data
+        this.picklistJob = {
+          ...this.picklistJob,
+          items: this.picklistJob.items.filter(itm => itm.id !== itemId)
         }
         this.originalPicklistJob = { ...this.picklistJob }
       } catch (error) {

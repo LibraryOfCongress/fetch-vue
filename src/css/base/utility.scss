@@ -21,7 +21,7 @@ $color-map: (
 
 @each $colorName, $colorValue in $color-map {
   .bg-#{$colorName} {
-      background-color: $colorValue;
+      background-color: $colorValue !important;
   }
   .text-#{$colorName} {
       color: $colorValue !important;
