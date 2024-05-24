@@ -1,22 +1,24 @@
 <template>
-  <InfoDisplayLayout class="direct-shelving-job">
-    <template #number-box-content>
-      <label
-        id="jobNumber"
-        class="info-display-details-label text-h4 text-bold"
-      >
-        Shelf Number:
-      </label>
-      <p class="info-display-number-box text-h4 q-pa-md">
-        {{ !directToShelfJob.shelf_barcode.value ? 'Please Scan Shelf' : directToShelfJob.shelf_barcode.value }}
-      </p>
-    </template>
-
-    <template #details-content>
-      <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="info-display-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+  <div class="shelving-job">
+    <div class="row justify-between q-pt-xs-md q-pt-md-xl q-mx-xs-sm q-mx-sm-md">
+      <div class="col-xs-12 col-md-12 col-lg-3">
+        <div class="shelving-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-lg-lg">
           <label
-            class="info-display-details-label-2 text-h6 text-bold"
+            id="jobNumber"
+            class="shelving-job-details-label text-h4 text-bold"
+          >
+            Shelf Number:
+          </label>
+          <p class="shelving-job-number-box text-h4 q-pa-md">
+            {{ !directToShelfJob.shelf_barcode.value ? 'Please Scan Shelf' : directToShelfJob.shelf_barcode.value }}
+          </p>
+        </div>
+      </div>
+
+      <div class="col-xs-6 col-sm-6 col-md-grow">
+        <div class="shelving-job-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+          <label
+            class="shelving-job-details-label-2 text-h6 text-bold"
           >
             Owner:
           </label>
@@ -27,9 +29,9 @@
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="info-display-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+        <div class="shelving-job-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
           <label
-            class="info-display-details-label-2 text-h6 text-bold"
+            class="shelving-job-details-label-2 text-h6 text-bold"
           >
             Size Class:
           </label>
@@ -43,9 +45,9 @@
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+        <div class="shelving-job-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
           <label
-            class="info-display-details-label-2 text-h6 text-bold"
+            class="shelving-job-details-label-2 text-h6 text-bold"
           >
             Assigned User:
           </label>
@@ -56,9 +58,9 @@
       </div>
 
       <div class="col-xs-6 col-sm-grow">
-        <div class="info-display-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-sm">
+        <div class="shelving-job-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-sm">
           <label
-            class="info-display-details-label-2 text-h6 text-bold"
+            class="shelving-job-details-label-2 text-h6 text-bold"
           >
             Date Created:
           </label>
@@ -72,7 +74,7 @@
         v-if="currentScreenSize !== 'xs' && directToShelfJob.status !== 'Completed'"
         class="col-sm-12 col-md-12 col-lg-3 q-ml-auto"
       >
-        <div class="info-display-details-action q-mt-sm-sm q-mt-md-md">
+        <div class="shelving-job-details-action q-mt-sm-sm q-mt-md-md">
           <q-btn
             no-caps
             unelevated
@@ -108,105 +110,109 @@
         :button-two-loading="appActionIsLoadingData"
         @button-two-click="completeDirectToShelfJob()"
       />
-    </template>
+    </div>
 
-    <template #table-content>
-      <EssentialTable
-        :table-columns="shelfTableColumns"
-        :table-visible-columns="shelfTableVisibleColumns"
-        :table-data="shelvingJobContainers"
-        :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
-      >
-        <template #heading-row>
-          <div
-            class="col-xs-12 col-sm-grow q-mr-auto"
-          >
-            <label class="text-h4 text-bold">
-              Containers in Job:
-            </label>
-          </div>
-        </template>
+    <q-space class="divider q-my-xs-lg q-my-md-xl" />
 
-        <template #table-td="{ colName, value }">
-          <span v-if="colName == 'side'">
-            {{ value ? value.slice(0, 1) : '' }}
-          </span>
-          <span
-            v-if="colName == 'verified'"
-            class="text-bold text-nowrap"
-            :class="value == true ? 'text-positive' : ''"
-          >
-            {{ value == true ? 'Shelved' : '' }}
-            <q-icon
-              v-if="value == true"
-              name="mdi-check-circle"
-              color="positive"
-              size="25px"
-              class="text-bold q-ml-xs"
-            />
-          </span>
-        </template>
-      </EssentialTable>
-    </template>
-  </InfoDisplayLayout>
-
-  <!-- dts scan container modal -->
-  <PopupModal
-    v-if="showScanContainerModal"
-    title="Container Location"
-    @reset="showScanContainerModal = false; resetShelvingJobContainer();"
-    aria-label="scanContainerModal"
-  >
-    <template #main-content>
-      <q-card-section class="row q-pb-sm">
-        <div class="col-12">
-          <BarcodeBox
-            :barcode="shelvingJobContainer.barcode.value"
-            :min-height="'5rem'"
-          />
-        </div>
-      </q-card-section>
-
-      <q-card-section class="row q-pb-sm">
-        <div
-          class="form-group"
+    <div class="row q-mb-xs-xl q-mb-sm-none">
+      <div class="col-grow q-mb-xs-md q-mb-sm-none">
+        <EssentialTable
+          :table-columns="shelfTableColumns"
+          :table-visible-columns="shelfTableVisibleColumns"
+          :table-data="shelvingJobContainers"
+          :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
         >
-          <label class="form-group-label">
-            Shelf Position
-          </label>
-          <TextInput
-            v-model="shelvingJobContainer.shelf_position_number"
-            placeholder="Enter Shelf Postion"
+          <template #heading-row>
+            <div
+              class="col-xs-12 col-sm-grow q-mr-auto"
+            >
+              <label class="text-h4 text-bold">
+                Containers in Job:
+              </label>
+            </div>
+          </template>
+
+          <template #table-td="{ colName, value }">
+            <span v-if="colName == 'side'">
+              {{ value ? value.slice(0, 1) : '' }}
+            </span>
+            <span
+              v-if="colName == 'verified'"
+              class="text-bold text-nowrap"
+              :class="value == true ? 'text-positive' : ''"
+            >
+              {{ value == true ? 'Shelved' : '' }}
+              <q-icon
+                v-if="value == true"
+                name="mdi-check-circle"
+                color="positive"
+                size="25px"
+                class="text-bold q-ml-xs"
+              />
+            </span>
+          </template>
+        </EssentialTable>
+      </div>
+    </div>
+
+    <!-- dts scan container modal -->
+    <PopupModal
+      v-if="showScanContainerModal"
+      title="Container Location"
+      @reset="showScanContainerModal = false; resetShelvingJobContainer();"
+      aria-label="scanContainerModal"
+    >
+      <template #main-content>
+        <q-card-section class="row q-pb-sm">
+          <div class="col-12">
+            <BarcodeBox
+              :barcode="shelvingJobContainer.barcode.value"
+              :min-height="'5rem'"
+            />
+          </div>
+        </q-card-section>
+
+        <q-card-section class="row q-pb-sm">
+          <div
+            class="form-group"
+          >
+            <label class="form-group-label">
+              Shelf Position
+            </label>
+            <TextInput
+              v-model="shelvingJobContainer.shelf_position_number"
+              placeholder="Enter Shelf Postion"
+            />
+          </div>
+        </q-card-section>
+      </template>
+
+      <template #footer-content="{ hideModal }">
+        <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
+          <q-btn
+            no-caps
+            unelevated
+            color="accent"
+            label="Submit"
+            class="text-body1 full-width"
+            :loading="appActionIsLoadingData"
+            :disabled="!shelvingJobContainer.shelf_position_number"
+            @click="assignContainerLocation(); hideModal();"
           />
-        </div>
-      </q-card-section>
-    </template>
 
-    <template #footer-content="{ hideModal }">
-      <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-        <q-btn
-          no-caps
-          unelevated
-          color="accent"
-          label="Submit"
-          class="text-body1 full-width"
-          :loading="appActionIsLoadingData"
-          :disabled="!shelvingJobContainer.shelf_position_number"
-          @click="assignContainerLocation(); hideModal();"
-        />
+          <q-space class="q-mx-xs" />
 
-        <q-space class="q-mx-xs" />
-
-        <q-btn
-          outline
-          no-caps
-          label="Cancel"
-          class="text-body1 full-width"
-          @click="resetShelvingJobContainer(); hideModal();"
-        />
-      </q-card-section>
-    </template>
-  </PopupModal>
+          <q-btn
+            outline
+            no-caps
+            label="Cancel"
+            class="text-body1 full-width"
+            @click="resetShelvingJobContainer(); hideModal();"
+          />
+        </q-card-section>
+      </template>
+    </PopupModal>
+  </div>
 </template>
 
 <script setup>
@@ -219,7 +225,6 @@ import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
-import InfoDisplayLayout from '@/components/InfoDisplayLayout.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
 import PopupModal from '@/components/PopupModal.vue'
@@ -374,8 +379,6 @@ onMounted(async () => {
 })
 
 watch(compiledBarCode, (barcode) => {
-  console.log(barcode)
-
   if (barcode !== '' && !directToShelfJob.value.shelf_barcode.value && directToShelfJob.value.status !== 'Completed') {
     // user is scanning a shelf barcode
     triggerShelfScan(barcode)
@@ -522,4 +525,40 @@ const clearShelfDetails = () => {
 </script>
 
 <style lang="scss" scoped>
+.shelving-job {
+  position: relative;
+
+  &-number-box {
+    background-color: $secondary;
+    color: $color-white;
+    text-align: center;
+    border-radius: 3px;
+    width: 100%;
+  }
+
+  &-details {
+    position: relative;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    justify-content: flex-start;
+
+    &-label {
+      &-2 {
+        margin-top: 2rem;
+
+        @media (max-width: $breakpoint-sm-max) {
+          margin-top: 0;
+        }
+      }
+    }
+
+    &-action {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      height: 100%;
+    }
+  }
+}
 </style>
