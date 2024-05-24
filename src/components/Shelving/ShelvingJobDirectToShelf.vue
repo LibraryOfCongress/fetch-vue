@@ -159,7 +159,7 @@
     <PopupModal
       v-if="showScanContainerModal"
       title="Container Location"
-      @reset="showScanContainerModal = false"
+      @reset="showScanContainerModal = false; resetShelvingJobContainer();"
       aria-label="scanContainerModal"
     >
       <template #main-content>
@@ -370,7 +370,6 @@ onMounted(async () => {
   // when user is online and loads a job we store the current shelving job data in indexdb for reference offline
   if (!appIsOffline.value) {
     await nextTick()
-    console.log('adding to indexdb', directToShelfJob.value)
     addDataToIndexDb('shelvingStore', 'directToShelfJob', JSON.parse(JSON.stringify(directToShelfJob.value)))
   } else {
     // get saved shelving job data if were offline and page was reloaded/refreshed
@@ -476,6 +475,7 @@ const assignContainerLocation = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
+    resetShelvingJobContainer()
   }
 }
 const completeDirectToShelfJob = async () => {
