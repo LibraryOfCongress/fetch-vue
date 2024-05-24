@@ -154,7 +154,7 @@
   <PopupModal
     v-if="showScanContainerModal"
     title="Container Location"
-    @reset="showScanContainerModal = false"
+    @reset="showScanContainerModal = false; resetShelvingJobContainer();"
     aria-label="scanContainerModal"
   >
     <template #main-content>
