@@ -17,6 +17,8 @@
       <q-icon
         v-else
         name="clear"
+        role="img"
+        aria-label="clearSearch"
         class="cursor-pointer"
         @click="searchText = ''"
       />
