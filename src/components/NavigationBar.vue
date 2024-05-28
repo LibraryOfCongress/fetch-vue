@@ -8,7 +8,7 @@
           flat
           dense
           icon="menu"
-          aria-label="Menu"
+          aria-label="Menu Button"
           @click="toggleLeftDrawer"
         />
 

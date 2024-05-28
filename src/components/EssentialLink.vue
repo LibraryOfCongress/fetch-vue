@@ -17,6 +17,8 @@
       <q-icon
         :name="icon"
         :size="iconSize"
+        role="img"
+        :aria-label="`${icon}-icon`"
       />
     </q-item-section>
 
