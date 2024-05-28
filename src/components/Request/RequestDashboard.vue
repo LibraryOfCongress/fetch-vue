@@ -43,7 +43,7 @@
                     <q-item
                       clickable
                       v-close-popup
-                      @click="showAddPickList = true"
+                      @click="showPickListModal = 'Add'"
                       role="menuitem"
                     >
                       <q-item-section>
@@ -57,7 +57,7 @@
                     <q-item
                       clickable
                       v-close-popup
-                      @click="showCreatePickList = true"
+                      @click="showPickListModal = 'Create'"
                       role="menuitem"
                     >
                       <q-item-section>
@@ -128,14 +128,14 @@
                   class="btn-no-wrap text-body1 q-mr-xs full-height"
                   :disabled="selectedRequestItems.length == 0"
                   :loading="appActionIsLoadingData"
-                  @click="showCreatePickList ? createPickListJob() : showAddPickListModal = true"
+                  @click="showCreatePickList ? createPickListJob() : updatePickListJob()"
                 />
                 <q-btn
                   no-caps
                   outline
                   label="Cancel"
                   class="btn-no-wrap text-body1 q-ml-xs full-height"
-                  @click="resetPickListForm"
+                  @click="resetPickListForm(); getRequestJobList();"
                 />
               </div>
             </div>
@@ -146,11 +146,11 @@
               :button-one-outline="false"
               :button-one-loading="appActionIsLoadingData"
               :button-one-disabled="selectedRequestItems.length == 0"
-              @button-one-click="showCreatePickList ? createPickListJob() : showAddPickListModal = true"
+              @button-one-click="showCreatePickList ? createPickListJob() : updatePickListJob()"
               :button-two-color="'black'"
               :button-two-label="'Cancel'"
               :button-two-outline="true"
-              @button-two-click="resetPickListForm"
+              @button-two-click="resetPickListForm(); getRequestJobList();"
             />
           </template>
 
@@ -201,17 +201,17 @@
       @hide="showCreateRequestByType = null"
     />
 
-    <!-- Add To Picklist Modal -->
+    <!-- Create/Add To Picklist Modal -->
     <PopupModal
-      v-if="showAddPickListModal"
+      v-if="showPickListModal"
       :show-actions="false"
-      @reset="resetPickListForm"
-      aria-label="AddToPicklistJobModal"
+      @reset="showPickListModal = null; filterRequestsByBuilding = null; addToPickListJob = null;"
+      aria-label="picklistJobModal"
     >
       <template #header-content="{ hideModal }">
         <q-card-section class="row items-center justify-between q-pb-none">
           <h2 class="text-h6">
-            Select Pick List
+            {{ showPickListModal == 'Create' ? 'Filter Requests By Building' : 'Filter Requests & Select Pick List' }}
           </h2>
 
           <q-btn
@@ -227,9 +227,27 @@
 
       <template #main-content>
         <q-card-section class="column no-wrap items-center">
-          <div class="form-group q-mb-md">
+          <div class="form-group">
             <label class="form-group-label">
-              Pick List Jobs
+              Building
+            </label>
+            <SelectInput
+              v-model="filterRequestsByBuilding"
+              :options="buildings"
+              option-type="buildings"
+              option-value="id"
+              option-label="name"
+              :placeholder="'Select Building'"
+              aria-label="building"
+            />
+          </div>
+
+          <div
+            v-if="showPickListModal == 'Add'"
+            class="form-group q-mt-md"
+          >
+            <label class="form-group-label">
+              Add To Pick List
             </label>
             <SelectInput
               v-model="addToPickListJob"
@@ -249,12 +267,12 @@
           <q-btn
             no-caps
             unelevated
-            color="positive"
-            label="Add To Pick List"
+            color="accent"
+            label="Submit"
             class="text-body1 full-width text-nowrap"
-            :disabled="!addToPickListJob"
+            :disabled="showPickListModal == 'Create' ? !filterRequestsByBuilding : (!filterRequestsByBuilding || !addToPickListJob)"
             :loading="appActionIsLoadingData"
-            @click="updatePickListJob(); hideModal();"
+            @click="loadRequestJobsByBuilding(); hideModal();"
           />
 
           <q-space class="q-mx-xs" />
@@ -276,6 +294,7 @@
 import { onBeforeMount, ref, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
+import { useOptionStore } from '@/stores/option-store'
 import { useRequestStore } from '@/stores/request-store'
 import { usePicklistStore } from '@/stores/picklist-store'
 import { storeToRefs } from 'pinia'
@@ -295,11 +314,13 @@ const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { buildings } = storeToRefs(useOptionStore())
 const {
   resetRequestJob,
   resetRequestStore,
   getRequestJobList,
   getRequestJob,
+  getRequestBatchJobList,
   getRequestBatchJob
 } = useRequestStore()
 const { requestJobList, requestJob } = storeToRefs(useRequestStore())
@@ -495,10 +516,11 @@ const requestBatchTableFilters =  ref([
 const requestDisplayType = ref('request_view')
 const showCreatePickList = ref(false)
 const showAddPickList = ref(false)
-const showAddPickListModal = ref(false)
+const showPickListModal = ref(null)
 const addToPickListJob = ref(null)
 const selectedRequestItems = ref([])
 const showCreateRequestByType = ref(null)
+const filterRequestsByBuilding = ref(null)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -533,14 +555,46 @@ const clearTableSelection = () => {
 const resetPickListForm = () => {
   showCreatePickList.value = false
   showAddPickList.value = false
-  showAddPickListModal.value = false
+  showPickListModal.value = null
+  filterRequestsByBuilding.value = null
+  addToPickListJob.value = null
   clearTableSelection()
 }
 
 const loadRequestJobs = async () => {
   try {
     appIsLoadingData.value = true
-    await getRequestJobList(requestDisplayType.value)
+    if (requestDisplayType.value == 'request_view') {
+      await getRequestJobList()
+    } else {
+      await getRequestBatchJobList()
+    }
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
+  }
+}
+const loadRequestJobsByBuilding = async () => {
+  try {
+    appIsLoadingData.value = true
+    // this function only gets called during the creation/add picklist workflow
+    if (requestDisplayType.value == 'request_view') {
+      await getRequestJobList({ building_id: filterRequestsByBuilding.value })
+    } else {
+      await getRequestBatchJobList({ building_id: filterRequestsByBuilding.value })
+    }
+
+    // display next step in picklist creation
+    if (showPickListModal.value == 'Create') {
+      showCreatePickList.value = true
+    } else {
+      showAddPickList.value = true
+    }
   } catch (error) {
     handleAlert({
       type: 'error',
