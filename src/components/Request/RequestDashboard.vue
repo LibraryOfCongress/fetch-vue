@@ -205,7 +205,7 @@
     <PopupModal
       v-if="showPickListModal"
       :show-actions="false"
-      @reset="showPickListModal = null; filterRequestsByBuilding = null; addToPickListJob = null;"
+      @reset="showPickListModal = null"
       aria-label="picklistJobModal"
     >
       <template #header-content="{ hideModal }">
@@ -220,7 +220,7 @@
             round
             dense
             aria-label="Close"
-            @click="hideModal"
+            @click="filterRequestsByBuilding = null; addToPickListJob = null; hideModal();"
           />
         </q-card-section>
       </template>
@@ -251,10 +251,10 @@
             </label>
             <SelectInput
               v-model="addToPickListJob"
-              :options="[]"
-              option-type="picklist"
+              :options="picklists"
+              option-type="picklists"
               option-value="id"
-              option-label="name"
+              option-label="id"
               :placeholder="'Select Pick List Job'"
               aria-label="picklistJobSelect"
             />
@@ -282,7 +282,7 @@
             no-caps
             label="Cancel"
             class="text-body1 full-width"
-            @click="hideModal"
+            @click="filterRequestsByBuilding = null; addToPickListJob = null; hideModal();"
           />
         </q-card-section>
       </template>
@@ -314,7 +314,7 @@ const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
-const { buildings } = storeToRefs(useOptionStore())
+const { buildings, picklists } = storeToRefs(useOptionStore())
 const {
   resetRequestJob,
   resetRequestStore,
@@ -324,9 +324,7 @@ const {
   getRequestBatchJob
 } = useRequestStore()
 const { requestJobList, requestJob } = storeToRefs(useRequestStore())
-const {
-  postPicklistJob
-} = usePicklistStore()
+const { postPicklistJob, patchPicklistJobItem } = usePicklistStore()
 const { picklistJob } = storeToRefs(usePicklistStore())
 
 // Local Data
@@ -584,7 +582,7 @@ const loadRequestJobsByBuilding = async () => {
     appIsLoadingData.value = true
     // this function only gets called during the creation/add picklist workflow
     if (requestDisplayType.value == 'request_view') {
-      await getRequestJobList({ building_id: filterRequestsByBuilding.value })
+      await getRequestJobList({ building_id: filterRequestsByBuilding.value, unassociated_pick_list: true })
     } else {
       await getRequestBatchJobList({ building_id: filterRequestsByBuilding.value })
     }
@@ -634,7 +632,7 @@ const createPickListJob = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
-      request_item_ids: selectedRequestItems.value.map(item => item.id)
+      request_ids: selectedRequestItems.value.map(item => item.id)
     }
     await postPicklistJob(payload)
 
@@ -658,13 +656,11 @@ const createPickListJob = async () => {
 const updatePickListJob = async () => {
   try {
     appActionIsLoadingData.value = true
-    // TODO: setup api call to update and existing pick list job using the selected pick list items
     const payload = {
       id: addToPickListJob.value,
-      request_item_ids: selectedRequestItems.value.map(item => item.id)
+      request_ids: selectedRequestItems.value.map(item => item.id)
     }
-    console.log(payload)
-    // await patchPicklistJob()
+    await patchPicklistJobItem(payload)
 
     // display an alert with the updated picklist job id so you can click that and link directly to the job if needed
     handleAlert({

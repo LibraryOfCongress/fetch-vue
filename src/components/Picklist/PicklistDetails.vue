@@ -28,7 +28,7 @@
             Building:
           </label>
           <p class="text-body1">
-            {{ picklistJob.building.name }}
+            {{ picklistJob.building?.name }}
           </p>
         </div>
       </div>
@@ -180,7 +180,7 @@
         :table-columns="itemTableColumns"
         :table-visible-columns="itemTableVisibleColumns"
         :filter-options="itemTableFilters"
-        :table-data="picklistJob.items"
+        :table-data="picklistJob.requests"
         :enable-table-reorder="false"
         :enable-selection="false"
         :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
@@ -394,14 +394,14 @@ watch(compiledBarCode, (barcode) => {
 })
 const triggerItemScan = (barcode_value) => {
   // check if the scanned barcode is in the item data and that the barcode hasnt been retrieved already
-  if (!picklistJob.value.items.some(itm => itm.barcode.value == barcode_value)) {
+  if (!picklistJob.value.requests.some(itm => itm.barcode.value == barcode_value)) {
     handleAlert({
       type: 'error',
       text: 'The scanned item does not exist in this pick list job. Please try again.',
       autoClose: true
     })
     return
-  } else if (picklistJob.value.items.some(itm => itm.barcode.value == barcode_value && itm.scanned_for_retrieval)) {
+  } else if (picklistJob.value.requests.some(itm => itm.barcode.value == barcode_value && itm.scanned_for_retrieval)) {
     handleAlert({
       type: 'error',
       text: 'The scanned item has already been marked as retrieved.',
@@ -435,7 +435,8 @@ const executePicklistJob = async () => {
     const payload = {
       id: picklistJob.value.id,
       status: 'Running',
-      user_id: picklistJob.value.user_id ? picklistJob.value.user_id : userData.value.id
+      user_id: picklistJob.value.user_id ? picklistJob.value.user_id : userData.value.id,
+      run_timestamp: new Date().toISOString()
     }
     await patchPicklistJob(payload)
 
@@ -459,7 +460,8 @@ const updatePicklistJob = async () => {
     appActionIsLoadingData.value = true
     const payload = {
       id: picklistJob.value.id,
-      user_id: picklistJob.value.user_id
+      user_id: picklistJob.value.user_id,
+      run_timestamp: new Date().toISOString()
     }
     await patchPicklistJob(payload)
 
@@ -553,7 +555,7 @@ const removePicklistItem = async (itemId) => {
 }
 const updatePicklistItem = async (barcode_value) => {
   try {
-    const pickListItemToUpdate = picklistJob.value.items.find(itm => itm.barcode.value == barcode_value)
+    const pickListItemToUpdate = picklistJob.value.requests.find(itm => itm.barcode.value == barcode_value)
     const payload = {
       id: pickListItemToUpdate.id,
       scanned_for_retrieval: true
