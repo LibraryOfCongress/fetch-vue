@@ -197,11 +197,11 @@ const getItemLocation = (itemData) => {
   let shelfPosition = ''
   if (itemData && itemData.shelf_position) {
     module = itemData.shelf_position.shelf.ladder.side.aisle.module?.module_number.number
-    aisle = itemData.shelf_position.shelf.ladder.side.aisle?.aisle_number.number
-    side = itemData.shelf_position.shelf.ladder.side?.side_orientation.name
-    ladder = itemData.shelf_position.shelf.ladder?.ladder_number.number
-    shelf = itemData.shelf_position?.shelf.id
-    shelfPosition = itemData.shelf_position?.shelf_position_number.number
+    aisle = itemData.shelf_position.shelf.ladder.side.aisle.aisle_number?.number
+    side = itemData.shelf_position.shelf.ladder.side.side_orientation?.name
+    ladder = itemData.shelf_position.shelf.ladder.ladder_number?.number
+    shelf = itemData.shelf_position.shelf.shelf_number?.number
+    shelfPosition = itemData.shelf_position.shelf_position_number?.number
   }
 
   return `${module}-${aisle}-${side == 'Right' ? 'R' : side == 'Left' ? 'L' : side}-${ladder}-${shelf}-${shelfPosition}`.replace('undefined-', '')
