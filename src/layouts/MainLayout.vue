@@ -200,14 +200,14 @@ const getItemLocation = (itemData) => {
     aisle = itemData.item.tray.shelf_position.shelf.ladder.side.aisle?.aisle_number.number
     side = itemData.item.tray.shelf_position.shelf.ladder.side?.side_orientation.name
     ladder = itemData.item.tray.shelf_position.shelf.ladder?.ladder_number.number
-    shelf = itemData.item.tray.shelf_position?.shelf.id
+    shelf = itemData.item.tray.shelf_position?.shelf.shelf_number?.number
     shelfPosition = itemData.item.tray.shelf_position?.shelf_position_number.number
   } else if (itemData.non_tray_item && itemData.non_tray_item.shelf_position) {
     module = itemData.non_tray_item.shelf_position.shelf.ladder.side.aisle.module?.module_number.number
     aisle = itemData.non_tray_item.shelf_position.shelf.ladder.side.aisle?.aisle_number.number
     side = itemData.non_tray_item.shelf_position.shelf.ladder.side?.side_orientation.name
     ladder = itemData.non_tray_item.shelf_position.shelf.ladder?.ladder_number.number
-    shelf = itemData.non_tray_item.shelf_position?.shelf.id
+    shelf = itemData.non_tray_item.shelf_position?.shelf.shelf_number?.number
     shelfPosition = itemData.non_tray_item.shelf_position?.shelf_position_number.number
   }
 
