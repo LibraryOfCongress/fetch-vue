@@ -33,6 +33,19 @@
         {{ caption }}
       </q-item-label>
     </q-item-section>
+
+    <q-item-section
+      v-if="iconRight"
+      avatar
+      :style="{'padding': iconRightPadding}"
+    >
+      <q-icon
+        :name="iconRight"
+        :size="iconRightSize"
+        role="img"
+        :aria-label="`${iconRight}-icon`"
+      />
+    </q-item-section>
   </q-item>
 </template>
 
@@ -61,6 +74,18 @@ defineProps({
   iconPadding: {
     type: String,
     default: '0px 16px 0px 0px'
+  },
+  iconRight: {
+    type: String,
+    default: ''
+  },
+  iconRightSize: {
+    type: String,
+    default: '24px'
+  },
+  iconRightPadding: {
+    type: String,
+    default: '0px 0px 0px 16px'
   },
   disabled: {
     type: Boolean,

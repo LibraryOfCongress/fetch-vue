@@ -1,12 +1,15 @@
 <template>
   <q-page
     :style-fn="handlePageOffset"
-    :padding="!route.params.buildingId"
+    :padding="route.name == 'admin-home'"
     class="admin-page column no-wrap"
   >
-    <AdminBuildingDisplay v-if="!route.params.buildingId" />
+    <AdminDashboard v-if="route.name == 'admin-home'" />
 
-    <AdminBuildingDetails v-if="route.params.buildingId" />
+    <AdminBuildingDisplay v-if="route.name == 'admin-building-view' && !route.params.buildingId" />
+    <AdminBuildingDetails v-if="route.name == 'admin-building-view' && route.params.buildingId" />
+
+    <AdminGroups v-if="route.name == 'admin-groups'" />
   </q-page>
 </template>
 
@@ -14,8 +17,10 @@
 import { onBeforeMount, inject } from 'vue'
 import { useRoute } from 'vue-router'
 import { useBuildingStore } from '@/stores/building-store'
+import AdminDashboard from '@/components/Admin/AdminDashboard.vue'
 import AdminBuildingDisplay from '@/components/Admin/AdminBuildingDisplay.vue'
 import AdminBuildingDetails from '@/components/Admin/AdminBuildingDetails.vue'
+import AdminGroups from '@/components/Admin/AdminGroups.vue'
 
 const route = useRoute()
 

@@ -97,20 +97,45 @@ const generateBreadCrumbs = () => {
       { text: route.params.containerId }
     ]
     break
-  case 'admin':
+  case 'admin-home':
     breadCrumbs = [
       ...breadCrumbs,
       { text: 'Admin' }
     ]
     break
   case 'admin-building-view':
+    if (!route.params.buildingId) {
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Admin',
+          to: '/admin'
+        },
+        { text: 'Buildings' }
+      ]
+    } else {
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Admin',
+          to: '/admin'
+        },
+        {
+          text: 'Buildings',
+          to: '/admin/buildings/'
+        },
+        { text: route.params.buildingId }
+      ]
+    }
+    break
+  case 'admin-groups':
     breadCrumbs = [
       ...breadCrumbs,
       {
         text: 'Admin',
         to: '/admin'
       },
-      { text: route.params.buildingId }
+      { text: 'Groups & Permissions' }
     ]
     break
   case 'item-management':
