@@ -22,7 +22,7 @@
           <q-card-section class="admin-groups-card-details q-pa-md">
             <MoreOptionsMenu
               :options="[
-                { text: 'Edit Permission' },
+                { text: 'Edit Permissions' },
                 { text: 'Add/Edit User(s) in Group' },
                 { text: 'Rename Group Name' },
                 { text: 'Delete Group', optionClass: 'text-negative' }
@@ -331,7 +331,7 @@ const {
   resetGroupStore,
   resetGroupDetails,
   getAdminGroupList,
-  getAdminGroup,
+  getAdminGroupPermissions,
   postAdminGroup,
   patchAdminGroup,
   deleteAdminGroup,
@@ -364,7 +364,7 @@ onBeforeMount(() => {
 const handleOptionMenu = (option, groupData) => {
   if (option.text == 'Edit Permissions') {
     selectedGroup.value = groupData
-    loadAdminGroup()
+    loadAdminGroupPermissions()
   } else if (option.text == 'Add/Edit User(s) in Group') {
     showGroupUserModal.value = true
     selectedGroup.value = groupData
@@ -422,10 +422,10 @@ const loadAdminGroups = async () => {
     appIsLoadingData.value = false
   }
 }
-const loadAdminGroup = async () => {
+const loadAdminGroupPermissions = async () => {
   try {
     appIsLoadingData.value = true
-    await getAdminGroup(selectedGroup.value.id)
+    await getAdminGroupPermissions(selectedGroup.value.id)
 
     router.push({
       name: 'admin-groups',

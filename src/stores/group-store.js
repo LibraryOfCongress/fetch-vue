@@ -38,10 +38,16 @@ export const useGroupStore = defineStore('group-store', {
         throw error
       }
     },
-    async getAdminGroup (id) {
+    async getAdminGroupPermissions (id) {
       try {
-        const res = await this.$api.get(`${inventoryServiceApi.groups}${id}`)
-        this.groupDetails = res.data
+        // TODO: add groups permissions endpoint
+        // const res = await this.$api.get(`${inventoryServiceApi.groups}${id}/permissions`)
+        // this.groupDetails = res.data
+        this.groupDetails = {
+          id,
+          name: 'test get group',
+          permissions: []
+        }
       } catch (error) {
         throw error
       }

@@ -24,7 +24,7 @@
           color="accent"
           label="Cancel"
           class="text-body1"
-          @click="null"
+          @click="cancelGroupChanges"
           aria-label="cancelButton"
         />
       </div>
@@ -32,82 +32,129 @@
 
     <q-space class="divider" />
 
-    <div class="row q-pa-xs-sm q-pa-sm-lg q-mb-xs-md q-mb-sm-lg">
+    <div class="row">
       <div class="col-12">
-        <h1 class="text-h4 text-bold">
-          permissions list here
-        </h1>
+        <!-- group tabs -->
+        <q-tabs
+          v-model="activeTab"
+          class="admin-group-details-tablist"
+          active-color="accent"
+          indicator-color="accent"
+          align="justify"
+        >
+          <q-tab
+            name="accession"
+            label="Accession"
+            class="admin-group-details-tablist-tab"
+          />
+          <q-tab
+            name="verification"
+            label="Verification"
+            class="admin-group-details-tablist-tab"
+          />
+          <q-tab
+            name="shelving"
+            label="Shelving"
+            class="admin-group-details-tablist-tab"
+          />
+          <q-tab
+            name="request"
+            label="Request"
+            class="admin-group-details-tablist-tab"
+          />
+          <q-tab
+            name="picklist"
+            label="Picklist"
+            class="admin-group-details-tablist-tab"
+          />
+          <q-tab
+            name="refile"
+            label="Refile"
+            class="admin-group-details-tablist-tab"
+          />
+        </q-tabs>
+
+        <!-- group tabs - content -->
+        <q-tab-panels
+          v-model="activeTab"
+          animated
+          class="admin-group-details-tabpanels q-pa-xs-sm q-pa-sm-lg"
+        >
+          <q-tab-panel name="accession">
+            <div class="text-h6">
+              Accession
+            </div>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit.
+          </q-tab-panel>
+
+          <q-tab-panel name="verification">
+            <div class="text-h6">
+              verification
+            </div>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit.
+          </q-tab-panel>
+
+          <q-tab-panel name="shelving">
+            <div class="text-h6">
+              shelving
+            </div>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit.
+          </q-tab-panel>
+
+          <q-tab-panel name="request">
+            <div class="text-h6">
+              request
+            </div>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit.
+          </q-tab-panel>
+
+          <q-tab-panel name="picklist">
+            <div class="text-h6">
+              picklist
+            </div>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit.
+          </q-tab-panel>
+
+          <q-tab-panel name="refile">
+            <div class="text-h6">
+              Accession
+            </div>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit.
+          </q-tab-panel>
+        </q-tab-panels>
       </div>
     </div>
-
-    <!-- <div class="row">
-      <div
-        v-for="group in adminGroupList"
-        :key="group.id"
-        class="col-xs-12 col-sm-4 col-md-3 q-pa-xs-xs q-pa-lg-sm q-pa-xl-md"
-      >
-        <q-card
-          flat
-          bordered
-          class="admin-groups-card"
-        >
-          <q-card-section class="admin-groups-card-details q-pa-md">
-            <MoreOptionsMenu
-              :options="[
-                { text: 'Edit Permission' },
-                { text: 'Add/Edit User(s) in Group' },
-                { text: 'Rename Group Name' },
-                { text: 'Delete Group', optionClass: 'text-negative' }
-              ]"
-              class="q-mr-sm"
-              @click="handleOptionMenu($event, group)"
-            />
-            <p class="text-h5 text-bold">
-              {{ group.name }}
-            </p>
-          </q-card-section>
-        </q-card>
-      </div>
-
-      <div class="col-xs-12 col-sm-4 col-md-3 q-pa-xs-xs q-pa-lg-sm q-pa-xl-md">
-        <q-card
-          flat
-          bordered
-          class="admin-groups-card admin-groups-card-dashed"
-          @click="showAddGroupModal = true"
-        >
-          <q-card-section class="admin-groups-card-details q-pa-md">
-            <q-icon
-              name="add"
-              size="25px"
-              class="q-mr-sm text-bold"
-            />
-            <p class="text-h5 text-bold">
-              Add New Group
-            </p>
-          </q-card-section>
-        </q-card>
-      </div>
-    </div> -->
   </div>
 </template>
 
 <script setup>
-// import { ref } from 'vue'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useGroupStore } from '@/stores/group-store'
+
+const router = useRouter()
 
 // Compasables
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { groupDetails } = storeToRefs(useGroupStore())
+const { resetGroupDetails } = useGroupStore()
 
 // Local Data
+const activeTab = ref('accession')
 
 // Logic
 // const handleAlert = inject('handle-alert')
+
+const cancelGroupChanges = () => {
+  resetGroupDetails()
+  router.push({
+    name: 'admin-groups'
+  })
+}
 
 // const updateAdminGroup = async () => {
 //   try {
@@ -137,50 +184,22 @@ const { groupDetails } = storeToRefs(useGroupStore())
 </script>
 
 <style lang="scss" scoped>
-.admin-groups {
-  &-card {
-    position: relative;
-    display: flex;
-    width: 100%;
-    height: 100%;
-    min-height: 70px;
-    border-color: $secondary;
-    border-radius: 4px;
-    transition: 0.3s ease;
-
-    &-dashed {
-      border-style: dashed;
-      border-width: 2px;
-      border-color: $color-black;
-
-      &:hover:not(:disabled) {
-        color: $accent;
-        border-color: $accent;
-        cursor: pointer;
+.admin-group-details {
+  &-tablist {
+    &-tab {
+      :deep(.q-tab__label) {
+        // copy of .text-h5 styling + font weight bold
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 2rem;
+        letter-spacing: normal;
       }
-    }
-
-    &-details {
-      display: flex;
-      flex-flow: row nowrap;
-      align-items: center;
-      width: 100%;
     }
   }
 
-  &-users {
-    position: relative;
-    left: -4px;
-    width: calc(100% + 8px);
-
-    &-chip {
-      display: flex;
-      width: 100%;
-      height: 100%;
-
-      :deep(.q-btn__content) {
-        flex-wrap: nowrap;
-      }
+  &-tabpanels {
+    :deep(.q-tab-panel) {
+      padding: 0;
     }
   }
 }
