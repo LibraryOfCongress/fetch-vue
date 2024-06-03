@@ -3,6 +3,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useGroupStore = defineStore('group-store', {
   state: () => ({
+    permissionsList: [],
     groupList: [],
     groupDetails: {
       id: null,
@@ -21,6 +22,14 @@ export const useGroupStore = defineStore('group-store', {
         name: null,
         permissions: [],
         users: []
+      }
+    },
+    async getPermissionsList () {
+      try {
+        const res = await this.$api.get(inventoryServiceApi.permissions)
+        this.permissionsList = res.data.items
+      } catch (error) {
+        throw error
       }
     },
     async getAdminGroupList () {
@@ -46,7 +55,28 @@ export const useGroupStore = defineStore('group-store', {
         this.groupDetails = {
           id,
           name: 'test get group',
-          permissions: []
+          permissions: [
+            {
+              id: 1,
+              name: 'Start and Complete Accession Jobs',
+              value: true
+            },
+            {
+              id: 2,
+              name: 'Cancel Accession Job',
+              value: true
+            },
+            {
+              id: 3,
+              name: 'View Accessioning Reports',
+              value: false
+            },
+            {
+              id: 4,
+              name: 'Allow Ownership, Container Size and Media Type Changes',
+              value: true
+            }
+          ]
         }
       } catch (error) {
         throw error

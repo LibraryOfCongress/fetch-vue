@@ -20,6 +20,8 @@ export default {
   ladders: '/ladders/',
   owners: '/owners/',
   ownersTiers: '/owners/tiers/',
+  permissions: '/permissions/',
+  picklists: '/pick-lists/',
   requests: '/requests/',
   requestsLocations: '/requests/locations',
   requestsPriorities: '/requests/priorities',
@@ -32,5 +34,6 @@ export default {
   sizeClass: '/size_class/',
   trays: '/trays/',
   traysBarcode: '/trays/barcode/',
+  users: '/users/',
   verificationJobs: '/verification-jobs/'
 }

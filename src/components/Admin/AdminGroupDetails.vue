@@ -1,38 +1,6 @@
 <template>
   <div class="admin-group-details">
-    <div class="row q-pa-sm">
-      <div class="col-auto flex items-center">
-        <p class="text-body1 text-bold">
-          Save Group {{ groupDetails.name }} Permissions?
-        </p>
-      </div>
-      <div class="col-auto q-ml-auto flex no-wrap">
-        <q-btn
-          no-caps
-          unelevated
-          color="accent"
-          label="Save Changes"
-          class="text-body1 q-mr-sm"
-          :loading="appActionIsLoadingData"
-          @click="null"
-          aria-label="saveButton"
-        />
-        <q-btn
-          no-caps
-          unelevated
-          outline
-          color="accent"
-          label="Cancel"
-          class="text-body1"
-          @click="cancelGroupChanges"
-          aria-label="cancelButton"
-        />
-      </div>
-    </div>
-
-    <q-space class="divider" />
-
-    <div class="row">
+    <div class="row q-mt-md">
       <div class="col-12">
         <!-- group tabs -->
         <q-tabs
@@ -78,48 +46,166 @@
         <q-tab-panels
           v-model="activeTab"
           animated
+          transition-prev="slide-right"
+          transition-next="slide-right"
           class="admin-group-details-tabpanels q-pa-xs-sm q-pa-sm-lg"
         >
           <q-tab-panel name="accession">
-            <div class="text-h6">
-              Accession
+            <div
+              v-for="permission in groupDetails.permissions"
+              :key="permission.id"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <div class="col-xs-12 col-sm-8 col-md-10 flex items-center">
+                <p :class="currentScreenSize !== 'xs' ? 'text-h6' : 'text-body1 q-mb-xs'">
+                  {{ permission.name }}
+                </p>
+              </div>
+              <div class="col-xs-12 col-sm-4 col-md-2">
+                <div class="form-group">
+                  <ToggleButtonInput
+                    v-model="permission.value"
+                    @update:model-value="$event == true ? addAdminGroupPermission(permission.id) : removeAdminGroupPermission(permission.id)"
+                    :options="[
+                      {label: 'Yes', value: true},
+                      {label: 'No', value: false}
+                    ]"
+                  />
+                </div>
+              </div>
             </div>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit.
           </q-tab-panel>
 
           <q-tab-panel name="verification">
-            <div class="text-h6">
-              verification
+            <div
+              v-for="permission in groupDetails.permissions"
+              :key="permission.id"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <div class="col-xs-12 col-sm-8 col-md-10 flex items-center">
+                <p :class="currentScreenSize !== 'xs' ? 'text-h6' : 'text-body1 q-mb-xs'">
+                  {{ permission.name }}
+                </p>
+              </div>
+              <div class="col-xs-12 col-sm-4 col-md-2">
+                <div class="form-group">
+                  <ToggleButtonInput
+                    v-model="permission.value"
+                    @update:model-value="$event == true ? addAdminGroupPermission(permission.id) : removeAdminGroupPermission(permission.id)"
+                    :options="[
+                      {label: 'Yes', value: true},
+                      {label: 'No', value: false}
+                    ]"
+                  />
+                </div>
+              </div>
             </div>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit.
           </q-tab-panel>
 
           <q-tab-panel name="shelving">
-            <div class="text-h6">
-              shelving
+            <div
+              v-for="permission in groupDetails.permissions"
+              :key="permission.id"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <div class="col-xs-12 col-sm-8 col-md-10 flex items-center">
+                <p :class="currentScreenSize !== 'xs' ? 'text-h6' : 'text-body1 q-mb-xs'">
+                  {{ permission.name }}
+                </p>
+              </div>
+              <div class="col-xs-12 col-sm-4 col-md-2">
+                <div class="form-group">
+                  <ToggleButtonInput
+                    v-model="permission.value"
+                    @update:model-value="$event == true ? addAdminGroupPermission(permission.id) : removeAdminGroupPermission(permission.id)"
+                    :options="[
+                      {label: 'Yes', value: true},
+                      {label: 'No', value: false}
+                    ]"
+                  />
+                </div>
+              </div>
             </div>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit.
           </q-tab-panel>
 
           <q-tab-panel name="request">
-            <div class="text-h6">
-              request
+            <div
+              v-for="permission in groupDetails.permissions"
+              :key="permission.id"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <div class="col-xs-12 col-sm-8 col-md-10 flex items-center">
+                <p :class="currentScreenSize !== 'xs' ? 'text-h6' : 'text-body1 q-mb-xs'">
+                  {{ permission.name }}
+                </p>
+              </div>
+              <div class="col-xs-12 col-sm-4 col-md-2">
+                <div class="form-group">
+                  <ToggleButtonInput
+                    v-model="permission.value"
+                    @update:model-value="$event == true ? addAdminGroupPermission(permission.id) : removeAdminGroupPermission(permission.id)"
+                    :options="[
+                      {label: 'Yes', value: true},
+                      {label: 'No', value: false}
+                    ]"
+                  />
+                </div>
+              </div>
             </div>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit.
           </q-tab-panel>
 
           <q-tab-panel name="picklist">
-            <div class="text-h6">
-              picklist
+            <div
+              v-for="permission in groupDetails.permissions"
+              :key="permission.id"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <div class="col-xs-12 col-sm-8 col-md-10 flex items-center">
+                <p :class="currentScreenSize !== 'xs' ? 'text-h6' : 'text-body1 q-mb-xs'">
+                  {{ permission.name }}
+                </p>
+              </div>
+              <div class="col-xs-12 col-sm-4 col-md-2">
+                <div class="form-group">
+                  <ToggleButtonInput
+                    v-model="permission.value"
+                    @update:model-value="$event == true ? addAdminGroupPermission(permission.id) : removeAdminGroupPermission(permission.id)"
+                    :options="[
+                      {label: 'Yes', value: true},
+                      {label: 'No', value: false}
+                    ]"
+                  />
+                </div>
+              </div>
             </div>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit.
           </q-tab-panel>
 
           <q-tab-panel name="refile">
-            <div class="text-h6">
-              Accession
+            <div
+              v-for="permission in groupDetails.permissions"
+              :key="permission.id"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <div class="col-xs-12 col-sm-8 col-md-10 flex items-center">
+                <p :class="currentScreenSize !== 'xs' ? 'text-h6' : 'text-body1 q-mb-xs'">
+                  {{ permission.name }}
+                </p>
+              </div>
+              <div class="col-xs-12 col-sm-4 col-md-2">
+                <div class="form-group">
+                  <ToggleButtonInput
+                    v-model="permission.value"
+                    @update:model-value="$event == true ? addAdminGroupPermission(permission.id) : removeAdminGroupPermission(permission.id)"
+                    :options="[
+                      {label: 'Yes', value: true},
+                      {label: 'No', value: false}
+                    ]"
+                  />
+                </div>
+              </div>
             </div>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit.
+            <q-btn @click="addAdminGroupPermission" />
+            <q-btn @click="removeAdminGroupPermission" />
           </q-tab-panel>
         </q-tab-panels>
       </div>
@@ -128,59 +214,94 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, inject, onBeforeMount } from 'vue'
+import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useGroupStore } from '@/stores/group-store'
+import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 
-const router = useRouter()
+const route = useRoute()
 
 // Compasables
+const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { appActionIsLoadingData, appIsLoadingData } = storeToRefs(useGlobalStore())
 const { groupDetails } = storeToRefs(useGroupStore())
-const { resetGroupDetails } = useGroupStore()
+const {
+  getPermissionsList,
+  getAdminGroupPermissions,
+  postAdminGroupPermission,
+  deleteAdminGroupPermission
+} = useGroupStore()
 
 // Local Data
 const activeTab = ref('accession')
 
 // Logic
-// const handleAlert = inject('handle-alert')
+const handleAlert = inject('handle-alert')
 
-const cancelGroupChanges = () => {
-  resetGroupDetails()
-  router.push({
-    name: 'admin-groups'
-  })
+onBeforeMount(() => {
+  loadAdminGroupPermissions()
+})
+
+const loadAdminGroupPermissions = async () => {
+  try {
+    appIsLoadingData.value = true
+    // get all permissions first
+    await getPermissionsList()
+
+    // get the group based permissions to compare against
+    await getAdminGroupPermissions(route.params.groupId)
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
+  }
 }
-
-// const updateAdminGroup = async () => {
-//   try {
-//     appActionIsLoadingData.value = true
-//     //TODO: create store and wire up endpoint to update an admin group
-//     // const payload = {
-//     //   name: adminGroupDetails.value.name
-//     // }
-//     // await patchAdminGroup(payload)
-
-//     handleAlert({
-//       type: 'success',
-//       text: 'The groups name has been updated.',
-//       autoClose: true
-//     })
-//   } catch (error) {
-//     handleAlert({
-//       type: 'error',
-//       text: error,
-//       autoClose: true
-//     })
-//   } finally {
-//     appActionIsLoadingData.value = false
-//     editGroupModal.value.hideModal()
-//   }
-// }
+const addAdminGroupPermission = async (permissionId) => {
+  try {
+    console.log('add')
+    appActionIsLoadingData.value = true
+    const payload = {
+      groupId: groupDetails.value.id,
+      permissionId
+    }
+    await postAdminGroupPermission(payload)
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = false
+  }
+}
+const removeAdminGroupPermission = async (permissionId) => {
+  try {
+    appActionIsLoadingData.value = true
+    const payload = {
+      groupId: groupDetails.value.id,
+      permissionId
+    }
+    await deleteAdminGroupPermission(payload)
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = false
+  }
+}
 </script>
 
 <style lang="scss" scoped>
