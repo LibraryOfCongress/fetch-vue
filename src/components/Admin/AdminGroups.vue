@@ -10,7 +10,7 @@
 
     <div class="row">
       <div
-        v-for="group in adminGroupList"
+        v-for="group in groupList"
         :key="group.id"
         class="col-xs-12 col-sm-4 col-md-3 q-pa-xs-xs q-pa-lg-sm q-pa-xl-md"
       >
@@ -74,7 +74,7 @@
             Group Name
           </label>
           <TextInput
-            v-model="adminGroupDetails.name"
+            v-model="groupDetails.name"
             placeholder="Enter Group Name"
           />
         </div>
@@ -89,7 +89,7 @@
           color="accent"
           label="Submit"
           class="text-body1 full-width"
-          :disabled="!adminGroupDetails.name"
+          :disabled="!groupDetails.name"
           :loading="appActionIsLoadingData"
           @click="createAdminGroup()"
         />
@@ -112,7 +112,7 @@
     v-if="showEditGroupModal"
     ref="editGroupModal"
     :title="'Rename Group'"
-    @reset="showEditGroupModal = false; renameGroupInput = '';"
+    @reset="showEditGroupModal = false; renameGroupInput = ''; selectedGroup = null;"
     aria-label="renameGroupModal"
   >
     <template #main-content>
@@ -135,7 +135,7 @@
           color="accent"
           label="Save Changes"
           class="text-body1 full-width"
-          :disabled="!renameGroupInput"
+          :disabled="!renameGroupInput || renameGroupInput == selectedGroup.name"
           :loading="appActionIsLoadingData"
           @click="updateAdminGroup()"
         />
@@ -159,7 +159,7 @@
     ref="groupUsersModal"
     :title="'Add / Edit User(s)'"
     :modal-width="'600px'"
-    @reset="showGroupUserModal = false; addUserInput = null;"
+    @reset="showGroupUserModal = false; addUserInput = null; selectedGroup = null;"
     aria-label="groupUsersModal"
   >
     <template #main-content>
@@ -178,7 +178,7 @@
         </div>
 
         <div
-          v-if="!adminGroupDetails.users"
+          v-if="!groupDetails.users"
           class="col-12"
         >
           No users currently in this group.
@@ -187,7 +187,7 @@
           <div class="col-12">
             <div class="row admin-groups-users">
               <div
-                v-for="user in adminGroupDetails.users"
+                v-for="user in groupDetails.users"
                 :key="user.id"
                 class="col-xs-6 col-sm-4 col-md-3"
               >
@@ -200,7 +200,7 @@
                     @click="showConfirmationModal = {
                       type: 'deleteUser',
                       text: `Do you wish to delete ${user.first_name} ${user.last_name} from the group?`
-                    }"
+                    }; selectedGroupUserId = user.id"
                   >
                     <span class="text-left">
                       {{ user.first_name }} {{ user.last_name }}
@@ -246,7 +246,6 @@
     </template>
   </PopupModal>
 
-
   <!-- confirmation modal -->
   <PopupModal
     v-if="showConfirmationModal !== null"
@@ -254,7 +253,7 @@
     :title="'Confirm'"
     :text="showConfirmationModal.text"
     :show-actions="false"
-    @reset="showConfirmationModal = null"
+    @reset="showConfirmationModal = null; selectedGroup = null; selectedGroupUserId = null;"
     aria-label="confirmationModal"
   >
     <template #footer-content="{ hideModal }">
@@ -311,36 +310,40 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
+import { ref, inject, onBeforeMount } from 'vue'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
+import { useGroupStore } from '@/stores/group-store'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import TextInput from '@/components/TextInput.vue'
 import SelectInput from '@/components/SelectInput.vue'
 
-// Compasables
+const router = useRouter()
 
 // Store Data
-const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { appActionIsLoadingData, appIsLoadingData } = storeToRefs(useGlobalStore())
 const { users } = storeToRefs(useOptionStore())
+const { groupList, groupDetails } = storeToRefs(useGroupStore())
+const {
+  resetGroupStore,
+  resetGroupDetails,
+  getAdminGroupList,
+  getAdminGroup,
+  postAdminGroup,
+  patchAdminGroup,
+  deleteAdminGroup,
+  postAdminGroupUser,
+  deleteAdminGroupUser
+} = useGroupStore()
 
 // Local Data
-const adminGroupList = ref([
-  {
-    id: 1,
-    name: 'Group 1'
-  }
-])
-const adminGroupDetails = ref({
-  id: null,
-  name: null,
-  permissions: [],
-  users: []
-})
 const renameGroupInput = ref('')
 const addUserInput = ref(null)
+const selectedGroup = ref(null)
+const selectedGroupUserId = ref(null)
 const addGroupModal = ref(null)
 const showAddGroupModal = ref(false)
 const editGroupModal = ref(null)
@@ -352,13 +355,21 @@ const showConfirmationModal = ref(null)
 
 // Logic
 const handleAlert = inject('handle-alert')
-const handleOptionMenu = (option, groupDetails) => {
+
+onBeforeMount(() => {
+  resetGroupStore()
+  loadAdminGroups()
+})
+
+const handleOptionMenu = (option, groupData) => {
   if (option.text == 'Edit Permissions') {
-    return
+    selectedGroup.value = groupData
+    loadAdminGroup()
   } else if (option.text == 'Add/Edit User(s) in Group') {
     showGroupUserModal.value = true
+    selectedGroup.value = groupData
     //TEMP
-    adminGroupDetails.value.users = [
+    groupDetails.value.users = [
       {
         'first_name': 'Frodo',
         'id': 1,
@@ -382,8 +393,10 @@ const handleOptionMenu = (option, groupDetails) => {
     ]
   } else if (option.text == 'Rename Group Name') {
     showEditGroupModal.value = true
-    renameGroupInput.value = groupDetails.name
+    selectedGroup.value = groupData
+    renameGroupInput.value = groupData.name
   } else if (option.text == 'Delete Group') {
+    selectedGroup.value = groupData
     showConfirmationModal.value = {
       type: 'deleteGroup',
       text: 'Are you sure you want to delete this group?'
@@ -392,35 +405,65 @@ const handleOptionMenu = (option, groupDetails) => {
 }
 const resetAddGroupModal = () => {
   showAddGroupModal.value = false
-  adminGroupDetails.value = {
-    id: null,
-    name: null,
-    permissions: []
-  }
+  resetGroupDetails()
 }
 
+const loadAdminGroups = async () => {
+  try {
+    appIsLoadingData.value = true
+    await getAdminGroupList()
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
+  }
+}
+const loadAdminGroup = async () => {
+  try {
+    appIsLoadingData.value = true
+    await getAdminGroup(selectedGroup.value.id)
+
+    router.push({
+      name: 'admin-groups',
+      params: {
+        groupId: selectedGroup.value.id
+      }
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
+  }
+}
 const createAdminGroup = async () => {
   try {
     appActionIsLoadingData.value = true
-    //TODO: create store and wire up endpoint to add a new admin group
-    // const payload = {
-    //   name: adminGroupDetails.value.name
-    // }
-    // await postAdminGroup(payload)
+    const payload = {
+      name: groupDetails.value.name
+    }
+    await postAdminGroup(payload)
 
     handleAlert({
       type: 'success',
-      text: `The ${adminGroupDetails.value.name} group has been created.`,
+      text: `The ${groupDetails.value.name} group has been created.`,
       autoClose: true
     })
 
     // route the user to the newly created group detail view
-    // router.push({
-    //   name: 'admin-groups-detail',
-    //   params: {
-    //     groupId: adminGroupDetails.value.id
-    //   }
-    // })
+    router.push({
+      name: 'admin-groups',
+      params: {
+        groupId: groupDetails.value.id
+      }
+    })
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -435,11 +478,11 @@ const createAdminGroup = async () => {
 const updateAdminGroup = async () => {
   try {
     appActionIsLoadingData.value = true
-    //TODO: create store and wire up endpoint to update an admin group
-    // const payload = {
-    //   name: adminGroupDetails.value.name
-    // }
-    // await patchAdminGroup(payload)
+    const payload = {
+      id: selectedGroup.value.id,
+      name: renameGroupInput.value
+    }
+    await patchAdminGroup(payload)
 
     handleAlert({
       type: 'success',
@@ -460,8 +503,7 @@ const updateAdminGroup = async () => {
 const removeAdminGroup = async () => {
   try {
     appActionIsLoadingData.value = true
-    //TODO: create store and wire up endpoint to delete an admin group
-    // await deleteAdminGroup(groupId)
+    await deleteAdminGroup(selectedGroup.value.id)
 
     handleAlert({
       type: 'success',
@@ -482,8 +524,7 @@ const removeAdminGroup = async () => {
 const addAdminGroupUser = async () => {
   try {
     appActionIsLoadingData.value = true
-    //TODO: create store and wire up endpoint to add an admin group user
-    // await postAdminGroupUser(groupId, userId)
+    await postAdminGroupUser(selectedGroup.value.id, addUserInput.value)
 
     handleAlert({
       type: 'success',
@@ -504,8 +545,7 @@ const addAdminGroupUser = async () => {
 const removeAdminGroupUser = async () => {
   try {
     appActionIsLoadingData.value = true
-    //TODO: create store and wire up endpoint to delete an admin group user
-    // await deleteAdminGroupUser(groupId, userId)
+    await deleteAdminGroupUser(selectedGroup.value.id, selectedGroupUserId.value)
 
     handleAlert({
       type: 'success',

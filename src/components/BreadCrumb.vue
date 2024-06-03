@@ -129,14 +129,29 @@ const generateBreadCrumbs = () => {
     }
     break
   case 'admin-groups':
-    breadCrumbs = [
-      ...breadCrumbs,
-      {
-        text: 'Admin',
-        to: '/admin'
-      },
-      { text: 'Groups & Permissions' }
-    ]
+    if (!route.params.groupId) {
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Admin',
+          to: '/admin'
+        },
+        { text: 'Groups & Permissions' }
+      ]
+    } else {
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Admin',
+          to: '/admin'
+        },
+        {
+          text: 'Groups & Permissions',
+          to: '/admin/groups/'
+        },
+        { text: `${route.params.groupId}` }
+      ]
+    }
     break
   case 'item-management':
     if (!route.params.type) {

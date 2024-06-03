@@ -9,7 +9,8 @@
     <AdminBuildingDisplay v-if="route.name == 'admin-building-view' && !route.params.buildingId" />
     <AdminBuildingDetails v-if="route.name == 'admin-building-view' && route.params.buildingId" />
 
-    <AdminGroups v-if="route.name == 'admin-groups'" />
+    <AdminGroups v-if="route.name == 'admin-groups' && !route.params.groupId" />
+    <AdminGroupDetails v-if="route.name == 'admin-groups' && route.params.groupId" />
   </q-page>
 </template>
 
@@ -21,6 +22,7 @@ import AdminDashboard from '@/components/Admin/AdminDashboard.vue'
 import AdminBuildingDisplay from '@/components/Admin/AdminBuildingDisplay.vue'
 import AdminBuildingDetails from '@/components/Admin/AdminBuildingDetails.vue'
 import AdminGroups from '@/components/Admin/AdminGroups.vue'
+import AdminGroupDetails from '@/components/Admin/AdminGroupDetails.vue'
 
 const route = useRoute()
 

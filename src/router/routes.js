@@ -42,7 +42,7 @@ const routes = [
       },
       {
         name: 'admin-groups',
-        path: 'admin/groups/',
+        path: 'admin/groups/:groupId?',
         component: () => import('@/pages/AdminPage.vue')
       },
       {
