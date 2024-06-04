@@ -121,7 +121,7 @@ const picklistTableColumns = ref([
   },
   {
     name: 'complete_dt',
-    field: 'complete_dt',
+    field: row => row.status == 'Completed' ? row.last_transition : '',
     label: 'Date Completed',
     align: 'left',
     sortable: true

@@ -116,6 +116,9 @@
         :table-visible-columns="shelfTableVisibleColumns"
         :table-data="shelvingJobContainers"
         :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
+        :highlight-row-class="'bg-color-green-light'"
+        :highlight-row-key="'scanned_for_shelving'"
+        :highlight-row-value="true"
       >
         <template #heading-row>
           <div

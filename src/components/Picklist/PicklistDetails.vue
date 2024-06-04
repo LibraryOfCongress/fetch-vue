@@ -202,7 +202,7 @@
             v-if="colName == 'actions'"
           >
             <MoreOptionsMenu
-              :options="[{ text: 'Revert Item to Queue', disabled: picklistJob.status == 'Paused' || picklistJob.status == 'Completed' }]"
+              :options="[{ text: 'Revert Item to Queue', disabled: props.row.scanned_for_retrieval || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' }]"
               class=""
               @click="handleOptionMenu($event, props.row)"
             />
@@ -396,14 +396,14 @@ watch(compiledBarCode, (barcode) => {
 })
 const triggerItemScan = (barcode_value) => {
   // check if the scanned barcode is in the item data and that the barcode hasnt been retrieved already
-  if (!picklistJob.value.requests.some(itm => itm.barcode.value == barcode_value)) {
+  if (!picklistJob.value.requests.some(itm => itm.item ? itm.item.barcode.value == barcode_value : itm.non_tray_item.barcode.value == barcode_value)) {
     handleAlert({
       type: 'error',
       text: 'The scanned item does not exist in this pick list job. Please try again.',
       autoClose: true
     })
     return
-  } else if (picklistJob.value.requests.some(itm => itm.barcode.value == barcode_value && itm.scanned_for_retrieval)) {
+  } else if (picklistJob.value.requests.some(itm => itm.item ? itm.item.barcode.value == barcode_value && itm.scanned_for_retrieval : itm.non_tray_item.barcode.value == barcode_value && itm.scanned_for_retrieval)) {
     handleAlert({
       type: 'error',
       text: 'The scanned item has already been marked as retrieved.',
@@ -510,7 +510,8 @@ const completePicklistJob = async () => {
     appActionIsLoadingData.value = true
     const payload = {
       id: picklistJob.value.id,
-      status: 'Completed'
+      status: 'Completed',
+      run_timestamp: new Date().toISOString()
     }
     await patchPicklistJob(payload)
 
@@ -557,7 +558,7 @@ const removePicklistItem = async (itemId) => {
 }
 const updatePicklistItem = async (barcode_value) => {
   try {
-    const pickListItemToUpdate = picklistJob.value.requests.find(itm => itm.barcode.value == barcode_value)
+    const pickListItemToUpdate = picklistJob.value.requests.find(itm => itm.item ? itm.item.barcode.value == barcode_value : itm.non_tray_item.barcode.value == barcode_value)
     const payload = {
       id: picklistJob.value.id,
       request_id: pickListItemToUpdate.id,
