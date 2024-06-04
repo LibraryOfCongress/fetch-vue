@@ -582,7 +582,7 @@ const loadRequestJobsByBuilding = async () => {
     appIsLoadingData.value = true
     // this function only gets called during the creation/add picklist workflow
     if (requestDisplayType.value == 'request_view') {
-      await getRequestJobList({ building_id: filterRequestsByBuilding.value, unassociated_pick_list: true })
+      await getRequestJobList({ building_id: filterRequestsByBuilding.value, unassociated_pick_list: false })
     } else {
       await getRequestBatchJobList({ building_id: filterRequestsByBuilding.value })
     }

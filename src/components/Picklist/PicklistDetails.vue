@@ -316,28 +316,28 @@ const itemTableColumns = ref([
   },
   {
     name: 'barcode',
-    field: row => row.barcode?.value,
+    field: row => row.item ? row.item?.barcode?.value : row.non_tray_item?.barcode?.value,
     label: 'Barcode',
     align: 'left',
     sortable: true
   },
   {
     name: 'owner',
-    field: row => row.owner?.name,
+    field: row => row.item ? row.item?.owner?.name : row.non_tray_item?.owner?.name,
     label: 'Owner',
     align: 'left',
     sortable: true
   },
   {
     name: 'size_class',
-    field: row => row.size_class?.name,
-    label: 'Size Class',
+    field: row => row.item ? row.item?.size_class?.name : row.non_tray_item?.size_class?.name,
+    label: 'Media Type',
     align: 'left',
     sortable: true
   },
   {
     name: 'item_location',
-    field: row => getItemLocation(row),
+    field: row => row.item ? getItemLocation(row.item.tray) : getItemLocation(row.non_tray_item),
     label: 'Item Location',
     align: 'left',
     sortable: true

@@ -93,7 +93,7 @@ const picklistTableColumns = ref([
   },
   {
     name: 'request_items',
-    field: 'request_items',
+    field: 'request_count',
     label: '# of Items in Job',
     align: 'left',
     sortable: true
