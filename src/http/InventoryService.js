@@ -12,6 +12,7 @@ export default {
   barcodesValue: '/barcodes/value/',
   buildings: '/buildings/',
   containerTypes: '/container-types/',
+  groups: '/groups/',
   items: '/items/',
   mediaTypes: '/media-types/',
   modules: '/modules/',

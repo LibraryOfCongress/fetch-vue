@@ -167,13 +167,15 @@
         <div class="col-12 form-group q-mb-md">
           <SelectInput
             v-model="addUserInput"
+            :multiple="true"
+            :use-chips="true"
+            :hide-selected="false"
             :options="users"
-            clearable
             option-type="users"
             option-value="id"
             option-label="first_name"
-            aria-label="user"
             :placeholder="'Select User To Add'"
+            aria-label="multiUserSelect"
           />
         </div>
 
@@ -226,7 +228,7 @@
           no-caps
           unelevated
           color="accent"
-          label="Add New User"
+          label="Add User(s)"
           class="text-body1 full-width"
           :disabled="!addUserInput"
           :loading="appActionIsLoadingData"
@@ -253,7 +255,7 @@
     :title="'Confirm'"
     :text="showConfirmationModal.text"
     :show-actions="false"
-    @reset="showConfirmationModal = null; selectedGroup = null; selectedGroupUserId = null;"
+    @reset="showConfirmationModal = null; selectedGroupUserId = null;"
     aria-label="confirmationModal"
   >
     <template #footer-content="{ hideModal }">
@@ -332,6 +334,7 @@ const {
   resetGroupDetails,
   getAdminGroupList,
   getAdminGroupPermissions,
+  getAdminGroupUsers,
   postAdminGroup,
   patchAdminGroup,
   deleteAdminGroup,
@@ -366,31 +369,8 @@ const handleOptionMenu = (option, groupData) => {
     selectedGroup.value = groupData
     loadAdminGroupPermissions()
   } else if (option.text == 'Add/Edit User(s) in Group') {
-    showGroupUserModal.value = true
     selectedGroup.value = groupData
-    //TEMP
-    groupDetails.value.users = [
-      {
-        'first_name': 'Frodo',
-        'id': 1,
-        'last_name': 'Baggins'
-      },
-      {
-        'first_name': 'Bilbo',
-        'id': 2,
-        'last_name': 'Baggins'
-      },
-      {
-        'first_name': 'Frederic',
-        'id': 3,
-        'last_name': 'Tompsonville'
-      },
-      {
-        'first_name': 'John',
-        'id': 4,
-        'last_name': 'Doe'
-      }
-    ]
+    loadAdminGroupUsers()
   } else if (option.text == 'Rename Group Name') {
     showEditGroupModal.value = true
     selectedGroup.value = groupData
@@ -443,6 +423,21 @@ const loadAdminGroupPermissions = async () => {
     appIsLoadingData.value = false
   }
 }
+const loadAdminGroupUsers = async () => {
+  try {
+    appIsLoadingData.value = true
+    await getAdminGroupUsers(selectedGroup.value.id)
+    showGroupUserModal.value = true
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
+  }
+}
 const createAdminGroup = async () => {
   try {
     appActionIsLoadingData.value = true
@@ -455,14 +450,6 @@ const createAdminGroup = async () => {
       type: 'success',
       text: `The ${groupDetails.value.name} group has been created.`,
       autoClose: true
-    })
-
-    // route the user to the newly created group detail view
-    router.push({
-      name: 'admin-groups',
-      params: {
-        groupId: groupDetails.value.id
-      }
     })
   } catch (error) {
     handleAlert({
@@ -518,13 +505,14 @@ const removeAdminGroup = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
+    selectedGroup.value = null
     confirmationModal.value.hideModal()
   }
 }
 const addAdminGroupUser = async () => {
   try {
     appActionIsLoadingData.value = true
-    await postAdminGroupUser(selectedGroup.value.id, addUserInput.value)
+    await Promise.all(addUserInput.value.map(usr => postAdminGroupUser(selectedGroup.value.id, usr)))
 
     handleAlert({
       type: 'success',
@@ -539,7 +527,7 @@ const addAdminGroupUser = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
-    groupUsersModal.value.hideModal()
+    addUserInput.value = null
   }
 }
 const removeAdminGroupUser = async () => {

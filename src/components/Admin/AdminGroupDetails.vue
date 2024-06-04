@@ -52,7 +52,7 @@
         >
           <q-tab-panel name="accession">
             <div
-              v-for="permission in permissionsList"
+              v-for="permission in permissionsList.filter(p => p.name.includes('Accession'))"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
@@ -78,7 +78,7 @@
 
           <q-tab-panel name="verification">
             <div
-              v-for="permission in permissionsList"
+              v-for="permission in permissionsList.filter(p => p.name.includes('Verification'))"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
@@ -90,7 +90,7 @@
               <div class="col-xs-12 col-sm-4 col-md-2">
                 <div class="form-group">
                   <ToggleButtonInput
-                    v-model="permission.value"
+                    :model-value="renderPermissionValue(permission)"
                     @update:model-value="$event == true ? addAdminGroupPermission(permission.id) : removeAdminGroupPermission(permission.id)"
                     :options="[
                       {label: 'Yes', value: true},
@@ -104,7 +104,7 @@
 
           <q-tab-panel name="shelving">
             <div
-              v-for="permission in permissionsList"
+              v-for="permission in permissionsList.filter(p => p.name.includes('Shelving'))"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
@@ -116,7 +116,7 @@
               <div class="col-xs-12 col-sm-4 col-md-2">
                 <div class="form-group">
                   <ToggleButtonInput
-                    v-model="permission.value"
+                    :model-value="renderPermissionValue(permission)"
                     @update:model-value="$event == true ? addAdminGroupPermission(permission.id) : removeAdminGroupPermission(permission.id)"
                     :options="[
                       {label: 'Yes', value: true},
@@ -130,7 +130,7 @@
 
           <q-tab-panel name="request">
             <div
-              v-for="permission in permissionsList"
+              v-for="permission in permissionsList.filter(p => p.name.includes('Request'))"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
@@ -142,7 +142,7 @@
               <div class="col-xs-12 col-sm-4 col-md-2">
                 <div class="form-group">
                   <ToggleButtonInput
-                    v-model="permission.value"
+                    :model-value="renderPermissionValue(permission)"
                     @update:model-value="$event == true ? addAdminGroupPermission(permission.id) : removeAdminGroupPermission(permission.id)"
                     :options="[
                       {label: 'Yes', value: true},
@@ -156,7 +156,7 @@
 
           <q-tab-panel name="picklist">
             <div
-              v-for="permission in permissionsList"
+              v-for="permission in permissionsList.filter(p => p.name.includes('Picklist'))"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
@@ -168,7 +168,7 @@
               <div class="col-xs-12 col-sm-4 col-md-2">
                 <div class="form-group">
                   <ToggleButtonInput
-                    v-model="permission.value"
+                    :model-value="renderPermissionValue(permission)"
                     @update:model-value="$event == true ? addAdminGroupPermission(permission.id) : removeAdminGroupPermission(permission.id)"
                     :options="[
                       {label: 'Yes', value: true},
@@ -182,7 +182,7 @@
 
           <q-tab-panel name="refile">
             <div
-              v-for="permission in permissionsList"
+              v-for="permission in permissionsList.filter(p => p.name.includes('Refile'))"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
@@ -194,7 +194,7 @@
               <div class="col-xs-12 col-sm-4 col-md-2">
                 <div class="form-group">
                   <ToggleButtonInput
-                    v-model="permission.value"
+                    :model-value="renderPermissionValue(permission)"
                     @update:model-value="$event == true ? addAdminGroupPermission(permission.id) : removeAdminGroupPermission(permission.id)"
                     :options="[
                       {label: 'Yes', value: true},
@@ -274,7 +274,6 @@ const loadAdminGroupPermissions = async () => {
 }
 const addAdminGroupPermission = async (permissionId) => {
   try {
-    console.log('add')
     appActionIsLoadingData.value = true
     const payload = {
       groupId: groupDetails.value.id,

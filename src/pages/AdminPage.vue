@@ -4,6 +4,8 @@
     :padding="route.name == 'admin-home'"
     class="admin-page column no-wrap"
   >
+    <LoadingOverlay />
+
     <AdminDashboard v-if="route.name == 'admin-home'" />
 
     <AdminBuildingDisplay v-if="route.name == 'admin-building-view' && !route.params.buildingId" />
@@ -18,6 +20,7 @@
 import { onBeforeMount, inject } from 'vue'
 import { useRoute } from 'vue-router'
 import { useBuildingStore } from '@/stores/building-store'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import AdminDashboard from '@/components/Admin/AdminDashboard.vue'
 import AdminBuildingDisplay from '@/components/Admin/AdminBuildingDisplay.vue'
 import AdminBuildingDetails from '@/components/Admin/AdminBuildingDetails.vue'
