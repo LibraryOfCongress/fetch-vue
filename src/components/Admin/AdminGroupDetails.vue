@@ -1,6 +1,6 @@
 <template>
   <div class="admin-group-details">
-    <div class="row q-mt-md">
+    <div class="row q-mt-xs-sm q-mt-sm-md">
       <div class="col-12">
         <!-- group tabs -->
         <q-tabs
@@ -48,11 +48,11 @@
           animated
           transition-prev="slide-right"
           transition-next="slide-right"
-          class="admin-group-details-tabpanels q-pa-xs-sm q-pa-sm-lg"
+          class="admin-group-details-tabpanels q-pa-xs-md q-pa-sm-lg"
         >
           <q-tab-panel name="accession">
             <div
-              v-for="permission in groupDetails.permissions"
+              v-for="permission in permissionsList"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
@@ -64,7 +64,7 @@
               <div class="col-xs-12 col-sm-4 col-md-2">
                 <div class="form-group">
                   <ToggleButtonInput
-                    v-model="permission.value"
+                    :model-value="renderPermissionValue(permission)"
                     @update:model-value="$event == true ? addAdminGroupPermission(permission.id) : removeAdminGroupPermission(permission.id)"
                     :options="[
                       {label: 'Yes', value: true},
@@ -78,7 +78,7 @@
 
           <q-tab-panel name="verification">
             <div
-              v-for="permission in groupDetails.permissions"
+              v-for="permission in permissionsList"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
@@ -104,7 +104,7 @@
 
           <q-tab-panel name="shelving">
             <div
-              v-for="permission in groupDetails.permissions"
+              v-for="permission in permissionsList"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
@@ -130,7 +130,7 @@
 
           <q-tab-panel name="request">
             <div
-              v-for="permission in groupDetails.permissions"
+              v-for="permission in permissionsList"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
@@ -156,7 +156,7 @@
 
           <q-tab-panel name="picklist">
             <div
-              v-for="permission in groupDetails.permissions"
+              v-for="permission in permissionsList"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
@@ -182,7 +182,7 @@
 
           <q-tab-panel name="refile">
             <div
-              v-for="permission in groupDetails.permissions"
+              v-for="permission in permissionsList"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
@@ -204,8 +204,6 @@
                 </div>
               </div>
             </div>
-            <q-btn @click="addAdminGroupPermission" />
-            <q-btn @click="removeAdminGroupPermission" />
           </q-tab-panel>
         </q-tab-panels>
       </div>
@@ -229,7 +227,7 @@ const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const { appActionIsLoadingData, appIsLoadingData } = storeToRefs(useGlobalStore())
-const { groupDetails } = storeToRefs(useGroupStore())
+const { permissionsList, groupDetails } = storeToRefs(useGroupStore())
 const {
   getPermissionsList,
   getAdminGroupPermissions,
@@ -246,6 +244,15 @@ const handleAlert = inject('handle-alert')
 onBeforeMount(() => {
   loadAdminGroupPermissions()
 })
+
+const renderPermissionValue = (permissionData) => {
+  // check if the passed in permission exists in our group
+  if (groupDetails.value.permissions.some(perm => perm.id == permissionData.id)) {
+    return true
+  } else {
+    return false
+  }
+}
 
 const loadAdminGroupPermissions = async () => {
   try {
@@ -308,12 +315,24 @@ const removeAdminGroupPermission = async (permissionId) => {
 .admin-group-details {
   &-tablist {
     &-tab {
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        border-bottom: 1px solid transparent;
+      }
+
       :deep(.q-tab__label) {
         // copy of .text-h5 styling + font weight bold
         font-size: 1.5rem;
         font-weight: 700;
         line-height: 2rem;
         letter-spacing: normal;
+      }
+
+      &.q-tab--inactive::after {
+        border-color: $color-gray;
       }
     }
   }

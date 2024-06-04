@@ -28,6 +28,24 @@ export const useGroupStore = defineStore('group-store', {
       try {
         const res = await this.$api.get(inventoryServiceApi.permissions)
         this.permissionsList = res.data.items
+        this.permissionsList = [
+          {
+            id: 1,
+            name: 'Start and Complete Accession Jobs'
+          },
+          {
+            id: 2,
+            name: 'Cancel Accession Job'
+          },
+          {
+            id: 3,
+            name: 'View Accessioning Reports'
+          },
+          {
+            id: 4,
+            name: 'Allow Ownership, Container Size and Media Type Changes'
+          }
+        ]
       } catch (error) {
         throw error
       }
@@ -58,23 +76,15 @@ export const useGroupStore = defineStore('group-store', {
           permissions: [
             {
               id: 1,
-              name: 'Start and Complete Accession Jobs',
-              value: true
+              name: 'Start and Complete Accession Jobs'
             },
             {
               id: 2,
-              name: 'Cancel Accession Job',
-              value: true
+              name: 'Cancel Accession Job'
             },
             {
               id: 3,
-              name: 'View Accessioning Reports',
-              value: false
-            },
-            {
-              id: 4,
-              name: 'Allow Ownership, Container Size and Media Type Changes',
-              value: true
+              name: 'View Accessioning Reports'
             }
           ]
         }
