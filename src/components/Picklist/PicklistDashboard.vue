@@ -107,7 +107,7 @@ const picklistTableColumns = ref([
   },
   {
     name: 'user',
-    field: row => row.user?.name,
+    field: row => row.user?.first_name,
     label: 'Assigned User',
     align: 'left',
     sortable: true

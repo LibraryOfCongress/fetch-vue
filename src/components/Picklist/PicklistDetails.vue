@@ -351,7 +351,7 @@ const itemTableColumns = ref([
     align: 'center',
     sortable: false,
     required: true,
-    headerStyle: 'width: 200px'
+    headerStyle: 'max-width: 200px'
   }
 ])
 const itemTableFilters =  ref([
