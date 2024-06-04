@@ -642,6 +642,7 @@ const createPickListJob = async () => {
       text: `Successfully created Pick List #: <a href='/picklist/${picklistJob.value.id}' tabindex='0'>${picklistJob.value.id}</a>`,
       autoClose: false
     })
+    loadRequestJobs()
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -668,6 +669,7 @@ const updatePickListJob = async () => {
       text: `Successfully added items to Pick List #: <a href='/picklist/${picklistJob.value.id}' tabindex='0'>${picklistJob.value.id}</a>`,
       autoClose: false
     })
+    loadRequestJobs()
   } catch (error) {
     handleAlert({
       type: 'error',

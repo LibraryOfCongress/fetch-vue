@@ -266,7 +266,6 @@ import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useUserStore } from '@/stores/user-store'
 import { usePicklistStore } from '@/stores/picklist-store'
-// import { useRequestStore } from '@/stores/request-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
@@ -287,13 +286,16 @@ const { compiledBarCode } = useBarcodeScanHandler()
 const { appActionIsLoadingData, appIsLoadingData } = storeToRefs(useGlobalStore())
 const { userData } = storeToRefs(useUserStore())
 const { users } = storeToRefs(useOptionStore())
-const { patchPicklistJob, deletePicklistJobItem } = usePicklistStore()
+const {
+  patchPicklistJob,
+  patchPicklistJobItemScanned,
+  deletePicklistJobItem
+} = usePicklistStore()
 const {
   picklistJob,
   originalPicklistJob,
   allItemsRetrieved
 } = storeToRefs(usePicklistStore())
-// const { patchRequestJob } = useRequestStore()
 
 // Local Data
 const editJob = ref(false)
@@ -557,11 +559,12 @@ const updatePicklistItem = async (barcode_value) => {
   try {
     const pickListItemToUpdate = picklistJob.value.requests.find(itm => itm.barcode.value == barcode_value)
     const payload = {
-      id: pickListItemToUpdate.id,
-      scanned_for_retrieval: true
+      id: picklistJob.value.id,
+      request_id: pickListItemToUpdate.id,
+      scanned_for_retrieval: true,
+      run_timestamp: new Date().toISOString()
     }
-    console.log(payload)
-    // await patchRequestJob(payload)
+    await patchPicklistJobItemScanned(payload)
 
     // update the item directly in the picklist job and set it to retrieved
     pickListItemToUpdate.scanned_for_retrieval = true
