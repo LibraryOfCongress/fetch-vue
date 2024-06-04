@@ -2,6 +2,8 @@
   <q-avatar
     rounded
     size="md"
+    role="button"
+    aria-label="UserMenu"
     icon="person"
     color="secondary"
     class="user-avatar text-white"
