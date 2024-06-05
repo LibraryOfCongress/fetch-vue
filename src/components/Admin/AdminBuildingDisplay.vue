@@ -1,15 +1,5 @@
 <template>
-  <div class="building">
-    <div class="row">
-      <div class="col-auto">
-        <h1 class="text-h4 text-bold">
-          Admin Dashboard
-        </h1>
-      </div>
-    </div>
-
-    <q-space class="divider q-my-xs-sm q-my-sm-md q-my-md-lg " />
-
+  <div class="building q-pa-xs-sm q-pa-sm-lg">
     <div class="row q-mb-lg">
       <div class="col-auto">
         <h1 class="text-h4 text-bold q-mb-xs-md q-mb-sm-none">
