@@ -30,9 +30,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { storeToRefs } from 'pinia'
+import { useGroupStore } from '@/stores/group-store'
 import EssentialLink from '@/components/EssentialLink.vue'
 
 const route = useRoute()
@@ -41,20 +43,11 @@ const router = useRouter()
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
 
+// Store Data
+const { groupDetails } = storeToRefs(useGroupStore())
+
 // Local Data
-const breadcrumbList = ref([])
-
-// Logic
-onMounted(() => {
-  generateBreadCrumbs()
-})
-
-watch(route, () => {
-  // regenerate the breadcrumb list whenever a route change is detected
-  generateBreadCrumbs()
-})
-
-const generateBreadCrumbs = () => {
+const breadcrumbList = computed(() => {
   let breadCrumbs = [
     {
       text: 'Home',
@@ -149,7 +142,7 @@ const generateBreadCrumbs = () => {
           text: 'Groups & Permissions',
           to: '/admin/groups/'
         },
-        { text: `${route.params.groupId}` }
+        { text: `${groupDetails.value.name}` }
       ]
     }
     break
@@ -245,8 +238,8 @@ const generateBreadCrumbs = () => {
     break
   }
 
-  breadcrumbList.value = breadCrumbs
-}
+  return breadCrumbs
+})
 </script>
 
 <style lang="scss" scoped>
