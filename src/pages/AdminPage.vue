@@ -1,12 +1,18 @@
 <template>
   <q-page
     :style-fn="handlePageOffset"
-    :padding="!route.params.buildingId"
+    :padding="route.name == 'admin-home'"
     class="admin-page column no-wrap"
   >
-    <AdminBuildingDisplay v-if="!route.params.buildingId" />
+    <LoadingOverlay />
 
-    <AdminBuildingDetails v-if="route.params.buildingId" />
+    <AdminDashboard v-if="route.name == 'admin-home'" />
+
+    <AdminBuildingDisplay v-if="route.name == 'admin-building-view' && !route.params.buildingId" />
+    <AdminBuildingDetails v-if="route.name == 'admin-building-view' && route.params.buildingId" />
+
+    <AdminGroups v-if="route.name == 'admin-groups' && !route.params.groupId" />
+    <AdminGroupDetails v-if="route.name == 'admin-groups' && route.params.groupId" />
   </q-page>
 </template>
 
@@ -14,8 +20,12 @@
 import { onBeforeMount, inject } from 'vue'
 import { useRoute } from 'vue-router'
 import { useBuildingStore } from '@/stores/building-store'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
+import AdminDashboard from '@/components/Admin/AdminDashboard.vue'
 import AdminBuildingDisplay from '@/components/Admin/AdminBuildingDisplay.vue'
 import AdminBuildingDetails from '@/components/Admin/AdminBuildingDetails.vue'
+import AdminGroups from '@/components/Admin/AdminGroups.vue'
+import AdminGroupDetails from '@/components/Admin/AdminGroupDetails.vue'
 
 const route = useRoute()
 
