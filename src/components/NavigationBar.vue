@@ -238,6 +238,11 @@ const essentialLinks = ref([
   {
     title: 'Pick List',
     icon: 'list',
+    link: '/picklist'
+  },
+  {
+    title: 'Refile',
+    icon: 'format_list_numbered',
     link: '/refile'
   }
 ])

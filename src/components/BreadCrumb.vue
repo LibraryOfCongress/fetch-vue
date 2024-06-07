@@ -176,6 +176,23 @@ const breadcrumbList = computed(() => {
       ]
     }
     break
+  case 'refile':
+    if (!route.params.jobId) {
+      breadCrumbs = [
+        ...breadCrumbs,
+        { text: 'Refile' }
+      ]
+    } else {
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Refile',
+          to: '/refile'
+        },
+        { text: `${route.params.jobId}` }
+      ]
+    }
+    break
   case 'request':
     if (!route.params.jobId) {
       breadCrumbs = [
