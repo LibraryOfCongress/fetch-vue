@@ -3,7 +3,7 @@
     <template #number-box-content>
       <div class="flex q-mb-xs">
         <MoreOptionsMenu
-          :options="[{ text: 'Edit', disabled: editJob || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' }]"
+          :options="[{ text: 'Edit', disabled: appIsOffline || editJob || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' }]"
           class="q-mr-xs"
           @click="handleOptionMenu"
         />
@@ -132,6 +132,7 @@
             :icon="picklistJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
             :label="picklistJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
             class="btn-no-wrap text-body1 q-mr-sm"
+            :disabled="appPendingSync"
             @click="picklistJob.status == 'Paused' ? updatePicklistJobStatus('Running') : updatePicklistJobStatus('Paused')"
           />
           <q-btn
@@ -140,7 +141,7 @@
             color="positive"
             :label="picklistJob.status == 'Created' ? 'Retrieve Pick List' : 'Complete Job'"
             class="btn-no-wrap text-body1"
-            :disabled="picklistJob.status == 'Paused' || !allItemsRetrieved"
+            :disabled="appIsOffline || appPendingSync || picklistJob.status == 'Paused' || !allItemsRetrieved"
             :loading="appActionIsLoadingData"
             @click="picklistJob.status == 'Created' ? executePicklistJob() : showCompleteJobModal = true"
           />
@@ -164,12 +165,12 @@
         :button-one-icon="picklistJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
         :button-one-label="picklistJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
         :button-one-outline="true"
-        :button-one-disabled="picklistJob.status == 'Created'"
+        :button-one-disabled="appPendingSync || picklistJob.status == 'Created'"
         @button-one-click="picklistJob.status == 'Paused' ? updatePicklistJobStatus('Running') : updatePicklistJobStatus('Paused')"
         button-two-color="positive"
         :button-two-label="picklistJob.status == 'Created' ? 'Retrieve Pick List' : 'Complete Job'"
         :button-two-outline="false"
-        :button-two-disabled="picklistJob.status == 'Paused' || !allItemsRetrieved"
+        :button-two-disabled="appIsOffline || appPendingSync || picklistJob.status == 'Paused' || !allItemsRetrieved"
         :button-two-loading="appActionIsLoadingData"
         @button-two-click="picklistJob.status == 'Created' ? executePicklistJob() : showCompleteJobModal = true"
       />
@@ -260,7 +261,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, inject, toRaw, watch } from 'vue'
+import { onBeforeMount, onMounted, ref, inject, toRaw, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -269,6 +270,7 @@ import { usePicklistStore } from '@/stores/picklist-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
+import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
 import InfoDisplayLayout from '@/components/InfoDisplayLayout.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
@@ -281,9 +283,19 @@ const router = useRouter()
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
 const { compiledBarCode } = useBarcodeScanHandler()
+const {
+  addDataToIndexDb,
+  getDataInIndexDb,
+  deleteDataInIndexDb
+} = useIndexDbHandler()
 
 // Store Data
-const { appActionIsLoadingData, appIsLoadingData } = storeToRefs(useGlobalStore())
+const {
+  appIsLoadingData,
+  appActionIsLoadingData,
+  appPendingSync,
+  appIsOffline
+} = storeToRefs(useGlobalStore())
 const { userData } = storeToRefs(useUserStore())
 const { users } = storeToRefs(useOptionStore())
 const {
@@ -388,6 +400,19 @@ onBeforeMount(() => {
   }
 })
 
+onMounted(async () => {
+  // when user is online and loads a job we store the current picklist job data and original in indexdb for reference offline
+  if (!appIsOffline.value) {
+    addDataToIndexDb('picklistStore', 'picklistJob', JSON.parse(JSON.stringify(picklistJob.value)))
+    addDataToIndexDb('picklistStore', 'originalPicklistJob', JSON.parse(JSON.stringify(originalPicklistJob.value)))
+  } else {
+    // get saved picklist job data if were offline and page was reloaded/refreshed
+    const res = await getDataInIndexDb('picklistStore')
+    picklistJob.value = res.data.picklistJob
+    originalPicklistJob.value = res.data.originalPicklistJob
+  }
+})
+
 watch(compiledBarCode, (barcode) => {
   if (barcode !== '' && picklistJob.value.status == 'Running') {
     // only allow scans if the picklist job is in a running state
@@ -442,6 +467,10 @@ const executePicklistJob = async () => {
     }
     await patchPicklistJob(payload)
 
+    // store the current picklist job data in indexdb for reference offline whenever job is executed
+    addDataToIndexDb('picklistStore', 'picklistJob', JSON.parse(JSON.stringify(picklistJob.value)))
+    addDataToIndexDb('picklistStore', 'originalPicklistJob', JSON.parse(JSON.stringify(originalPicklistJob.value)))
+
     handleAlert({
       type: 'success',
       text: 'Pick List Job Successfully Started',
@@ -492,6 +521,16 @@ const updatePicklistJobStatus = async (status) => {
     }
     await patchPicklistJob(payload)
 
+    if (appIsOffline.value) {
+      // when offline we update the status directly
+      picklistJob.value.status = payload.status
+      originalPicklistJob.value.status = payload.status
+    }
+
+    // store the current picklist job data in indexdb for reference offline whenever job is executed
+    addDataToIndexDb('picklistStore', 'picklistJob', JSON.parse(JSON.stringify(picklistJob.value)))
+    addDataToIndexDb('picklistStore', 'originalPicklistJob', JSON.parse(JSON.stringify(originalPicklistJob.value)))
+
     handleAlert({
       type: 'success',
       text: `Job Status has been updated to: ${status}`,
@@ -535,12 +574,25 @@ const completePicklistJob = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
+    deleteDataInIndexDb('picklistStore', 'picklistJob')
+    deleteDataInIndexDb('picklistStore', 'originalPicklistJob')
   }
 }
 const removePicklistItem = async (itemId) => {
   try {
     appIsLoadingData.value = true
     await deletePicklistJobItem(itemId)
+
+    if (appIsOffline.value) {
+      // when offline we remove the picklistItem directly
+      picklistJob.value.requests = picklistJob.value.requests.filter(r => r.id !== itemId)
+      originalPicklistJob.value.requests = originalPicklistJob.value.requests.filter(r => r.id !== itemId)
+    }
+
+    // store the current picklist job data in indexdb for reference offline whenever job is executed
+    addDataToIndexDb('picklistStore', 'picklistJob', JSON.parse(JSON.stringify(picklistJob.value)))
+    addDataToIndexDb('picklistStore', 'originalPicklistJob', JSON.parse(JSON.stringify(originalPicklistJob.value)))
+
     handleAlert({
       type: 'success',
       text: `${itemId} has been sent back to the request queue.`,
@@ -570,6 +622,10 @@ const updatePicklistItem = async (barcode_value) => {
     // update the item directly in the picklist job and set it to retrieved
     pickListItemToUpdate.scanned_for_retrieval = true
     originalPicklistJob.value = { ...toRaw(picklistJob.value) }
+
+    // store the current picklist job data in indexdb for reference offline whenever job is executed
+    addDataToIndexDb('picklistStore', 'picklistJob', JSON.parse(JSON.stringify(picklistJob.value)))
+    addDataToIndexDb('picklistStore', 'originalPicklistJob', JSON.parse(JSON.stringify(originalPicklistJob.value)))
   } catch (error) {
     handleAlert({
       type: 'error',

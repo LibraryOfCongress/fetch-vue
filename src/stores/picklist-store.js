@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import inventoryServiceApi from '@/http/InventoryService.js'
+import { useGlobalStore } from './global-store'
+const globalStore = useGlobalStore()
 
 export const usePicklistStore = defineStore('picklist-store', {
   state: () => ({
@@ -57,11 +59,19 @@ export const usePicklistStore = defineStore('picklist-store', {
     },
     async patchPicklistJob (payload) {
       try {
+        if (globalStore.appIsOffline) {
+          // this will only occur when user is pausing/resuming when offline
+          navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.picklists}${payload.id}` })
+        }
         const res = await this.$api.patch(`${inventoryServiceApi.picklists}${payload.id}`, payload)
         this.picklistJob = res.data
         this.originalPicklistJob = { ...this.picklistJob }
       } catch (error) {
-        throw error
+        if (globalStore.appIsOffline) {
+          return
+        } else {
+          throw error
+        }
       }
     },
     async patchPicklistJobItem (payload) {
@@ -76,21 +86,37 @@ export const usePicklistStore = defineStore('picklist-store', {
     },
     async patchPicklistJobItemScanned (payload) {
       try {
+        if (globalStore.appIsOffline) {
+          // this will only occur when user is scanning when offline
+          navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.picklists}${payload.id}/update_request/${payload.request_id}` })
+        }
         // updates a request item and marks it as retrieved
         const res = await this.$api.patch(`${inventoryServiceApi.picklists}${payload.id}/update_request/${payload.request_id}`, payload)
         this.picklistJob = res.data
         this.originalPicklistJob = { ...this.picklistJob }
       } catch (error) {
-        throw error
+        if (globalStore.appIsOffline) {
+          return
+        } else {
+          throw error
+        }
       }
     },
     async deletePicklistJobItem (itemId) {
       try {
+        if (globalStore.appIsOffline) {
+          // this will only occur when user reverts to queue when offline
+          navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.picklists}${this.picklistJob.id}/remove_request/${itemId}` })
+        }
         const res = await this.$api.delete(`${inventoryServiceApi.picklists}${this.picklistJob.id}/remove_request/${itemId}`)
         this.picklistJob = res.data
         this.originalPicklistJob = { ...this.picklistJob }
       } catch (error) {
-        throw error
+        if (globalStore.appIsOffline) {
+          return
+        } else {
+          throw error
+        }
       }
     }
   }
