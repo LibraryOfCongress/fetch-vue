@@ -1,7 +1,10 @@
 <template>
   <div class="nav">
     <!-- main nav -->
-    <q-header elevated>
+    <q-header
+      elevated
+      class="nav-top"
+    >
       <q-toolbar class="bg-secondary justify-between">
         <q-btn
           color="white"
@@ -98,7 +101,7 @@
     <q-drawer
       v-model="leftDrawerOpen"
       show-if-above
-      class="bg-primary"
+      class="nav-side bg-primary"
     >
       <q-list
         class="nav-list"
@@ -240,7 +243,7 @@ const essentialLinks = ref([
   {
     title: 'Refile',
     icon: 'format_list_numbered',
-    link: '/test'
+    link: '/refile'
   }
 ])
 const adminLink = ref({
@@ -345,6 +348,10 @@ const handleRouteSyncGuard = async (pathName) => {
 <style lang="scss" scoped>
 .nav {
   position: relative;
+
+  &-top {
+    z-index: 6000;
+  }
 
   &-active {
     background-color: $accent;

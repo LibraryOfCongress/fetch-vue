@@ -19,7 +19,7 @@ export const useBarcodeStore = defineStore('barcode-store', {
         value: null
       }
     },
-    async verifyBarcode (barcode, type) {
+    async verifyBarcode (barcode, type, disableBarcodeAdd = false) {
       try {
         this.resetBarcodeStore()
 
@@ -29,8 +29,8 @@ export const useBarcodeStore = defineStore('barcode-store', {
           return
         }
       } catch (error) {
-        if (error.response?.status == 404) {
-          // if the barcode doesnt exist add it
+        if (error.response?.status == 404 && !disableBarcodeAdd) {
+          // if the barcode doesnt exist and we are allowing auto barcode adding then add it the barcode to the system
           await this.postBarcode(barcode, type)
           return
         }
