@@ -51,9 +51,9 @@ const routes = [
         component: () => import('@/pages/ItemManagementPage.vue')
       },
       {
-        name: 'refile',
-        path: 'refile/:jobId?',
-        component: () => import('@/pages/RefilePage.vue')
+        name: 'picklist',
+        path: 'picklist/:jobId?',
+        component: () => import('@/pages/PicklistPage.vue')
       },
       {
         name: 'refile',
