@@ -10,7 +10,7 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-xl'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
-          @selected-table-row="loadRefileJob($event.id)"
+          @selected-table-row="refileDisplayType == 'refile_job' ? loadRefileJob($event.id) : null"
         >
           <template #heading-row>
             <div
