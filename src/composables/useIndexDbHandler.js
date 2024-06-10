@@ -13,6 +13,7 @@ export function useIndexDbHandler () {
         // build our store schema here for the global store will use for the app
         db.createObjectStore('ownerTiers', { keyPath: 'id' })
         db.createObjectStore('shelvingStore', { keyPath: 'id' })
+        db.createObjectStore('picklistStore', { keyPath: 'id' })
 
         // takes the stores name and key term path (can have multiple key terms) and if its unique (can have duplicates or just one)
         // store.createIndex('owner', ['name'], { unique: false })

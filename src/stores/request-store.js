@@ -82,25 +82,10 @@ export const useRequestStore = defineStore('request-store', {
         withdrawal_dt: null
       }
     },
-    async getRequestJobList (filter) {
+    async getRequestJobList (paramsObj) {
       try {
-        if (filter == 'request_view') {
-          const res = await this.$api.get(inventoryServiceApi.requests)
-          this.requestJobList = res.data.items
-        } else {
-          // TODO setup api endpoint to get request batch job list
-          // this.requestJobList = []
-          this.requestJobList = [
-            {
-              id: 1,
-              import_source: 'Bulk Upload',
-              request_count: 2,
-              status: 'New',
-              uploaded_by: 'User1',
-              import_dt: new Date().toISOString()
-            }
-          ]
-        }
+        const res = await this.$api.get(inventoryServiceApi.requests, { params: paramsObj })
+        this.requestJobList = res.data.items
       } catch (error) {
         throw error
       }
@@ -117,7 +102,34 @@ export const useRequestStore = defineStore('request-store', {
       try {
         await this.$api.post(inventoryServiceApi.requests, payload)
         // refresh the requestJobList using request view filter since this endpoint only triggers from the request view tab
-        await this.getRequestJobList('request_view')
+        await this.getRequestJobList()
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchRequestJob (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.requests}${payload.id}`, payload)
+        this.requestJob = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async getRequestBatchJobList (paramsObj) {
+      try {
+        // TODO setup api endpoint to get request batch job list
+        // this.requestJobList = []
+        console.log('filter batch jobs by building', paramsObj)
+        this.requestJobList = [
+          {
+            id: 1,
+            import_source: 'Bulk Upload',
+            request_count: 2,
+            status: 'New',
+            uploaded_by: 'User1',
+            import_dt: new Date().toISOString()
+          }
+        ]
       } catch (error) {
         throw error
       }

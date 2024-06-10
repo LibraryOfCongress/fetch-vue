@@ -162,7 +162,7 @@
             {{ renderItemBuilding(itemData) }}
           </p>
           <p class="request-item-details-text outline">
-            {{ getItemLocation(itemData) }}
+            {{ itemData.item ? getItemLocation(itemData.item.tray) : getItemLocation(itemData.non_tray_item) }}
           </p>
         </div>
       </q-card-section>

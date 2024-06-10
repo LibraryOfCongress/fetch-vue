@@ -43,7 +43,7 @@
                     <q-item
                       clickable
                       v-close-popup
-                      @click="showAddPickList = true"
+                      @click="showPickListModal = 'Add'"
                       role="menuitem"
                     >
                       <q-item-section>
@@ -57,7 +57,7 @@
                     <q-item
                       clickable
                       v-close-popup
-                      @click="showCreatePickList = true"
+                      @click="showPickListModal = 'Create'"
                       role="menuitem"
                     >
                       <q-item-section>
@@ -135,7 +135,7 @@
                   outline
                   label="Cancel"
                   class="btn-no-wrap text-body1 q-ml-xs full-height"
-                  @click="showCreatePickList = false; showAddPickList = false; clearTableSelection();"
+                  @click="resetPickListForm(); getRequestJobList();"
                 />
               </div>
             </div>
@@ -150,7 +150,7 @@
               :button-two-color="'black'"
               :button-two-label="'Cancel'"
               :button-two-outline="true"
-              @button-two-click="showCreatePickList = false; showAddPickList = false; clearTableSelection();"
+              @button-two-click="resetPickListForm(); getRequestJobList();"
             />
           </template>
 
@@ -165,7 +165,7 @@
             <span
               v-else-if="colName == 'status'"
               class="outline text-nowrap"
-              :class="value == 'Completed' || value == 'New' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-yellow' : null "
+              :class="value == 'Completed' || value == 'New' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-warning' : null "
             >
               {{ value }}
             </span>
@@ -200,6 +200,93 @@
       :type="showCreateRequestByType"
       @hide="showCreateRequestByType = null"
     />
+
+    <!-- Create/Add To Picklist Modal -->
+    <PopupModal
+      v-if="showPickListModal"
+      :show-actions="false"
+      @reset="showPickListModal = null"
+      aria-label="picklistJobModal"
+    >
+      <template #header-content="{ hideModal }">
+        <q-card-section class="row items-center justify-between q-pb-none">
+          <h2 class="text-h6">
+            {{ showPickListModal == 'Create' ? 'Filter Requests By Building' : 'Filter Requests & Select Pick List' }}
+          </h2>
+
+          <q-btn
+            icon="close"
+            flat
+            round
+            dense
+            aria-label="Close"
+            @click="filterRequestsByBuilding = null; addToPickListJob = null; hideModal();"
+          />
+        </q-card-section>
+      </template>
+
+      <template #main-content>
+        <q-card-section class="column no-wrap items-center">
+          <div class="form-group">
+            <label class="form-group-label">
+              Building
+            </label>
+            <SelectInput
+              v-model="filterRequestsByBuilding"
+              :options="buildings"
+              option-type="buildings"
+              option-value="id"
+              option-label="name"
+              :placeholder="'Select Building'"
+              aria-label="building"
+            />
+          </div>
+
+          <div
+            v-if="showPickListModal == 'Add'"
+            class="form-group q-mt-md"
+          >
+            <label class="form-group-label">
+              Add To Pick List
+            </label>
+            <SelectInput
+              v-model="addToPickListJob"
+              :options="picklists"
+              option-type="picklists"
+              option-value="id"
+              option-label="id"
+              :placeholder="'Select Pick List Job'"
+              aria-label="picklistJobSelect"
+            />
+          </div>
+        </q-card-section>
+      </template>
+
+      <template #footer-content="{ hideModal }">
+        <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
+          <q-btn
+            no-caps
+            unelevated
+            color="accent"
+            label="Submit"
+            class="text-body1 full-width text-nowrap"
+            :disabled="showPickListModal == 'Create' ? !filterRequestsByBuilding : (!filterRequestsByBuilding || !addToPickListJob)"
+            :loading="appActionIsLoadingData"
+            @click="loadRequestJobsByBuilding(); hideModal();"
+          />
+
+          <q-space class="q-mx-xs" />
+
+          <q-btn
+            outline
+            no-caps
+            label="Cancel"
+            class="text-body1 full-width"
+            @click="filterRequestsByBuilding = null; addToPickListJob = null; hideModal();"
+          />
+        </q-card-section>
+      </template>
+    </PopupModal>
   </div>
 </template>
 
@@ -207,7 +294,9 @@
 import { onBeforeMount, ref, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
+import { useOptionStore } from '@/stores/option-store'
 import { useRequestStore } from '@/stores/request-store'
+import { usePicklistStore } from '@/stores/picklist-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from '@/components/EssentialTable.vue'
@@ -215,6 +304,8 @@ import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
 import RequestItemOverlay from '@/components/Request/RequestItemOverlay.vue'
 import RequestCreateModal from '@/components/Request/RequestCreateModal.vue'
+import PopupModal from '@/components/PopupModal.vue'
+import SelectInput from '@/components/SelectInput.vue'
 
 const router = useRouter()
 
@@ -223,14 +314,18 @@ const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { buildings, picklists } = storeToRefs(useOptionStore())
 const {
   resetRequestJob,
   resetRequestStore,
   getRequestJobList,
   getRequestJob,
+  getRequestBatchJobList,
   getRequestBatchJob
 } = useRequestStore()
 const { requestJobList, requestJob } = storeToRefs(useRequestStore())
+const { postPicklistJob, patchPicklistJobItem } = usePicklistStore()
+const { picklistJob } = storeToRefs(usePicklistStore())
 
 // Local Data
 const requestTableComponent = ref(null)
@@ -306,7 +401,7 @@ const requestTableColumns = ref([
   },
   {
     name: 'item_location',
-    field: row => getItemLocation(row),
+    field: row => row.item ? getItemLocation(row.item.tray) : getItemLocation(row.non_tray_item),
     label: 'Item Location',
     align: 'left',
     sortable: true
@@ -419,8 +514,11 @@ const requestBatchTableFilters =  ref([
 const requestDisplayType = ref('request_view')
 const showCreatePickList = ref(false)
 const showAddPickList = ref(false)
+const showPickListModal = ref(null)
+const addToPickListJob = ref(null)
 const selectedRequestItems = ref([])
 const showCreateRequestByType = ref(null)
+const filterRequestsByBuilding = ref(null)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -452,10 +550,49 @@ const clearTableSelection = () => {
   selectedRequestItems.value = []
 }
 
+const resetPickListForm = () => {
+  showCreatePickList.value = false
+  showAddPickList.value = false
+  showPickListModal.value = null
+  filterRequestsByBuilding.value = null
+  addToPickListJob.value = null
+  clearTableSelection()
+}
+
 const loadRequestJobs = async () => {
   try {
     appIsLoadingData.value = true
-    await getRequestJobList(requestDisplayType.value)
+    if (requestDisplayType.value == 'request_view') {
+      await getRequestJobList()
+    } else {
+      await getRequestBatchJobList()
+    }
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
+  }
+}
+const loadRequestJobsByBuilding = async () => {
+  try {
+    appIsLoadingData.value = true
+    // this function only gets called during the creation/add picklist workflow
+    if (requestDisplayType.value == 'request_view') {
+      await getRequestJobList({ building_id: filterRequestsByBuilding.value, unassociated_pick_list: false })
+    } else {
+      await getRequestBatchJobList({ building_id: filterRequestsByBuilding.value })
+    }
+
+    // display next step in picklist creation
+    if (showPickListModal.value == 'Create') {
+      showCreatePickList.value = true
+    } else {
+      showAddPickList.value = true
+    }
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -494,8 +631,18 @@ const loadRequestJob = async (id) => {
 const createPickListJob = async () => {
   try {
     appActionIsLoadingData.value = true
-    // TODO: setup api call to create the pick list job using the selected pick list items
-    // await postRequestJob()
+    const payload = {
+      request_ids: selectedRequestItems.value.map(item => item.id)
+    }
+    await postPicklistJob(payload)
+
+    // display an alert with the created picklist job id so you can click that and link directly to the new job if needed
+    handleAlert({
+      type: 'success',
+      text: `Successfully created Pick List #: <a href='/picklist/${picklistJob.value.id}' tabindex='0'>${picklistJob.value.id}</a>`,
+      autoClose: false
+    })
+    loadRequestJobs()
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -504,13 +651,25 @@ const createPickListJob = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
+    resetPickListForm()
   }
 }
 const updatePickListJob = async () => {
   try {
     appActionIsLoadingData.value = true
-    // TODO: setup api call to update and existing pick list job using the selected pick list items
-    // await patchRequestJob()
+    const payload = {
+      id: addToPickListJob.value,
+      request_ids: selectedRequestItems.value.map(item => item.id)
+    }
+    await patchPicklistJobItem(payload)
+
+    // display an alert with the updated picklist job id so you can click that and link directly to the job if needed
+    handleAlert({
+      type: 'success',
+      text: `Successfully added items to Pick List #: <a href='/picklist/${picklistJob.value.id}' tabindex='0'>${picklistJob.value.id}</a>`,
+      autoClose: false
+    })
+    loadRequestJobs()
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -519,6 +678,7 @@ const updatePickListJob = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
+    resetPickListForm()
   }
 }
 </script>

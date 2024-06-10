@@ -236,7 +236,7 @@ const essentialLinks = ref([
     link: '/request'
   },
   {
-    title: 'Refile',
+    title: 'Pick List',
     icon: 'list',
     link: '/refile'
   }
