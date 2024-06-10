@@ -21,7 +21,7 @@ export const usePicklistStore = defineStore('picklist-store', {
     allItemsRetrieved: (state) => {
       if (state.picklistJob.id && state.picklistJob.status !== 'Created') {
         // when a picklist job is active we can keep track of if all requested items have been pulled/retrieved
-        return state.picklistJob.requests.some(itm => !itm.scanned_for_retrieval) ? false : true
+        return state.picklistJob.requests.length == 0 || state.picklistJob.requests.some(itm => !itm.scanned_for_retrieval) ? false : true
       } else {
         return true
       }

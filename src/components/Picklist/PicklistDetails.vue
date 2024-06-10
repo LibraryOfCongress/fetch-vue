@@ -345,7 +345,7 @@ const itemTableColumns = ref([
   {
     name: 'size_class',
     field: row => row.item ? row.item?.size_class?.name : row.non_tray_item?.size_class?.name,
-    label: 'Media Type',
+    label: 'Size Class',
     align: 'left',
     sortable: true
   },
