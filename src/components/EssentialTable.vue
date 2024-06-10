@@ -184,6 +184,7 @@
             <q-th
               class=""
               :class="props.col.__thClass"
+              :style="props.col.headerStyle"
             >
               <span
                 class="flex no-wrap items-center"
@@ -209,6 +210,7 @@
             <q-td
               :props="props"
               :style="[ props.col.name == 'actions' ? 'padding-left:8px;' : null ]"
+              :class="(props.row[highlightRowKey] && props.row[highlightRowKey] == highlightRowValue) ? highlightRowClass : null"
               @click="emit('selected-table-row', props.row)"
             >
               <slot
@@ -314,7 +316,17 @@ const mainProps = defineProps({
   rowKey: {
     type: String,
     default: 'id' // if tableData doesnt include an 'id' param we need to specifiy this
-  }
+  },
+  // inorder to generate a class to highlight an entire row of data you must provide a key/value pair to use as an indicator on what row needs the class added
+  highlightRowClass: {
+    type: String,
+    default: ''
+  },
+  highlightRowKey: {
+    type: String,
+    default: null
+  },
+  highlightRowValue: undefined
 })
 
 // Emits

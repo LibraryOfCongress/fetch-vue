@@ -159,6 +159,23 @@ const breadcrumbList = computed(() => {
       ]
     }
     break
+  case 'picklist':
+    if (!route.params.jobId) {
+      breadCrumbs = [
+        ...breadCrumbs,
+        { text: 'Pick List' }
+      ]
+    } else {
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Pick List',
+          to: '/picklist'
+        },
+        { text: `${route.params.jobId}` }
+      ]
+    }
+    break
   case 'request':
     if (!route.params.jobId) {
       breadCrumbs = [

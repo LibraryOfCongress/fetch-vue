@@ -270,6 +270,12 @@ const createRequestJob = async () => {
         }
       })
     }
+
+    handleAlert({
+      type: 'success',
+      text: 'Successfully created the request.',
+      autoClose: true
+    })
   } catch (error) {
     handleAlert({
       type: 'error',

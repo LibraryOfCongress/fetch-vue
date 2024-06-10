@@ -51,6 +51,11 @@ const routes = [
         component: () => import('@/pages/ItemManagementPage.vue')
       },
       {
+        name: 'picklist',
+        path: 'picklist/:jobId?',
+        component: () => import('@/pages/PicklistPage.vue')
+      },
+      {
         name: 'request',
         path: 'request/:jobId?',
         component: () => import('@/pages/RequestPage.vue')

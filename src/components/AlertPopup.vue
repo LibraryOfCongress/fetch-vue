@@ -9,9 +9,11 @@
       class="alert-banner"
       :class="renderAlertType"
     >
-      <p class="text-body1">
-        {{ mainProps.alertText }}
-      </p>
+      <p
+        id="alertText"
+        class="text-body1"
+        v-html="mainProps.alertText"
+      />
       <template #action>
         <q-btn
           icon="close"
@@ -41,9 +43,11 @@
             size="150px"
           />
 
-          <p class="text-body1">
-            {{ mainProps.alertText }}
-          </p>
+          <p
+            id="alertText"
+            class="text-body1"
+            v-html="mainProps.alertText"
+          />
         </q-card-section>
 
         <q-card-section
@@ -65,7 +69,10 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
 import { ref, computed, onMounted } from 'vue'
+
+const router = useRouter()
 
 // Props
 const mainProps = defineProps({
@@ -121,7 +128,25 @@ onMounted(() => {
       emit('reset')
     }, 5000)
   }
+
+  // check if text contains a local link and convert them to router events
+  checkForRouteLinks()
 })
+
+const checkForRouteLinks = () => {
+  // if prop text contains a anchor tag with an href that matches the hostname we can assume that anchor tag is meant to be a route link
+  const textLinks = document.querySelector('#alertText').getElementsByTagName('a')
+
+  Array.from(textLinks).forEach(link => {
+    if (link.hostname == window.location.hostname) {
+      link.onclick = (event => {
+        event.preventDefault()
+        router.push(link.pathname)
+        emit('reset')
+      })
+    }
+  })
+}
 
 const audioAlert = () => {
   const beep = new AudioContext()
