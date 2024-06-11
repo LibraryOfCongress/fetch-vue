@@ -7,6 +7,9 @@ export const useRefileStore = defineStore('refile-store', {
     refileJob: {
       id: null
     },
+    originalRefileJob: {
+      id: null
+    },
     refileItem: {
       id: null,
       barcode: {
@@ -15,6 +18,16 @@ export const useRefileStore = defineStore('refile-store', {
       owner: null
     }
   }),
+  getters: {
+    allItemsRefiled: (state) => {
+      if (state.refileJob.id && state.refileJob.status !== 'Created') {
+        // if were in a running refile job, we check that items exist and none of the items are pending refile state
+        return state.refileJob.refile_items.length == 0 || state.refileJob.refile_items.some(itm => !itm.scanned_for_refile) ? false : true
+      } else {
+        return true
+      }
+    }
+  },
   actions: {
     resetRefileStore () {
       this.$reset()
@@ -95,8 +108,50 @@ export const useRefileStore = defineStore('refile-store', {
     },
     async getRefileJob (id) {
       try {
-        const res = await this.$api.get(`${inventoryServiceApi.refile}${id}`)
-        this.refileJob = res.data
+        // const res = await this.$api.get(`${inventoryServiceApi.refile}${id}`)
+        // this.refileJob = res.data
+        this.refileJob = {
+          id,
+          user: {
+            first_name: 'Admin'
+          },
+          create_dt: new Date().toISOString(),
+          status: 'Created',
+          refile_items: [
+            {
+              item: {
+                barcode: {
+                  value: 12345678901
+                },
+                owner: {
+                  name: 'John Doe'
+                },
+                size_class: {
+                  name: 'C High'
+                },
+                tray: {
+                  barcode: {
+                    value: 'RS123456'
+                  }
+                }
+              }
+            },
+            {
+              non_tray_item: {
+                barcode: {
+                  value: 12345678902
+                },
+                owner: {
+                  name: 'John Doe'
+                },
+                size_class: {
+                  name: 'C Low'
+                }
+              }
+            }
+          ]
+        }
+        this.originalRefileJob = { ...this.refileJob }
       } catch (error) {
         throw error
       }

@@ -52,7 +52,7 @@
             # of Items:
           </label>
           <p class="text-body1">
-            {{ refileJob.refile_items }}
+            {{ refileJob.refile_items.length }}
           </p>
         </div>
       </div>
@@ -76,7 +76,7 @@
             Status
           </label>
           <p
-            class="text-body1 outline"
+            class="text-body1 text-center outline"
             :class="refileJob.status == 'Completed' || refileJob.status == 'Created' ? 'text-highlight' : refileJob.status == 'Paused' || refileJob.status == 'Running' ? 'text-highlight-warning' : refileJob.status == 'New' ? 'text-highlight-accent' : null "
           >
             {{ refileJob.status }}
@@ -133,7 +133,7 @@
             color="positive"
             :label="refileJob.status == 'Created' ? 'Execute Refile Job' : 'Complete Job'"
             class="btn-no-wrap text-body1"
-            :disabled="appIsOffline || appPendingSync || refileJob.status == 'Paused' || !allItemsRetrieved"
+            :disabled="appIsOffline || appPendingSync || refileJob.status == 'Paused' || !allItemsRefiled"
             :loading="appActionIsLoadingData"
             @click="refileJob.status == 'Created' ? executeRefileJob() : showCompleteJobModal = true"
           />
@@ -162,7 +162,7 @@
         button-two-color="positive"
         :button-two-label="refileJob.status == 'Created' ? 'Execute Refile Job' : 'Complete Job'"
         :button-two-outline="false"
-        :button-two-disabled="appIsOffline || appPendingSync || refileJob.status == 'Paused' || !allItemsRetrieved"
+        :button-two-disabled="appIsOffline || appPendingSync || refileJob.status == 'Paused' || !allItemsRefiled"
         :button-two-loading="appActionIsLoadingData"
         @button-two-click="refileJob.status == 'Created' ? executeRefileJob() : showCompleteJobModal = true"
       />
@@ -298,7 +298,7 @@ const {
 const {
   refileJob,
   originalRefileJob,
-  allItemsRetrieved
+  allItemsRefiled
 } = storeToRefs(useRefileStore())
 
 // Local Data
@@ -368,7 +368,7 @@ const itemTableColumns = ref([
 ])
 const itemTableFilters =  ref([
   {
-    field: row => row.size_class.name,
+    field: row => row.item ? row.item.size_class.name : row.non_tray_item.size_class.name,
     options: [
       {
         text: 'C High',
