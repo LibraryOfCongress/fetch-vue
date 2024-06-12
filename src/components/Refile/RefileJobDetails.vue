@@ -181,6 +181,7 @@
         :highlight-row-class="'bg-color-green-light'"
         :highlight-row-key="'scanned_for_refile'"
         :highlight-row-value="true"
+        @selected-table-row="loadRefileItem($event.id)"
       >
         <template #heading-row>
           <div class="col-xs-7 col-sm-5 q-mb-md-sm">
@@ -250,6 +251,12 @@
       </q-card-section>
     </template>
   </PopupModal>
+
+  <!-- refile item detail modal -->
+  <RefileItemDetailModal
+    v-if="showRefileItemDetailModal"
+    @hide="showRefileItemDetailModal = false"
+  />
 </template>
 
 <script setup>
@@ -269,6 +276,7 @@ import MobileActionBar from '@/components/MobileActionBar.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
+import RefileItemDetailModal from '@/components/Refile/RefileItemDetailModal.vue'
 
 const router = useRouter()
 
@@ -292,13 +300,14 @@ const { userData } = storeToRefs(useUserStore())
 const { users } = storeToRefs(useOptionStore())
 const {
   patchRefileJob,
-  patchRefileJobItemScanned,
-  deleteRefileJobItem
+  deleteRefileJobItem,
+  getRefileJobItem
 } = useRefileStore()
 const {
   refileJob,
   originalRefileJob,
-  allItemsRefiled
+  allItemsRefiled,
+  refileItem
 } = storeToRefs(useRefileStore())
 
 // Local Data
@@ -382,6 +391,7 @@ const itemTableFilters =  ref([
   }
 ])
 const showCompleteJobModal = ref(false)
+const showRefileItemDetailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -414,8 +424,8 @@ onMounted(async () => {
 })
 
 watch(compiledBarCode, (barcode) => {
-  if (barcode !== '' && refileJob.value.status == 'Running') {
-    // only allow scans if the job is in a running state
+  if (barcode !== '' && refileJob.value.status == 'Running' && !refileItem.value.id) {
+    // only allow scans if the job is in a running state and there is no active refileItem set in state
     triggerItemScan(barcode)
   }
 })
@@ -436,8 +446,8 @@ const triggerItemScan = (barcode_value) => {
     })
     return
   } else {
-    // update the scanned request item to refiled
-    updateRefileItem(barcode_value)
+    // load the scanned request item by id of the scanned item barcode
+    loadRefileItem(refileJob.value.refile_items.find(itm => itm.item ? itm.item.barcode.value == barcode_value : itm.non_tray_item.barcode.value == barcode_value)?.id)
   }
 }
 
@@ -578,6 +588,11 @@ const completeRefileJob = async () => {
     deleteDataInIndexDb('refileStore', 'originalRefileJob')
   }
 }
+const loadRefileItem = (itemId) => {
+  // since we already have all the items data we just need to set the refileItem from the refileJob items directly
+  getRefileJobItem(itemId)
+  showRefileItemDetailModal.value = true
+}
 const removeRefileItem = async (itemId) => {
   try {
     appIsLoadingData.value = true
@@ -595,7 +610,7 @@ const removeRefileItem = async (itemId) => {
 
     handleAlert({
       type: 'success',
-      text: `${itemId} has been sent back to the refile queue.`,
+      text: 'The item has been sent back to the refile queue.',
       autoClose: true
     })
   } catch (error) {
@@ -606,32 +621,6 @@ const removeRefileItem = async (itemId) => {
     })
   } finally {
     appIsLoadingData.value = false
-  }
-}
-const updateRefileItem = async (barcode_value) => {
-  try {
-    const refileItemToUpdate = refileJob.value.refile_items.find(itm => itm.item ? itm.item.barcode.value == barcode_value : itm.non_tray_item.barcode.value == barcode_value)
-    const payload = {
-      id: refileJob.value.id,
-      refile_id: refileItemToUpdate.id,
-      scanned_for_refile: true,
-      run_timestamp: new Date().toISOString()
-    }
-    await patchRefileJobItemScanned(payload)
-
-    // update the item directly in the refile job and set it to refiled
-    refileItemToUpdate.scanned_for_refile = true
-    originalRefileJob.value = { ...toRaw(refileJob.value) }
-
-    // store the current refile job data in indexdb for reference offline whenever job is executed
-    addDataToIndexDb('refileStore', 'refileJob', JSON.parse(JSON.stringify(refileJob.value)))
-    addDataToIndexDb('refileStore', 'originalRefileJob', JSON.parse(JSON.stringify(originalRefileJob.value)))
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
   }
 }
 </script>
