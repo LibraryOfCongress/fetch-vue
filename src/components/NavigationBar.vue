@@ -349,6 +349,12 @@ const handleRouteSyncGuard = async (pathName) => {
 .nav {
   position: relative;
 
+  @media (max-width: $breakpoint-sm-max) {
+    :deep(.q-drawer--on-top) {
+      z-index: 6000;
+    }
+  }
+
   &-top {
     z-index: 6000;
   }

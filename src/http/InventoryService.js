@@ -23,6 +23,7 @@ export default {
   ownersTiers: '/owners/tiers/',
   permissions: '/permissions/',
   picklists: '/pick-lists/',
+  refileJobs: '/refile-jobs/',
   requests: '/requests/',
   requestsLocations: '/requests/locations',
   requestsPriorities: '/requests/priorities',

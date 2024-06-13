@@ -271,7 +271,9 @@ const {
   resetRefileStore,
   getRefileJobList,
   getRefileQueueList,
-  getRefileJob
+  getRefileJob,
+  postRefileJob,
+  postRefileJobItem
 } = useRefileStore()
 const { refileJobList, refileJob } = storeToRefs(useRefileStore())
 
@@ -512,11 +514,10 @@ const loadRefileJob = async (id) => {
 const createRefileJob = async () => {
   try {
     appActionIsLoadingData.value = true
-    // TODO: setup api call to create the refile job
-    // const payload = {
-    //   refile_ids: selectedRefileItems.value.map(item => item.id)
-    // }
-    // await postRefileJob(payload)
+    const payload = {
+      refile_ids: selectedRefileItems.value.map(item => item.id)
+    }
+    await postRefileJob(payload)
 
     // display an alert with the created job id so you can click that and link directly to the new job if needed
     handleAlert({
@@ -538,12 +539,11 @@ const createRefileJob = async () => {
 const updateRefileJob = async () => {
   try {
     appActionIsLoadingData.value = true
-    // TODO: setup api call to add items to a refile job
-    // const payload = {
-    //   id: addToRefileJob.value,
-    //   refile_ids: selectedRefileItems.value.map(item => item.id)
-    // }
-    // await patchRefileJobItem(payload)
+    const payload = {
+      id: addToRefileJob.value,
+      refile_ids: selectedRefileItems.value.map(item => item.id)
+    }
+    await postRefileJobItem(payload)
 
     // display an alert with the updated job id so you can click that and link directly to the new job if needed
     handleAlert({

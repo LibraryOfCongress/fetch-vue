@@ -44,7 +44,8 @@ export const useRefileStore = defineStore('refile-store', {
     async getRefileJobList () {
       try {
         // TODO setup api endpoint to get refile job list
-        // this.refileJobList = []
+        // const res = await this.$api.get(inventoryServiceApi.refileJobs)
+        // this.refileJobList = res.data.items
         this.refileJobList = [
           {
             id: 123,
@@ -74,7 +75,8 @@ export const useRefileStore = defineStore('refile-store', {
     async getRefileQueueList () {
       try {
         // TODO setup api endpoint to get refile queue list
-        // this.refileJobList = []
+        // const res = await this.$api.get(inventoryServiceApi.refileJobs)
+        // this.refileJobList = res.data.items
         this.refileJobList = [
           {
             barcode: {
@@ -108,7 +110,7 @@ export const useRefileStore = defineStore('refile-store', {
     },
     async getRefileJob (id) {
       try {
-        // const res = await this.$api.get(`${inventoryServiceApi.refile}${id}`)
+        // const res = await this.$api.get(`${inventoryServiceApi.refileJobs}${id}`)
         // this.refileJob = res.data
         this.refileJob = {
           id,
@@ -270,9 +272,8 @@ export const useRefileStore = defineStore('refile-store', {
         //   // this will only occur when user is pausing/resuming when offline
         //   navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.picklists}${payload.id}` })
         // }
-        // const res = await this.$api.patch(`${inventoryServiceApi.refile}${payload.id}`, payload)
+        // const res = await this.$api.patch(`${inventoryServiceApi.refileJobs}${payload.id}`, payload)
         // this.refileJob = res.data
-        //TODO remove once api is setup
         this.refileJob = {
           ...this.refileJob,
           status: payload.status
@@ -291,6 +292,16 @@ export const useRefileStore = defineStore('refile-store', {
       // find the item with the matching id and set the data as the refileItem
       this.refileItem = this.refileJob.refile_items.find(itm => itm.id == itemId)
     },
+    async postRefileJobItem (payload) {
+      try {
+        // TODO setup endpoint to add items to an existing refile job
+        // const res = await this.$api.post(`${inventoryServiceApi.refileJobs}${payload.job_id}/add_item/${payload.item_id}`)
+        // this.refileJob = res.data
+        console.log('adding to refile job', payload)
+      } catch (error) {
+        throw error
+      }
+    },
     async deleteRefileJobItem (itemId) {
       try {
         console.log('delete item', itemId)
@@ -298,7 +309,7 @@ export const useRefileStore = defineStore('refile-store', {
         //   // this will only occur when user reverts to queue when offline
         //   navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.picklists}${this.picklistJob.id}/remove_request/${itemId}` })
         // }
-        // const res = await this.$api.delete(`${inventoryServiceApi.refile}${this.refileJob.id}/remove_item/${itemId}`)
+        // const res = await this.$api.delete(`${inventoryServiceApi.refileJobs}${this.refileJob.id}/remove_item/${itemId}`)
         // this.refileJob = res.data
         // this.originalRefileJob = { ...this.refileJob }
       } catch (error) {
@@ -317,7 +328,7 @@ export const useRefileStore = defineStore('refile-store', {
         //   navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.picklists}${payload.id}/update_request/${payload.request_id}` })
         // }
         // updates a refile job item and marks it as refiled
-        // const res = await this.$api.patch(`${inventoryServiceApi.refile}${payload.job_id}/update_refile/${payload.item_id}`, payload)
+        // const res = await this.$api.patch(`${inventoryServiceApi.refileJobs}${payload.job_id}/update_refile_item/${payload.item_id}`, payload)
         // this.refileJob = res.data
         // this.originalRefileJob = { ...this.refileJob }
         console.log('updating refile item status', payload)
@@ -333,7 +344,7 @@ export const useRefileStore = defineStore('refile-store', {
     async postRefileQueueItem (payload) {
       try {
         // TODO figure out endpoint to handle adding items to refile queue
-        // const res = await this.$api.post(inventoryServiceApi.refile, payload)
+        // const res = await this.$api.post(inventoryServiceApi.refileJobs, payload)
         // this.refileItem = res.data
         this.refileItem = {
           id: 1,

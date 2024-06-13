@@ -20,8 +20,8 @@
     </template>
 
     <template #details-content>
-      <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+      <div class="col-xs-6 col-sm-6 col-md-grow q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+        <div class="info-display-details">
           <label
             class="info-display-details-label-2 text-h6"
           >
@@ -41,11 +41,12 @@
             option-value="id"
             option-label="first_name"
             aria-label="user"
+            class="q-pr-xs-sm q-pr-md-none"
           />
         </div>
       </div>
-      <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+      <div class="col-xs-6 col-sm-6 col-md-grow q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+        <div class="info-display-details">
           <label
             class="info-display-details-label-2 text-h6"
           >
@@ -56,8 +57,8 @@
           </p>
         </div>
       </div>
-      <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+      <div class="col-xs-6 col-sm-6 col-md-grow q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+        <div class="info-display-details">
           <label
             class="info-display-details-label-2 text-h6"
           >
@@ -68,8 +69,8 @@
           </p>
         </div>
       </div>
-      <div class="col-xs-6 col-sm-auto col-md-auto q-mr-auto">
-        <div class="info-display-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-sm">
+      <div class="col-xs-6 col-sm-auto col-md-auto q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-auto">
+        <div class="info-display-details">
           <label
             class="info-display-details-label-2 text-h6"
           >
@@ -472,7 +473,7 @@ const executeRefileJob = async () => {
     const payload = {
       id: refileJob.value.id,
       status: 'Running',
-      user_id: refileJob.value.user_id ? refileJob.value.user_id : userData.value.id,
+      assigned_user_id: refileJob.value.user_id ? refileJob.value.user_id : userData.value.id,
       run_timestamp: new Date().toISOString()
     }
     await patchRefileJob(payload)
@@ -501,7 +502,7 @@ const updateRefileJob = async () => {
     appActionIsLoadingData.value = true
     const payload = {
       id: refileJob.value.id,
-      user_id: refileJob.value.user_id,
+      assigned_user_id: refileJob.value.user_id,
       run_timestamp: new Date().toISOString()
     }
     await patchRefileJob(payload)
