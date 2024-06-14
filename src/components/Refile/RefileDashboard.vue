@@ -351,7 +351,6 @@ const queueTableVisibleColumns = ref([
   'item_location',
   'container_type',
   'media_type',
-  'user',
   'barcode',
   'owner',
   'size_class',
@@ -380,13 +379,6 @@ const queueTableColumns = ref([
     sortable: true
   },
   {
-    name: 'user',
-    field: row => row.user?.first_name,
-    label: 'Assigned User',
-    align: 'left',
-    sortable: true
-  },
-  {
     name: 'barcode',
     field: row => row.barcode?.value,
     label: 'Item Barcode',
@@ -410,7 +402,7 @@ const queueTableColumns = ref([
   {
     name: 'create_dt',
     field: 'create_dt',
-    label: 'Date Created',
+    label: 'Date Added',
     align: 'left',
     sortable: true
   }

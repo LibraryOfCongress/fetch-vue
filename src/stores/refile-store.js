@@ -98,9 +98,6 @@ export const useRefileStore = defineStore('refile-store', {
             media_type: {
               name: 'Book'
             },
-            user: {
-              first_name: 'Admin'
-            },
             create_dt: new Date().toISOString()
           }
         ]
