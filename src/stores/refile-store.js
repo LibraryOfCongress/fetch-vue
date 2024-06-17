@@ -7,9 +7,7 @@ export const useRefileStore = defineStore('refile-store', {
     refileJob: {
       id: null
     },
-    originalRefileJob: {
-      id: null
-    },
+    originalRefileJob: null,
     refileItem: {
       id: null,
       barcode: {
@@ -259,6 +257,7 @@ export const useRefileStore = defineStore('refile-store', {
       try {
         const res = await this.$api.post(inventoryServiceApi.refile, payload)
         this.refileJob = res.data
+        this.originalRefileJob = { ...this.refileJob }
       } catch (error) {
         throw error
       }
@@ -291,10 +290,10 @@ export const useRefileStore = defineStore('refile-store', {
     },
     async postRefileJobItem (payload) {
       try {
-        // TODO setup endpoint to add items to an existing refile job
-        // const res = await this.$api.post(`${inventoryServiceApi.refileJobs}${payload.job_id}/add_item/${payload.item_id}`)
-        // this.refileJob = res.data
-        console.log('adding to refile job', payload)
+        // used to add queue items to a refile Job
+        const res = await this.$api.post(`${inventoryServiceApi.refile}${payload.id}/add_items`, payload)
+        this.refileJob = res.data
+        this.originalRefileJob = { ...this.refileJob }
       } catch (error) {
         throw error
       }
@@ -340,18 +339,8 @@ export const useRefileStore = defineStore('refile-store', {
     },
     async postRefileQueueItem (payload) {
       try {
-        // TODO figure out endpoint to handle adding items to refile queue
-        // const res = await this.$api.post(inventoryServiceApi.refileJobs, payload)
-        // this.refileItem = res.data
-        this.refileItem = {
-          id: 1,
-          barcode: {
-            value: payload.barcode_value
-          },
-          owner: {
-            name: 'John Doe'
-          }
-        }
+        const res = await this.$api.post(inventoryServiceApi.refileQueue, payload)
+        this.refileItem = res.data
       } catch (error) {
         throw error
       }

@@ -150,10 +150,10 @@ const addItemToQueue = async (barcode_value) => {
   try {
     appIsLoadingData.value = true
     // check if the scanned item barcode is in the system first
-    await verifyBarcode(barcode_value, 'Refile', true)
+    await verifyBarcode(barcode_value, 'Item', true)
 
     const payload = {
-      barcode_value
+      barcode_values: [barcode_value]
     }
     await postRefileQueueItem(payload)
 

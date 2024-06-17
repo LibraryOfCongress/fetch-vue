@@ -57,7 +57,7 @@
                     <q-item
                       clickable
                       v-close-popup
-                      @click="showAddRefileJobModal = true"
+                      @click="showRefileJobModal = 'Add'"
                       role="menuitem"
                     >
                       <q-item-section>
@@ -71,7 +71,7 @@
                     <q-item
                       clickable
                       v-close-popup
-                      @click="showCreateRefileJob = true"
+                      @click="showRefileJobModal = 'Create'"
                       role="menuitem"
                     >
                       <q-item-section>
@@ -121,7 +121,7 @@
                   outline
                   label="Cancel"
                   class="btn-no-wrap text-body1 q-ml-xs full-height"
-                  @click="resetRefileJobForm(); loadRefileJobs();"
+                  @click="resetRefileJobForm(); getRefileQueueList();"
                 />
               </div>
             </div>
@@ -173,18 +173,17 @@
     @hide="showAddItemToQueue = false"
   />
 
-  <!-- Add To Refile Job Modal -->
+  <!-- Create/Add To Refile Modal -->
   <PopupModal
-    v-if="showAddRefileJobModal"
-    ref="refileJobModal"
+    v-if="showRefileJobModal"
     :show-actions="false"
-    @reset="showAddRefileJobModal = false;"
+    @reset="showRefileJobModal = null"
     aria-label="refileJobModal"
   >
     <template #header-content="{ hideModal }">
       <q-card-section class="row items-center justify-between q-pb-none">
         <h2 class="text-h6">
-          Select Refile Job
+          {{ showRefileJobModal == 'Create' ? 'Filter Queue By Building' : 'Filter Queue & Select Refile Job' }}
         </h2>
 
         <q-btn
@@ -193,23 +192,39 @@
           round
           dense
           aria-label="Close"
-          @click="hideModal(); addToRefileJob = null;"
+          @click="filterRefileByBuilding = null; addToRefileJob = null; hideModal();"
         />
       </q-card-section>
     </template>
 
     <template #main-content>
       <q-card-section class="column no-wrap items-center">
+        <div class="form-group">
+          <label class="form-group-label">
+            Building
+          </label>
+          <SelectInput
+            v-model="filterRefileByBuilding"
+            :options="buildings"
+            option-type="buildings"
+            option-value="id"
+            option-label="name"
+            :placeholder="'Select Building'"
+            aria-label="building"
+          />
+        </div>
+
         <div
-          class="form-group"
+          v-if="showRefileJobModal == 'Add'"
+          class="form-group q-mt-md"
         >
           <label class="form-group-label">
-            Refile Job
+            Add To Refile Job
           </label>
           <SelectInput
             v-model="addToRefileJob"
-            :options="[]"
-            option-type=""
+            :options="refileJobs"
+            option-type="refileJobs"
             option-value="id"
             option-label="id"
             :placeholder="'Select Refile Job'"
@@ -227,9 +242,8 @@
           color="accent"
           label="Submit"
           class="text-body1 full-width text-nowrap"
-          :disabled="!addToRefileJob"
-          :loading="appActionIsLoadingData"
-          @click="showAddRefileJob = true; hideModal();"
+          :disabled="showRefileJobModal == 'Create' ? !filterRefileByBuilding : (!filterRefileByBuilding || !addToRefileJob)"
+          @click="loadRefileJobsByBuilding(); hideModal();"
         />
 
         <q-space class="q-mx-xs" />
@@ -239,7 +253,7 @@
           no-caps
           label="Cancel"
           class="text-body1 full-width"
-          @click="hideModal(); addToRefileJob = null"
+          @click="filterRefileByBuilding = null; addToRefileJob = null; hideModal();"
         />
       </q-card-section>
     </template>
@@ -250,15 +264,16 @@
 import { onBeforeMount, ref, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
+import { useOptionStore } from '@/stores/option-store'
 import { useRefileStore } from '@/stores/refile-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import RefileAddQueueItem from '@/components/Refile/RefileAddQueueItem.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
-import MobileActionBar from '@/components/MobileActionBar.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import SelectInput from '@/components/SelectInput.vue'
+import MobileActionBar from '@/components/MobileActionBar.vue'
 
 const router = useRouter()
 
@@ -267,6 +282,7 @@ const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { buildings, refileJobs } = storeToRefs(useOptionStore())
 const {
   resetRefileStore,
   getRefileJobList,
@@ -279,7 +295,6 @@ const { refileJobList, refileJob } = storeToRefs(useRefileStore())
 
 // Local Data
 const refileTableComponent = ref(null)
-const refileJobModal = ref(null)
 const refileTableVisibleColumns = ref([
   'id',
   'items_count',
@@ -426,9 +441,10 @@ const refileDisplayType = ref('refile_job')
 const showAddItemToQueue = ref(false)
 const showCreateRefileJob = ref(false)
 const showAddRefileJob = ref(false)
-const showAddRefileJobModal = ref(false)
-const addToRefileJob = ref(null)
+const showRefileJobModal = ref(null)
 const selectedRefileItems = ref([])
+const filterRefileByBuilding = ref(null)
+const addToRefileJob = ref(null)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -457,9 +473,12 @@ const clearTableSelection = () => {
   refileTableComponent.value.clearSelectedData()
   selectedRefileItems.value = []
 }
+
 const resetRefileJobForm = () => {
   showCreateRefileJob.value = false
   showAddRefileJob.value = false
+  showRefileJobModal.value = null
+  filterRefileByBuilding.value = null
   addToRefileJob.value = null
   clearTableSelection()
 }
@@ -471,6 +490,29 @@ const loadRefileJobs = async () => {
       await getRefileJobList()
     } else {
       await getRefileQueueList()
+    }
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
+  }
+}
+const loadRefileJobsByBuilding = async () => {
+  // this function only gets called during the creation/add refile job process
+  try {
+    refileDisplayType.value = 'refile_queue'
+    appIsLoadingData.value = true
+    await getRefileQueueList({ building_id: filterRefileByBuilding.value, unassociated_refile_job: false })
+
+    // display next step in refile job creation
+    if (showRefileJobModal.value == 'Create') {
+      showCreateRefileJob.value = true
+    } else {
+      showAddRefileJob.value = true
     }
   } catch (error) {
     handleAlert({
@@ -507,16 +549,17 @@ const createRefileJob = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
-      refile_ids: selectedRefileItems.value.map(item => item.id)
+      barcode_values: selectedRefileItems.value.map(item => item.items ? item.items.barcode.value : item.non_tray_item.barcode.value)
     }
     await postRefileJob(payload)
 
-    // display an alert with the created job id so you can click that and link directly to the new job if needed
+    // display an alert with the created refile job id so you can click that and link directly to the new job if needed
     handleAlert({
       type: 'success',
       text: `Successfully created Refile Job #: <a href='/refile/${refileJob.value.id}' tabindex='0'>${refileJob.value.id}</a>`,
       autoClose: false
     })
+    loadRefileJobs()
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -533,16 +576,17 @@ const updateRefileJob = async () => {
     appActionIsLoadingData.value = true
     const payload = {
       id: addToRefileJob.value,
-      refile_ids: selectedRefileItems.value.map(item => item.id)
+      request_ids: selectedRefileItems.value.map(item => item.items ? item.items.barcode.value : item.non_tray_item.barcode.value)
     }
     await postRefileJobItem(payload)
 
-    // display an alert with the updated job id so you can click that and link directly to the new job if needed
+    // display an alert with the updated refilet job id so you can click that and link directly to the job if needed
     handleAlert({
       type: 'success',
       text: `Successfully added items to Refile Job #: <a href='/refile/${refileJob.value.id}' tabindex='0'>${refileJob.value.id}</a>`,
       autoClose: false
     })
+    loadRefileJobs()
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -552,7 +596,6 @@ const updateRefileJob = async () => {
   } finally {
     appActionIsLoadingData.value = false
     resetRefileJobForm()
-    refileJobModal.value.hideModal()
   }
 }
 </script>
