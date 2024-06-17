@@ -208,7 +208,8 @@ const {
 const {
   appIsOffline,
   appPendingSync,
-  appSyncGuard
+  appSyncGuard,
+  appRouteGuard
 } = storeToRefs(useGlobalStore())
 const { barcodeScanAllowed } = storeToRefs(useBarcodeStore())
 const { userData } = storeToRefs(useUserStore())
@@ -312,6 +313,11 @@ onMounted(() => {
       }
     })
   }
+
+  // display a route guard alert if the user tries to directly navigate to a page
+  if (appRouteGuard.value) {
+    displayRouteGuardAlert(appRouteGuard.value.name)
+  }
 })
 
 // watch the bgSyncData and if we detect any requests that are still pending display the online banner with requests pending action
@@ -320,6 +326,12 @@ watch(bgSyncData, () => {
     appPendingSync.value = true
   } else {
     appPendingSync.value = false
+  }
+})
+
+watch(appRouteGuard, () => {
+  if (appRouteGuard.value) {
+    displayRouteGuardAlert(appRouteGuard.value.name)
   }
 })
 
@@ -342,6 +354,15 @@ const handleRouteSyncGuard = async (pathName) => {
   router.push({
     name: pathName
   })
+}
+const displayRouteGuardAlert = (pathName) => {
+  handleAlert({
+    type: 'error',
+    text: `Sorry, you do not have permission to view the ${pathName} page!`,
+    autoClose: true
+  })
+  // reset the route guard in our store
+  appRouteGuard.value = null
 }
 </script>
 

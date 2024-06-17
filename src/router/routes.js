@@ -13,7 +13,8 @@ const routes = [
       {
         name: 'accession',
         path: 'accession/:jobId?', // child path reads as "parent path + / + child_path" ex: /accession
-        component: () => import('@/pages/AccessionPage.vue')
+        component: () => import('@/pages/AccessionPage.vue'),
+        meta: { requiresAuth: true }
       },
       {
         name: 'accession-container',

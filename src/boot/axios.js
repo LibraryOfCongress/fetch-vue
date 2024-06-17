@@ -9,7 +9,16 @@ const api = axios.create({
   }
 })
 
-// TODO: setup interceptor to handle token/security authorization
+// axios interceptor to handle token/security authorization being added to our requests
+api.interceptors.request.use((config) => {
+  // check if we have a user in localstorage and if that user has an auth based token
+  const userAuth = JSON.parse(localStorage.getItem('user'))
+  if (userAuth && userAuth.accessToken) {
+    // if there is an access token in our stored user we attach that to our requests
+    config.Authorization = 'Bearer ' + userAuth.accessToken
+  }
+  return config
+})
 
 export default boot(({ app }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
