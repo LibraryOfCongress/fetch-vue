@@ -13,8 +13,7 @@ const routes = [
       {
         name: 'accession',
         path: 'accession/:jobId?', // child path reads as "parent path + / + child_path" ex: /accession
-        component: () => import('@/pages/AccessionPage.vue'),
-        meta: { requiresAuth: true }
+        component: () => import('@/pages/AccessionPage.vue')
       },
       {
         name: 'accession-container',
@@ -34,17 +33,20 @@ const routes = [
       {
         name: 'admin-home',
         path: 'admin',
-        component: () => import('@/pages/AdminPage.vue')
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: { requiresAuth: true }
       },
       {
         name: 'admin-building-view',
         path: 'admin/buildings/:buildingId?',
-        component: () => import('@/pages/AdminPage.vue')
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: { requiresAuth: true }
       },
       {
         name: 'admin-groups',
         path: 'admin/groups/:groupId?',
-        component: () => import('@/pages/AdminPage.vue')
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: { requiresAuth: true }
       },
       {
         name: 'item-management',

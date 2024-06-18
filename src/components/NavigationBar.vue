@@ -358,7 +358,7 @@ const handleRouteSyncGuard = async (pathName) => {
 const displayRouteGuardAlert = (pathName) => {
   handleAlert({
     type: 'error',
-    text: `Sorry, you do not have permission to view the ${pathName} page!`,
+    text: `Sorry, you do not have permission to view the <b>${pathName.replaceAll('-', ' ')}</b> page!`,
     autoClose: true
   })
   // reset the route guard in our store
