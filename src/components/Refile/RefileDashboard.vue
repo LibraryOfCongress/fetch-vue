@@ -43,7 +43,7 @@
                     <q-item
                       clickable
                       v-close-popup
-                      @click="showAddItemToQueue = true"
+                      @click="handleOptionMenu('Queue')"
                       role="menuitem"
                     >
                       <q-item-section>
@@ -57,7 +57,7 @@
                     <q-item
                       clickable
                       v-close-popup
-                      @click="showRefileJobModal = 'Add'"
+                      @click="handleOptionMenu('Add')"
                       role="menuitem"
                     >
                       <q-item-section>
@@ -71,7 +71,7 @@
                     <q-item
                       clickable
                       v-close-popup
-                      @click="showRefileJobModal = 'Create'"
+                      @click="handleOptionMenu('Create')"
                       role="menuitem"
                     >
                       <q-item-section>
@@ -94,7 +94,7 @@
                 v-model="refileDisplayType"
                 :options="[
                   {label: 'Refile Job', value: 'refile_job'},
-                  {label: 'Refile Queue (0)', value: 'refile_queue'}
+                  {label: 'Refile Queue', value: 'refile_queue'}
                 ]"
                 @update:model-value="loadRefileJobs"
                 class="text-no-wrap"
@@ -170,7 +170,7 @@
   <!-- Add Item to Refile Queue Modal-->
   <RefileAddQueueItem
     v-if="showAddItemToQueue"
-    @hide="showAddItemToQueue = false"
+    @hide="showAddItemToQueue = false; loadRefileJobs();"
   />
 
   <!-- Create/Add To Refile Modal -->
@@ -243,7 +243,7 @@
           label="Submit"
           class="text-body1 full-width text-nowrap"
           :disabled="showRefileJobModal == 'Create' ? !filterRefileByBuilding : (!filterRefileByBuilding || !addToRefileJob)"
-          @click="loadRefileJobsByBuilding(); hideModal();"
+          @click="loadRefileQueueByBuilding(); hideModal();"
         />
 
         <q-space class="q-mx-xs" />
@@ -313,21 +313,21 @@ const refileTableColumns = ref([
   },
   {
     name: 'items_count',
-    field: 'items_count',
+    field: row => (row.item_count + row.non_tray_item_count),
     label: '# of Items',
     align: 'left',
     sortable: true
   },
   {
     name: 'shelved_count',
-    field: 'shelved_count',
+    field: row => (row.item_shelved_refiled_count + row.non_tray_item_shelved_refiled_count),
     label: '# of Items Shelved',
     align: 'left',
     sortable: true
   },
   {
     name: 'user',
-    field: row => row.user?.first_name,
+    field: row => row.assigned_user?.first_name,
     label: 'Assigned User',
     align: 'left',
     sortable: true
@@ -349,7 +349,7 @@ const refileTableColumns = ref([
 ])
 const refileTableFilters =  ref([
   {
-    field: row => row.user.first_name,
+    field: row => row.assigned_user.first_name,
     options: [
       {
         text: 'User 1',
@@ -374,7 +374,7 @@ const queueTableVisibleColumns = ref([
 const queueTableColumns = ref([
   {
     name: 'item_location',
-    field: row => getItemLocation(row),
+    field: row => `${row.module_number}-${row.aisle_number}-${row.side_orientation == 'Right' ? 'R' : row.side_orientation == 'Left' ? 'L' : row.side_orientation}-${row.ladder_number}-${row.shelf_number}-${row.shelf_position_number}`,
     label: 'Item Location',
     align: 'left',
     sortable: true
@@ -388,35 +388,35 @@ const queueTableColumns = ref([
   },
   {
     name: 'media_type',
-    field: row => row.media_type?.name,
+    field: row => row.media_type,
     label: 'Media Type',
     align: 'left',
     sortable: true
   },
   {
     name: 'barcode',
-    field: row => row.barcode?.value,
+    field: row => row.barcode_value,
     label: 'Item Barcode',
     align: 'left',
     sortable: true
   },
   {
     name: 'owner',
-    field: row => row.owner?.name,
+    field: row => row.owner,
     label: 'Owner',
     align: 'left',
     sortable: true
   },
   {
     name: 'size_class',
-    field: row => row.size_class?.name,
+    field: row => row.size_class,
     label: 'Container Size',
     align: 'left',
     sortable: true
   },
   {
-    name: 'create_dt',
-    field: 'create_dt',
+    name: 'scanned_for_refile_queue_dt',
+    field: 'scanned_for_refile_queue_dt',
     label: 'Date Added',
     align: 'left',
     sortable: true
@@ -449,7 +449,6 @@ const addToRefileJob = ref(null)
 // Logic
 const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
-const getItemLocation = inject('get-item-location')
 
 onBeforeMount(() => {
   resetRefileStore()
@@ -469,11 +468,23 @@ onBeforeMount(() => {
   }
 })
 
+const handleOptionMenu = (opt) => {
+  if (opt == 'Queue') {
+    showAddItemToQueue.value = true
+    if (refileDisplayType.value !== 'refile_queue') {
+      refileDisplayType.value = 'refile_queue'
+      loadRefileJobs()
+    }
+  } else if (opt == 'Add') {
+    showRefileJobModal.value = 'Add'
+  } else if (opt == 'Create') {
+    showRefileJobModal.value = 'Create'
+  }
+}
 const clearTableSelection = () => {
   refileTableComponent.value.clearSelectedData()
   selectedRefileItems.value = []
 }
-
 const resetRefileJobForm = () => {
   showCreateRefileJob.value = false
   showAddRefileJob.value = false
@@ -501,12 +512,12 @@ const loadRefileJobs = async () => {
     appIsLoadingData.value = false
   }
 }
-const loadRefileJobsByBuilding = async () => {
+const loadRefileQueueByBuilding = async () => {
   // this function only gets called during the creation/add refile job process
   try {
     refileDisplayType.value = 'refile_queue'
     appIsLoadingData.value = true
-    await getRefileQueueList({ building_id: filterRefileByBuilding.value, unassociated_refile_job: false })
+    await getRefileQueueList({ building_id: filterRefileByBuilding.value })
 
     // display next step in refile job creation
     if (showRefileJobModal.value == 'Create') {
@@ -549,7 +560,7 @@ const createRefileJob = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
-      barcode_values: selectedRefileItems.value.map(item => item.items ? item.items.barcode.value : item.non_tray_item.barcode.value)
+      barcode_values: selectedRefileItems.value.map(item => item.barcode_value)
     }
     await postRefileJob(payload)
 
@@ -576,7 +587,7 @@ const updateRefileJob = async () => {
     appActionIsLoadingData.value = true
     const payload = {
       id: addToRefileJob.value,
-      request_ids: selectedRefileItems.value.map(item => item.items ? item.items.barcode.value : item.non_tray_item.barcode.value)
+      queue_ids: selectedRefileItems.value.map(item => item.barcode_value)
     }
     await postRefileJobItem(payload)
 

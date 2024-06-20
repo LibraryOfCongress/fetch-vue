@@ -615,7 +615,8 @@ const updatePicklistItem = async (barcode_value) => {
       id: picklistJob.value.id,
       request_id: pickListItemToUpdate.id,
       scanned_for_retrieval: true,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: new Date().toISOString(),
+      status: 'Out'
     }
     await patchPicklistJobItemScanned(payload)
 

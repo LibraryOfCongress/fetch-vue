@@ -6,7 +6,7 @@
     <template #header-content="{ hideModal }">
       <q-card-section class="row items-center q-pb-none">
         <h2
-          v-if="refileJob.status !== 'Running' || refileItem.scanned_for_refile"
+          v-if="refileJob.status !== 'Running' || refileItem.status !== 'Out'"
           class="text-h6 text-bold"
         >
           Item Details
@@ -15,7 +15,7 @@
           v-else
           class="text-h6 text-bold"
         >
-          {{ refileItem.item ? 'Place Tray Item' : 'Place Non-Tray Item' }}
+          {{ refileItem.tray ? 'Place Tray Item' : 'Place Non-Tray Item' }}
         </h2>
 
         <q-btn
@@ -34,13 +34,13 @@
       <q-card-section class="row q-pb-sm">
         <div class="col-12">
           <BarcodeBox
-            v-if="refileJob.status !== 'Running' || refileItem.scanned_for_refile"
-            :barcode="refileItem.item ? refileItem.item.barcode.value : refileItem.non_tray_item.barcode.value"
+            v-if="refileJob.status !== 'Running' || refileItem.status !== 'Out'"
+            :barcode="refileItem.barcode.value"
             :min-height="'5rem'"
           />
           <BarcodeBox
             v-else
-            :barcode="refileItem.item ? 'Please Scan Tray' : 'Please Scan Shelf'"
+            :barcode="refileItem.tray ? 'Please Scan Tray' : 'Please Scan Shelf'"
             :min-height="'5rem'"
           />
         </div>
@@ -55,7 +55,7 @@
               Item Barcode:
             </label>
             <p class="text-body1">
-              {{ refileItem.item ? refileItem.item.barcode?.value : refileItem.non_tray_item.barcode?.value }}
+              {{ refileItem.barcode?.value }}
             </p>
           </div>
         </div>
@@ -68,7 +68,7 @@
               Tray Barcode:
             </label>
             <p class="text-body1">
-              {{ refileItem.item.tray?.barcode?.value }}
+              {{ refileItem.tray?.barcode?.value }}
             </p>
           </div>
         </div>
@@ -78,7 +78,7 @@
               Module:
             </label>
             <p class="text-body1">
-              {{ refileItem.item ? refileItem.item.tray?.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number : refileItem.non_tray_item.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number }}
+              {{ refileItem.tray ? refileItem.tray?.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number : refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number }}
             </p>
           </div>
         </div>
@@ -88,7 +88,7 @@
               Aisle:
             </label>
             <p class="text-body1">
-              {{ refileItem.item ? refileItem.item.tray?.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number : refileItem.non_tray_item.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number }}
+              {{ refileItem.tray ? refileItem.tray?.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number : refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number }}
             </p>
           </div>
         </div>
@@ -98,7 +98,7 @@
               Side:
             </label>
             <p class="text-body1">
-              {{ refileItem.item ? refileItem.item.tray?.shelf_position?.shelf?.ladder?.side?.side_orientation?.name : refileItem.non_tray_item.shelf_position?.shelf?.ladder?.side?.side_orientation?.name }}
+              {{ refileItem.tray ? refileItem.tray?.shelf_position?.shelf?.ladder?.side?.side_orientation?.name : refileItem.shelf_position?.shelf?.ladder?.side?.side_orientation?.name }}
             </p>
           </div>
         </div>
@@ -108,7 +108,7 @@
               Ladder:
             </label>
             <p class="text-body1">
-              {{ refileItem.item ? refileItem.item.tray?.shelf_position?.shelf?.ladder?.ladder_number?.number : refileItem.non_tray_item.shelf_position?.shelf?.ladder?.ladder_number?.number }}
+              {{ refileItem.tray ? refileItem.tray?.shelf_position?.shelf?.ladder?.ladder_number?.number : refileItem.shelf_position?.shelf?.ladder?.ladder_number?.number }}
             </p>
           </div>
         </div>
@@ -118,7 +118,7 @@
               Shelf:
             </label>
             <p class="text-body1">
-              {{ refileItem.item ? refileItem.item.tray?.shelf_position?.shelf?.shelf_number?.number : refileItem.non_tray_item.shelf_position?.shelf?.shelf_number?.number }}
+              {{ refileItem.tray ? refileItem.tray?.shelf_position?.shelf?.shelf_number?.number : refileItem.shelf_position?.shelf?.shelf_number?.number }}
             </p>
           </div>
         </div>
@@ -128,7 +128,7 @@
               Shelf Position:
             </label>
             <p class="text-body1">
-              {{ refileItem.item ? refileItem.item.tray?.shelf_position?.shelf_position_number?.number : refileItem.non_tray_item.shelf_position?.shelf_position_number?.number }}
+              {{ refileItem.tray ? refileItem.tray?.shelf_position?.shelf_position_number?.number : refileItem.shelf_position?.shelf_position_number?.number }}
             </p>
           </div>
         </div>
@@ -171,7 +171,11 @@ const { compiledBarCode } = useBarcodeScanHandler()
 const { addDataToIndexDb } = useIndexDbHandler()
 
 // Store Data
-const { patchRefileJobItemScanned, resetRefileItem } = useRefileStore()
+const {
+  patchRefileJobTrayItemScanned,
+  patchRefileJobNonTrayItemScanned,
+  resetRefileItem
+} = useRefileStore()
 const { refileItem, refileJob } = storeToRefs(useRefileStore())
 
 // Local Data
@@ -180,65 +184,95 @@ const { refileItem, refileJob } = storeToRefs(useRefileStore())
 const handleAlert = inject('handle-alert')
 
 watch(compiledBarCode, (barcode) => {
-  if (barcode !== '' && refileJob.value.status == 'Running' && refileItem.value.item) {
+  if (barcode !== '' && refileJob.value.status == 'Running' && refileItem.value.tray) {
     triggerTrayScan(barcode)
-  } else if (barcode !== '' && refileJob.value.status == 'Running' && refileItem.value.non_tray_item) {
+  } else if (barcode !== '' && refileJob.value.status == 'Running' && refileItem.value.shelf_position) {
     triggerShelfScan(barcode)
   }
 })
 const triggerTrayScan = (barcode_value) => {
-  if (refileItem.value.scanned_for_refile) {
+  if (refileItem.value.status !== 'Out') {
     handleAlert({
       type: 'error',
       text: 'The scanned item has already been marked as refiled.',
       autoClose: true
     })
-  } else if (barcode_value == refileItem.value.item.tray.barcode.value && !refileItem.value.scanned_for_refile) {
-    updateItemAsRefiled(barcode_value)
+  } else if (barcode_value == refileItem.value.tray.barcode.value && !refileItem.value.status !== 'Out') {
+    updateTrayItemAsRefiled()
   } else {
     handleAlert({
       type: 'error',
-      text: `The scanned tray barcode does not match this items tray barcode (${refileItem.value.item.tray.barcode.value}). Please try again!`,
+      text: `The scanned tray barcode does not match this items tray barcode (${refileItem.value.tray.barcode.value}). Please try again!`,
       autoClose: true
     })
   }
 }
 const triggerShelfScan = (barcode_value) => {
-  if (refileItem.value.scanned_for_refile) {
+  if (refileItem.value.status !== 'Out') {
     handleAlert({
       type: 'error',
       text: 'The scanned item has already been marked as refiled.',
       autoClose: true
     })
-  } else if (barcode_value == refileItem.value.non_tray_item.shelf_position.shelf.barcode.value && !refileItem.value.scanned_for_refile) {
-    updateItemAsRefiled(barcode_value)
+  } else if (barcode_value == refileItem.value.shelf_position.shelf.barcode.value && !refileItem.value.status !== 'Out') {
+    updateNonTrayItemAsRefiled()
   } else {
     handleAlert({
       type: 'error',
-      text: `The scanned shelf barcode does not match the non tray items shelf barcode (${refileItem.value.non_tray_item.shelf_position.shelf.barcode.value}). Please try again!`,
+      text: `The scanned shelf barcode does not match the non tray items shelf barcode (${refileItem.value.shelf_position.shelf.barcode.value}). Please try again!`,
       autoClose: true
     })
   }
 }
 
-const updateItemAsRefiled = async () => {
+const updateTrayItemAsRefiled = async () => {
   try {
     const payload = {
       job_id: route.params.jobId,
       item_id: refileItem.value.id,
-      scanned_for_refile: true
+      status: 'In'
     }
-    await patchRefileJobItemScanned(payload)
+    await patchRefileJobTrayItemScanned(payload)
 
-    // when offline we need to directly update the refile item in the refile job requests
-    refileJob.value.refile_items[refileJob.value.refile_items.findIndex(itm => itm.id == payload.item_id)] = { ...refileItem.value, scanned_for_refile: payload.scanned_for_refile }
+    // directly update the refile tray item in the refile job items
+    refileJob.value.items[refileJob.value.items.findIndex(itm => itm.id == payload.item_id)].status = payload.status
 
     // update the stored refileJob since the container will get changed at the job requests level
     addDataToIndexDb('refileStore', 'refileJob', JSON.parse(JSON.stringify(refileJob.value)))
 
     handleAlert({
       type: 'success',
-      text: 'The item has been refiled.',
+      text: 'The tray item has been refiled.',
+      autoClose: true
+    })
+    resetRefileItem()
+    emit('hide')
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  }
+}
+const updateNonTrayItemAsRefiled = async () => {
+  try {
+    const payload = {
+      job_id: route.params.jobId,
+      non_tray_item_id: refileItem.value.id,
+      status: 'In'
+    }
+    await patchRefileJobNonTrayItemScanned(payload)
+
+    // directly update the refile non tray item in the refile job items
+    refileJob.value.non_tray_items[refileJob.value.non_tray_items.findIndex(itm => itm.id == payload.non_tray_item_id)].status = payload.status
+
+    // update the stored refileJob since the container will get changed at the job requests level
+    addDataToIndexDb('refileStore', 'refileJob', JSON.parse(JSON.stringify(refileJob.value)))
+
+    handleAlert({
+      type: 'success',
+      text: 'The non tray item has been refiled.',
       autoClose: true
     })
     resetRefileItem()

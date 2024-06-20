@@ -27,7 +27,7 @@
       <q-card-section class="row q-pb-sm">
         <div class="col-12">
           <BarcodeBox
-            :barcode="refileItem.barcode?.value ?? 'Please Scan Barcode'"
+            :barcode="refileItem.barcode_value ?? 'Please Scan Barcode'"
             :min-height="'5rem'"
           />
         </div>
@@ -40,7 +40,7 @@
               Item Barcode:
             </label>
             <p class="text-body1">
-              {{ refileItem.barcode?.value }}
+              {{ refileItem.barcode_value }}
             </p>
           </div>
         </div>
@@ -50,7 +50,7 @@
               Owner:
             </label>
             <p class="text-body1">
-              {{ refileItem.owner?.name }}
+              {{ refileItem.owner }}
             </p>
           </div>
         </div>
@@ -135,7 +135,7 @@ watch(compiledBarCode, (barcode) => {
   }
 })
 const triggerRefileItemScan = (barcode_value) => {
-  if (barcode_value !== refileItem.value.barcode.value) {
+  if (barcode_value !== refileItem.value.barcode_value) {
     addItemToQueue(barcode_value)
   } else {
     handleAlert({

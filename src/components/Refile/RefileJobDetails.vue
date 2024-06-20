@@ -31,11 +31,11 @@
             v-if="!editJob"
             class="text-body1"
           >
-            {{ refileJob.user?.first_name }}
+            {{ refileJob.assigned_user?.first_name }}
           </p>
           <SelectInput
             v-else
-            v-model="refileJob.user_id"
+            v-model="refileJob.assigned_user_id"
             :options="users"
             option-type="users"
             option-value="id"
@@ -53,7 +53,7 @@
             # of Items:
           </label>
           <p class="text-body1">
-            {{ refileJob.refile_items.length }}
+            {{ refileJob.items.length + refileJob.non_tray_items.length }}
           </p>
         </div>
       </div>
@@ -174,7 +174,7 @@
         :table-columns="itemTableColumns"
         :table-visible-columns="itemTableVisibleColumns"
         :filter-options="itemTableFilters"
-        :table-data="refileJob.refile_items"
+        :table-data="refileJobItems"
         :enable-table-reorder="false"
         :enable-selection="false"
         :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
@@ -182,7 +182,7 @@
         :highlight-row-class="'bg-color-green-light'"
         :highlight-row-key="'scanned_for_refile'"
         :highlight-row-value="true"
-        @selected-table-row="loadRefileItem($event.id)"
+        @selected-table-row="loadRefileItem($event.barcode.value)"
       >
         <template #heading-row>
           <div class="col-xs-7 col-sm-5 q-mb-md-sm">
@@ -197,7 +197,7 @@
             v-if="colName == 'actions'"
           >
             <MoreOptionsMenu
-              :options="[{ text: 'Revert Item to Queue', disabled: props.row.scanned_for_refile || refileJob.status == 'Paused' || refileJob.status == 'Completed' }]"
+              :options="[{ text: 'Revert Item to Queue', disabled: props.row.status !== 'Out' || refileJob.status == 'Paused' || refileJob.status == 'Completed' }]"
               class=""
               @click="handleOptionMenu($event, props.row)"
             />
@@ -205,11 +205,11 @@
           <span
             v-else-if="colName == 'scanned_for_refile'"
             class="text-bold text-nowrap"
-            :class="value == true ? 'text-positive' : ''"
+            :class="value == 'In' ? 'text-positive' : ''"
           >
-            {{ value == true ? 'Refiled' : '' }}
+            {{ value == 'In' ? 'Refiled' : '' }}
             <q-icon
-              v-if="value == true"
+              v-if="value == 'In'"
               name="mdi-check-circle"
               color="positive"
               size="25px"
@@ -301,12 +301,13 @@ const { userData } = storeToRefs(useUserStore())
 const { users } = storeToRefs(useOptionStore())
 const {
   patchRefileJob,
-  deleteRefileJobItem,
+  deleteRefileJobItems,
   getRefileJobItem
 } = useRefileStore()
 const {
   refileJob,
   originalRefileJob,
+  refileJobItems,
   allItemsRefiled,
   refileItem
 } = storeToRefs(useRefileStore())
@@ -333,7 +334,7 @@ const itemTableColumns = ref([
   },
   {
     name: 'item_location',
-    field: row => row.item ? getItemLocation(row.item.tray) : getItemLocation(row.non_tray_item),
+    field: row => getItemLocation(row),
     label: 'Item Location',
     align: 'left',
     sortable: true
@@ -347,28 +348,28 @@ const itemTableColumns = ref([
   },
   {
     name: 'barcode',
-    field: row => row.item ? row.item?.barcode?.value : row.non_tray_item?.barcode?.value,
+    field: row => row.barcode?.value,
     label: 'Barcode',
     align: 'left',
     sortable: true
   },
   {
     name: 'owner',
-    field: row => row.item ? row.item?.owner?.name : row.non_tray_item?.owner?.name,
+    field: row => row.owner?.name,
     label: 'Owner',
     align: 'left',
     sortable: true
   },
   {
     name: 'size_class',
-    field: row => row.item ? row.item?.size_class?.name : row.non_tray_item?.size_class?.name,
+    field: row => row.size_class?.name,
     label: 'Size Class',
     align: 'left',
     sortable: true
   },
   {
     name: 'scanned_for_refile',
-    field: 'scanned_for_refile',
+    field: 'status',
     label: '',
     align: 'center',
     sortable: false,
@@ -378,7 +379,7 @@ const itemTableColumns = ref([
 ])
 const itemTableFilters =  ref([
   {
-    field: row => row.item ? row.item.size_class.name : row.non_tray_item.size_class.name,
+    field: row => row.size_class.name,
     options: [
       {
         text: 'C High',
@@ -432,14 +433,14 @@ watch(compiledBarCode, (barcode) => {
 })
 const triggerItemScan = (barcode_value) => {
   // check if the scanned barcode is in the item data and that the barcode hasnt been refiled already
-  if (!refileJob.value.refile_items.some(itm => itm.item ? itm.item.barcode.value == barcode_value : itm.non_tray_item.barcode.value == barcode_value)) {
+  if (!refileJobItems.value.some(itm => itm.barcode.value == barcode_value)) {
     handleAlert({
       type: 'error',
       text: 'The scanned item does not exist in this refile job. Please try again.',
       autoClose: true
     })
     return
-  } else if (refileJob.value.refile_items.some(itm => itm.item ? itm.item.barcode.value == barcode_value && itm.scanned_for_refile : itm.non_tray_item.barcode.value == barcode_value && itm.scanned_for_refile)) {
+  } else if (refileJobItems.value.some(itm => itm.barcode.value == barcode_value && itm.status !== 'Out')) {
     handleAlert({
       type: 'error',
       text: 'The scanned item has already been marked as refiled.',
@@ -448,7 +449,7 @@ const triggerItemScan = (barcode_value) => {
     return
   } else {
     // load the scanned request item by id of the scanned item barcode
-    loadRefileItem(refileJob.value.refile_items.find(itm => itm.item ? itm.item.barcode.value == barcode_value : itm.non_tray_item.barcode.value == barcode_value)?.id)
+    loadRefileItem(barcode_value)
   }
 }
 
@@ -458,7 +459,7 @@ const handleOptionMenu = async (action, rowData) => {
     editJob.value = true
     return
   case 'Revert Item to Queue':
-    removeRefileItem(rowData.id)
+    removeRefileItems([rowData.barcode.value])
     return
   }
 }
@@ -473,7 +474,7 @@ const executeRefileJob = async () => {
     const payload = {
       id: refileJob.value.id,
       status: 'Running',
-      assigned_user_id: refileJob.value.user_id ? refileJob.value.user_id : userData.value.id,
+      assigned_user_id: refileJob.value.assigned_user_id ? refileJob.value.assigned_user_id : userData.value.id,
       run_timestamp: new Date().toISOString()
     }
     await patchRefileJob(payload)
@@ -502,7 +503,7 @@ const updateRefileJob = async () => {
     appActionIsLoadingData.value = true
     const payload = {
       id: refileJob.value.id,
-      assigned_user_id: refileJob.value.user_id,
+      assigned_user_id: refileJob.value.assigned_user_id,
       run_timestamp: new Date().toISOString()
     }
     await patchRefileJob(payload)
@@ -589,20 +590,25 @@ const completeRefileJob = async () => {
     deleteDataInIndexDb('refileStore', 'originalRefileJob')
   }
 }
-const loadRefileItem = (itemId) => {
+const loadRefileItem = (barcode_value) => {
   // since we already have all the items data we just need to set the refileItem from the refileJob items directly
-  getRefileJobItem(itemId)
+  getRefileJobItem(barcode_value)
   showRefileItemDetailModal.value = true
 }
-const removeRefileItem = async (itemId) => {
+const removeRefileItems = async (barcode_values) => {
   try {
     appIsLoadingData.value = true
-    await deleteRefileJobItem(itemId)
+    const payload = {
+      barcode_values
+    }
+    await deleteRefileJobItems(payload)
 
     if (appIsOffline.value) {
-      // when offline we remove the refile item directly
-      refileJob.value.refile_items = refileJob.value.refile_items.filter(r => r.id !== itemId)
-      originalRefileJob.value.refile_items = originalRefileJob.value.refile_items.filter(r => r.id !== itemId)
+      // when offline we remove the refile items directly by filtering out the matching barcodes in either items or nonTrayItems
+      refileJob.value.items = refileJob.value.items.filter(itm => !barcode_values.includes(itm.barcode.value))
+      refileJob.value.non_tray_items = refileJob.value.non_tray_items.filter(itm => !barcode_values.includes(itm.barcode.value))
+      originalRefileJob.value.items = originalRefileJob.value.items.filter(itm => !barcode_values.includes(itm.barcode.value))
+      originalRefileJob.value.non_tray_items = originalRefileJob.value.non_tray_items.filter(itm => !barcode_values.includes(itm.barcode.value))
     }
 
     // store the current refile job data in indexdb for reference offline whenever job is executed
