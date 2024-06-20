@@ -98,10 +98,13 @@
 
 <script setup>
 import { ref, inject } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user-store'
 import { useBarcodeStore } from '@/stores/barcode-store'
 import { storeToRefs } from 'pinia'
 import TextInput from '@/components/TextInput.vue'
+
+const router = useRouter()
 
 // Store Data
 const { userData } = storeToRefs(useUserStore())
@@ -140,6 +143,9 @@ const logoutUser = async () => {
       text: 'You have successfully been logged out of FETCH.',
       autoClose: true
     })
+
+    //reload the route to trigger any route gaurds if the user is on an auth based page
+    router.go()
   } catch (error) {
     handleAlert({
       type: 'error',
