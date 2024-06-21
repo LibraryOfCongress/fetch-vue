@@ -180,8 +180,8 @@
         :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
         :highlight-row-class="'bg-color-green-light'"
-        :highlight-row-key="'scanned_for_refile'"
-        :highlight-row-value="true"
+        :highlight-row-key="'status'"
+        :highlight-row-value="'In'"
         @selected-table-row="loadRefileItem($event.barcode.value)"
       >
         <template #heading-row>
@@ -334,14 +334,14 @@ const itemTableColumns = ref([
   },
   {
     name: 'item_location',
-    field: row => getItemLocation(row),
+    field: row => row.tray ? getItemLocation(row.tray) : getItemLocation(row),
     label: 'Item Location',
     align: 'left',
     sortable: true
   },
   {
     name: 'tray_barcode',
-    field: row => row.item?.tray?.barcode?.value,
+    field: row => row.tray?.barcode?.value,
     label: 'Tray Barcode',
     align: 'left',
     sortable: true

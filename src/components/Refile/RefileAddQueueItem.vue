@@ -27,7 +27,7 @@
       <q-card-section class="row q-pb-sm">
         <div class="col-12">
           <BarcodeBox
-            :barcode="refileItem.barcode_value ?? 'Please Scan Barcode'"
+            :barcode="refileItem.barcode?.value ?? 'Please Scan Barcode'"
             :min-height="'5rem'"
           />
         </div>
@@ -36,21 +36,21 @@
       <q-card-section class="row q-pb-none">
         <div class="col-6">
           <div class="container-details">
-            <label class="text-body1 text-bold">
+            <label class="text-body1 text-bold full-width">
               Item Barcode:
             </label>
             <p class="text-body1">
-              {{ refileItem.barcode_value }}
+              {{ refileItem.barcode?.value }}
             </p>
           </div>
         </div>
         <div class="col-6">
           <div class="container-details">
-            <label class="text-body1 text-bold">
+            <label class="text-body1 text-bold full-width">
               Owner:
             </label>
             <p class="text-body1">
-              {{ refileItem.owner }}
+              {{ refileItem.owner?.name }}
             </p>
           </div>
         </div>
@@ -60,7 +60,7 @@
               Module:
             </label>
             <p class="text-body1">
-              {{ refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number }}
+              {{ refileItem.tray ? refileItem.tray.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number : refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number }}
             </p>
           </div>
         </div>
@@ -70,7 +70,7 @@
               Aisle:
             </label>
             <p class="text-body1">
-              {{ refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number }}
+              {{ refileItem.tray ? refileItem.tray.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number : refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number }}
             </p>
           </div>
         </div>

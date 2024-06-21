@@ -108,7 +108,7 @@ export const useRefileStore = defineStore('refile-store', {
     async postRefileJobItem (payload) {
       try {
         // used to add queue items to a refile Job
-        const res = await this.$api.post(`${inventoryServiceApi.refilejobs}${payload.id}/add_items`, payload)
+        const res = await this.$api.post(`${inventoryServiceApi.refileJobs}${payload.id}/add_items`, payload)
         this.refileJob = res.data
         this.originalRefileJob = { ...this.refileJob }
       } catch (error) {
@@ -174,7 +174,8 @@ export const useRefileStore = defineStore('refile-store', {
     async postRefileQueueItem (payload) {
       try {
         const res = await this.$api.patch(inventoryServiceApi.refileQueue, payload)
-        this.refileItem = res.data
+        // items can only be addded individually to the queue using this endpoint so we need to check which item type was added and return it as the refileItem
+        this.refileItem = res.data.items ? res.data.items[0] : res.data.non_tray_items[0]
       } catch (error) {
         throw error
       }

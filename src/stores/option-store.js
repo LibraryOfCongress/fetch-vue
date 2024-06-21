@@ -19,6 +19,7 @@ export const useOptionStore = defineStore('option-store', {
     owners: [],
     ownerTierOptions: [],
     picklists: [],
+    refileJobs: [],
     requestsLocations: [],
     requestsPriorities: [],
     requestsTypes: [],

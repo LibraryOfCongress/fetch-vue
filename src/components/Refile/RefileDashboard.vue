@@ -587,7 +587,7 @@ const updateRefileJob = async () => {
     appActionIsLoadingData.value = true
     const payload = {
       id: addToRefileJob.value,
-      queue_ids: selectedRefileItems.value.map(item => item.barcode_value)
+      barcode_values: selectedRefileItems.value.map(item => item.barcode_value)
     }
     await postRefileJobItem(payload)
 

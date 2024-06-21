@@ -194,6 +194,7 @@
                 <q-icon
                   name="arrow_upward"
                   class="q-table__sort-icon q-table__sort-icon--left"
+                  aria-label="tableColumnSort"
                 />
               </span>
             </q-th>
