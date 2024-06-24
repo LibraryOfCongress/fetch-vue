@@ -8,6 +8,7 @@
           :table-visible-columns="refileDisplayType == 'refile_job' ? refileTableVisibleColumns : queueTableVisibleColumns"
           :filter-options="refileDisplayType == 'refile_job' ? refileTableFilters : queueTableFilters"
           :table-data="refileJobList"
+          :row-key="refileDisplayType == 'refile_job' ? 'id' : 'barcode_value'"
           :enable-table-reorder="false"
           :enable-selection="showCreateRefileJob || showAddRefileJob"
           :heading-row-class="'q-mb-xs-md q-mb-md-xl'"
@@ -181,7 +182,7 @@
     aria-label="refileJobModal"
   >
     <template #header-content="{ hideModal }">
-      <q-card-section class="row items-center justify-between q-pb-none">
+      <q-card-section class="row items-center justify-between q-pb-none no-wrap">
         <h2 class="text-h6">
           {{ showRefileJobModal == 'Create' ? 'Filter Queue By Building' : 'Filter Queue & Select Refile Job' }}
         </h2>

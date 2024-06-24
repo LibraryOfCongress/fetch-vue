@@ -175,7 +175,7 @@ export const useRefileStore = defineStore('refile-store', {
       try {
         const res = await this.$api.patch(inventoryServiceApi.refileQueue, payload)
         // items can only be addded individually to the queue using this endpoint so we need to check which item type was added and return it as the refileItem
-        this.refileItem = res.data.items ? res.data.items[0] : res.data.non_tray_items[0]
+        this.refileItem = res.data.items && res.data.items.length > 0 ? res.data.items[0] : res.data.non_tray_items[0]
       } catch (error) {
         throw error
       }

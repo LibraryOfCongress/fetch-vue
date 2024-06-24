@@ -212,7 +212,7 @@
               :props="props"
               :style="[ props.col.name == 'actions' ? 'padding-left:8px;' : null ]"
               :class="(props.row[highlightRowKey] && props.row[highlightRowKey] == highlightRowValue) ? highlightRowClass : null"
-              @click="emit('selected-table-row', props.row)"
+              @click="props.col.name !== 'actions' ? emit('selected-table-row', props.row) : null"
             >
               <slot
                 name="table-td"

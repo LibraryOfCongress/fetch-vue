@@ -31,6 +31,14 @@
             :min-height="'5rem'"
           />
         </div>
+        <div
+          v-if="showSuccessMesssage"
+          class="col-12"
+        >
+          <p class="text-body2">
+            Successfly added to queue. Scan another item barcode when ready!
+          </p>
+        </div>
       </q-card-section>
 
       <q-card-section class="row q-pb-none">
@@ -103,7 +111,7 @@
 </template>
 
 <script setup>
-import { inject, watch } from 'vue'
+import { ref, inject, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useRefileStore } from '@/stores/refile-store'
@@ -125,6 +133,7 @@ const { postRefileQueueItem, resetRefileItem } = useRefileStore()
 const { refileItem } = storeToRefs(useRefileStore())
 
 // Local Data
+const showSuccessMesssage = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -135,7 +144,7 @@ watch(compiledBarCode, (barcode) => {
   }
 })
 const triggerRefileItemScan = (barcode_value) => {
-  if (barcode_value !== refileItem.value.barcode_value) {
+  if (barcode_value !== refileItem.value.barcode.value) {
     addItemToQueue(barcode_value)
   } else {
     handleAlert({
@@ -162,6 +171,10 @@ const addItemToQueue = async (barcode_value) => {
       text: 'Successfully added an item to the Refile Queue! Scan another item when ready.',
       autoClose: true
     })
+    showSuccessMesssage.value = true
+    setTimeout(() => {
+      showSuccessMesssage.value = false
+    }, 2500)
   } catch (error) {
     handleAlert({
       type: 'error',

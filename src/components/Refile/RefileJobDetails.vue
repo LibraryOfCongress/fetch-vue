@@ -175,6 +175,7 @@
         :table-visible-columns="itemTableVisibleColumns"
         :filter-options="itemTableFilters"
         :table-data="refileJobItems"
+        :row-key="'barcode'"
         :enable-table-reorder="false"
         :enable-selection="false"
         :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
