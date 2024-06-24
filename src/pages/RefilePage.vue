@@ -7,6 +7,7 @@
     <LoadingOverlay />
 
     <RefileDashboard v-if="!route.params.jobId" />
+    <RefileJobDetails v-if="route.params.jobId" />
   </q-page>
 </template>
 
@@ -16,6 +17,7 @@ import { useRoute } from 'vue-router'
 import { useRefileStore } from '@/stores/refile-store'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import RefileDashboard from '@/components/Refile/RefileDashboard.vue'
+import RefileJobDetails from '@/components/Refile/RefileJobDetails.vue'
 
 const route = useRoute()
 

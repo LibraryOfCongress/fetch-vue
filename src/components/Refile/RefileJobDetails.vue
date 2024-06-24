@@ -1,39 +1,27 @@
 <template>
-  <InfoDisplayLayout class="picklist-job">
+  <InfoDisplayLayout class="refile-job">
     <template #number-box-content>
       <div class="flex q-mb-xs">
         <MoreOptionsMenu
-          :options="[{ text: 'Edit', disabled: appIsOffline || editJob || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' }]"
+          :options="[{ text: 'Edit', disabled: appIsOffline || editJob || refileJob.status == 'Paused' || refileJob.status == 'Completed' }]"
           class="q-mr-xs"
           @click="handleOptionMenu"
         />
         <label
-          id="picklistJobId"
+          id="refileJobId"
           class="info-display-details-label text-h4"
         >
-          Pick List #:
+          Refile Job #:
         </label>
       </div>
       <p class="info-display-number-box text-h4">
-        {{ picklistJob.id }}
+        {{ refileJob.id }}
       </p>
     </template>
 
     <template #details-content>
-      <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
-          <label
-            class="info-display-details-label-2 text-h6"
-          >
-            Building:
-          </label>
-          <p class="text-body1">
-            {{ picklistJob.building?.name }}
-          </p>
-        </div>
-      </div>
-      <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+      <div class="col-xs-6 col-sm-6 col-md-grow q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+        <div class="info-display-details">
           <label
             class="info-display-details-label-2 text-h6"
           >
@@ -43,51 +31,56 @@
             v-if="!editJob"
             class="text-body1"
           >
-            {{ picklistJob.user?.first_name }}
+            {{ refileJob.assigned_user?.first_name }}
           </p>
           <SelectInput
             v-else
-            v-model="picklistJob.user_id"
+            v-model="refileJob.assigned_user_id"
             :options="users"
             option-type="users"
             option-value="id"
             option-label="first_name"
             aria-label="user"
-          >
-            <template #no-option>
-              <q-item>
-                <q-item-section class="text-italic text-grey">
-                  No Users Found
-                </q-item-section>
-              </q-item>
-            </template>
-          </SelectInput>
+            class="q-pr-xs-sm q-pr-md-none"
+          />
         </div>
       </div>
-      <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+      <div class="col-xs-6 col-sm-6 col-md-grow q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+        <div class="info-display-details">
+          <label
+            class="info-display-details-label-2 text-h6"
+          >
+            # of Items:
+          </label>
+          <p class="text-body1">
+            {{ refileJob.items.length + refileJob.non_tray_items.length }}
+          </p>
+        </div>
+      </div>
+      <div class="col-xs-6 col-sm-6 col-md-grow q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+        <div class="info-display-details">
           <label
             class="info-display-details-label-2 text-h6"
           >
             Date Created
           </label>
           <p class="text-body1">
-            {{ formatDateTime(picklistJob.create_dt).date }}
+            {{ formatDateTime(refileJob.create_dt).date }}
           </p>
         </div>
       </div>
-      <div class="col-xs-6 col-sm-auto col-md-auto q-mr-auto">
-        <div class="info-display-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-sm">
+      <div class="col-xs-6 col-sm-auto col-md-auto q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-auto">
+        <div class="info-display-details">
           <label
             class="info-display-details-label-2 text-h6"
           >
             Status
           </label>
           <p
-            class="text-body1 outline"
-            :class="picklistJob.status == 'Completed' || picklistJob.status == 'Created' ? 'text-highlight' : picklistJob.status == 'Paused' || picklistJob.status == 'Running' ? 'text-highlight-warning' : picklistJob.status == 'New' ? 'text-highlight-accent' : null "
+            class="text-body1 text-center outline"
+            :class="refileJob.status == 'Completed' || refileJob.status == 'Created' ? 'text-highlight' : refileJob.status == 'Paused' || refileJob.status == 'Running' ? 'text-highlight-warning' : refileJob.status == 'New' ? 'text-highlight-accent' : null "
           >
-            {{ picklistJob.status }}
+            {{ refileJob.status }}
           </p>
         </div>
       </div>
@@ -107,7 +100,7 @@
             label="Save Edits"
             class="btn-no-wrap text-body1 q-mr-sm"
             :loading="appActionIsLoadingData"
-            @click="updatePicklistJob"
+            @click="updateRefileJob"
           />
           <q-btn
             no-caps
@@ -116,34 +109,34 @@
             color="accent"
             label="Cancel"
             class="btn-no-wrap text-body1"
-            @click="cancelPicklistJobEdits"
+            @click="cancelRefileJobEdits"
           />
         </div>
         <div
-          v-else-if="picklistJob.status !== 'Completed'"
+          v-else-if="refileJob.status !== 'Completed'"
           class="info-display-details-action q-mt-sm-sm q-mt-md-md"
         >
           <q-btn
-            v-if="picklistJob.status !== 'Created'"
+            v-if="refileJob.status !== 'Created'"
             no-caps
             unelevated
             outline
             color="accent"
-            :icon="picklistJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
-            :label="picklistJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
+            :icon="refileJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
+            :label="refileJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
             class="btn-no-wrap text-body1 q-mr-sm"
             :disabled="appPendingSync"
-            @click="picklistJob.status == 'Paused' ? updatePicklistJobStatus('Running') : updatePicklistJobStatus('Paused')"
+            @click="refileJob.status == 'Paused' ? updateRefileJobStatus('Running') : updateRefileJobStatus('Paused')"
           />
           <q-btn
             no-caps
             unelevated
             color="positive"
-            :label="picklistJob.status == 'Created' ? 'Retrieve Pick List' : 'Complete Job'"
+            :label="refileJob.status == 'Created' ? 'Execute Refile Job' : 'Complete Job'"
             class="btn-no-wrap text-body1"
-            :disabled="appIsOffline || appPendingSync || picklistJob.status == 'Paused' || !allItemsRetrieved"
+            :disabled="appIsOffline || appPendingSync || refileJob.status == 'Paused' || !allItemsRefiled"
             :loading="appActionIsLoadingData"
-            @click="picklistJob.status == 'Created' ? executePicklistJob() : showCompleteJobModal = true"
+            @click="refileJob.status == 'Created' ? executeRefileJob() : showCompleteJobModal = true"
           />
         </div>
       </div>
@@ -153,26 +146,26 @@
         :button-one-label="'Save Edits'"
         :button-one-outline="false"
         :button-one-loading="appActionIsLoadingData"
-        @button-one-click="updatePicklistJob"
+        @button-one-click="updateRefileJob"
         button-two-color="accent"
         :button-two-label="'Cancel'"
         :button-two-outline="true"
-        @button-two-click="cancelPicklistJobEdits"
+        @button-two-click="cancelRefileJobEdits"
       />
       <MobileActionBar
-        v-else-if="picklistJob.status !== 'Completed'"
+        v-else-if="refileJob.status !== 'Completed'"
         button-one-color="accent"
-        :button-one-icon="picklistJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
-        :button-one-label="picklistJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
+        :button-one-icon="refileJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
+        :button-one-label="refileJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
         :button-one-outline="true"
-        :button-one-disabled="appPendingSync || picklistJob.status == 'Created'"
-        @button-one-click="picklistJob.status == 'Paused' ? updatePicklistJobStatus('Running') : updatePicklistJobStatus('Paused')"
+        :button-one-disabled="appPendingSync || refileJob.status == 'Created'"
+        @button-one-click="refileJob.status == 'Paused' ? updateRefileJobStatus('Running') : updateRefileJobStatus('Paused')"
         button-two-color="positive"
-        :button-two-label="picklistJob.status == 'Created' ? 'Retrieve Pick List' : 'Complete Job'"
+        :button-two-label="refileJob.status == 'Created' ? 'Execute Refile Job' : 'Complete Job'"
         :button-two-outline="false"
-        :button-two-disabled="appIsOffline || appPendingSync || picklistJob.status == 'Paused' || !allItemsRetrieved"
+        :button-two-disabled="appIsOffline || appPendingSync || refileJob.status == 'Paused' || !allItemsRefiled"
         :button-two-loading="appActionIsLoadingData"
-        @button-two-click="picklistJob.status == 'Created' ? executePicklistJob() : showCompleteJobModal = true"
+        @button-two-click="refileJob.status == 'Created' ? executeRefileJob() : showCompleteJobModal = true"
       />
     </template>
 
@@ -181,14 +174,16 @@
         :table-columns="itemTableColumns"
         :table-visible-columns="itemTableVisibleColumns"
         :filter-options="itemTableFilters"
-        :table-data="picklistJob.requests"
+        :table-data="refileJobItems"
+        :row-key="'barcode'"
         :enable-table-reorder="false"
         :enable-selection="false"
         :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
         :highlight-row-class="'bg-color-green-light'"
-        :highlight-row-key="'scanned_for_retrieval'"
-        :highlight-row-value="true"
+        :highlight-row-key="'status'"
+        :highlight-row-value="'In'"
+        @selected-table-row="loadRefileItem($event.barcode.value)"
       >
         <template #heading-row>
           <div class="col-xs-7 col-sm-5 q-mb-md-sm">
@@ -203,19 +198,19 @@
             v-if="colName == 'actions'"
           >
             <MoreOptionsMenu
-              :options="[{ text: 'Revert Item to Queue', disabled: props.row.scanned_for_retrieval || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' }]"
+              :options="[{ text: 'Revert Item to Queue', disabled: props.row.status !== 'Out' || refileJob.status == 'Paused' || refileJob.status == 'Completed' }]"
               class=""
               @click="handleOptionMenu($event, props.row)"
             />
           </span>
           <span
-            v-else-if="colName == 'scanned_for_retrieval'"
+            v-else-if="colName == 'scanned_for_refile'"
             class="text-bold text-nowrap"
-            :class="value == true ? 'text-positive' : ''"
+            :class="value == 'In' ? 'text-positive' : ''"
           >
-            {{ value == true ? 'Retrieved' : '' }}
+            {{ value == 'In' ? 'Refiled' : '' }}
             <q-icon
-              v-if="value == true"
+              v-if="value == 'In'"
               name="mdi-check-circle"
               color="positive"
               size="25px"
@@ -245,7 +240,7 @@
           label="Complete"
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
-          @click="completePicklistJob(); hideModal();"
+          @click="completeRefileJob(); hideModal();"
         />
         <q-space class="q-mx-xs" />
         <q-btn
@@ -258,6 +253,12 @@
       </q-card-section>
     </template>
   </PopupModal>
+
+  <!-- refile item detail modal -->
+  <RefileItemDetailModal
+    v-if="showRefileItemDetailModal"
+    @hide="showRefileItemDetailModal = false"
+  />
 </template>
 
 <script setup>
@@ -266,7 +267,7 @@ import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useUserStore } from '@/stores/user-store'
-import { usePicklistStore } from '@/stores/picklist-store'
+import { useRefileStore } from '@/stores/refile-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
@@ -277,6 +278,7 @@ import MobileActionBar from '@/components/MobileActionBar.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
+import RefileItemDetailModal from '@/components/Refile/RefileItemDetailModal.vue'
 
 const router = useRouter()
 
@@ -299,25 +301,28 @@ const {
 const { userData } = storeToRefs(useUserStore())
 const { users } = storeToRefs(useOptionStore())
 const {
-  patchPicklistJob,
-  patchPicklistJobItemScanned,
-  deletePicklistJobItem
-} = usePicklistStore()
+  patchRefileJob,
+  deleteRefileJobItems,
+  getRefileJobItem
+} = useRefileStore()
 const {
-  picklistJob,
-  originalPicklistJob,
-  allItemsRetrieved
-} = storeToRefs(usePicklistStore())
+  refileJob,
+  originalRefileJob,
+  refileJobItems,
+  allItemsRefiled,
+  refileItem
+} = storeToRefs(useRefileStore())
 
 // Local Data
 const editJob = ref(false)
 const itemTableVisibleColumns = ref([
   'actions',
   'item_location',
+  'tray_barcode',
   'barcode',
   'owner',
   'size_class',
-  'scanned_for_retrieval'
+  'scanned_for_refile'
 ])
 const itemTableColumns = ref([
   {
@@ -329,36 +334,43 @@ const itemTableColumns = ref([
     required: true
   },
   {
+    name: 'item_location',
+    field: row => row.tray ? getItemLocation(row.tray) : getItemLocation(row),
+    label: 'Item Location',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'tray_barcode',
+    field: row => row.tray?.barcode?.value,
+    label: 'Tray Barcode',
+    align: 'left',
+    sortable: true
+  },
+  {
     name: 'barcode',
-    field: row => row.item ? row.item?.barcode?.value : row.non_tray_item?.barcode?.value,
+    field: row => row.barcode?.value,
     label: 'Barcode',
     align: 'left',
     sortable: true
   },
   {
     name: 'owner',
-    field: row => row.item ? row.item?.owner?.name : row.non_tray_item?.owner?.name,
+    field: row => row.owner?.name,
     label: 'Owner',
     align: 'left',
     sortable: true
   },
   {
     name: 'size_class',
-    field: row => row.item ? row.item?.size_class?.name : row.non_tray_item?.size_class?.name,
+    field: row => row.size_class?.name,
     label: 'Size Class',
     align: 'left',
     sortable: true
   },
   {
-    name: 'item_location',
-    field: row => row.item ? getItemLocation(row.item.tray) : getItemLocation(row.non_tray_item),
-    label: 'Item Location',
-    align: 'left',
-    sortable: true
-  },
-  {
-    name: 'scanned_for_retrieval',
-    field: 'scanned_for_retrieval',
+    name: 'scanned_for_refile',
+    field: 'status',
     label: '',
     align: 'center',
     sortable: false,
@@ -382,6 +394,7 @@ const itemTableFilters =  ref([
   }
 ])
 const showCompleteJobModal = ref(false)
+const showRefileItemDetailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -392,52 +405,52 @@ onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
     itemTableVisibleColumns.value = [
       'actions',
-      'barcode',
-      'size_class',
       'item_location',
-      'scanned_for_retrieval'
+      'tray_barcode',
+      'barcode',
+      'scanned_for_refile'
     ]
   }
 })
 
 onMounted(async () => {
-  // when user is online and loads a job we store the current picklist job data and original in indexdb for reference offline
+  // when user is online and loads a job we store the current refile job data and original in indexdb for reference offline
   if (!appIsOffline.value) {
-    addDataToIndexDb('picklistStore', 'picklistJob', JSON.parse(JSON.stringify(picklistJob.value)))
-    addDataToIndexDb('picklistStore', 'originalPicklistJob', JSON.parse(JSON.stringify(originalPicklistJob.value)))
+    addDataToIndexDb('refileStore', 'refileJob', JSON.parse(JSON.stringify(refileJob.value)))
+    addDataToIndexDb('refileStore', 'originalRefileJob', JSON.parse(JSON.stringify(originalRefileJob.value)))
   } else {
-    // get saved picklist job data if were offline and page was reloaded/refreshed
-    const res = await getDataInIndexDb('picklistStore')
-    picklistJob.value = res.data.picklistJob
-    originalPicklistJob.value = res.data.originalPicklistJob
+    // get saved refile job data if were offline and page was reloaded/refreshed
+    const res = await getDataInIndexDb('refileStore')
+    refileJob.value = res.data.refileJob
+    originalRefileJob.value = res.data.originalRefileJob
   }
 })
 
 watch(compiledBarCode, (barcode) => {
-  if (barcode !== '' && picklistJob.value.status == 'Running') {
-    // only allow scans if the picklist job is in a running state
+  if (barcode !== '' && refileJob.value.status == 'Running' && !refileItem.value.id) {
+    // only allow scans if the job is in a running state and there is no active refileItem set in state
     triggerItemScan(barcode)
   }
 })
 const triggerItemScan = (barcode_value) => {
-  // check if the scanned barcode is in the item data and that the barcode hasnt been retrieved already
-  if (!picklistJob.value.requests.some(itm => itm.item ? itm.item.barcode.value == barcode_value : itm.non_tray_item.barcode.value == barcode_value)) {
+  // check if the scanned barcode is in the item data and that the barcode hasnt been refiled already
+  if (!refileJobItems.value.some(itm => itm.barcode.value == barcode_value)) {
     handleAlert({
       type: 'error',
-      text: 'The scanned item does not exist in this pick list job. Please try again.',
+      text: 'The scanned item does not exist in this refile job. Please try again.',
       autoClose: true
     })
     return
-  } else if (picklistJob.value.requests.some(itm => itm.item ? itm.item.barcode.value == barcode_value && itm.scanned_for_retrieval : itm.non_tray_item.barcode.value == barcode_value && itm.scanned_for_retrieval)) {
+  } else if (refileJobItems.value.some(itm => itm.barcode.value == barcode_value && itm.status !== 'Out')) {
     handleAlert({
       type: 'error',
-      text: 'The scanned item has already been marked as retrieved.',
+      text: 'The scanned item has already been marked as refiled.',
       autoClose: true
     })
     return
   } else {
-    // update the scanned request item to retrieved
-    updatePicklistItem(barcode_value)
+    // load the scanned request item by id of the scanned item barcode
+    loadRefileItem(barcode_value)
   }
 }
 
@@ -447,33 +460,33 @@ const handleOptionMenu = async (action, rowData) => {
     editJob.value = true
     return
   case 'Revert Item to Queue':
-    removePicklistItem(rowData.id)
+    removeRefileItems([rowData.barcode.value])
     return
   }
 }
 
-const cancelPicklistJobEdits = () => {
-  picklistJob.value = { ...toRaw(originalPicklistJob.value) }
+const cancelRefileJobEdits = () => {
+  refileJob.value = { ...toRaw(originalRefileJob.value) }
   editJob.value = false
 }
-const executePicklistJob = async () => {
+const executeRefileJob = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
-      id: picklistJob.value.id,
+      id: refileJob.value.id,
       status: 'Running',
-      user_id: picklistJob.value.user_id ? picklistJob.value.user_id : userData.value.id,
+      assigned_user_id: refileJob.value.assigned_user_id ? refileJob.value.assigned_user_id : userData.value.id,
       run_timestamp: new Date().toISOString()
     }
-    await patchPicklistJob(payload)
+    await patchRefileJob(payload)
 
-    // store the current picklist job data in indexdb for reference offline whenever job is executed
-    addDataToIndexDb('picklistStore', 'picklistJob', JSON.parse(JSON.stringify(picklistJob.value)))
-    addDataToIndexDb('picklistStore', 'originalPicklistJob', JSON.parse(JSON.stringify(originalPicklistJob.value)))
+    // store the current refile job data in indexdb for reference offline whenever job is executed
+    addDataToIndexDb('refileStore', 'refileJob', JSON.parse(JSON.stringify(refileJob.value)))
+    addDataToIndexDb('refileStore', 'originalRefileJob', JSON.parse(JSON.stringify(originalRefileJob.value)))
 
     handleAlert({
       type: 'success',
-      text: 'Pick List Job Successfully Started',
+      text: 'Refile Job Successfully Started',
       autoClose: true
     })
   } catch (error) {
@@ -486,15 +499,15 @@ const executePicklistJob = async () => {
     appActionIsLoadingData.value = false
   }
 }
-const updatePicklistJob = async () => {
+const updateRefileJob = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
-      id: picklistJob.value.id,
-      user_id: picklistJob.value.user_id,
+      id: refileJob.value.id,
+      assigned_user_id: refileJob.value.assigned_user_id,
       run_timestamp: new Date().toISOString()
     }
-    await patchPicklistJob(payload)
+    await patchRefileJob(payload)
 
     handleAlert({
       type: 'success',
@@ -512,24 +525,24 @@ const updatePicklistJob = async () => {
     editJob.value = false
   }
 }
-const updatePicklistJobStatus = async (status) => {
+const updateRefileJobStatus = async (status) => {
   try {
     const payload = {
-      id: picklistJob.value.id,
+      id: refileJob.value.id,
       status,
       run_timestamp: new Date().toISOString()
     }
-    await patchPicklistJob(payload)
+    await patchRefileJob(payload)
 
     if (appIsOffline.value) {
       // when offline we update the status directly
-      picklistJob.value.status = payload.status
-      originalPicklistJob.value.status = payload.status
+      refileJob.value.status = payload.status
+      originalRefileJob.value.status = payload.status
     }
 
-    // store the current picklist job data in indexdb for reference offline whenever job is executed
-    addDataToIndexDb('picklistStore', 'picklistJob', JSON.parse(JSON.stringify(picklistJob.value)))
-    addDataToIndexDb('picklistStore', 'originalPicklistJob', JSON.parse(JSON.stringify(originalPicklistJob.value)))
+    // store the current refile job data in indexdb for reference offline whenever job is executed
+    addDataToIndexDb('refileStore', 'refileJob', JSON.parse(JSON.stringify(refileJob.value)))
+    addDataToIndexDb('refileStore', 'originalRefileJob', JSON.parse(JSON.stringify(originalRefileJob.value)))
 
     handleAlert({
       type: 'success',
@@ -544,24 +557,24 @@ const updatePicklistJobStatus = async (status) => {
     })
   }
 }
-const completePicklistJob = async () => {
+const completeRefileJob = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
-      id: picklistJob.value.id,
+      id: refileJob.value.id,
       status: 'Completed',
       run_timestamp: new Date().toISOString()
     }
-    await patchPicklistJob(payload)
+    await patchRefileJob(payload)
 
     handleAlert({
       type: 'success',
-      text: 'The Pick List Job has been completed.',
+      text: 'The Refile Job has been completed.',
       autoClose: true
     })
 
     router.push({
-      name: 'picklist',
+      name: 'refile',
       params: {
         jobId: null
       }
@@ -574,28 +587,38 @@ const completePicklistJob = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
-    deleteDataInIndexDb('picklistStore', 'picklistJob')
-    deleteDataInIndexDb('picklistStore', 'originalPicklistJob')
+    deleteDataInIndexDb('refileStore', 'refileJob')
+    deleteDataInIndexDb('refileStore', 'originalRefileJob')
   }
 }
-const removePicklistItem = async (itemId) => {
+const loadRefileItem = (barcode_value) => {
+  // since we already have all the items data we just need to set the refileItem from the refileJob items directly
+  getRefileJobItem(barcode_value)
+  showRefileItemDetailModal.value = true
+}
+const removeRefileItems = async (barcode_values) => {
   try {
     appIsLoadingData.value = true
-    await deletePicklistJobItem(itemId)
+    const payload = {
+      barcode_values
+    }
+    await deleteRefileJobItems(payload)
 
     if (appIsOffline.value) {
-      // when offline we remove the picklistItem directly
-      picklistJob.value.requests = picklistJob.value.requests.filter(r => r.id !== itemId)
-      originalPicklistJob.value.requests = originalPicklistJob.value.requests.filter(r => r.id !== itemId)
+      // when offline we remove the refile items directly by filtering out the matching barcodes in either items or nonTrayItems
+      refileJob.value.items = refileJob.value.items.filter(itm => !barcode_values.includes(itm.barcode.value))
+      refileJob.value.non_tray_items = refileJob.value.non_tray_items.filter(itm => !barcode_values.includes(itm.barcode.value))
+      originalRefileJob.value.items = originalRefileJob.value.items.filter(itm => !barcode_values.includes(itm.barcode.value))
+      originalRefileJob.value.non_tray_items = originalRefileJob.value.non_tray_items.filter(itm => !barcode_values.includes(itm.barcode.value))
     }
 
-    // store the current picklist job data in indexdb for reference offline whenever job is executed
-    addDataToIndexDb('picklistStore', 'picklistJob', JSON.parse(JSON.stringify(picklistJob.value)))
-    addDataToIndexDb('picklistStore', 'originalPicklistJob', JSON.parse(JSON.stringify(originalPicklistJob.value)))
+    // store the current refile job data in indexdb for reference offline whenever job is executed
+    addDataToIndexDb('refileStore', 'refileJob', JSON.parse(JSON.stringify(refileJob.value)))
+    addDataToIndexDb('refileStore', 'originalRefileJob', JSON.parse(JSON.stringify(originalRefileJob.value)))
 
     handleAlert({
       type: 'success',
-      text: `${itemId} has been sent back to the request queue.`,
+      text: 'The item has been sent back to the refile queue.',
       autoClose: true
     })
   } catch (error) {
@@ -606,33 +629,6 @@ const removePicklistItem = async (itemId) => {
     })
   } finally {
     appIsLoadingData.value = false
-  }
-}
-const updatePicklistItem = async (barcode_value) => {
-  try {
-    const pickListItemToUpdate = picklistJob.value.requests.find(itm => itm.item ? itm.item.barcode.value == barcode_value : itm.non_tray_item.barcode.value == barcode_value)
-    const payload = {
-      id: picklistJob.value.id,
-      request_id: pickListItemToUpdate.id,
-      scanned_for_retrieval: true,
-      run_timestamp: new Date().toISOString(),
-      status: 'Out'
-    }
-    await patchPicklistJobItemScanned(payload)
-
-    // update the item directly in the picklist job and set it to retrieved
-    pickListItemToUpdate.scanned_for_retrieval = true
-    originalPicklistJob.value = { ...toRaw(picklistJob.value) }
-
-    // store the current picklist job data in indexdb for reference offline whenever job is executed
-    addDataToIndexDb('picklistStore', 'picklistJob', JSON.parse(JSON.stringify(picklistJob.value)))
-    addDataToIndexDb('picklistStore', 'originalPicklistJob', JSON.parse(JSON.stringify(originalPicklistJob.value)))
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
   }
 }
 </script>

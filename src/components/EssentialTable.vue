@@ -194,6 +194,7 @@
                 <q-icon
                   name="arrow_upward"
                   class="q-table__sort-icon q-table__sort-icon--left"
+                  aria-label="tableColumnSort"
                 />
               </span>
             </q-th>
@@ -211,7 +212,7 @@
               :props="props"
               :style="[ props.col.name == 'actions' ? 'padding-left:8px;' : null ]"
               :class="(props.row[highlightRowKey] && props.row[highlightRowKey] == highlightRowValue) ? highlightRowClass : null"
-              @click="emit('selected-table-row', props.row)"
+              @click="props.col.name !== 'actions' ? emit('selected-table-row', props.row) : null"
             >
               <slot
                 name="table-td"
@@ -412,10 +413,10 @@ const filterTableData = () => {
       val
     ]) => {
       if (field.includes('=>')) {
-        // if we pass in a arrow function field we only need the object param path to check if we have a table row with that field
-        // ex row => row.barcode.value we only need 'barcode.value' from that function
-        const paramPath = field.split('row.').pop()
-        return val.includes(paramPath.split('.').reduce((prev, curr) => prev[curr], entry))
+        // if we pass in an arrow function string convert it to an actual function to check the entry param path
+        // ex row => row.barcode.value becomes entry.barcode.value and we compare that value to the selected filter
+        const fieldArrowFunc = eval(field.replaceAll('row', 'entry').split('=>').pop())
+        return val.includes(fieldArrowFunc, entry)
       } else {
         return val.includes(entry[field])
       }

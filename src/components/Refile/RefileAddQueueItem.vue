@@ -31,12 +31,20 @@
             :min-height="'5rem'"
           />
         </div>
+        <div
+          v-if="showSuccessMesssage"
+          class="col-12"
+        >
+          <p class="text-body2">
+            Successfly added to queue. Scan another item barcode when ready!
+          </p>
+        </div>
       </q-card-section>
 
       <q-card-section class="row q-pb-none">
         <div class="col-6">
           <div class="container-details">
-            <label class="text-body1 text-bold">
+            <label class="text-body1 text-bold full-width">
               Item Barcode:
             </label>
             <p class="text-body1">
@@ -46,7 +54,7 @@
         </div>
         <div class="col-6">
           <div class="container-details">
-            <label class="text-body1 text-bold">
+            <label class="text-body1 text-bold full-width">
               Owner:
             </label>
             <p class="text-body1">
@@ -60,7 +68,7 @@
               Module:
             </label>
             <p class="text-body1">
-              {{ refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number }}
+              {{ refileItem.tray ? refileItem.tray.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number : refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number }}
             </p>
           </div>
         </div>
@@ -70,7 +78,7 @@
               Aisle:
             </label>
             <p class="text-body1">
-              {{ refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number }}
+              {{ refileItem.tray ? refileItem.tray.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number : refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number }}
             </p>
           </div>
         </div>
@@ -103,7 +111,7 @@
 </template>
 
 <script setup>
-import { inject, watch } from 'vue'
+import { ref, inject, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useRefileStore } from '@/stores/refile-store'
@@ -125,6 +133,7 @@ const { postRefileQueueItem, resetRefileItem } = useRefileStore()
 const { refileItem } = storeToRefs(useRefileStore())
 
 // Local Data
+const showSuccessMesssage = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -150,10 +159,10 @@ const addItemToQueue = async (barcode_value) => {
   try {
     appIsLoadingData.value = true
     // check if the scanned item barcode is in the system first
-    await verifyBarcode(barcode_value, 'Refile', true)
+    await verifyBarcode(barcode_value, 'Item', true)
 
     const payload = {
-      barcode_value
+      barcode_values: [barcode_value]
     }
     await postRefileQueueItem(payload)
 
@@ -162,6 +171,10 @@ const addItemToQueue = async (barcode_value) => {
       text: 'Successfully added an item to the Refile Queue! Scan another item when ready.',
       autoClose: true
     })
+    showSuccessMesssage.value = true
+    setTimeout(() => {
+      showSuccessMesssage.value = false
+    }, 2500)
   } catch (error) {
     handleAlert({
       type: 'error',
