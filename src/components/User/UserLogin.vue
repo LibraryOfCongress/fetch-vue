@@ -74,6 +74,7 @@
 </template>
 
 <script setup>
+import inventoryServiceApi from '@/http/InventoryService.js'
 import { ref, inject, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
@@ -103,7 +104,10 @@ const handleAlert = inject('handle-alert')
 const idaptiveLogin = async () => {
   try {
     appActionIsLoadingData.value = true
-    //TODO: setup logic to redirect user to idaptive login
+    // Replace current url with SSO login url (this is where idaptive will handle login from and redirect the user back to the pwa)
+    window.location.replace(`https://inventory.dev.loctest.gov${inventoryServiceApi.authSsoLogin}`)
+
+    // TODO: need figure out how the user info is returned from idaptive and handle that logic
     return
   } catch (error) {
     handleAlert({
