@@ -3,7 +3,10 @@
     <template #number-box-content>
       <div class="flex q-mb-xs">
         <MoreOptionsMenu
-          :options="[{ text: 'Edit', disabled: appIsOffline || editJob || refileJob.status == 'Paused' || refileJob.status == 'Completed' }]"
+          :options="[
+            { text: 'Edit', disabled: appIsOffline || editJob || refileJob.status == 'Paused' || refileJob.status == 'Completed' },
+            { text: 'Delete Job', optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed'}
+          ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
         />
@@ -136,7 +139,7 @@
             class="btn-no-wrap text-body1"
             :disabled="appIsOffline || appPendingSync || refileJob.status == 'Paused' || !allItemsRefiled"
             :loading="appActionIsLoadingData"
-            @click="refileJob.status == 'Created' ? executeRefileJob() : showCompleteJobModal = true"
+            @click="refileJob.status == 'Created' ? executeRefileJob() : showConfirmationModal = 'CompleteJob'"
           />
         </div>
       </div>
@@ -165,7 +168,7 @@
         :button-two-outline="false"
         :button-two-disabled="appIsOffline || appPendingSync || refileJob.status == 'Paused' || !allItemsRefiled"
         :button-two-loading="appActionIsLoadingData"
-        @button-two-click="refileJob.status == 'Created' ? executeRefileJob() : showCompleteJobModal = true"
+        @button-two-click="refileJob.status == 'Created' ? executeRefileJob() : showConfirmationModal = 'CompleteJob'"
       />
     </template>
 
@@ -222,18 +225,19 @@
     </template>
   </InfoDisplayLayout>
 
-  <!-- complete job modal -->
+  <!-- confirmation modal -->
   <PopupModal
-    v-if="showCompleteJobModal"
-    :title="'Confirm'"
-    text="Are you sure you want to complete the job?"
+    v-if="showConfirmationModal"
+    :title="showConfirmationModal == 'CompleteJob' ? 'Confirm' : 'Delete'"
+    :text="showConfirmationModal == 'CompleteJob' ? 'Are you sure you want to complete the job?' : 'Are you sure you want to delete the job?'"
     :show-actions="false"
-    @reset="showCompleteJobModal = false"
+    @reset="showConfirmationModal = null"
     aria-label="confirmationModal"
   >
     <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
         <q-btn
+          v-if="showConfirmationModal == 'CompleteJob'"
           no-caps
           unelevated
           color="accent"
@@ -241,6 +245,16 @@
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
           @click="completeRefileJob(); hideModal();"
+        />
+        <q-btn
+          v-else
+          no-caps
+          unelevated
+          color="negative"
+          label="Delete Job"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="cancelRefileJob(); hideModal();"
         />
         <q-space class="q-mx-xs" />
         <q-btn
@@ -302,6 +316,7 @@ const { userData } = storeToRefs(useUserStore())
 const { users } = storeToRefs(useOptionStore())
 const {
   patchRefileJob,
+  deleteRefileJob,
   deleteRefileJobItems,
   getRefileJobItem
 } = useRefileStore()
@@ -393,7 +408,7 @@ const itemTableFilters =  ref([
     ]
   }
 ])
-const showCompleteJobModal = ref(false)
+const showConfirmationModal = ref(null)
 const showRefileItemDetailModal = ref(false)
 
 // Logic
@@ -458,6 +473,9 @@ const handleOptionMenu = async (action, rowData) => {
   switch (action.text) {
   case 'Edit':
     editJob.value = true
+    return
+  case 'Delete Job':
+    showConfirmationModal.value = 'DeleteJob'
     return
   case 'Revert Item to Queue':
     removeRefileItems([rowData.barcode.value])
@@ -555,6 +573,35 @@ const updateRefileJobStatus = async (status) => {
       text: error,
       autoClose: true
     })
+  }
+}
+const cancelRefileJob = async () => {
+  try {
+    appIsLoadingData.value = true
+    await deleteRefileJob(refileJob.value.id)
+
+    handleAlert({
+      type: 'success',
+      text: 'The Refile Job has been canceled.',
+      autoClose: true
+    })
+
+    router.push({
+      name: 'refile',
+      params: {
+        jobId: null
+      }
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
+    deleteDataInIndexDb('refileStore', 'refileJob')
+    deleteDataInIndexDb('refileStore', 'originalRefileJob')
   }
 }
 const completeRefileJob = async () => {

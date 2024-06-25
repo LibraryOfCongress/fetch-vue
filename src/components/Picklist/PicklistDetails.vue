@@ -3,7 +3,10 @@
     <template #number-box-content>
       <div class="flex q-mb-xs">
         <MoreOptionsMenu
-          :options="[{ text: 'Edit', disabled: appIsOffline || editJob || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' }]"
+          :options="[
+            { text: 'Edit', disabled: appIsOffline || editJob || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' },
+            { text: 'Delete Job', optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed'}
+          ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
         />
@@ -143,7 +146,7 @@
             class="btn-no-wrap text-body1"
             :disabled="appIsOffline || appPendingSync || picklistJob.status == 'Paused' || !allItemsRetrieved"
             :loading="appActionIsLoadingData"
-            @click="picklistJob.status == 'Created' ? executePicklistJob() : showCompleteJobModal = true"
+            @click="picklistJob.status == 'Created' ? executePicklistJob() : showConfirmationModal = 'CompleteJob'"
           />
         </div>
       </div>
@@ -172,7 +175,7 @@
         :button-two-outline="false"
         :button-two-disabled="appIsOffline || appPendingSync || picklistJob.status == 'Paused' || !allItemsRetrieved"
         :button-two-loading="appActionIsLoadingData"
-        @button-two-click="picklistJob.status == 'Created' ? executePicklistJob() : showCompleteJobModal = true"
+        @button-two-click="picklistJob.status == 'Created' ? executePicklistJob() : showConfirmationModal = 'CompleteJob'"
       />
     </template>
 
@@ -227,18 +230,19 @@
     </template>
   </InfoDisplayLayout>
 
-  <!-- complete job modal -->
+  <!-- confirmation modal -->
   <PopupModal
-    v-if="showCompleteJobModal"
-    :title="'Confirm'"
-    text="Are you sure you want to complete the job?"
+    v-if="showConfirmationModal"
+    :title="showConfirmationModal == 'CompleteJob' ? 'Confirm' : 'Delete'"
+    :text="showConfirmationModal == 'CompleteJob' ? 'Are you sure you want to complete the job?' : 'Are you sure you want to delete the job?'"
     :show-actions="false"
-    @reset="showCompleteJobModal = false"
+    @reset="showConfirmationModal = null"
     aria-label="confirmationModal"
   >
     <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
         <q-btn
+          v-if="showConfirmationModal == 'CompleteJob'"
           no-caps
           unelevated
           color="accent"
@@ -246,6 +250,16 @@
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
           @click="completePicklistJob(); hideModal();"
+        />
+        <q-btn
+          v-else
+          no-caps
+          unelevated
+          color="negative"
+          label="Delete Job"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="cancelPicklistJob(); hideModal();"
         />
         <q-space class="q-mx-xs" />
         <q-btn
@@ -300,6 +314,7 @@ const { userData } = storeToRefs(useUserStore())
 const { users } = storeToRefs(useOptionStore())
 const {
   patchPicklistJob,
+  deletePicklistJob,
   patchPicklistJobItemScanned,
   deletePicklistJobItem
 } = usePicklistStore()
@@ -381,7 +396,7 @@ const itemTableFilters =  ref([
     ]
   }
 ])
-const showCompleteJobModal = ref(false)
+const showConfirmationModal = ref(null)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -445,6 +460,9 @@ const handleOptionMenu = async (action, rowData) => {
   switch (action.text) {
   case 'Edit':
     editJob.value = true
+    return
+  case 'Delete Job':
+    showConfirmationModal.value = 'DeleteJob'
     return
   case 'Revert Item to Queue':
     removePicklistItem(rowData.id)
@@ -542,6 +560,35 @@ const updatePicklistJobStatus = async (status) => {
       text: error,
       autoClose: true
     })
+  }
+}
+const cancelPicklistJob = async () => {
+  try {
+    appIsLoadingData.value = true
+    await deletePicklistJob(picklistJob.value.id)
+
+    handleAlert({
+      type: 'success',
+      text: 'The Pick List Job has been canceled.',
+      autoClose: true
+    })
+
+    router.push({
+      name: 'picklist',
+      params: {
+        jobId: null
+      }
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
+    deleteDataInIndexDb('picklistStore', 'picklistJob')
+    deleteDataInIndexDb('picklistStore', 'originalPicklistJob')
   }
 }
 const completePicklistJob = async () => {

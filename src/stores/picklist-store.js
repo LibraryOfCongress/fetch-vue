@@ -74,6 +74,14 @@ export const usePicklistStore = defineStore('picklist-store', {
         }
       }
     },
+    async deletePicklistJob (jobId) {
+      try {
+        await this.$api.delete(`${inventoryServiceApi.picklists}${jobId}`)
+        this.resetPicklistStore()
+      } catch (error) {
+        throw error
+      }
+    },
     async patchPicklistJobItem (payload) {
       try {
         // used to add request items to a picklist
