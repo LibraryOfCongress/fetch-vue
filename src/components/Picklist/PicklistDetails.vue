@@ -5,7 +5,7 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit', disabled: appIsOffline || editJob || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' },
-            { text: 'Delete Job', optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed'}
+            { text: 'Delete Job', optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed' || picklistJob.requests.some(itm => itm.status == 'Out')}
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"

@@ -5,7 +5,7 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit', disabled: appIsOffline || editJob || refileJob.status == 'Paused' || refileJob.status == 'Completed' },
-            { text: 'Delete Job', optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed'}
+            { text: 'Delete Job', optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed' || refileJobItems.some(itm => itm.status == 'In')}
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
