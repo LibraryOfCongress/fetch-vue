@@ -101,6 +101,14 @@ export const useRefileStore = defineStore('refile-store', {
         // }
       }
     },
+    async deleteRefileJob (jobId) {
+      try {
+        await this.$api.delete(`${inventoryServiceApi.refileJobs}${jobId}`)
+        this.resetRefileStore()
+      } catch (error) {
+        throw error
+      }
+    },
     getRefileJobItem (barcode_value) {
       // find the item with the matching barcode_value and set the data as the refileItem
       this.refileItem = this.refileJobItems.find(itm => itm.barcode.value == barcode_value)
