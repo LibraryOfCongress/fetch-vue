@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import inventoryServiceApi from '@/http/InventoryService.js'
+// import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useUserStore = defineStore('user-store', {
   state: () => ({
@@ -17,8 +17,15 @@ export const useUserStore = defineStore('user-store', {
     },
     async patchLogin (payload) {
       try {
-        const res = await this.$api.post(inventoryServiceApi.authLegacyLogin, payload)
-        this.userData = res.data
+        // TODO uncomment once api is ready for testing
+        // const res = await this.$api.post(inventoryServiceApi.authLegacyLogin, payload)
+        // this.userData = res.data
+        this.userData = {
+          id: 1,
+          username: payload.username,
+          first_name: 'Admin',
+          last_name: 'User'
+        }
         localStorage.setItem('user', JSON.stringify(this.userData))
       } catch (error) {
         throw error
@@ -26,8 +33,9 @@ export const useUserStore = defineStore('user-store', {
     },
     async patchLogout () {
       try {
-        const res = await this.$api.post(inventoryServiceApi.authSsoLogout)
-        this.userData = res.data
+        // TODO uncomment once api is ready for testing
+        // const res = await this.$api.post(inventoryServiceApi.authSsoLogout)
+        // this.userData = res.data
         this.resetUserStore()
       } catch (error) {
         throw error
