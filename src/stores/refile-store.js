@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import inventoryServiceApi from '@/http/InventoryService.js'
+import { useGlobalStore } from './global-store'
+const globalStore = useGlobalStore()
 
 export const useRefileStore = defineStore('refile-store', {
   state: () => ({
@@ -85,20 +87,19 @@ export const useRefileStore = defineStore('refile-store', {
     },
     async patchRefileJob (payload) {
       try {
-        // if (globalStore.appIsOffline) {
-        //   // this will only occur when user is pausing/resuming when offline
-        //   navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.picklists}${payload.id}` })
-        // }
+        if (globalStore.appIsOffline) {
+          // this will only occur when user is pausing/resuming when offline
+          navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.refileJobs}${payload.id}` })
+        }
         const res = await this.$api.patch(`${inventoryServiceApi.refileJobs}${payload.id}`, payload)
         this.refileJob = res.data
         this.originalRefileJob = { ...this.refileJob }
       } catch (error) {
-        throw error
-        // if (globalStore.appIsOffline) {
-        //   return
-        // } else {
-        //   throw error
-        // }
+        if (globalStore.appIsOffline) {
+          return
+        } else {
+          throw error
+        }
       }
     },
     async deleteRefileJob (jobId) {
@@ -125,58 +126,55 @@ export const useRefileStore = defineStore('refile-store', {
     },
     async deleteRefileJobItems (payload) {
       try {
-        // if (globalStore.appIsOffline) {
-        //   // this will only occur when user reverts to queue when offline
-        //   navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.picklists}${this.picklistJob.id}/remove_request/${itemId}` })
-        // }
+        if (globalStore.appIsOffline) {
+          // this will only occur when user reverts to queue when offline
+          navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.refileJobs}${this.refileJob.id}/remove_items` })
+        }
         const res = await this.$api.delete(`${inventoryServiceApi.refileJobs}${this.refileJob.id}/remove_items`, { data: payload })
         this.refileJob = res.data
         this.originalRefileJob = { ...this.refileJob }
       } catch (error) {
-        throw error
-        // if (globalStore.appIsOffline) {
-        //   return
-        // } else {
-        //   throw error
-        // }
+        if (globalStore.appIsOffline) {
+          return
+        } else {
+          throw error
+        }
       }
     },
     async patchRefileJobTrayItemScanned (payload) {
       try {
-        // if (globalStore.appIsOffline) {
-        //   // this will only occur when user is scanning when offline
-        //   navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.picklists}${payload.id}/update_request/${payload.request_id}` })
-        // }
+        if (globalStore.appIsOffline) {
+          // this will only occur when user is scanning when offline
+          navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.refileJobs}${payload.job_id}/update_item/${payload.item_id}` })
+        }
         // updates a refile job item and marks it as refiled
         const res = await this.$api.patch(`${inventoryServiceApi.refileJobs}${payload.job_id}/update_item/${payload.item_id}`, payload)
         this.refileJob = res.data
         this.originalRefileJob = { ...this.refileJob }
       } catch (error) {
-        throw error
-        // if (globalStore.appIsOffline) {
-        //   return
-        // } else {
-        //   throw error
-        // }
+        if (globalStore.appIsOffline) {
+          return
+        } else {
+          throw error
+        }
       }
     },
     async patchRefileJobNonTrayItemScanned (payload) {
       try {
-        // if (globalStore.appIsOffline) {
-        //   // this will only occur when user is scanning when offline
-        //   navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.picklists}${payload.id}/update_request/${payload.request_id}` })
-        // }
+        if (globalStore.appIsOffline) {
+          // this will only occur when user is scanning when offline
+          navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.refileJobs}${payload.job_id}/update_non_tray_items/${payload.non_tray_item_id}` })
+        }
         // updates a refile job non tray item and marks it as refiled
         const res = await this.$api.patch(`${inventoryServiceApi.refileJobs}${payload.job_id}/update_non_tray_items/${payload.non_tray_item_id}`, payload)
         this.refileJob = res.data
         this.originalRefileJob = { ...this.refileJob }
       } catch (error) {
-        throw error
-        // if (globalStore.appIsOffline) {
-        //   return
-        // } else {
-        //   throw error
-        // }
+        if (globalStore.appIsOffline) {
+          return
+        } else {
+          throw error
+        }
       }
     },
     async postRefileQueueItem (payload) {
