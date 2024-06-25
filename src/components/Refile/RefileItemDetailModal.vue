@@ -176,7 +176,11 @@ const {
   patchRefileJobNonTrayItemScanned,
   resetRefileItem
 } = useRefileStore()
-const { refileItem, refileJob } = storeToRefs(useRefileStore())
+const {
+  refileItem,
+  refileJob,
+  originalRefileJob
+} = storeToRefs(useRefileStore())
 
 // Local Data
 
@@ -239,6 +243,7 @@ const updateTrayItemAsRefiled = async () => {
 
     // update the stored refileJob since the container will get changed at the job requests level
     addDataToIndexDb('refileStore', 'refileJob', JSON.parse(JSON.stringify(refileJob.value)))
+    addDataToIndexDb('refileStore', 'originalRefileJob', JSON.parse(JSON.stringify(originalRefileJob.value)))
 
     handleAlert({
       type: 'success',
@@ -269,6 +274,7 @@ const updateNonTrayItemAsRefiled = async () => {
 
     // update the stored refileJob since the container will get changed at the job requests level
     addDataToIndexDb('refileStore', 'refileJob', JSON.parse(JSON.stringify(refileJob.value)))
+    addDataToIndexDb('refileStore', 'originalRefileJob', JSON.parse(JSON.stringify(originalRefileJob.value)))
 
     handleAlert({
       type: 'success',
