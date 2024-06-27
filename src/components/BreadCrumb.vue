@@ -268,6 +268,23 @@ const breadcrumbList = computed(() => {
       { text: route.params.containerId }
     ]
     break
+  case 'withdrawal':
+    if (!route.params.jobId) {
+      breadCrumbs = [
+        ...breadCrumbs,
+        { text: 'Withdrawal' }
+      ]
+    } else {
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Withdrawal',
+          to: '/withdrawal'
+        },
+        { text: `${route.params.jobId}` }
+      ]
+    }
+    break
   default:
     break
   }
