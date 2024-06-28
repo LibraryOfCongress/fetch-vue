@@ -188,10 +188,72 @@
         :highlight-row-value="'Withdrawn'"
       >
         <template #heading-row>
-          <div class="col-xs-7 col-sm-5 q-mb-md-sm">
+          <div class="col-xs-7 col-sm-5 col-md-auto q-mb-md-sm">
             <label class="text-h4 text-bold">
               Items in Job:
             </label>
+          </div>
+
+          <div
+            class="col-xs-grow col-sm-7 col-md-auto flex"
+            :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? 'justify-end q-mb-md' : 'order-1'"
+          >
+            <q-btn
+              no-caps
+              unelevated
+              icon-right="arrow_drop_down"
+              color="accent"
+              label="Add Items"
+              class="text-body1 q-ml-xs-none q-ml-sm-sm"
+              :disabled="withdrawJob.status == 'Paused' || withdrawJob.status == 'Completed'"
+            >
+              <q-menu>
+                <q-list>
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click="null"
+                    role="menuitem"
+                  >
+                    <q-item-section>
+                      <q-item-label>
+                        <span class="text-no-wrap">
+                          Manually Enter Barcode
+                        </span>
+                      </q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click="null"
+                    role="menuitem"
+                  >
+                    <q-item-section>
+                      <q-item-label>
+                        <span>
+                          Scan Item(s)
+                        </span>
+                      </q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click="null"
+                    role="menuitem"
+                  >
+                    <q-item-section>
+                      <q-item-label>
+                        <span>
+                          Bulk Upload Items
+                        </span>
+                      </q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-btn>
           </div>
         </template>
 
