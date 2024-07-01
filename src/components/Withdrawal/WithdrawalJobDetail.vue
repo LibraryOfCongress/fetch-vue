@@ -4,8 +4,8 @@
       <div class="flex q-mb-xs no-wrap">
         <MoreOptionsMenu
           :options="[
-            { text: 'Edit', disabled: appIsOffline || editJob || withdrawJob.status == 'Completed' },
-            { text: 'Delete Job', optionClass: 'text-negative', disabled: appIsOffline || editJob || withdrawJob.status == 'Completed' || withdrawJobItems.some(itm => itm.status == 'Withdrawn')}
+            { text: 'Edit', disabled: editJob || withdrawJob.status == 'Completed' },
+            { text: 'Delete Job', optionClass: 'text-negative', disabled: editJob || withdrawJob.status == 'Completed' || withdrawJobItems.some(itm => itm.status == 'Withdrawn')}
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
@@ -126,7 +126,6 @@
             color="accent"
             :label="'Create Pick List Job'"
             class="btn-no-wrap text-body1 q-mr-sm"
-            :disabled="appPendingSync"
             @click="createPicklistJob()"
           />
           <q-btn
@@ -135,7 +134,7 @@
             color="positive"
             :label="'Withdraw Items'"
             class="btn-no-wrap text-body1"
-            :disabled="appIsOffline || appPendingSync || withdrawJobItems.some(itm => itm.status == 'In')"
+            :disabled="withdrawJobItems.some(itm => itm.status == 'In')"
             :loading="appActionIsLoadingData"
             @click="showConfirmationModal = 'CompleteJob'"
           />
@@ -158,12 +157,12 @@
         button-one-color="accent"
         :button-one-label="'Create Pick List Job'"
         :button-one-outline="false"
-        :button-one-disabled="appPendingSync || !withdrawJobItems.some(itm => itm.status == 'In')"
+        :button-one-disabled="!withdrawJobItems.some(itm => itm.status == 'In')"
         @button-one-click="createPicklistJob()"
         button-two-color="positive"
         :button-two-label="'Withdraw Items'"
         :button-two-outline="false"
-        :button-two-disabled="appIsOffline || appPendingSync || withdrawJobItems.some(itm => itm.status == 'In')"
+        :button-two-disabled="withdrawJobItems.some(itm => itm.status == 'In')"
         :button-two-loading="appActionIsLoadingData"
         @button-two-click="showConfirmationModal = 'CompleteJob'"
       />
@@ -209,7 +208,7 @@
                   <q-item
                     clickable
                     v-close-popup
-                    @click="null"
+                    @click="showAddItemModal = 'Manual'"
                     role="menuitem"
                   >
                     <q-item-section>
@@ -223,7 +222,7 @@
                   <q-item
                     clickable
                     v-close-popup
-                    @click="null"
+                    @click="showAddItemModal = 'Scan'"
                     role="menuitem"
                   >
                     <q-item-section>
@@ -237,7 +236,8 @@
                   <q-item
                     clickable
                     v-close-popup
-                    @click="null"
+                    @click="showAddItemModal = 'Bulk'"
+                    :disable="true"
                     role="menuitem"
                   >
                     <q-item-section>
@@ -325,10 +325,17 @@
       </q-card-section>
     </template>
   </PopupModal>
+
+  <!-- add item modal -->
+  <WithdrawalJobAddItemModal
+    v-if="showAddItemModal"
+    :entry-type="showAddItemModal"
+    @hide="showAddItemModal = null"
+  />
 </template>
 
 <script setup>
-import { onBeforeMount, onMounted, ref, inject, toRaw } from 'vue'
+import { onBeforeMount, ref, inject, toRaw } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -337,32 +344,23 @@ import { useWithdrawalStore } from '@/stores/withdrawal-store'
 import { usePicklistStore } from '@/stores/picklist-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
-// import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
-import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
 import InfoDisplayLayout from '@/components/InfoDisplayLayout.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
+import WithdrawalJobAddItemModal from '@/components/Withdrawal/WithdrawalJobAddItemModal.vue'
 
 const router = useRouter()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
-// const { compiledBarCode } = useBarcodeScanHandler()
-const {
-  addDataToIndexDb,
-  getDataInIndexDb,
-  deleteDataInIndexDb
-} = useIndexDbHandler()
 
 // Store Data
 const {
   appIsLoadingData,
-  appActionIsLoadingData,
-  appPendingSync,
-  appIsOffline
+  appActionIsLoadingData
 } = storeToRefs(useGlobalStore())
 const { userData } = storeToRefs(useUserStore())
 const { users } = storeToRefs(useOptionStore())
@@ -449,6 +447,7 @@ const itemTableFilters =  ref([
   }
 ])
 const showConfirmationModal = ref(null)
+const showAddItemModal = ref(null)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -465,48 +464,6 @@ onBeforeMount(() => {
     ]
   }
 })
-
-onMounted(async () => {
-  // when user is online and loads a job we store the current withdraw job data and original in indexdb for reference offline
-  if (!appIsOffline.value) {
-    addDataToIndexDb('withdrawalStore', 'withdrawJob', JSON.parse(JSON.stringify(withdrawJob.value)))
-    addDataToIndexDb('withdrawalStore', 'originalWithdrawJob', JSON.parse(JSON.stringify(originalWithdrawJob.value)))
-  } else {
-    // get saved withdraw job data if were offline and page was reloaded/refreshed
-    const res = await getDataInIndexDb('withdrawalStore')
-    withdrawJob.value = res.data.withdrawJob
-    originalWithdrawJob.value = res.data.originalWithdrawJob
-  }
-})
-
-// TODO: move scan logic to addWithdrawalItemModal component
-// watch(compiledBarCode, (barcode) => {
-//   if (barcode !== '' && withdrawJob.value.status == 'Created') {
-//     // only allow scans if the job is new and the
-//     triggerItemScan(barcode)
-//   }
-// })
-// const triggerItemScan = (barcode_value) => {
-//   // check if the scanned barcode is in the item table and that the barcode hasnt been withdrawn already
-//   if (!withdrawJobItems.value.some(itm => itm.barcode.value == barcode_value)) {
-//     handleAlert({
-//       type: 'error',
-//       text: 'The scanned item does not exist in this withdraw job. Please try again.',
-//       autoClose: true
-//     })
-//     return
-//   } else if (withdrawJobItems.value.some(itm => itm.barcode.value == barcode_value && itm.status == 'Withdrawn')) {
-//     handleAlert({
-//       type: 'error',
-//       text: 'The scanned item has already been marked as withdrawn.',
-//       autoClose: true
-//     })
-//     return
-//   } else {
-//     // set the scanned items status to withdrawn
-//     updateWithdrawItemScanned(barcode_value)
-//   }
-// }
 
 const handleOptionMenu = async (action, rowData) => {
   switch (action.text) {
@@ -577,8 +534,6 @@ const cancelWithdrawJob = async () => {
     })
   } finally {
     appIsLoadingData.value = false
-    deleteDataInIndexDb('withdrawalStore', 'withdrawJob')
-    deleteDataInIndexDb('withdrawalStore', 'originalWithdrawJob')
   }
 }
 const completeWithdrawJob = async () => {
@@ -612,8 +567,6 @@ const completeWithdrawJob = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
-    deleteDataInIndexDb('withdrawalStore', 'withdrawJob')
-    deleteDataInIndexDb('withdrawalStore', 'originalWithdrawJob')
   }
 }
 const removeWithdrawItems = async (barcode_values) => {
@@ -623,18 +576,6 @@ const removeWithdrawItems = async (barcode_values) => {
       barcode_values
     }
     await deleteWithdrawJobItems(payload)
-
-    if (appIsOffline.value) {
-      // when offline we remove the withdraw items directly by filtering out the matching barcodes in either items or nonTrayItems
-      withdrawJob.value.items = withdrawJob.value.items.filter(itm => !barcode_values.includes(itm.barcode.value))
-      withdrawJob.value.non_tray_items = withdrawJob.value.non_tray_items.filter(itm => !barcode_values.includes(itm.barcode.value))
-      originalWithdrawJob.value.items = originalWithdrawJob.value.items.filter(itm => !barcode_values.includes(itm.barcode.value))
-      originalWithdrawJob.value.non_tray_items = originalWithdrawJob.value.non_tray_items.filter(itm => !barcode_values.includes(itm.barcode.value))
-    }
-
-    // store the current withdraw job data in indexdb for reference offline whenever job is executed
-    addDataToIndexDb('withdrawalStore', 'withdrawJob', JSON.parse(JSON.stringify(withdrawJob.value)))
-    addDataToIndexDb('withdrawalStore', 'originalWithdrawJob', JSON.parse(JSON.stringify(originalWithdrawJob.value)))
 
     handleAlert({
       type: 'success',

@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
 import inventoryServiceApi from '@/http/InventoryService.js'
-// import { useGlobalStore } from './global-store'
-// const globalStore = useGlobalStore()
 
 export const useWithdrawalStore = defineStore('withdrawal-store', {
   state: () => ({
@@ -171,20 +169,11 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
     },
     async patchWithdrawJob (payload) {
       try {
-        // if (globalStore.appIsOffline) {
-        //   // this will only occur when user is pausing/resuming when offline
-        //   navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.withdrawJobs}${payload.id}` })
-        // }
         const res = await this.$api.patch(`${inventoryServiceApi.withdrawJobs}${payload.id}`, payload)
         this.withdrawJob = res.data
         this.originalWithdrawJob = { ...this.withdrawJob }
       } catch (error) {
         throw error
-        // if (globalStore.appIsOffline) {
-        //   return
-        // } else {
-        //   throw error
-        // }
       }
     },
     async deleteWithdrawJob (jobId) {
@@ -197,20 +186,29 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
     },
     async deleteWithdrawJobItems (payload) {
       try {
-        // if (globalStore.appIsOffline) {
-        //   // this will only occur when user reverts to queue when offline
-        //   navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.refileJobs}${this.refileJob.id}/remove_items` })
-        // }
         const res = await this.$api.delete(`${inventoryServiceApi.withdrawJobs}${this.withdrawJob.id}/remove_items`, { data: payload })
         this.withdrawJob = res.data
         this.originalWithdrawJob = { ...this.withdrawJob }
       } catch (error) {
         throw error
-        // if (globalStore.appIsOffline) {
-        //   return
-        // } else {
-        //   throw error
-        // }
+      }
+    },
+    async postWithdrawJobItem (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.withdrawJobs}${this.withdrawJob.id}/add_items`, payload)
+        this.withdrawJob = res.data
+        this.originalWithdrawJob = { ...this.withdrawJob }
+      } catch (error) {
+        throw error
+      }
+    },
+    async postWithdrawJobTray (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.withdrawJobs}${this.withdrawJob.id}/add_tray`, payload)
+        this.withdrawJob = res.data
+        this.originalWithdrawJob = { ...this.withdrawJob }
+      } catch (error) {
+        throw error
       }
     }
   }
