@@ -4,8 +4,8 @@
       <div class="flex q-mb-xs no-wrap">
         <MoreOptionsMenu
           :options="[
-            { text: 'Edit', disabled: appIsOffline || editJob || withdrawJob.status == 'Paused' || withdrawJob.status == 'Completed' },
-            { text: 'Delete Job', optionClass: 'text-negative', disabled: appIsOffline || editJob || withdrawJob.status == 'Completed' || withdrawJobItems.some(itm => itm.status !== 'Out')}
+            { text: 'Edit', disabled: appIsOffline || editJob || withdrawJob.status == 'Completed' },
+            { text: 'Delete Job', optionClass: 'text-negative', disabled: appIsOffline || editJob || withdrawJob.status == 'Completed' || withdrawJobItems.some(itm => itm.status == 'Withdrawn')}
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
@@ -81,7 +81,7 @@
           </label>
           <p
             class="text-body1 text-center outline"
-            :class="withdrawJob.status == 'Completed' || withdrawJob.status == 'Created' ? 'text-highlight' : withdrawJob.status == 'Paused' || withdrawJob.status == 'Running' ? 'text-highlight-warning' : null "
+            :class="withdrawJob.status == 'Completed' || withdrawJob.status == 'Created' ? 'text-highlight' : null "
           >
             {{ withdrawJob.status }}
           </p>
@@ -90,7 +90,7 @@
 
       <div
         v-if="currentScreenSize !== 'xs'"
-        class="col-sm-12 col-md-12 col-lg-3 q-ml-auto"
+        class="col-sm-12 col-md-12 col-lg-4 q-ml-auto"
       >
         <div
           v-if="editJob"
@@ -120,26 +120,24 @@
           class="info-display-details-action q-mt-sm-sm q-mt-md-md"
         >
           <q-btn
-            v-if="withdrawJob.status !== 'Created'"
+            v-if="withdrawJobItems.some(itm => itm.status == 'In')"
             no-caps
             unelevated
-            outline
             color="accent"
-            :icon="withdrawJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
-            :label="withdrawJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
+            :label="'Create Pick List Job'"
             class="btn-no-wrap text-body1 q-mr-sm"
             :disabled="appPendingSync"
-            @click="withdrawJob.status == 'Paused' ? updateWithdrawJobStatus('Running') : updateWithdrawJobStatus('Paused')"
+            @click="createPicklistJob()"
           />
           <q-btn
             no-caps
             unelevated
             color="positive"
-            :label="withdrawJob.status == 'Created' ? 'Withdraw Items' : 'Complete Job'"
+            :label="'Withdraw Items'"
             class="btn-no-wrap text-body1"
-            :disabled="appIsOffline || appPendingSync || withdrawJob.status == 'Paused' || !allItemsWithdrawn"
+            :disabled="appIsOffline || appPendingSync || withdrawJobItems.some(itm => itm.status == 'In')"
             :loading="appActionIsLoadingData"
-            @click="withdrawJob.status == 'Created' ? executeWithdrawJob() : showConfirmationModal = 'CompleteJob'"
+            @click="showConfirmationModal = 'CompleteJob'"
           />
         </div>
       </div>
@@ -158,17 +156,16 @@
       <MobileActionBar
         v-else-if="withdrawJob.status !== 'Completed'"
         button-one-color="accent"
-        :button-one-icon="withdrawJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
-        :button-one-label="withdrawJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
-        :button-one-outline="true"
-        :button-one-disabled="appPendingSync || withdrawJob.status == 'Created'"
-        @button-one-click="withdrawJob.status == 'Paused' ? updateWithdrawJobStatus('Running') : updateWithdrawJobStatus('Paused')"
+        :button-one-label="'Create Pick List Job'"
+        :button-one-outline="false"
+        :button-one-disabled="appPendingSync || !withdrawJobItems.some(itm => itm.status == 'In')"
+        @button-one-click="createPicklistJob()"
         button-two-color="positive"
-        :button-two-label="withdrawJob.status == 'Created' ? 'Withdraw Items' : 'Complete Job'"
+        :button-two-label="'Withdraw Items'"
         :button-two-outline="false"
-        :button-two-disabled="appIsOffline || appPendingSync || withdrawJob.status == 'Paused' || !allItemsWithdrawn"
+        :button-two-disabled="appIsOffline || appPendingSync || withdrawJobItems.some(itm => itm.status == 'In')"
         :button-two-loading="appActionIsLoadingData"
-        @button-two-click="withdrawJob.status == 'Created' ? executeWithdrawJob() : showConfirmationModal = 'CompleteJob'"
+        @button-two-click="showConfirmationModal = 'CompleteJob'"
       />
     </template>
 
@@ -205,7 +202,7 @@
               color="accent"
               label="Add Items"
               class="text-body1 q-ml-xs-none q-ml-sm-sm"
-              :disabled="withdrawJob.status == 'Paused' || withdrawJob.status == 'Completed'"
+              :disabled="withdrawJob.status == 'Completed'"
             >
               <q-menu>
                 <q-list>
@@ -262,7 +259,7 @@
             v-if="colName == 'actions'"
           >
             <MoreOptionsMenu
-              :options="[{ text: 'Remove Item', disabled: props.row.status == 'Withdrawn' || withdrawJob.status == 'Paused' || withdrawJob.status == 'Completed' }]"
+              :options="[{ text: 'Remove Item', disabled: props.row.status == 'Withdrawn' || withdrawJob.status == 'Completed' }]"
               class=""
               @click="handleOptionMenu($event, props.row)"
             />
@@ -290,7 +287,7 @@
   <PopupModal
     v-if="showConfirmationModal"
     :title="showConfirmationModal == 'CompleteJob' ? 'Confirm' : 'Delete'"
-    :text="showConfirmationModal == 'CompleteJob' ? 'Are you sure you want to complete the job?' : 'Are you sure you want to delete the job?'"
+    :text="showConfirmationModal == 'CompleteJob' ? 'Are you sure you want to withdraw these items from the system?' : 'Are you sure you want to delete the job?'"
     :show-actions="false"
     @reset="showConfirmationModal = null"
     aria-label="confirmationModal"
@@ -302,7 +299,7 @@
           no-caps
           unelevated
           color="accent"
-          label="Complete"
+          label="Withdraw Items"
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
           @click="completeWithdrawJob(); hideModal();"
@@ -331,15 +328,16 @@
 </template>
 
 <script setup>
-import { onBeforeMount, onMounted, ref, inject, toRaw, watch } from 'vue'
+import { onBeforeMount, onMounted, ref, inject, toRaw } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useUserStore } from '@/stores/user-store'
 import { useWithdrawalStore } from '@/stores/withdrawal-store'
+import { usePicklistStore } from '@/stores/picklist-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
-import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
+// import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
 import InfoDisplayLayout from '@/components/InfoDisplayLayout.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
@@ -352,7 +350,7 @@ const router = useRouter()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
-const { compiledBarCode } = useBarcodeScanHandler()
+// const { compiledBarCode } = useBarcodeScanHandler()
 const {
   addDataToIndexDb,
   getDataInIndexDb,
@@ -371,15 +369,14 @@ const { users } = storeToRefs(useOptionStore())
 const {
   patchWithdrawJob,
   deleteWithdrawJob,
-  patchWithdrawJobItemScanned,
   deleteWithdrawJobItems
 } = useWithdrawalStore()
 const {
   withdrawJob,
   originalWithdrawJob,
-  withdrawJobItems,
-  allItemsWithdrawn
+  withdrawJobItems
 } = storeToRefs(useWithdrawalStore())
+const { picklistJob } = storeToRefs(usePicklistStore())
 
 // Local Data
 const editJob = ref(false)
@@ -482,33 +479,34 @@ onMounted(async () => {
   }
 })
 
-watch(compiledBarCode, (barcode) => {
-  if (barcode !== '' && withdrawJob.value.status == 'Running') {
-    // only allow scans if the job is in a running state
-    triggerItemScan(barcode)
-  }
-})
-const triggerItemScan = (barcode_value) => {
-  // check if the scanned barcode is in the item table and that the barcode hasnt been withdrawn already
-  if (!withdrawJobItems.value.some(itm => itm.barcode.value == barcode_value)) {
-    handleAlert({
-      type: 'error',
-      text: 'The scanned item does not exist in this withdraw job. Please try again.',
-      autoClose: true
-    })
-    return
-  } else if (withdrawJobItems.value.some(itm => itm.barcode.value == barcode_value && itm.status == 'Withdrawn')) {
-    handleAlert({
-      type: 'error',
-      text: 'The scanned item has already been marked as withdrawn.',
-      autoClose: true
-    })
-    return
-  } else {
-    // set the scanned items status to withdrawn
-    updateWithdrawItemScanned(barcode_value)
-  }
-}
+// TODO: move scan logic to addWithdrawalItemModal component
+// watch(compiledBarCode, (barcode) => {
+//   if (barcode !== '' && withdrawJob.value.status == 'Created') {
+//     // only allow scans if the job is new and the
+//     triggerItemScan(barcode)
+//   }
+// })
+// const triggerItemScan = (barcode_value) => {
+//   // check if the scanned barcode is in the item table and that the barcode hasnt been withdrawn already
+//   if (!withdrawJobItems.value.some(itm => itm.barcode.value == barcode_value)) {
+//     handleAlert({
+//       type: 'error',
+//       text: 'The scanned item does not exist in this withdraw job. Please try again.',
+//       autoClose: true
+//     })
+//     return
+//   } else if (withdrawJobItems.value.some(itm => itm.barcode.value == barcode_value && itm.status == 'Withdrawn')) {
+//     handleAlert({
+//       type: 'error',
+//       text: 'The scanned item has already been marked as withdrawn.',
+//       autoClose: true
+//     })
+//     return
+//   } else {
+//     // set the scanned items status to withdrawn
+//     updateWithdrawItemScanned(barcode_value)
+//   }
+// }
 
 const handleOptionMenu = async (action, rowData) => {
   switch (action.text) {
@@ -527,36 +525,6 @@ const handleOptionMenu = async (action, rowData) => {
 const cancelWithdrawJobEdits = () => {
   withdrawJob.value = { ...toRaw(originalWithdrawJob.value) }
   editJob.value = false
-}
-const executeWithdrawJob = async () => {
-  try {
-    appActionIsLoadingData.value = true
-    const payload = {
-      id: withdrawJob.value.id,
-      status: 'Running',
-      assigned_user_id: withdrawJob.value.assigned_user_id ? withdrawJob.value.assigned_user_id : userData.value.id,
-      run_timestamp: new Date().toISOString()
-    }
-    await patchWithdrawJob(payload)
-
-    // store the current withdraw job data in indexdb for reference offline whenever job is executed
-    addDataToIndexDb('withdrawalStore', 'withdrawJob', JSON.parse(JSON.stringify(withdrawJob.value)))
-    addDataToIndexDb('withdrawalStore', 'originalWithdrawJob', JSON.parse(JSON.stringify(originalWithdrawJob.value)))
-
-    handleAlert({
-      type: 'success',
-      text: 'Withdraw Job Successfully Started',
-      autoClose: true
-    })
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
-  } finally {
-    appActionIsLoadingData.value = false
-  }
 }
 const updateWithdrawJob = async () => {
   try {
@@ -582,38 +550,6 @@ const updateWithdrawJob = async () => {
   } finally {
     appActionIsLoadingData.value = false
     editJob.value = false
-  }
-}
-const updateWithdrawJobStatus = async (status) => {
-  try {
-    const payload = {
-      id: withdrawJob.value.id,
-      status,
-      run_timestamp: new Date().toISOString()
-    }
-    await patchWithdrawJob(payload)
-
-    if (appIsOffline.value) {
-      // when offline we update the status directly
-      withdrawJob.value.status = payload.status
-      originalWithdrawJob.value.status = payload.status
-    }
-
-    // store the current withdraw job data in indexdb for reference offline whenever job is executed
-    addDataToIndexDb('withdrawalStore', 'withdrawJob', JSON.parse(JSON.stringify(withdrawJob.value)))
-    addDataToIndexDb('withdrawalStore', 'originalWithdrawJob', JSON.parse(JSON.stringify(originalWithdrawJob.value)))
-
-    handleAlert({
-      type: 'success',
-      text: `Job Status has been updated to: ${status}`,
-      autoClose: true
-    })
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
   }
 }
 const cancelWithdrawJob = async () => {
@@ -651,13 +587,14 @@ const completeWithdrawJob = async () => {
     const payload = {
       id: withdrawJob.value.id,
       status: 'Completed',
+      assigned_user_id: withdrawJob.value.assigned_user_id ? withdrawJob.value.assigned_user_id : userData.value.id,
       run_timestamp: new Date().toISOString()
     }
     await patchWithdrawJob(payload)
 
     handleAlert({
       type: 'success',
-      text: 'The Withdraw Job has been completed.',
+      text: 'All items have been successfuly withdrawn, the job has been completed.',
       autoClose: true
     })
 
@@ -678,10 +615,6 @@ const completeWithdrawJob = async () => {
     deleteDataInIndexDb('withdrawalStore', 'withdrawJob')
     deleteDataInIndexDb('withdrawalStore', 'originalWithdrawJob')
   }
-}
-const updateWithdrawItemScanned = (barcode_value) => {
-  // since we already have all the items data we just need to set the withdraw item from the withdrawalJob items directly
-  patchWithdrawJobItemScanned(barcode_value)
 }
 const removeWithdrawItems = async (barcode_values) => {
   try {
@@ -716,6 +649,28 @@ const removeWithdrawItems = async (barcode_values) => {
     })
   } finally {
     appIsLoadingData.value = false
+  }
+}
+
+const createPicklistJob = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    //TODO need to figure out how picklist job is generate on the api side
+
+    // display an alert with the created picklist job id so you can click that and link directly to the job if needed
+    handleAlert({
+      type: 'success',
+      text: `Successfully created Pick List #: <a href='/picklist/${picklistJob.value.id}' tabindex='0'>${picklistJob.value.id}</a>`,
+      autoClose: false
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = false
   }
 }
 </script>

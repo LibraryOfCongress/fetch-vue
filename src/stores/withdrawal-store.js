@@ -13,7 +13,8 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
       last_transition: null,
       status: null,
       items: [],
-      non_tray_items: []
+      non_tray_items: [],
+      trays: []
     },
     originalWithdrawJob: null
   }),
@@ -21,18 +22,10 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
     withdrawJobItems: (state) => {
       let itemList = []
       if (state.withdrawJob.id) {
-        itemList = itemList.concat(state.withdrawJob.items, state.withdrawJob.non_tray_items)
+        itemList = itemList.concat(state.withdrawJob.items, state.withdrawJob.non_tray_items, state.withdrawJob.trays)
       }
       // return the list sorted alphnumerically
       return itemList.sort(new Intl.Collator('en', { numeric:true, sensitivity:'accent' }).compare)
-    },
-    allItemsWithdrawn: (state) => {
-      if (state.withdrawJob.id && state.withdrawJob.status !== 'Created') {
-        // if were in a withdraw job we can check the status to determine if an item needs to be withdrawn or not
-        return state.withdrawJobItems.length == 0 || state.withdrawJobItems.some(itm => itm.status !== 'Withdrawn') ? false : true
-      } else {
-        return true
-      }
     }
   },
   actions: {
@@ -47,7 +40,8 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
         last_transition: null,
         status: null,
         items: [],
-        non_tray_items: []
+        non_tray_items: [],
+        trays: []
       }
       this.originalWithdrawJob = null
     },
@@ -121,7 +115,8 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
                 }
               }
             }
-          ]
+          ],
+          trays: []
         }
         this.originalWithdrawJob = { ...this.withdrawJob }
       } catch (error) {
@@ -166,7 +161,8 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
               },
               status: 'Out'
             }
-          ]
+          ],
+          trays: []
         }
         this.originalWithdrawJob = { ...this.withdrawJob }
       } catch (error) {
@@ -206,25 +202,6 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
         //   navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.refileJobs}${this.refileJob.id}/remove_items` })
         // }
         const res = await this.$api.delete(`${inventoryServiceApi.withdrawJobs}${this.withdrawJob.id}/remove_items`, { data: payload })
-        this.withdrawJob = res.data
-        this.originalWithdrawJob = { ...this.withdrawJob }
-      } catch (error) {
-        throw error
-        // if (globalStore.appIsOffline) {
-        //   return
-        // } else {
-        //   throw error
-        // }
-      }
-    },
-    async patchWithdrawJobItemScanned (payload) {
-      try {
-        // if (globalStore.appIsOffline) {
-        //   // this will only occur when user is scanning when offline
-        //   navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.refileJobs}${payload.job_id}/update_item/${payload.item_id}` })
-        // }
-        // updates a withdraw item and marks it as withdrawn
-        const res = await this.$api.patch(`${inventoryServiceApi.withdrawJobs}${payload.job_id}/update_item/${payload.item_id}`, payload)
         this.withdrawJob = res.data
         this.originalWithdrawJob = { ...this.withdrawJob }
       } catch (error) {
