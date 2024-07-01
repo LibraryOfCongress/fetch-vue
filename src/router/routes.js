@@ -99,6 +99,11 @@ const routes = [
             }
           }
         }
+      },
+      {
+        name: 'withdrawal',
+        path: 'withdrawal/:jobId?',
+        component: () => import('@/pages/WithdrawalPage.vue')
       }
     ]
   },
