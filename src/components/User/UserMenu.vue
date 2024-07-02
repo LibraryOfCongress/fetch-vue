@@ -62,10 +62,10 @@
         <q-item role="menuitem">
           <q-item-section>
             <h1 class="text-h6">
-              {{ userData.first_name }} {{ userData.last_name }}
+              {{ userData.user_id }}
             </h1>
             <p class="text-body2 text-color-gray-dark">
-              {{ userData.username }}
+              {{ userData.email }}
             </p>
           </q-item-section>
         </q-item>
@@ -137,12 +137,6 @@ const logoutUser = async () => {
       id: userData.id
     }
     await patchLogout(payload)
-
-    handleAlert({
-      type: 'success',
-      text: 'You have successfully been logged out of FETCH.',
-      autoClose: true
-    })
 
     //reload the route to trigger any route gaurds if the user is on an auth based page
     router.go()

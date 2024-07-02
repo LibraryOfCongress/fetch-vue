@@ -13,9 +13,9 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   // check if we have a user in localstorage and if that user has an auth based token
   const userAuth = JSON.parse(localStorage.getItem('user'))
-  if (userAuth && userAuth.accessToken) {
+  if (userAuth && userAuth.token) {
     // if there is an access token in our stored user we attach that to our requests
-    config.Authorization = 'Bearer ' + userAuth.accessToken
+    config.headers.Authorization = 'Bearer ' + userAuth.token
   }
   return config
 })

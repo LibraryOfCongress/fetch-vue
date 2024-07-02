@@ -20,7 +20,7 @@
         </div>
 
         <div class="nav-actions">
-          <UserLogin v-if="!userData.id" />
+          <UserLogin v-if="!userData.user_id" />
           <UserMenu v-else />
         </div>
       </q-toolbar>

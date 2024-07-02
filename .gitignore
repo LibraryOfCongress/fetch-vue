@@ -33,3 +33,6 @@ yarn-error.log*
 env/.env.local
 /env/.env
 *.env
+
+# local .cert files
+*.cert
