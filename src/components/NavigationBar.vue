@@ -249,6 +249,11 @@ const essentialLinks = ref([
     title: 'Withdrawal',
     icon: 'format_list_numbered',
     link: '/withdrawal'
+  },
+  {
+    title: 'Reports',
+    icon: 'format_list_numbered',
+    link: '/reports'
   }
 ])
 const adminLink = ref({

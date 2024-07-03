@@ -61,6 +61,11 @@ const routes = [
         component: () => import('@/pages/RefilePage.vue')
       },
       {
+        name: 'reports',
+        path: 'reports',
+        component: () => import('@/pages/ReportsPage.vue')
+      },
+      {
         name: 'request',
         path: 'request/:jobId?',
         component: () => import('@/pages/RequestPage.vue')

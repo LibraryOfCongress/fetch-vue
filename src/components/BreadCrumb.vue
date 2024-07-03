@@ -193,6 +193,12 @@ const breadcrumbList = computed(() => {
       ]
     }
     break
+  case 'reports':
+    breadCrumbs = [
+      ...breadCrumbs,
+      { text: 'Reports' }
+    ]
+    break
   case 'request':
     if (!route.params.jobId) {
       breadCrumbs = [
