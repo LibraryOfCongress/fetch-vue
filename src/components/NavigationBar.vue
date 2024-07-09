@@ -252,7 +252,7 @@ const essentialLinks = ref([
   },
   {
     title: 'Reports',
-    icon: 'format_list_numbered',
+    icon: 'task',
     link: '/reports'
   }
 ])
