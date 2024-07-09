@@ -23,7 +23,7 @@
     </template>
 
     <template #details-content>
-      <div class="col-xs-6 col-sm-6 col-md-grow q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+      <div class="col-xs-6 col-sm-6 col-md-grow col-lg-2 q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
         <div class="info-display-details">
           <label
             class="info-display-details-label-2 text-h6"
@@ -48,7 +48,7 @@
           />
         </div>
       </div>
-      <div class="col-xs-6 col-sm-6 col-md-grow q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+      <div class="col-xs-6 col-sm-6 col-md-grow col-lg-auto q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
         <div class="info-display-details">
           <label
             class="info-display-details-label-2 text-h6"
@@ -60,7 +60,7 @@
           </p>
         </div>
       </div>
-      <div class="col-xs-6 col-sm-6 col-md-grow q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+      <div class="col-xs-6 col-sm-6 col-md-grow col-lg-auto q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
         <div class="info-display-details">
           <label
             class="info-display-details-label-2 text-h6"
@@ -90,7 +90,7 @@
 
       <div
         v-if="currentScreenSize !== 'xs'"
-        class="col-sm-12 col-md-12 col-lg-4 q-ml-auto"
+        class="col-sm-12 col-md-12 col-lg-grow q-ml-auto"
       >
         <div
           v-if="editJob"
@@ -134,7 +134,7 @@
             color="positive"
             :label="'Withdraw Items'"
             class="btn-no-wrap text-body1"
-            :disabled="withdrawJobItems.some(itm => itm.status == 'In')"
+            :disabled="withdrawJobItems.length == 0 || withdrawJobItems.some(itm => itm.status == 'In')"
             :loading="appActionIsLoadingData"
             @click="showConfirmationModal = 'CompleteJob'"
           />
@@ -162,7 +162,7 @@
         button-two-color="positive"
         :button-two-label="'Withdraw Items'"
         :button-two-outline="false"
-        :button-two-disabled="withdrawJobItems.some(itm => itm.status == 'In')"
+        :button-two-disabled="withdrawJobItems.length == 0 || withdrawJobItems.some(itm => itm.status == 'In')"
         :button-two-loading="appActionIsLoadingData"
         @button-two-click="showConfirmationModal = 'CompleteJob'"
       />

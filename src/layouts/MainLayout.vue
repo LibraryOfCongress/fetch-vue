@@ -28,7 +28,7 @@
           :alert-text="item.text"
           :persistent="item.persistent"
           :auto-close="item.autoClose"
-          @reset="clearAlerts()"
+          @reset="clearAlerts(item.timestamp, true)"
         />
       </transition-group>
     </q-page-container>

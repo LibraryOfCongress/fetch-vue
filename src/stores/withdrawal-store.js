@@ -7,9 +7,10 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
     withdrawJob: {
       id: null,
       item_count: 0,
+      non_tray_item_count: 0,
       create_dt: null,
       last_transition: null,
-      status: null,
+      status: '',
       items: [],
       non_tray_items: [],
       trays: []
@@ -34,6 +35,7 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
       this.withdrawJob = {
         id: null,
         items_count: 0,
+        non_tray_item_count: 0,
         create_dt: null,
         last_transition: null,
         status: null,
@@ -45,77 +47,16 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
     },
     async getWithdrawJobList () {
       try {
-        // TODO: wire up api to get job list
-        // const res = await this.$api.get(inventoryServiceApi.withdrawJobs)
-        // this.withdrawJobList = res.data.items
-        this.withdrawJobList = [
-          {
-            id: 1,
-            item_count: 2,
-            create_dt: new Date().toISOString(),
-            last_transition: null,
-            status: 'Created'
-          }
-        ]
+        const res = await this.$api.get(inventoryServiceApi.withdrawJobs)
+        this.withdrawJobList = res.data.items
       } catch (error) {
         throw error
       }
     },
     async getWithdrawJob (id) {
       try {
-        // TODO: wire up api to get job endpoint
-        // const res = await this.$api.get(`${inventoryServiceApi.withdrawJobs}${id}`)
-        // this.withdrawJob = res.data
-        this.withdrawJob = {
-          id,
-          create_dt: new Date().toISOString(),
-          last_transition: null,
-          status: 'Created',
-          items: [
-            {
-              id: 1,
-              barcode: {
-                value: 12345678901
-              },
-              tray: {
-                barcode: {
-                  value: 'RS123456'
-                },
-                shelf_position: {
-                  shelf: {
-                    barcode: {
-                      value: 1122334456
-                    }
-                  }
-                }
-              },
-              owner: {
-                name: 'John Doe'
-              },
-              status: 'Out'
-            }
-          ],
-          non_tray_items: [
-            {
-              id: 2,
-              barcode: {
-                value: 12345678902
-              },
-              owner: {
-                name: 'John Doe'
-              },
-              status: 'Out',
-              shelf_position: {
-                shelf: {
-                  barcode: {
-                    value: 1122334455
-                  }
-                }
-              }
-            }
-          ],
-          trays: []
-        }
+        const res = await this.$api.get(`${inventoryServiceApi.withdrawJobs}${id}`)
+        this.withdrawJob = res.data
         this.originalWithdrawJob = { ...this.withdrawJob }
       } catch (error) {
         throw error
@@ -123,45 +64,8 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
     },
     async postWithdrawJob () {
       try {
-        // TODO: wire up api to create job
-        // const res = await this.$api.post(inventoryServiceApi.withdrawJobs, payload)
-        // this.withdrawJob = res.data
-        this.withdrawJob = {
-          id: 1,
-          create_dt: new Date().toISOString(),
-          last_transition: null,
-          status: 'Created',
-          items: [
-            {
-              id: 1,
-              barcode: {
-                value: 12345678901
-              },
-              tray: {
-                barcode: {
-                  value: 'RS123456'
-                }
-              },
-              owner: {
-                name: 'John Doe'
-              },
-              status: 'Out'
-            }
-          ],
-          non_tray_items: [
-            {
-              id: 2,
-              barcode: {
-                value: 12345678902
-              },
-              owner: {
-                name: 'John Doe'
-              },
-              status: 'Out'
-            }
-          ],
-          trays: []
-        }
+        const res = await this.$api.post(inventoryServiceApi.withdrawJobs)
+        this.withdrawJob = res.data
         this.originalWithdrawJob = { ...this.withdrawJob }
       } catch (error) {
         throw error
@@ -195,16 +99,7 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
     },
     async postWithdrawJobItem (payload) {
       try {
-        const res = await this.$api.patch(`${inventoryServiceApi.withdrawJobs}${this.withdrawJob.id}/add_items`, payload)
-        this.withdrawJob = res.data
-        this.originalWithdrawJob = { ...this.withdrawJob }
-      } catch (error) {
-        throw error
-      }
-    },
-    async postWithdrawJobTray (payload) {
-      try {
-        const res = await this.$api.patch(`${inventoryServiceApi.withdrawJobs}${this.withdrawJob.id}/add_tray`, payload)
+        const res = await this.$api.post(`${inventoryServiceApi.withdrawJobs}${this.withdrawJob.id}/add_items`, payload)
         this.withdrawJob = res.data
         this.originalWithdrawJob = { ...this.withdrawJob }
       } catch (error) {

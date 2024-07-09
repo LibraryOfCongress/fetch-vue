@@ -9,7 +9,8 @@ export function useAlertPopup () {
       type: 'error',
       text: 'No Message Provided!',
       autoClose: false,
-      persistent: false
+      persistent: false,
+      timestamp: Date.now()
     }
     alerts.value.push({ ...defaultOptions, ...options })
 
@@ -21,10 +22,25 @@ export function useAlertPopup () {
         }
       })
     }
+
+    // if an alert has autoClose flag when called clear the alert after 5 seconds
+    if (options.autoClose) {
+      clearAlerts(defaultOptions.timestamp)
+    }
   }
 
-  function clearAlerts () {
-    alerts.value = []
+  function clearAlerts (alertTimestamp, forceClear) {
+    if (alertTimestamp && !forceClear) {
+      // clears out any alerts with the passed in timestamp
+      setTimeout(() => {
+        alerts.value = alerts.value.filter(alert => alert.timestamp !== alertTimestamp)
+      }, 5000)
+    } else if (alertTimestamp && forceClear) {
+      alerts.value = alerts.value.filter(alert => alert.timestamp !== alertTimestamp)
+    } else {
+      //clear all alerts if no specified alert timestamp is passed
+      alerts.value = []
+    }
   }
 
   return {

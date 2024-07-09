@@ -124,7 +124,7 @@ const { compiledBarCode } = useBarcodeScanHandler()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
-const { postWithdrawJobItem, postWithdrawJobTray } = useWithdrawalStore()
+const { postWithdrawJobItem } = useWithdrawalStore()
 const { withdrawJob, withdrawJobItems } = storeToRefs(useWithdrawalStore())
 
 // Local Data
@@ -158,14 +158,9 @@ const addItemToWithdrawJob = async () => {
     appActionIsLoadingData.value = true
     const payload = {
       job_id: withdrawJob.value.id,
-      barcode_value: itemBarcode.value
+      barcode_values: [itemBarcode.value]
     }
-    // check if barcode value is a tray barcode and if so we send it to be added as a tray
-    if (new RegExp('^[A-Z]{2}\\d{5,6}$', 'g').test(payload.barcode_value)) {
-      await postWithdrawJobTray(payload)
-    } else {
-      await postWithdrawJobItem(payload)
-    }
+    await postWithdrawJobItem(payload)
 
     handleAlert({
       type: 'success',

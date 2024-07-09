@@ -66,6 +66,7 @@
     <!-- Create Shelving Job Modal -->
     <PopupModal
       v-if="showShelvingJobModal"
+      ref="createShelvingJobModal"
       :show-actions="false"
       :modal-width="'600px'"
       @reset="resetCreateShelfJobModal"
@@ -344,7 +345,7 @@
             class="text-body1 full-width"
             :loading="appActionIsLoadingData"
             :disabled="!isCreateShelvingjobFormValid"
-            @click="submitDirectToShelfJob(); hideModal();"
+            @click="submitDirectToShelfJob()"
           />
           <q-btn
             v-else
@@ -355,7 +356,7 @@
             class="text-body1 full-width"
             :loading="appActionIsLoadingData"
             :disabled="!isCreateShelvingjobFormValid"
-            @click="submitShelvingJob(); hideModal();"
+            @click="submitShelvingJob()"
           />
 
           <q-space class="q-mx-xs" />
@@ -435,6 +436,7 @@ const {
 } = useShelvingStore()
 
 // Local Data
+const createShelvingJobModal = ref(null)
 const shelfTableVisibleColumns = ref([
   'id',
   'containers',
@@ -661,6 +663,7 @@ const submitShelvingJob = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
+    createShelvingJobModal.value.hideModal()
   }
 }
 const submitDirectToShelfJob = async () => {
@@ -693,6 +696,7 @@ const submitDirectToShelfJob = async () => {
     })
   } finally {
     appIsLoadingData.value = false
+    createShelvingJobModal.value.hideModal()
   }
 }
 
