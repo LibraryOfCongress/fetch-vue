@@ -7,10 +7,10 @@
 
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
-
 const defineEnv = require('./env/envparser')()
 const { configure } = require('quasar/wrappers')
 const path = require('path')
+const fs = require('fs')
 
 
 module.exports = configure(function (ctx) {
@@ -54,7 +54,11 @@ module.exports = configure(function (ctx) {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
       open: true, // opens browser window automatically
-      port: ctx.mode.spa ? 3000 : 8000
+      port: ctx.mode.spa ? 3000 : 8000,
+      https: ctx.mode.spa ? false : {
+        key: fs.readFileSync('./.cert/key.pem'),
+        cert: fs.readFileSync('./.cert/cert.pem')
+      }
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework

@@ -5,9 +5,20 @@ WORKDIR /app
 
 COPY package*.json ./
 
+# Tools for localhost cert gen
+RUN apk add --no-cache curl nss
+RUN curl -JLO https://github.com/FiloSottile/mkcert/releases/latest/download/mkcert-v1.4.4-linux-amd64 \
+    && chmod +x mkcert-v1.4.4-linux-amd64 \
+    && mv mkcert-v1.4.4-linux-amd64 /usr/local/bin/mkcert \
+    && mkcert -install
+# RUN apk add --no-cache mkcert nss-tools
+
 RUN npm -g install @quasar/cli
 
 COPY . .
+
+# Gen localhost certs
+RUN npm run generate-cert
 
 # build stage
 FROM develop-stage as build-stage
@@ -26,6 +37,10 @@ RUN rm /etc/nginx/conf.d/default.conf
 
 COPY nginx/local.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+# Add localhost certs
+COPY --from=develop-stage /app/.cert/cert.pem /etc/nginx/cert.pem
+COPY --from=develop-stage /app/.cert/key.pem /etc/nginx/key.pem
+
+EXPOSE 443
 
 CMD ["nginx", "-g", "daemon off;"]

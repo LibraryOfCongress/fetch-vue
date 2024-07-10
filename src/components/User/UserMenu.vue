@@ -65,7 +65,7 @@
               {{ userData.first_name }} {{ userData.last_name }}
             </h1>
             <p class="text-body2 text-color-gray-dark">
-              {{ userData.username }}
+              {{ userData.email }}
             </p>
           </q-item-section>
         </q-item>
@@ -98,10 +98,13 @@
 
 <script setup>
 import { ref, inject } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user-store'
 import { useBarcodeStore } from '@/stores/barcode-store'
 import { storeToRefs } from 'pinia'
 import TextInput from '@/components/TextInput.vue'
+
+const router = useRouter()
 
 // Store Data
 const { userData } = storeToRefs(useUserStore())
@@ -131,15 +134,12 @@ const handleOptions = (option) => {
 const logoutUser = async () => {
   try {
     const payload = {
-      id: userData.id
+      user_id: userData.user_id
     }
     await patchLogout(payload)
 
-    handleAlert({
-      type: 'success',
-      text: 'You have successfully been logged out of FETCH.',
-      autoClose: true
-    })
+    //reload the route to trigger any route gaurds if the user is on an auth based page
+    router.go()
   } catch (error) {
     handleAlert({
       type: 'error',

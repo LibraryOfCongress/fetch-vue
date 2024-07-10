@@ -17,12 +17,14 @@
     "build:development": "ENVIRONMENT=dev quasar build -m pwa",
     "build:local": "ENVIRONMENT=local quasar build -m pwa --debug",
     "test:unit": "vitest",
-    "test:unit:ci": "vitest run"
+    "test:unit:ci": "vitest run",
+    "generate-cert": "rm -rf .cert && mkdir -p .cert && mkcert -key-file ./.cert/key.pem -cert-file ./.cert/cert.pem 'localhost'"
   },
   "dependencies": {
     "@quasar/extras": "^1.16.4",
     "axios": "^1.2.1",
     "dotenv": "^16.3.1",
+    "jwt-decode": "^4.0.0",
     "pinia": "^2.0.11",
     "quasar": "^2.6.0",
     "vue": "^3.0.0",

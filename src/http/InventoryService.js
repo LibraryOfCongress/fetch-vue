@@ -8,6 +8,9 @@ export default {
   // this.$api.get(inventoryService.examples, { id: entryId })
   accessionJobs: '/accession-jobs/',
   aisles: '/aisles/',
+  authLegacyLogin: '/auth/legacy/login',
+  authSsoLogin: '/auth/sso/login/',
+  authSsoLogout: '/auth/sso/logout/',
   barcodes: '/barcodes/',
   barcodesValue: '/barcodes/value/',
   buildings: '/buildings/',
