@@ -341,7 +341,7 @@ import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useUserStore } from '@/stores/user-store'
 import { useWithdrawalStore } from '@/stores/withdrawal-store'
-import { usePicklistStore } from '@/stores/picklist-store'
+// import { usePicklistStore } from '@/stores/picklist-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import InfoDisplayLayout from '@/components/InfoDisplayLayout.vue'
@@ -374,7 +374,7 @@ const {
   originalWithdrawJob,
   withdrawJobItems
 } = storeToRefs(useWithdrawalStore())
-const { picklistJob } = storeToRefs(usePicklistStore())
+// const { picklistJob } = storeToRefs(usePicklistStore())
 
 // Local Data
 const editJob = ref(false)
@@ -596,14 +596,18 @@ const removeWithdrawItems = async (barcode_values) => {
 const createPicklistJob = async () => {
   try {
     appActionIsLoadingData.value = true
-    //TODO need to figure out how picklist job is generate on the api side
+    const payload = {
+      id: withdrawJob.value.id,
+      create_pick_list: true
+    }
+    await patchWithdrawJob(payload)
 
     // display an alert with the created picklist job id so you can click that and link directly to the job if needed
-    handleAlert({
-      type: 'success',
-      text: `Successfully created Pick List #: <a href='/picklist/${picklistJob.value.id}' tabindex='0'>${picklistJob.value.id}</a>`,
-      autoClose: false
-    })
+    // handleAlert({
+    //   type: 'success',
+    //   text: `Successfully created Pick List #: <a href='/picklist/${picklistJob.value.id}' tabindex='0'>${picklistJob.value.id}</a>`,
+    //   autoClose: false
+    // })
   } catch (error) {
     handleAlert({
       type: 'error',
