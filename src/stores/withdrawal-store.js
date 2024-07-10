@@ -21,7 +21,7 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
     withdrawJobItems: (state) => {
       let itemList = []
       if (state.withdrawJob.id) {
-        itemList = itemList.concat(state.withdrawJob.items, state.withdrawJob.non_tray_items, state.withdrawJob.trays)
+        itemList = itemList.concat(state.withdrawJob.items, state.withdrawJob.non_tray_items)
       }
       // return the list sorted alphnumerically
       return itemList.sort(new Intl.Collator('en', { numeric:true, sensitivity:'accent' }).compare)

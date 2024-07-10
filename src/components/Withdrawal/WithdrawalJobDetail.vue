@@ -171,6 +171,40 @@
 
     <template #table-content>
       <EssentialTable
+        v-if="withdrawJob.trays.length > 0"
+        :table-columns="trayTableColumns"
+        :table-visible-columns="trayTableVisibleColumns"
+        :filter-options="trayTableFilters"
+        :table-data="withdrawJob.trays"
+        :row-key="'id'"
+        :enable-table-reorder="false"
+        :enable-selection="false"
+        :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
+        :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+        class="q-mb-lg"
+      >
+        <template #heading-row>
+          <div class="col-xs-7 col-sm-5 col-md-auto">
+            <label class="text-h4 text-bold">
+              Trays in Job:
+            </label>
+          </div>
+        </template>
+
+        <template #table-td="{ colName, props }">
+          <span
+            v-if="colName == 'actions'"
+          >
+            <MoreOptionsMenu
+              :options="[{ text: 'Remove Item', disabled: withdrawJob.status == 'Completed' }]"
+              class=""
+              @click="handleOptionMenu($event, props.row)"
+            />
+          </span>
+        </template>
+      </EssentialTable>
+
+      <EssentialTable
         :table-columns="itemTableColumns"
         :table-visible-columns="itemTableVisibleColumns"
         :filter-options="itemTableFilters"
@@ -431,6 +465,58 @@ const itemTableColumns = ref([
   }
 ])
 const itemTableFilters =  ref([
+  {
+    field: row => row.owner.name,
+    options: [
+      {
+        text: 'John Doe',
+        value: false
+      },
+      {
+        text: 'Abraham Lincoln',
+        value: false
+      }
+    ]
+  }
+])
+const trayTableVisibleColumns = ref([
+  'actions',
+  'shelf_barcode',
+  'tray_barcode',
+  'owner'
+])
+const trayTableColumns = ref([
+  {
+    name: 'actions',
+    field: 'actions',
+    label: '',
+    align: 'center',
+    sortable: false,
+    required: true
+  },
+  {
+    name: 'shelf_barcode',
+    field: row => row.shelf_position?.shelf?.barcode?.value,
+    label: 'Shelf Barcode',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'tray_barcode',
+    field: row => row.barcode?.value,
+    label: 'Tray Barcode',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'owner',
+    field: row => row.owner?.name,
+    label: 'Owner',
+    align: 'left',
+    sortable: true
+  }
+])
+const trayTableFilters =  ref([
   {
     field: row => row.owner.name,
     options: [
