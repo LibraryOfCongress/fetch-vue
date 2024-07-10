@@ -36,11 +36,14 @@ export default boot(({ app }) => {
 
   // axios response interceptor to handle specific error responses/codes
   const userStore = useUserStore()
-  api.interceptors.response.use((error) => {
-    if (error.response.status == 401) {
-    // if we get a 401 error then user needs to be logged out
+  api.interceptors.response.use((response) => {
+    return response
+  }, (error) => {
+    if (error.response.status == 401 && userStore.userData.user_id) {
+      // if we get a 401 error then user needs to be logged out
       userStore.patchLogout()
     }
+    return Promise.reject(error)
   })
 })
 

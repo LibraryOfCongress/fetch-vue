@@ -19,39 +19,13 @@
           <q-item-section>
             <div class="form-group">
               <label class="form-group-label">
-                Username
+                User Email
               </label>
               <TextInput
                 v-model="loginForm.user"
-                placeholder="Enter Username"
+                placeholder="Enter User Email"
                 @keyup.enter="isLoginValid ? internalLogin() : null"
               />
-            </div>
-          </q-item-section>
-        </q-item>
-        <q-item
-          class="q-pt-none"
-          role="menuitem"
-        >
-          <q-item-section>
-            <div class="form-group">
-              <label class="form-group-label">
-                Password
-              </label>
-              <TextInput
-                v-model="loginForm.password"
-                placeholder="Enter Password"
-                :type="isPasswordType ? 'password' : 'text'"
-                @keyup.enter="isLoginValid ? internalLogin() : null"
-              >
-                <template #append>
-                  <q-icon
-                    :name="isPasswordType ? 'visibility_off' : 'visibility'"
-                    class="cursor-pointer"
-                    @click="isPasswordType = !isPasswordType"
-                  />
-                </template>
-              </TextInput>
             </div>
           </q-item-section>
         </q-item>
@@ -104,13 +78,12 @@ const isStageOrProd = computed(() => {
   return process.env.VITE_ENV == 'production' || process.env.VITE_ENV == 'staging'
 })
 const isLoginValid = computed(() => {
-  return loginForm.value.user == '' || loginForm.value.password == '' ? false : true
+  return loginForm.value.user == '' ? false : true
 })
 const loginForm = ref({
   user: '',
   password: ''
 })
-const isPasswordType = ref(true)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -134,6 +107,7 @@ onMounted(async () => {
 })
 
 const ssoLogin = () => {
+  console.log('test')
   // Replace current url with SSO login url (this is where the sso service will handle login from and redirect the user back to the pwa)
   window.location.replace(`${process.env.VITE_INV_SERVCE_API}${inventoryServiceApi.authSsoLogin}`)
   return
@@ -142,8 +116,7 @@ const internalLogin = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
-      username: loginForm.value.user,
-      password: loginForm.value.password
+      email: loginForm.value.user
     }
     await patchLogin(payload, 'Internal')
   } catch (error) {
