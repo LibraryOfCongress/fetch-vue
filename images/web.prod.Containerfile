@@ -36,7 +36,7 @@ COPY --from=build-stage /app/env/.env env/.env
 
 RUN rm /etc/nginx/conf.d/default.conf
 
-COPY nginx/test.conf /etc/nginx/conf.d/default.conf
+COPY nginx/production.conf /etc/nginx/conf.d/default.conf
 
 RUN apk --update --no-cache add openssl
 RUN rm -rf /etc/ssl/certs
