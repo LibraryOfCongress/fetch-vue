@@ -126,6 +126,7 @@
             color="accent"
             :label="'Create Pick List Job'"
             class="btn-no-wrap text-body1 q-mr-sm"
+            :disabled="withdrawJob.pick_list_id"
             @click="createPicklistJob()"
           />
           <q-btn
@@ -157,7 +158,7 @@
         button-one-color="accent"
         :button-one-label="'Create Pick List Job'"
         :button-one-outline="false"
-        :button-one-disabled="!withdrawJobItems.some(itm => itm.status == 'In')"
+        :button-one-disabled="!withdrawJobItems.some(itm => itm.status == 'In') || withdrawJob.pick_list_id"
         @button-one-click="createPicklistJob()"
         button-two-color="positive"
         :button-two-label="'Withdraw Items'"
@@ -341,7 +342,6 @@ import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useUserStore } from '@/stores/user-store'
 import { useWithdrawalStore } from '@/stores/withdrawal-store'
-// import { usePicklistStore } from '@/stores/picklist-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import InfoDisplayLayout from '@/components/InfoDisplayLayout.vue'
@@ -374,7 +374,6 @@ const {
   originalWithdrawJob,
   withdrawJobItems
 } = storeToRefs(useWithdrawalStore())
-// const { picklistJob } = storeToRefs(usePicklistStore())
 
 // Local Data
 const editJob = ref(false)
@@ -603,11 +602,11 @@ const createPicklistJob = async () => {
     await patchWithdrawJob(payload)
 
     // display an alert with the created picklist job id so you can click that and link directly to the job if needed
-    // handleAlert({
-    //   type: 'success',
-    //   text: `Successfully created Pick List #: <a href='/picklist/${picklistJob.value.id}' tabindex='0'>${picklistJob.value.id}</a>`,
-    //   autoClose: false
-    // })
+    handleAlert({
+      type: 'success',
+      text: `Successfully created Pick List #: <a href='/picklist/${withdrawJob.value.pick_list_id}' tabindex='0'>${withdrawJob.value.pick_list_id}</a>`,
+      autoClose: false
+    })
   } catch (error) {
     handleAlert({
       type: 'error',
