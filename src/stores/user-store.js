@@ -4,7 +4,6 @@ import { defineStore } from 'pinia'
 export const useUserStore = defineStore('user-store', {
   state: () => ({
     userData: JSON.parse(localStorage.getItem('user')) || {
-      id: null,
       user_id: null,
       username: '',
       first_name: '',
@@ -23,8 +22,7 @@ export const useUserStore = defineStore('user-store', {
           // const res = await this.$api.post(inventoryServiceApi.authLegacyLogin, payload)
           // this.userData = res.data
           this.userData = {
-            id: 1,
-            user_id: 'Admin',
+            user_id: 1,
             username: payload.username,
             email: 'admin@email.com',
             first_name: 'Admin',
@@ -32,10 +30,7 @@ export const useUserStore = defineStore('user-store', {
           }
         } else {
           // sso login will pass the direct user data as the payload from a decoded jwt
-          this.userData = {
-            id: 1,
-            ...payload
-          }
+          this.userData = payload
         }
 
         // set user credentials in local storage

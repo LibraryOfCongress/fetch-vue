@@ -62,7 +62,7 @@
         <q-item role="menuitem">
           <q-item-section>
             <h1 class="text-h6">
-              {{ userData.user_id }}
+              {{ userData.first_name }} {{ userData.last_name }}
             </h1>
             <p class="text-body2 text-color-gray-dark">
               {{ userData.email }}
@@ -134,7 +134,7 @@ const handleOptions = (option) => {
 const logoutUser = async () => {
   try {
     const payload = {
-      id: userData.id
+      user_id: userData.user_id
     }
     await patchLogout(payload)
 
