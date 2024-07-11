@@ -16,7 +16,7 @@
         />
 
         <div class="nav-search">
-          <SearchInput placeholder="Search" />
+          <SearchBar placeholder="Search" />
         </div>
 
         <div class="nav-actions">
@@ -188,7 +188,7 @@ import { useBarcodeStore } from '@/stores/barcode-store'
 import { useUserStore } from '@/stores/user-store'
 import { useBackgroundSyncHandler } from '@/composables/useBackgroundSyncHandler.js'
 import EssentialLink from '@/components/EssentialLink.vue'
-import SearchInput from '@/components/SearchInput.vue'
+import SearchBar from '@/components/Search/SearchBar.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import UserLogin from '@/components/User/UserLogin.vue'
 import UserMenu from '@/components/User/UserMenu.vue'
@@ -374,7 +374,7 @@ const handleRouteSyncGuard = async (pathName) => {
   }
 
   &-search {
-    width: 50%;
+    width: 60%;
 
     @media (max-width: $breakpoint-sm-min) {
       width: 75%;
