@@ -637,13 +637,6 @@ const completeWithdrawJob = async () => {
       text: 'All items have been successfuly withdrawn, the job has been completed.',
       autoClose: true
     })
-
-    router.push({
-      name: 'withdrawal',
-      params: {
-        jobId: null
-      }
-    })
   } catch (error) {
     handleAlert({
       type: 'error',
