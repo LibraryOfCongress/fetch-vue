@@ -35,12 +35,19 @@
       dark
       borderless
       v-model="searchText"
-      :placeholder="mainProps.placeholder"
+      :placeholder="renderSearchPlaceholder"
+      @keyup.enter="executeSearch()"
       aria-label="SearchBar"
+      type="search"
     >
       <template #append>
+        <q-spinner
+          v-if="appActionIsLoadingData"
+          color="white"
+          size="24px"
+        />
         <q-icon
-          v-if="searchText === ''"
+          v-else-if="!appActionIsLoadingData && searchText === ''"
           name="search"
           @click="$event.target.closest('div.q-field__control').querySelector('input').focus()"
         />
@@ -62,7 +69,7 @@
       color="white"
       label="Advanced Search"
       class="search-bar-advanced btn-no-wrap text-body2"
-      @click="null"
+      @click="showAdvancedSearchModal = true"
     />
     <q-btn
       v-else
@@ -72,31 +79,46 @@
       color="white"
       icon="tune"
       class="search-bar-advanced btn-no-wrap text-body2"
-      @click="null"
+      @click="showAdvancedSearchModal = true"
       aria-label="advancedSearch"
     />
   </div>
+
+  <!-- Generate Advance Search Modal -->
+  <SearchAdvancedModal
+    v-if="showAdvancedSearchModal"
+    :search-type="searchType"
+    :search-bar-input="searchText"
+    @hide="showAdvancedSearchModal = false"
+  />
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch, inject, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { useGlobalStore } from '@/stores/global-store'
+import { storeToRefs } from 'pinia'
+import SearchAdvancedModal from '@/components/Search/SearchAdvancedModal.vue'
 
 const route = useRoute()
-
-// Props
-const mainProps = defineProps({
-  placeholder: {
-    type: String,
-    default: ''
-  }
-})
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
 
+// Store Data
+const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+
 // Local Data
+const renderSearchPlaceholder = computed(() => {
+  let placeholderText = 'Search'
+  if (searchType.value == 'Item' || searchType.value == 'Tray' || searchType.value == 'Shelf') {
+    placeholderText = `Search ${searchType.value} Barcode`
+  } else {
+    placeholderText = 'Search Job Number'
+  }
+  return placeholderText
+})
 const searchText = ref('')
 const searchType = ref('Item')
 const searchTypes = ref([
@@ -131,8 +153,11 @@ const searchTypes = ref([
     name: 'Withdraw'
   }
 ])
+const showAdvancedSearchModal = ref(false)
 
 // Logic
+const handleAlert = inject('handle-alert')
+
 onMounted(() => {
   setSearchType()
 })
@@ -145,6 +170,23 @@ const setSearchType = () => {
   const routeMatchingSearchType = searchTypes.value.find(typ => route.name.includes(typ.name.toLowerCase()) )?.name
   if (routeMatchingSearchType) {
     searchType.value = routeMatchingSearchType
+  }
+}
+
+const executeSearch = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    // TODO need to figure out how exact search will be sent to api
+    // await getSearchResults(searchText.value)
+    console.log('exact search query', searchType.value, searchText.value)
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = false
   }
 }
 </script>

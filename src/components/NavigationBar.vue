@@ -16,7 +16,7 @@
         />
 
         <div class="nav-search">
-          <SearchBar placeholder="Search" />
+          <SearchBar />
         </div>
 
         <div class="nav-actions">
