@@ -29,38 +29,65 @@
         </q-list>
       </q-menu>
     </q-btn>
-    <q-input
-      class="search-bar-input"
-      dense
-      dark
-      borderless
-      v-model="searchText"
-      :placeholder="renderSearchPlaceholder"
-      @keyup.enter="executeSearch()"
-      aria-label="SearchBar"
-      type="search"
-    >
-      <template #append>
-        <q-spinner
-          v-if="appActionIsLoadingData"
-          color="white"
-          size="24px"
-        />
-        <q-icon
-          v-else-if="!appActionIsLoadingData && searchText === ''"
-          name="search"
-          @click="$event.target.closest('div.q-field__control').querySelector('input').focus()"
-        />
-        <q-icon
-          v-else
-          name="clear"
-          role="img"
-          aria-label="clearSearch"
-          class="cursor-pointer"
-          @click="searchText = ''"
-        />
-      </template>
-    </q-input>
+
+    <div class="row full-width">
+      <q-input
+        class="search-bar-input"
+        dense
+        dark
+        borderless
+        v-model="searchText"
+        :placeholder="renderSearchPlaceholder"
+        @keyup.enter="executeSearch()"
+        aria-label="SearchBar"
+        type="search"
+      >
+        <template #append>
+          <q-spinner
+            v-if="appActionIsLoadingData"
+            color="white"
+            size="24px"
+          />
+          <q-icon
+            v-else-if="!appActionIsLoadingData && searchText === ''"
+            name="search"
+            @click="$event.target.closest('div.q-field__control').querySelector('input').focus()"
+          />
+          <q-icon
+            v-else
+            name="clear"
+            role="img"
+            aria-label="clearSearch"
+            class="cursor-pointer"
+            @click="searchText = ''"
+          />
+        </template>
+      </q-input>
+
+      <!-- exact search results menu -->
+      <div class="col-12">
+        <q-menu
+          fit
+          v-model="showExactSearch"
+        >
+          <q-list
+            class="search-results-list"
+          >
+            <q-item
+              clickable
+              v-close-popup
+              @click="null"
+              role="menuitem"
+            >
+              <q-item-section>
+                {{ searchResults[0] }}
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
+      </div>
+    </div>
+
     <q-btn
       v-if="currentScreenSize !== 'xs'"
       dense
@@ -98,6 +125,7 @@ import { onMounted, ref, watch, inject, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useGlobalStore } from '@/stores/global-store'
+import { useSearchStore } from '@/stores/search-store'
 import { storeToRefs } from 'pinia'
 import SearchAdvancedModal from '@/components/Search/SearchAdvancedModal.vue'
 
@@ -108,6 +136,7 @@ const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { searchResults } = storeToRefs(useSearchStore())
 
 // Local Data
 const renderSearchPlaceholder = computed(() => {
@@ -153,6 +182,7 @@ const searchTypes = ref([
     name: 'Withdraw'
   }
 ])
+const showExactSearch = ref(false)
 const showAdvancedSearchModal = ref(false)
 
 // Logic
@@ -179,6 +209,9 @@ const executeSearch = async () => {
     // TODO need to figure out how exact search will be sent to api
     // await getSearchResults(searchText.value)
     console.log('exact search query', searchType.value, searchText.value)
+    // TEMP
+    searchResults.value = ['exact search result here...']
+    showExactSearch.value = true
   } catch (error) {
     handleAlert({
       type: 'error',
