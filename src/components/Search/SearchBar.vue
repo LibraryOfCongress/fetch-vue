@@ -69,6 +69,7 @@
         <q-menu
           fit
           v-model="showExactSearch"
+          :class="$style['search-input-menu']"
         >
           <q-list
             class="search-results-list"
@@ -208,7 +209,7 @@ const executeSearch = async () => {
     appActionIsLoadingData.value = true
     // TODO need to figure out how exact search will be sent to api
     // await getSearchResults(searchText.value)
-    console.log('exact search query', searchType.value, searchText.value)
+    console.log('exact search query', searchText.value, searchType.value)
     // TEMP
     searchResults.value = ['exact search result here...']
     showExactSearch.value = true
@@ -256,6 +257,7 @@ const executeSearch = async () => {
 
   &-input {
     width: 100%;
+    height: 100%;
     padding: 0 10px;
 
     @media (max-width: $breakpoint-sm-min) {
@@ -275,6 +277,17 @@ const executeSearch = async () => {
     border-left: 2px solid $secondary;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
+  }
+}
+</style>
+
+<style lang="scss" module>
+.search-input-menu {
+  @media (max-width: $breakpoint-sm) {
+    width: 100%;
+    max-width: 100% !important;
+    top: 50px !important;
+    left: 0 !important;
   }
 }
 </style>

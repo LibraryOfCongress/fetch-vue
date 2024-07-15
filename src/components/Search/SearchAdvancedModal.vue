@@ -314,15 +314,18 @@
 
 <script setup>
 import { ref, inject, onBeforeMount } from 'vue'
+import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useBuildingStore } from '@/stores/building-store'
-// import { useReportsStore } from '@/stores/reports-store'
+import { useSearchStore } from '@/stores/search-store'
 import { storeToRefs } from 'pinia'
 import SelectInput from '@/components/SelectInput.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import TextInput from '@/components/TextInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
+
+const router = useRouter()
 
 // Props
 const mainProps = defineProps({
@@ -358,7 +361,7 @@ const {
   renderSideLadders,
   renderLadderShelves
 } = storeToRefs(useBuildingStore())
-// const { getReport } = useReportsStore()
+const { getSearchResults } = useSearchStore()
 
 // Local Data
 const searchModal = ref(null)
@@ -545,8 +548,15 @@ const executeAdvancedSearch = async () => {
     appActionIsLoadingData.value = true
     // TODO need to figure out how advance search will be sent to api
     // also if job related search need to submit a job type query possibly?
-    // await getSearchResults(searchForm.value)
+    await getSearchResults(searchForm.value, mainProps.searchType)
     console.log('advance search query', searchForm.value)
+
+    router.push({
+      name: 'search-results',
+      params: {
+        searchType: mainProps.searchType
+      }
+    })
   } catch (error) {
     handleAlert({
       type: 'error',

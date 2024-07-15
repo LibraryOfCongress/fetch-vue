@@ -71,6 +71,11 @@ const routes = [
         component: () => import('@/pages/RequestPage.vue')
       },
       {
+        name: 'search-results',
+        path: 'search-results/:searchType?',
+        component: () => import('@/pages/SearchPage.vue')
+      },
+      {
         name: 'shelving',
         path: 'shelving/:jobId?',
         component: () => import('@/pages/ShelvingPage.vue')

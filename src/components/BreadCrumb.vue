@@ -216,6 +216,12 @@ const breadcrumbList = computed(() => {
       ]
     }
     break
+  case 'search-results':
+    breadCrumbs = [
+      ...breadCrumbs,
+      { text: `Advanced Search Results: ${route.params.searchType}` }
+    ]
+    break
   case 'shelving':
     if (!route.params.jobId) {
       breadCrumbs = [
