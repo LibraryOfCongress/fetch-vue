@@ -65,12 +65,21 @@ quasar dev:local
 # or 
 npm run dev:local
 
-# pwa mode
+# pwa mode (see extra cert instruction below for to run https locally)
 quasar dev:local-pwa
 # or 
 npm run dev:local-pwa
 
 ```
+
+**3.1 Successfully running PWA mode with https via localhost**
+
+When running the application in PWA mode the app will launch using the vite devServers https mode which requires a self generated certificate. This is handled locally using the npm command `npm run generate-cert` at the vue root directory (this does require you to have the mkcert package installed and setup on your machine) this will generate a .cert folder which is refrenced in the quasar.config.js devServer setup (it will fail to run in pwa mode without this).
+
+If you are a mac user this should all work right out of the box, if anything you just need to make sure to add the certificate to your trust root certificates if it did not do so automatically when you installed mkcert.
+
+If you are a windows user and using wsl there is a little more extra steps inorder to add the ceritficate to your local system. After you ran `mkcert -install` from the wsl terminal this generates the ceriticate in wsl only, so you need to copy this certificate which can be found in your linux (wsl) files under `/usr/local/share/ca-certificates/mkcert_development_CA_XXXXXXX` to anywhere on your local desktop. Now double click and install the cert to your Trusted Root Certification Authorities and you are now good to go!
+
 ## 2. Creating new components or views
 
 This application is built using Vue 3's composition api, which gets rid of a lot of the organization that the options api uses. In order to prevent disorganized code structure and make files easy to follow. We have a template file to be used as a starting point for any new views or components. This template file has defined commented code blocks to be used as guidlines for where certain code or logic belongs.

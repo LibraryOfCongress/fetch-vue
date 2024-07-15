@@ -1,7 +1,7 @@
 <template>
   <div class="shelving-dashboard">
-    <div class="row">
-      <div class="col-grow">
+    <div class="row q-mb-xs-xl q-mb-sm-none">
+      <div class="col-grow q-mb-xs-md q-mb-sm-none">
         <EssentialTable
           :table-columns="shelfTableColumns"
           :table-visible-columns="shelfTableVisibleColumns"
