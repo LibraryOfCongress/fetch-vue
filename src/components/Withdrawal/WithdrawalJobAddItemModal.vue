@@ -81,7 +81,7 @@
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
           :disabled="!itemBarcode"
-          @click="addItemToWithdrawJob(); hideModal();"
+          @click="triggerItemScan(itemBarcode); hideModal();"
         />
 
         <q-space class="q-mx-xs" />
@@ -141,7 +141,7 @@ watch(compiledBarCode, (barcode) => {
 })
 const triggerItemScan = (barcode_value) => {
   // check if barcode already is part of the job items
-  if (withdrawJobItems.length > 0 && withdrawJobItems.some(itm => itm.barcode.value == barcode_value)) {
+  if (withdrawJobItems.value.length > 0 && (withdrawJobItems.value.some(itm => itm.barcode.value == barcode_value) || withdrawJob.value.trays.some(itm => itm.barcode.value == barcode_value))) {
     handleAlert({
       type: 'error',
       text: 'The scanned barcode already exists in this withdraw job. Please try again!',

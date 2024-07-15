@@ -5,7 +5,7 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit', disabled: appIsOffline || editJob || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' },
-            { text: 'Delete Job', optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed' || picklistJob.requests.some(itm => itm.status == 'Out')}
+            { text: 'Delete Job', optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed' || picklistItems.some(itm => itm.status !== 'Requested')}
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
@@ -184,14 +184,14 @@
         :table-columns="itemTableColumns"
         :table-visible-columns="itemTableVisibleColumns"
         :filter-options="itemTableFilters"
-        :table-data="picklistJob.requests"
+        :table-data="picklistItems"
         :enable-table-reorder="false"
         :enable-selection="false"
         :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
         :highlight-row-class="'bg-color-green-light'"
-        :highlight-row-key="'scanned_for_retrieval'"
-        :highlight-row-value="true"
+        :highlight-row-key="'status'"
+        :highlight-row-value="'Out'"
       >
         <template #heading-row>
           <div class="col-xs-7 col-sm-5 q-mb-md-sm">
@@ -206,19 +206,19 @@
             v-if="colName == 'actions'"
           >
             <MoreOptionsMenu
-              :options="[{ text: 'Revert Item to Queue', disabled: props.row.scanned_for_retrieval || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' }]"
+              :options="[{ text: 'Revert Item to Queue', disabled: props.row.status !== 'Requested' || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' }]"
               class=""
               @click="handleOptionMenu($event, props.row)"
             />
           </span>
           <span
-            v-else-if="colName == 'scanned_for_retrieval'"
+            v-else-if="colName == 'status'"
             class="text-bold text-nowrap"
-            :class="value == true ? 'text-positive' : ''"
+            :class="value !== 'Requested' ? 'text-positive' : ''"
           >
-            {{ value == true ? 'Retrieved' : '' }}
+            {{ value !== 'Requested' ? 'Retrieved' : '' }}
             <q-icon
-              v-if="value == true"
+              v-if="value !== 'Requested'"
               name="mdi-check-circle"
               color="positive"
               size="25px"
@@ -321,18 +321,19 @@ const {
 const {
   picklistJob,
   originalPicklistJob,
-  allItemsRetrieved
+  allItemsRetrieved,
+  picklistItems
 } = storeToRefs(usePicklistStore())
 
 // Local Data
 const editJob = ref(false)
 const itemTableVisibleColumns = ref([
   'actions',
-  'item_location',
   'barcode',
   'owner',
   'size_class',
-  'scanned_for_retrieval'
+  'item_location',
+  'status'
 ])
 const itemTableColumns = ref([
   {
@@ -372,8 +373,8 @@ const itemTableColumns = ref([
     sortable: true
   },
   {
-    name: 'scanned_for_retrieval',
-    field: 'scanned_for_retrieval',
+    name: 'status',
+    field: row => row.item ? row.item.status : row.non_tray_item.status,
     label: '',
     align: 'center',
     sortable: false,
@@ -410,7 +411,7 @@ onBeforeMount(() => {
       'barcode',
       'size_class',
       'item_location',
-      'scanned_for_retrieval'
+      'status'
     ]
   }
 })
@@ -443,7 +444,7 @@ const triggerItemScan = (barcode_value) => {
       autoClose: true
     })
     return
-  } else if (picklistJob.value.requests.some(itm => itm.item ? itm.item.barcode.value == barcode_value && itm.scanned_for_retrieval : itm.non_tray_item.barcode.value == barcode_value && itm.scanned_for_retrieval)) {
+  } else if (picklistJob.value.requests.some(itm => itm.item ? itm.item.barcode.value == barcode_value && itm.status !== 'Requested' : itm.non_tray_item.barcode.value == barcode_value && itm.status !== 'Requested')) {
     handleAlert({
       type: 'error',
       text: 'The scanned item has already been marked as retrieved.',
@@ -661,14 +662,13 @@ const updatePicklistItem = async (barcode_value) => {
     const payload = {
       id: picklistJob.value.id,
       request_id: pickListItemToUpdate.id,
-      scanned_for_retrieval: true,
       run_timestamp: new Date().toISOString(),
       status: 'Out'
     }
     await patchPicklistJobItemScanned(payload)
 
     // update the item directly in the picklist job and set it to retrieved
-    pickListItemToUpdate.scanned_for_retrieval = true
+    pickListItemToUpdate.status = 'Out'
     originalPicklistJob.value = { ...toRaw(picklistJob.value) }
 
     // store the current picklist job data in indexdb for reference offline whenever job is executed

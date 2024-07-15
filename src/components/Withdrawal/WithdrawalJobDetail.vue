@@ -120,14 +120,14 @@
           class="info-display-details-action q-mt-sm-sm q-mt-md-md"
         >
           <q-btn
-            v-if="withdrawJobItems.some(itm => itm.status == 'In')"
+            v-if="withdrawJobItems.some(itm => itm.status !== 'Out')"
             no-caps
             unelevated
             color="accent"
-            :label="'Create Pick List Job'"
+            :label="withdrawJob.pick_list_id ? 'Add To Pick List Job' : 'Create Pick List Job'"
             class="btn-no-wrap text-body1 q-mr-sm"
-            :disabled="withdrawJob.pick_list_id"
-            @click="createPicklistJob()"
+            :disabled="withdrawJob.pick_list_id && !withdrawJobItems.some(itm => itm.status !== 'Requested')"
+            @click="withdrawJob.pick_list_id ? addToPicklistJob() : createPicklistJob()"
           />
           <q-btn
             no-caps
@@ -135,7 +135,7 @@
             color="positive"
             :label="'Withdraw Items'"
             class="btn-no-wrap text-body1"
-            :disabled="withdrawJobItems.length == 0 || withdrawJobItems.some(itm => itm.status == 'In')"
+            :disabled="withdrawJobItems.length == 0 || withdrawJobItems.some(itm => itm.status !== 'Out')"
             :loading="appActionIsLoadingData"
             @click="showConfirmationModal = 'CompleteJob'"
           />
@@ -156,14 +156,14 @@
       <MobileActionBar
         v-else-if="withdrawJob.status !== 'Completed'"
         button-one-color="accent"
-        :button-one-label="'Create Pick List Job'"
+        :button-one-label="withdrawJob.pick_list_id ? 'Add To Pick List Job' : 'Create Pick List Job'"
         :button-one-outline="false"
-        :button-one-disabled="!withdrawJobItems.some(itm => itm.status == 'In') || withdrawJob.pick_list_id"
-        @button-one-click="createPicklistJob()"
+        :button-one-disabled="!withdrawJobItems.some(itm => itm.status == 'In') || (withdrawJob.pick_list_id && !withdrawJobItems.some(itm => itm.status !== 'Requested'))"
+        @button-one-click="withdrawJob.pick_list_id ? addToPicklistJob() : createPicklistJob()"
         button-two-color="positive"
         :button-two-label="'Withdraw Items'"
         :button-two-outline="false"
-        :button-two-disabled="withdrawJobItems.length == 0 || withdrawJobItems.some(itm => itm.status == 'In')"
+        :button-two-disabled="withdrawJobItems.length == 0 || withdrawJobItems.some(itm => itm.status !== 'Out')"
         :button-two-loading="appActionIsLoadingData"
         @button-two-click="showConfirmationModal = 'CompleteJob'"
       />
@@ -684,6 +684,31 @@ const createPicklistJob = async () => {
     handleAlert({
       type: 'success',
       text: `Successfully created Pick List #: <a href='/picklist/${withdrawJob.value.pick_list_id}' tabindex='0'>${withdrawJob.value.pick_list_id}</a>`,
+      autoClose: false
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = false
+  }
+}
+const addToPicklistJob = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    const payload = {
+      id: withdrawJob.value.id,
+      add_to_picklist: true
+    }
+    await patchWithdrawJob(payload)
+
+    // display an alert with the updated picklist job id so you can click that and link directly to the job if needed
+    handleAlert({
+      type: 'success',
+      text: `Successfully updated Pick List #: <a href='/picklist/${withdrawJob.value.pick_list_id}' tabindex='0'>${withdrawJob.value.pick_list_id}</a>`,
       autoClose: false
     })
   } catch (error) {
