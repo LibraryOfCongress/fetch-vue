@@ -437,14 +437,14 @@ watch(compiledBarCode, (barcode) => {
 })
 const triggerItemScan = (barcode_value) => {
   // check if the scanned barcode is in the item data and that the barcode hasnt been retrieved already
-  if (!picklistJob.value.requests.some(itm => itm.item ? itm.item.barcode.value == barcode_value : itm.non_tray_item.barcode.value == barcode_value)) {
+  if (!picklistItems.value.some(itm => itm.item ? itm.item.barcode.value == barcode_value : itm.non_tray_item.barcode.value == barcode_value)) {
     handleAlert({
       type: 'error',
       text: 'The scanned item does not exist in this pick list job. Please try again.',
       autoClose: true
     })
     return
-  } else if (picklistJob.value.requests.some(itm => itm.item ? itm.item.barcode.value == barcode_value && itm.status !== 'Requested' : itm.non_tray_item.barcode.value == barcode_value && itm.status !== 'Requested')) {
+  } else if (picklistItems.value.some(itm => itm.item ? itm.item.barcode.value == barcode_value && itm.status !== 'Requested' : itm.non_tray_item.barcode.value == barcode_value && itm.status !== 'Requested')) {
     handleAlert({
       type: 'error',
       text: 'The scanned item has already been marked as retrieved.',
