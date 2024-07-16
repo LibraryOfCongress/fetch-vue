@@ -126,7 +126,7 @@
             color="accent"
             :label="withdrawJob.pick_list_id ? 'Add To Pick List Job' : 'Create Pick List Job'"
             class="btn-no-wrap text-body1 q-mr-sm"
-            :disabled="withdrawJob.pick_list_id && !withdrawJobItems.some(itm => itm.status !== 'Requested')"
+            :disabled="withdrawJob.pick_list_id && !withdrawJobItems.some(itm => itm.status == 'In')"
             @click="withdrawJob.pick_list_id ? addToPicklistJob() : createPicklistJob()"
           />
           <q-btn
@@ -158,7 +158,7 @@
         button-one-color="accent"
         :button-one-label="withdrawJob.pick_list_id ? 'Add To Pick List Job' : 'Create Pick List Job'"
         :button-one-outline="false"
-        :button-one-disabled="!withdrawJobItems.some(itm => itm.status == 'In') || (withdrawJob.pick_list_id && !withdrawJobItems.some(itm => itm.status !== 'Requested'))"
+        :button-one-disabled="!withdrawJobItems.some(itm => itm.status == 'In') || (withdrawJob.pick_list_id && !withdrawJobItems.some(itm => itm.status == 'In'))"
         @button-one-click="withdrawJob.pick_list_id ? addToPicklistJob() : createPicklistJob()"
         button-two-color="positive"
         :button-two-label="'Withdraw Items'"
@@ -301,8 +301,8 @@
           </span>
           <span
             v-else-if="colName == 'status'"
-            class="text-nowrap outline"
-            :class="value == 'Withdrawn' ? 'text-positive' : 'text-highlight-negative'"
+            class="text-nowrap"
+            :class="value == 'Withdrawn' ? 'text-positive' : 'text-highlight-negative outline'"
           >
             {{ value == 'Withdrawn' ? 'Withdrawn' : value }}
             <q-icon
@@ -623,6 +623,16 @@ const cancelWithdrawJob = async () => {
 }
 const completeWithdrawJob = async () => {
   try {
+    // check if an associated picklist exists and make sure it is completed
+    if (withdrawJob.value.pick_list && withdrawJob.value.pick_list.status !== 'Completed') {
+      handleAlert({
+        type: 'error',
+        text: `A Pick list job # <a href='/picklist/${withdrawJob.value.pick_list_id}' tabindex='0'>${withdrawJob.value.pick_list_id}</a> was generated  for withdrawal but not completed yet, please complete the picklist job inorder to complete withdrawal process.`,
+        autoClose: false
+      })
+      return
+    }
+
     appActionIsLoadingData.value = true
     const payload = {
       id: withdrawJob.value.id,
