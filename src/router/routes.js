@@ -71,6 +71,11 @@ const routes = [
         component: () => import('@/pages/RequestPage.vue')
       },
       {
+        name: 'request-batch',
+        path: 'request/batch/:jobId',
+        component: () => import('@/pages/RequestPage.vue')
+      },
+      {
         name: 'search-results',
         path: 'search-results/:searchType?',
         component: () => import('@/pages/SearchPage.vue')

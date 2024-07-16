@@ -38,7 +38,7 @@
         borderless
         v-model="searchText"
         :placeholder="renderSearchPlaceholder"
-        @keyup.enter="executeSearch()"
+        @keyup.enter="executeExactSearch()"
         aria-label="SearchBar"
         type="search"
       >
@@ -49,12 +49,12 @@
             size="24px"
           />
           <q-icon
-            v-else-if="!appActionIsLoadingData && searchText === ''"
+            v-else-if="currentScreenSize == 'xs' && !appActionIsLoadingData && searchText === ''"
             name="search"
             @click="$event.target.closest('div.q-field__control').querySelector('input').focus()"
           />
           <q-icon
-            v-else
+            v-else-if="!appActionIsLoadingData && searchText !== ''"
             name="clear"
             role="img"
             aria-label="clearSearch"
@@ -77,7 +77,7 @@
             <q-item
               clickable
               v-close-popup
-              @click="null"
+              @click="handlingSearchResultRouting"
               role="menuitem"
             >
               <q-item-section>
@@ -89,16 +89,28 @@
       </div>
     </div>
 
-    <q-btn
-      v-if="currentScreenSize !== 'xs'"
-      dense
-      no-caps
-      flat
-      color="white"
-      label="Advanced Search"
-      class="search-bar-advanced btn-no-wrap text-body2"
-      @click="showAdvancedSearchModal = true"
-    />
+    <template v-if="currentScreenSize !== 'xs'">
+      <q-btn
+        dense
+        no-caps
+        flat
+        color="white"
+        icon="search"
+        class="btn-no-wrap text-body2"
+        @click="executeExactSearch()"
+        aria-label="exactSearchButton"
+      />
+      <q-btn
+        dense
+        no-caps
+        flat
+        color="white"
+        label="Advanced Search"
+        class="search-bar-advanced btn-no-wrap text-body2"
+        @click="showAdvancedSearchModal = true"
+        aria-label="advancedSearchButton"
+      />
+    </template>
     <q-btn
       v-else
       dense
@@ -108,7 +120,7 @@
       icon="tune"
       class="search-bar-advanced btn-no-wrap text-body2"
       @click="showAdvancedSearchModal = true"
-      aria-label="advancedSearch"
+      aria-label="advancedSearchButton"
     />
   </div>
 
@@ -123,21 +135,37 @@
 
 <script setup>
 import { onMounted, ref, watch, inject, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useGlobalStore } from '@/stores/global-store'
 import { useSearchStore } from '@/stores/search-store'
+import { useAccessionStore } from '@/stores/accession-store'
+import { useVerificationStore } from '@/stores/verification-store'
+import { useShelvingStore } from '@/stores/shelving-store'
+import { useRequestStore } from '@/stores/request-store'
+import { usePicklistStore } from '@/stores/picklist-store'
+import { useRefileStore } from '@/stores/refile-store'
+import { useWithdrawalStore } from '@/stores/withdrawal-store'
 import { storeToRefs } from 'pinia'
 import SearchAdvancedModal from '@/components/Search/SearchAdvancedModal.vue'
 
 const route = useRoute()
+const router = useRouter()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { getExactSearchResult } = useSearchStore()
 const { searchResults } = storeToRefs(useSearchStore())
+const { accessionJob } = storeToRefs(useAccessionStore())
+const { verificationJob } = storeToRefs(useVerificationStore())
+const { shelvingJob } = storeToRefs(useShelvingStore())
+const { requestJob } = storeToRefs(useRequestStore())
+const { picklistJob } = storeToRefs(usePicklistStore())
+const { refileJob } = storeToRefs(useRefileStore())
+const { withdrawJob } = storeToRefs(useWithdrawalStore())
 
 // Local Data
 const renderSearchPlaceholder = computed(() => {
@@ -185,6 +213,7 @@ const searchTypes = ref([
 ])
 const showExactSearch = ref(false)
 const showAdvancedSearchModal = ref(false)
+const exactSearchResponseInfo = ref(null)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -204,14 +233,13 @@ const setSearchType = () => {
   }
 }
 
-const executeSearch = async () => {
+const executeExactSearch = async () => {
   try {
     appActionIsLoadingData.value = true
-    // TODO need to figure out how exact search will be sent to api
-    // await getSearchResults(searchText.value)
-    console.log('exact search query', searchText.value, searchType.value)
-    // TEMP
-    searchResults.value = ['exact search result here...']
+    const res = await getExactSearchResult(searchText.value, searchType.value)
+    if (res) {
+      exactSearchResponseInfo.value = res.data
+    }
     showExactSearch.value = true
   } catch (error) {
     handleAlert({
@@ -221,6 +249,99 @@ const executeSearch = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
+  }
+}
+const handlingSearchResultRouting = () => {
+  // loads the exact search result route depending on search type
+  switch (searchType.value) {
+  case 'Item':
+    break
+  case 'Tray':
+    break
+  case 'Shelf':
+    break
+  default:
+    router.push({
+      name: searchType.value.toLowerCase(),
+      params: {
+        jobId: searchText.value
+      }
+    })
+    break
+  }
+  // set the result info in the matching job store
+  switch (searchType.value) {
+  case 'Item':
+    break
+  case 'Tray':
+    break
+  case 'Shelf':
+    break
+  case 'Accession':
+    accessionJob.value = exactSearchResponseInfo.value
+    router.push({
+      name: searchType.value.toLowerCase(),
+      params: {
+        jobId: searchText.value
+      }
+    })
+    break
+  case 'Verification':
+    verificationJob.value = exactSearchResponseInfo.value
+    router.push({
+      name: searchType.value.toLowerCase(),
+      params: {
+        jobId: searchText.value
+      }
+    })
+    break
+  case 'Shelving':
+    shelvingJob.value = exactSearchResponseInfo.value
+    router.push({
+      name: searchType.value.toLowerCase(),
+      params: {
+        jobId: searchText.value
+      }
+    })
+    break
+  case 'Request':
+    requestJob.value = exactSearchResponseInfo.value
+    router.push({
+      name: searchType.value.toLowerCase(),
+      params: {
+        jobId: searchText.value
+      }
+    })
+    break
+  case 'Picklist':
+    picklistJob.value = exactSearchResponseInfo.value
+    router.push({
+      name: searchType.value.toLowerCase(),
+      params: {
+        jobId: searchText.value
+      }
+    })
+    break
+  case 'Refile':
+    refileJob.value = exactSearchResponseInfo.value
+    router.push({
+      name: searchType.value.toLowerCase(),
+      params: {
+        jobId: searchText.value
+      }
+    })
+    break
+  case 'Withdraw':
+    withdrawJob.value = exactSearchResponseInfo.value
+    router.push({
+      name: searchType.value.toLowerCase(),
+      params: {
+        jobId: searchText.value
+      }
+    })
+    break
+  default:
+    break
   }
 }
 </script>
@@ -283,6 +404,8 @@ const executeSearch = async () => {
 
 <style lang="scss" module>
 .search-input-menu {
+  // forces max width to not expand past the parent width
+  max-width: 10px !important;
   @media (max-width: $breakpoint-sm) {
     width: 100%;
     max-width: 100% !important;
