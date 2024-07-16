@@ -244,6 +244,7 @@
                 </TextInput>
               </div>
             </div>
+            <!-- text inputs -->
             <div
               v-else-if="param.query == 'barcode' || param.query == 'job_id'"
               class="col-12 q-mb-md"

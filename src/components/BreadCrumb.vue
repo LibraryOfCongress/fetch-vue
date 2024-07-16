@@ -216,6 +216,16 @@ const breadcrumbList = computed(() => {
       ]
     }
     break
+  case 'request-batch':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Request',
+        to: '/request'
+      },
+      { text: `Request Batch: ${route.params.jobId}` }
+    ]
+    break
   case 'search-results':
     breadCrumbs = [
       ...breadCrumbs,
