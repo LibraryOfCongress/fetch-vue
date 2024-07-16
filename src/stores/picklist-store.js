@@ -18,10 +18,19 @@ export const usePicklistStore = defineStore('picklist-store', {
     originalPicklistJob: null
   }),
   getters: {
+    picklistItems: (state) => {
+      let items = []
+      if (state.picklistJob.requests.length > 0) {
+        items = state.picklistJob.requests.map(rq => {
+          return { ...rq, status: rq.item ? rq.item.status : rq.non_tray_item.status }
+        })
+      }
+      return items
+    },
     allItemsRetrieved: (state) => {
       if (state.picklistJob.id && state.picklistJob.status !== 'Created') {
-        // when a picklist job is active we can keep track of if all requested items have been pulled/retrieved
-        return state.picklistJob.requests.length == 0 || state.picklistJob.requests.some(itm => !itm.scanned_for_retrieval) ? false : true
+        // when a picklist job is active we can keep track of if all requested items have been pulled/retrieved using status
+        return state.picklistItems.length == 0 || state.picklistItems.some(itm => itm.status == 'Requested') ? false : true
       } else {
         return true
       }

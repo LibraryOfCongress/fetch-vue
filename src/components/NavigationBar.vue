@@ -248,7 +248,7 @@ const essentialLinks = ref([
   },
   {
     title: 'Withdrawal',
-    icon: 'format_list_numbered',
+    icon: 'archive',
     link: '/withdrawal'
   },
   {
