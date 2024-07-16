@@ -149,8 +149,8 @@
               </label>
               <SelectInput
                 v-model="reportForm.size_class_id"
-                :options="[]"
-                option-type="''"
+                :options="sizeClass"
+                option-type="sizeClass"
                 option-value="id"
                 option-label="name"
                 :placeholder="`Select Size Class`"
@@ -168,8 +168,8 @@
               </label>
               <SelectInput
                 v-model="reportForm.owner_id"
-                :options="[]"
-                option-type="''"
+                :options="owners"
+                option-type="owners"
                 option-value="id"
                 option-label="name"
                 :placeholder="`Select Owner`"
@@ -265,7 +265,7 @@
           >
             <!-- date range inputs -->
             <div
-              v-if="param.query == 'from_dt'"
+              v-if="param.query == 'from_dt' || param.query == 'to_dt'"
               class="col-6 q-mb-md"
             >
               <div class="form-group q-pr-xs">
@@ -306,46 +306,20 @@
                 </TextInput>
               </div>
             </div>
+            <!-- text inputs -->
             <div
-              v-else-if="param.query == 'to_dt'"
-              class="col-6 q-mb-md"
+              v-else-if="param.query == 'job_id'"
+              class="col-12 q-mb-md"
             >
-              <div class="form-group q-pl-xs">
+              <div class="form-group">
                 <label class="form-group-label">
                   {{ param.label }}
                 </label>
                 <TextInput
                   v-model="reportForm[param.query]"
-                  placeholder="Ex: MM/DD/YYYY"
-                >
-                  <template #append>
-                    <q-icon
-                      name="event"
-                      class="cursor-pointer"
-                    >
-                      <q-popup-proxy
-                        cover
-                        transition-show="scale"
-                        transition-hide="scale"
-                      >
-                        <q-date
-                          v-model="reportForm[param.query]"
-                          mask="MM/DD/YYYY"
-                        >
-                          <div class="row items-center justify-end">
-                            <q-btn
-                              v-close-popup
-                              label="Close"
-                              color="primary"
-                              flat
-                              aria-label="closeDatePopup"
-                            />
-                          </div>
-                        </q-date>
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </TextInput>
+                  :placeholder="`Enter ${param.label}`"
+                  :aria-label="`${param.query}_input`"
+                />
               </div>
             </div>
             <!-- select inputs -->
@@ -365,10 +339,10 @@
                 </label>
                 <SelectInput
                   v-model="reportForm[param.query]"
-                  :options="[]"
-                  option-type="''"
+                  :options="param.options"
+                  :option-type="param.optionType"
                   option-value="id"
-                  option-label="name"
+                  :option-label="param.optionType == 'users' ? 'first_name' : 'name'"
                   :placeholder="`Select ${param.label}`"
                   @update:model-value="null"
                   :aria-label="`${param.query}_select`"
@@ -439,7 +413,13 @@ const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
-const { buildings } = storeToRefs(useOptionStore())
+const {
+  buildings,
+  owners,
+  sizeClass,
+  mediaTypes,
+  users
+} = storeToRefs(useOptionStore())
 const {
   getBuildingDetails,
   getModuleDetails,
@@ -526,15 +506,21 @@ const generateReportModal = () => {
       },
       {
         query: 'owner_id',
-        label: 'Owner'
+        label: 'Owner',
+        options: owners,
+        optionType: 'owners'
       },
       {
         query: 'media_type_id',
-        label: 'Media Type'
+        label: 'Media Type',
+        options: mediaTypes,
+        optionType: 'mediaTypes'
       },
       {
         query: 'size_class_id',
-        label: 'Date (To)'
+        label: 'Size Class',
+        options: sizeClass,
+        optionType: 'sizeClass'
       }
     ]
     break
@@ -550,19 +536,27 @@ const generateReportModal = () => {
     reportParams.value = [
       {
         query: 'building_id',
-        label: 'Building'
+        label: 'Building',
+        options: buildings,
+        optionType: 'buildings'
       },
       {
         query: 'owner_id',
-        label: 'Owner'
+        label: 'Owner',
+        options: owners,
+        optionType: 'owners'
       },
       {
         query: 'aisle_from',
-        label: 'Aisle (From)'
+        label: 'Aisle (From)',
+        options: [],
+        optionType: ''
       },
       {
         query: 'aisle_to',
-        label: 'Aisle (To)'
+        label: 'Aisle (To)',
+        options: [],
+        optionType: ''
       },
       {
         query: 'from_dt',
@@ -591,7 +585,9 @@ const generateReportModal = () => {
       },
       {
         query: 'assigned_user_id',
-        label: 'Assigned User'
+        label: 'Assigned User',
+        options: users,
+        optionType: 'users'
       }
     ]
     break
@@ -608,19 +604,27 @@ const generateReportModal = () => {
     reportParams.value = [
       {
         query: 'building_id',
-        label: 'Building'
+        label: 'Building',
+        options: buildings,
+        optionType: 'buildings'
       },
       {
         query: 'owner_id',
-        label: 'Owner'
+        label: 'Owner',
+        options: owners,
+        optionType: 'owners'
       },
       {
         query: 'aisle_from',
-        label: 'Aisle (From)'
+        label: 'Aisle (From)',
+        options: [],
+        optionType: ''
       },
       {
         query: 'aisle_to',
-        label: 'Aisle (To)'
+        label: 'Aisle (To)',
+        options: [],
+        optionType: ''
       },
       {
         query: 'from_dt',
@@ -632,7 +636,9 @@ const generateReportModal = () => {
       },
       {
         query: 'size_class_id',
-        label: 'Size Class'
+        label: 'Size Class',
+        options: sizeClass,
+        optionType: 'sizeClass'
       }
     ]
     break
@@ -661,7 +667,9 @@ const generateReportModal = () => {
     reportParams.value = [
       {
         query: 'job_id',
-        label: 'Job Number'
+        label: 'Job Number',
+        options: [],
+        optionType: ''
       },
       {
         query: 'from_dt',
@@ -673,7 +681,9 @@ const generateReportModal = () => {
       },
       {
         query: 'assigned_user_id',
-        label: 'Assigned User'
+        label: 'Assigned User',
+        options: users,
+        optionType: 'users'
       }
     ]
     break
@@ -694,7 +704,9 @@ const generateReportModal = () => {
       },
       {
         query: 'assigned_user_id',
-        label: 'Assigned User'
+        label: 'Assigned User',
+        options: users,
+        optionType: 'users'
       }
     ]
     break
@@ -715,7 +727,9 @@ const generateReportModal = () => {
       },
       {
         query: 'owner_id',
-        label: 'Owner'
+        label: 'Owner',
+        options: owners,
+        optionType: 'owners'
       }
     ]
     break
@@ -728,15 +742,21 @@ const generateReportModal = () => {
     reportParams.value = [
       {
         query: 'building_id',
-        label: 'Building'
+        label: 'Building',
+        options: buildings,
+        optionType: 'buildings'
       },
       {
         query: 'aisle_from',
-        label: 'Aisle (From)'
+        label: 'Aisle (From)',
+        options: [],
+        optionType: ''
       },
       {
         query: 'aisle_to',
-        label: 'Aisle (To)'
+        label: 'Aisle (To)',
+        options: [],
+        optionType: ''
       }
     ]
     break
@@ -757,7 +777,9 @@ const generateReportModal = () => {
       },
       {
         query: 'user_id',
-        label: 'User'
+        label: 'User',
+        options: users,
+        optionType: 'users'
       }
     ]
     break
@@ -771,7 +793,9 @@ const generateReportModal = () => {
     reportParams.value = [
       {
         query: 'job_id',
-        label: 'Job Number'
+        label: 'Job Number',
+        options: [],
+        optionType: ''
       },
       {
         query: 'from_dt',
@@ -783,7 +807,9 @@ const generateReportModal = () => {
       },
       {
         query: 'assigned_user_id',
-        label: 'Assigned User'
+        label: 'Assigned User',
+        options: users,
+        optionType: 'users'
       }
     ]
     break

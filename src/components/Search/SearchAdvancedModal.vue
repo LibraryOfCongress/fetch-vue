@@ -2,7 +2,7 @@
   <PopupModal
     ref="searchModal"
     :show-actions="false"
-    @reset="emit('hide')"
+    @reset="emit('hide'); resetBuildingStore();"
     aria-label="advancedSearchModal"
   >
     <template #header-content="{ hideModal }">
@@ -149,8 +149,8 @@
               </label>
               <SelectInput
                 v-model="searchForm.size_class_id"
-                :options="[]"
-                option-type="''"
+                :options="sizeClass"
+                option-type="sizeClass"
                 option-value="id"
                 option-label="name"
                 :placeholder="`Select Size Class`"
@@ -168,8 +168,8 @@
               </label>
               <SelectInput
                 v-model="searchForm.owner_id"
-                :options="[]"
-                option-type="''"
+                :options="owners"
+                option-type="owners"
                 option-value="id"
                 option-label="name"
                 :placeholder="`Select Owner`"
@@ -245,7 +245,7 @@
               </div>
             </div>
             <div
-              v-else-if="param.query == 'barcode'"
+              v-else-if="param.query == 'barcode' || param.query == 'job_id'"
               class="col-12 q-mb-md"
             >
               <div class="form-group">
@@ -270,8 +270,8 @@
                 </label>
                 <SelectInput
                   v-model="searchForm[param.query]"
-                  :options="[]"
-                  option-type="''"
+                  :options="param.options"
+                  :option-type="param.optionType"
                   option-value="id"
                   option-label="name"
                   :placeholder="`Select ${param.label}`"
@@ -346,13 +346,19 @@ const emit = defineEmits(['hide'])
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
-const { buildings } = storeToRefs(useOptionStore())
+const {
+  buildings,
+  owners,
+  sizeClass,
+  mediaTypes
+} = storeToRefs(useOptionStore())
 const {
   getBuildingDetails,
   getModuleDetails,
   getAisleDetails,
   getSideDetails,
-  getLadderDetails
+  getLadderDetails,
+  resetBuildingStore
 } = useBuildingStore()
 const {
   renderBuildingModules,
@@ -435,19 +441,27 @@ const generateSearchModal = () => {
       },
       {
         query: 'owner_id',
-        label: 'Owner'
+        label: 'Owner',
+        options: owners,
+        optionType: 'owners'
       },
       {
         query: 'status',
-        label: 'Status'
+        label: 'Status',
+        options: [],
+        optionType: ''
       },
       {
         query: 'size_class_id',
-        label: 'Size Class'
+        label: 'Size Class',
+        options: sizeClass,
+        optionType: 'sizeClass'
       },
       {
         query: 'media_type_id',
-        label: 'Media Type'
+        label: 'Media Type',
+        options: mediaTypes,
+        optionType: 'mediaTypes'
       },
       {
         query: 'barcode',
@@ -475,15 +489,21 @@ const generateSearchModal = () => {
       },
       {
         query: 'owner_id',
-        label: 'Owner'
+        label: 'Owner',
+        options: owners,
+        optionType: 'owners'
       },
       {
         query: 'size_class_id',
-        label: 'Size Class'
+        label: 'Size Class',
+        options: sizeClass,
+        optionType: 'sizeClass'
       },
       {
         query: 'media_type_id',
-        label: 'Media Type'
+        label: 'Media Type',
+        options: mediaTypes,
+        optionType: 'mediaTypes'
       },
       {
         query: 'barcode',
