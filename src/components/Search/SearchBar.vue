@@ -77,7 +77,7 @@
             <q-item
               clickable
               v-close-popup
-              @click="handlingSearchResultRouting"
+              @click="exactSearchResponseInfo !== null ? handlingSearchResultRouting() : null"
               role="menuitem"
             >
               <q-item-section>
