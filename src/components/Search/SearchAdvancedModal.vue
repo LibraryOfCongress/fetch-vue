@@ -203,7 +203,7 @@
           >
             <!-- date range inputs -->
             <div
-              v-if="param.query == 'from_dt' || param.query == 'to_dt' || param.query == 'create_dt' || param.query == 'complete_dt'"
+              v-if="param.query == 'from_dt' || param.query == 'to_dt'"
               class="col-6 q-mb-md"
             >
               <div class="form-group q-pr-xs">
@@ -274,7 +274,7 @@
                   :options="param.options"
                   :option-type="param.optionType"
                   option-value="id"
-                  option-label="name"
+                  :option-label="param.optionType == 'users' ? 'first_name' : 'name'"
                   :placeholder="`Select ${param.label}`"
                   @update:model-value="null"
                   :aria-label="`${param.query}_select`"
@@ -351,7 +351,8 @@ const {
   buildings,
   owners,
   sizeClass,
-  mediaTypes
+  mediaTypes,
+  users
 } = storeToRefs(useOptionStore())
 const {
   getBuildingDetails,
@@ -368,7 +369,7 @@ const {
   renderSideLadders,
   renderLadderShelves
 } = storeToRefs(useBuildingStore())
-const { getSearchResults } = useSearchStore()
+const { getAdvancedSearchResults } = useSearchStore()
 
 // Local Data
 const searchModal = ref(null)
@@ -429,7 +430,7 @@ const generateSearchModal = () => {
       status: null,
       size_class_id: null,
       media_type_id: null,
-      barcode: mainProps.searchBarInput
+      barcode_value: mainProps.searchBarInput
     }
     searchParams.value = [
       {
@@ -477,7 +478,7 @@ const generateSearchModal = () => {
       owner_id: null,
       size_class_id: null,
       media_type_id: null,
-      barcode: mainProps.searchBarInput
+      barcode_value: mainProps.searchBarInput
     }
     searchParams.value = [
       {
@@ -522,7 +523,7 @@ const generateSearchModal = () => {
       shelf_id: null,
       owner_id: null,
       size_class_id: null,
-      barcode: mainProps.searchBarInput
+      barcode_value: mainProps.searchBarInput
     }
     break
   default:
@@ -531,8 +532,8 @@ const generateSearchModal = () => {
       to_dt: null,
       job_id: mainProps.searchBarInput,
       status: null,
-      create_dt: null,
-      complete_dt: null
+      create_by: null,
+      complete_by: null
     }
     searchParams.value = [
       {
@@ -552,12 +553,16 @@ const generateSearchModal = () => {
         label: 'Status'
       },
       {
-        query: 'create_dt',
-        label: 'Date Created'
+        query: 'create_by',
+        label: 'Created By',
+        options: users,
+        optionType: 'users'
       },
       {
-        query: 'complete_dt',
-        label: 'Date Completed'
+        query: 'complete_by',
+        label: 'Completed By',
+        options: users,
+        optionType: 'users'
       }
     ]
     break
@@ -567,10 +572,25 @@ const generateSearchModal = () => {
 const executeAdvancedSearch = async () => {
   try {
     appActionIsLoadingData.value = true
+    // convert any form date values to iso format
+    if (Object.entries(searchForm.value).some(([
+      key,
+      value
+    ]) => key.includes('_dt') && value)) {
+      Object.keys(searchForm.value).forEach(key => {
+        if (key.includes('_dt')) {
+          const [
+            month,
+            day,
+            year
+          ] = searchForm.value[key].split('/')
+          searchForm.value[key] = new Date(year, month - 1, day).toISOString()
+        }
+      })
+    }
+
     // TODO need to figure out how advance search will be sent to api
-    // also if job related search need to submit a job type query possibly?
-    await getSearchResults(searchForm.value, mainProps.searchType)
-    console.log('advance search query', searchForm.value)
+    await getAdvancedSearchResults(searchForm.value, mainProps.searchType)
 
     router.push({
       name: 'search-results',
