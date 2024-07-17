@@ -821,7 +821,24 @@ const generateReportModal = () => {
 const generateReport = async () => {
   try {
     appActionIsLoadingData.value = true
-    await getReport(reportForm.value)
+    // convert any form date values to iso format
+    if (Object.entries(reportForm.value).some(([
+      key,
+      value
+    ]) => key.includes('_dt') && value)) {
+      Object.keys(reportForm.value).forEach(key => {
+        if (key.includes('_dt')) {
+          const [
+            month,
+            day,
+            year
+          ] = reportForm.value[key].split('/')
+          reportForm.value[key] = new Date(year, month - 1, day).toISOString()
+        }
+      })
+    }
+
+    await getReport(reportForm.value, mainProps.reportType)
 
     emit('submit')
   } catch (error) {

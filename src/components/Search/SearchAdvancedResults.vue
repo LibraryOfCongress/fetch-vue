@@ -31,7 +31,7 @@
             >
               {{ value }}
             </span>
-            <span v-else-if="colName == 'create_dt' || colName == 'complete_dt' || colName == 'from_dt' || colName == 'to_dt'">
+            <span v-else-if="colName.includes('_dt')">
               {{ formatDateTime(value).date }}
             </span>
           </template>
@@ -149,20 +149,20 @@ const generateSearchTableFields = () => {
       }
     ]
     searchResultsTableVisibleColumns.value = [
-      'from_dt',
+      'accession_dt',
       'to_dt',
-      'owner_id',
+      'owner',
       'status',
-      'size_class_id',
-      'media_type_id',
+      'size_class',
+      'media_type',
       'barcode'
     ]
     if (currentScreenSize.value == 'xs') {
       searchResultsTableVisibleColumns.value = [
-        'from_dt',
+        'accession_dt',
         'to_dt',
-        'size_class_id',
-        'media_type_id',
+        'size_class',
+        'media_type',
         'barcode'
       ]
     }
@@ -170,16 +170,9 @@ const generateSearchTableFields = () => {
   case 'Tray':
     searchResultsTableColumns.value = [
       {
-        name: 'from_dt',
-        field: 'from_dt',
-        label: 'Date (From)',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'to_dt',
-        field: 'to_dt',
-        label: 'Date (To)',
+        name: 'accession_dt',
+        field: 'accession_dt',
+        label: 'Accession Date',
         align: 'left',
         sortable: true
       },
@@ -213,19 +206,17 @@ const generateSearchTableFields = () => {
       }
     ]
     searchResultsTableVisibleColumns.value = [
-      'from_dt',
-      'to_dt',
-      'owner_id',
-      'size_class_id',
-      'media_type_id',
+      'accession_dt',
+      'owner',
+      'size_class',
+      'media_type',
       'barcode'
     ]
     if (currentScreenSize.value == 'xs') {
       searchResultsTableVisibleColumns.value = [
-        'from_dt',
-        'to_dt',
-        'size_class_id',
-        'media_type_id',
+        'accession_dt',
+        'size_class',
+        'media_type',
         'barcode'
       ]
     }

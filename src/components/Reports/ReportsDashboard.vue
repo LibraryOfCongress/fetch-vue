@@ -1,19 +1,33 @@
 <template>
   <div class="reports-dashboard">
+    <div class="row q-mb-xs">
+      <div class="col-12">
+        <h1 class="text-h4 text-bold q-mb-sm">
+          Reports
+        </h1>
+      </div>
+    </div>
+
     <div class="row q-mb-xs-md">
       <div class="col-auto">
-        <div class="form-group">
-          <label class="text-h4 text-bold q-mb-sm">
-            Reports
-          </label>
-          <SelectInput
-            v-model="reportType"
-            :options="reportOptions"
-            :placeholder="'Select Report'"
-            @update:model-value="showReportModal = true"
-            aria-label="reportSelect"
-          />
-        </div>
+        <SelectInput
+          v-model="reportType"
+          :options="reportOptions"
+          :placeholder="'Select Report'"
+          @update:model-value="showReportModal = true"
+          aria-label="reportSelect"
+        />
+      </div>
+      <div class="col-auto">
+        <q-btn
+          v-if="reportType"
+          no-caps
+          unelevated
+          color="accent"
+          label="Redo Report"
+          class="text-body1 full-height q-ml-sm"
+          @click="showReportModal = true"
+        />
       </div>
     </div>
 
@@ -26,7 +40,7 @@
           :table-columns="generatedTableColumns"
           :table-visible-columns="generatedTableVisibleColumns"
           :filter-options="generatedTableFilters"
-          :table-data="[]"
+          :table-data="reportData"
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
@@ -43,7 +57,7 @@
                 color="accent"
                 label="Export Report"
                 class="btn-no-wrap text-body1 q-ml-auto"
-                @click="null"
+                @click="reportPrintTemplate.printReport()"
               />
             </div>
           </template>
@@ -69,17 +83,32 @@
       @submit="generateReportTableFields();"
     />
   </div>
+
+  <!-- print component used to handle printing the reports -->
+  <ReportPrintTemplate
+    ref="reportPrintTemplate"
+    :report-details="{
+      type: reportType,
+      data: reportData
+    }"
+  />
 </template>
 
 <script setup>
 import { ref, inject } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { useReportsStore } from '@/stores/reports-store'
+import { storeToRefs } from 'pinia'
 import EssentialTable from '@/components/EssentialTable.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import ReportsGenerateModal from '@/components/Reports/ReportsGenerateModal.vue'
+import ReportPrintTemplate from '@/components/Reports/ReportPrintTemplate.vue'
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
+
+// Store Data
+const { reportData } = storeToRefs(useReportsStore())
 
 // Local Data
 const generatedTableVisibleColumns = ref([])
@@ -119,6 +148,7 @@ const reportOptions =  ref([
   'User Job Summary',
   'Verification Change'
 ])
+const reportPrintTemplate = ref(null)
 
 // Logic
 const getItemLocation = inject('get-item-location')
@@ -129,13 +159,6 @@ const generateReportTableFields = () => {
   switch (reportType.value) {
   case 'Item Accession':
     generatedTableColumns.value = [
-      {
-        name: 'create_dt',
-        field: 'create_dt',
-        label: 'Date Created',
-        align: 'left',
-        sortable: true
-      },
       {
         name: 'owner',
         field: row => row.owner?.name,
@@ -166,7 +189,6 @@ const generateReportTableFields = () => {
       }
     ]
     generatedTableVisibleColumns.value = [
-      'create_dt',
       'owner',
       'media_type',
       'size_class',
