@@ -25,7 +25,7 @@
           unelevated
           color="accent"
           label="Redo Report"
-          class="text-body1 full-height q-ml-sm"
+          class="text-body1 full-height q-ml-xs-xs q-ml-sm-sm"
           @click="showReportModal = true"
         />
       </div>
@@ -48,7 +48,7 @@
         >
           <template #heading-row>
             <div
-              class="col-xs-grow col-sm-7 col-md-auto flex"
+              class="col-xs-12 col-sm-12 col-md-auto flex"
               :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? 'justify-end q-mb-md' : 'order-1'"
             >
               <q-btn
