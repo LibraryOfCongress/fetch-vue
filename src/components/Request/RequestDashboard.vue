@@ -157,8 +157,8 @@
           <template #table-td="{ colName, value }">
             <span
               v-if="colName == 'request_type'"
-              class="outline text-nowrap"
-              :class="'text-highlight'"
+              class="text-nowrap"
+              :class="value == '' ? 'text-highlight outline' : ''"
             >
               {{ value }}
             </span>
@@ -292,7 +292,7 @@
 
 <script setup>
 import { onBeforeMount, ref, inject } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useRequestStore } from '@/stores/request-store'
@@ -308,6 +308,7 @@ import PopupModal from '@/components/PopupModal.vue'
 import SelectInput from '@/components/SelectInput.vue'
 
 const router = useRouter()
+const route = useRoute()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
@@ -529,6 +530,10 @@ onBeforeMount(() => {
   resetRequestStore()
   loadRequestJobs()
 
+  if (route.params.jobId) {
+    loadRequestJob(route.params.jobId)
+  }
+
   if (currentScreenSize.value == 'xs') {
     requestTableVisibleColumns.value = [
       'id',
@@ -582,7 +587,7 @@ const loadRequestJobsByBuilding = async () => {
     appIsLoadingData.value = true
     // this function only gets called during the creation/add picklist workflow
     if (requestDisplayType.value == 'request_view') {
-      await getRequestJobList({ building_id: filterRequestsByBuilding.value, unassociated_pick_list: false })
+      await getRequestJobList({ building_id: filterRequestsByBuilding.value, unassociated_pick_list: true })
     } else {
       await getRequestBatchJobList({ building_id: filterRequestsByBuilding.value })
     }
@@ -610,7 +615,7 @@ const loadRequestJob = async (id) => {
     if (requestDisplayType.value == 'batch_view') {
       await getRequestBatchJob(id)
       router.push({
-        name: 'request',
+        name: 'request-batch',
         params: {
           jobId: id
         }

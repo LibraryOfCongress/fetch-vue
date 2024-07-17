@@ -20,6 +20,11 @@
     font-size: 1.7rem;
   }
 }
+.text-body2 {
+  @media (max-width: $breakpoint-sm-min) {
+    line-height: inherit;
+  }
+}
 
 .text-subcaption {
   font-size: .65rem;

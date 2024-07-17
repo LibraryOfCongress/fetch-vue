@@ -1,13 +1,13 @@
 <template>
   <q-page
     :style-fn="handlePageOffset"
-    :padding="!route.params.jobId"
+    :padding="route.name !== 'request-batch'"
     class="request"
   >
     <LoadingOverlay />
 
-    <RequestDashboard v-if="!route.params.jobId" />
-    <RequestBatchJobDetails v-else />
+    <RequestDashboard v-if="route.name == 'request'" />
+    <RequestBatchJobDetails v-if="route.name == 'request-batch'" />
   </q-page>
 </template>
 
@@ -29,7 +29,7 @@ const handlePageOffset = inject('handle-page-offset')
 
 onBeforeMount( async () => {
   // if there is an id in the url we need to load that request job (batch requests only)
-  if (route.params.jobId) {
+  if (route.name == 'request-batch') {
     await getRequestBatchJob(route.params.jobId)
   }
 })

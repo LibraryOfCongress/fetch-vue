@@ -16,7 +16,7 @@
         />
 
         <div class="nav-search">
-          <SearchInput placeholder="Search" />
+          <SearchBar />
         </div>
 
         <div class="nav-actions">
@@ -188,7 +188,7 @@ import { useBarcodeStore } from '@/stores/barcode-store'
 import { useUserStore } from '@/stores/user-store'
 import { useBackgroundSyncHandler } from '@/composables/useBackgroundSyncHandler.js'
 import EssentialLink from '@/components/EssentialLink.vue'
-import SearchInput from '@/components/SearchInput.vue'
+import SearchBar from '@/components/Search/SearchBar.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import UserLogin from '@/components/User/UserLogin.vue'
 import UserMenu from '@/components/User/UserMenu.vue'
@@ -248,8 +248,13 @@ const essentialLinks = ref([
   },
   {
     title: 'Withdrawal',
-    icon: 'format_list_numbered',
+    icon: 'archive',
     link: '/withdrawal'
+  },
+  {
+    title: 'Reports',
+    icon: 'task',
+    link: '/reports'
   }
 ])
 const adminLink = ref({
@@ -390,7 +395,7 @@ const displayRouteGuardAlert = (pathName) => {
   }
 
   &-search {
-    width: 50%;
+    width: 60%;
 
     @media (max-width: $breakpoint-sm-min) {
       width: 75%;

@@ -123,12 +123,6 @@ onMounted(() => {
     audioAlert()
   }
 
-  if (mainProps.autoClose && !mainProps.persistent) {
-    setTimeout(() => {
-      emit('reset')
-    }, 5000)
-  }
-
   // check if text contains a local link and convert them to router events
   checkForRouteLinks()
 })

@@ -41,5 +41,6 @@ export default {
   trays: '/trays/',
   traysBarcode: '/trays/barcode/',
   users: '/users/',
-  verificationJobs: '/verification-jobs/'
+  verificationJobs: '/verification-jobs/',
+  withdrawJobs: '/withdraw-jobs/'
 }

@@ -64,9 +64,24 @@ const routes = [
         component: () => import('@/pages/RefilePage.vue')
       },
       {
+        name: 'reports',
+        path: 'reports',
+        component: () => import('@/pages/ReportsPage.vue')
+      },
+      {
         name: 'request',
         path: 'request/:jobId?',
         component: () => import('@/pages/RequestPage.vue')
+      },
+      {
+        name: 'request-batch',
+        path: 'request/batch/:jobId',
+        component: () => import('@/pages/RequestPage.vue')
+      },
+      {
+        name: 'search-results',
+        path: 'search-results/:searchType?',
+        component: () => import('@/pages/SearchPage.vue')
       },
       {
         name: 'shelving',

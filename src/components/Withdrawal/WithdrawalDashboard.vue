@@ -113,7 +113,7 @@ const withdrawTableColumns = ref([
   },
   {
     name: 'item_count',
-    field: 'item_count',
+    field: row => row.item_count + row.non_tray_item_count,
     label: '# of Items',
     align: 'left',
     sortable: true

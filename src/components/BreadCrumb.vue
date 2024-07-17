@@ -193,6 +193,12 @@ const breadcrumbList = computed(() => {
       ]
     }
     break
+  case 'reports':
+    breadCrumbs = [
+      ...breadCrumbs,
+      { text: 'Reports' }
+    ]
+    break
   case 'request':
     if (!route.params.jobId) {
       breadCrumbs = [
@@ -209,6 +215,22 @@ const breadcrumbList = computed(() => {
         { text: `${route.params.jobId}` }
       ]
     }
+    break
+  case 'request-batch':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Request',
+        to: '/request'
+      },
+      { text: `Request Batch: ${route.params.jobId}` }
+    ]
+    break
+  case 'search-results':
+    breadCrumbs = [
+      ...breadCrumbs,
+      { text: `Advanced Search Results: ${route.params.searchType}` }
+    ]
     break
   case 'shelving':
     if (!route.params.jobId) {

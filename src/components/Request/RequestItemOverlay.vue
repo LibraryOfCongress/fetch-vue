@@ -257,6 +257,7 @@ const renderItemBuilding = (itemData) => {
 
 <style lang="scss" module>
 .requestOverlay {
+  z-index: 6000 !important;
   :global(.q-dialog__inner) {
     padding: 0;
   }
