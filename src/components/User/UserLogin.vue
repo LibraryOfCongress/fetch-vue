@@ -75,7 +75,7 @@ const { patchLogin } = useUserStore()
 
 // Local Data
 const isStageOrProd = computed(() => {
-  return process.env.VITE_ENV == 'production' || process.env.VITE_ENV == 'staging'
+  return process.env.VITE_ENV == 'production' || process.env.VITE_ENV == 'stage'
 })
 const isLoginValid = computed(() => {
   return loginForm.value.user == '' ? false : true
@@ -107,7 +107,6 @@ onMounted(async () => {
 })
 
 const ssoLogin = () => {
-  console.log('test')
   // Replace current url with SSO login url (this is where the sso service will handle login from and redirect the user back to the pwa)
   window.location.replace(`${process.env.VITE_INV_SERVCE_API}${inventoryServiceApi.authSsoLogin}`)
   return
