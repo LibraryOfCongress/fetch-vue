@@ -75,7 +75,7 @@ const { patchLogin } = useUserStore()
 
 // Local Data
 const isStageOrProd = computed(() => {
-  return process.env.VITE_ENV == 'production' || process.env.VITE_ENV == 'staging'
+  return process.env.VITE_ENV == 'production' || process.env.VITE_ENV == 'stage'
 })
 const isLoginValid = computed(() => {
   return loginForm.value.user == '' ? false : true
@@ -94,7 +94,8 @@ onMounted(async () => {
     // decode the token and pass and store that info in localstorage
     appActionIsLoadingData.value = true
     const payload = {
-      token: route.query.token,
+      // assign token only if prod or stage, api is open on dev/test/local
+      token: process.env.VITE_ENV == 'production' || process.env.VITE_ENV == 'stage' ? route.query.token : null,
       ...jwtDecode(route.query.token)
     }
     await patchLogin(payload, 'Sso')
@@ -107,7 +108,6 @@ onMounted(async () => {
 })
 
 const ssoLogin = () => {
-  console.log('test')
   // Replace current url with SSO login url (this is where the sso service will handle login from and redirect the user back to the pwa)
   window.location.replace(`${process.env.VITE_INV_SERVCE_API}${inventoryServiceApi.authSsoLogin}`)
   return
