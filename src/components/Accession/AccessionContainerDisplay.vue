@@ -147,7 +147,7 @@
           <EssentialTable
             ref="accessionTableComponent"
             :table-columns="accessionTableColumns"
-            :table-data="accessionJob.trayed ? accessionContainer.items : accessionJob.non_tray_items"
+            :table-data="accessionJob.trayed ? accessionContainer.items.slice().reverse() : accessionJob.non_tray_items.slice().reverse()"
             :hide-table-rearrange="true"
             :enable-selection="true"
             @selected-data="selectedItems = $event"
@@ -530,7 +530,7 @@ const addContainerItem = async () => {
   try {
     const currentDate = new Date()
     if ( accessionJob.value.trayed ) {
-      // TODO: Rremove this hardcoded item data since it will mostly come from folio
+      // TODO: Remove this hardcoded item data since it will mostly come from folio
       const payload = {
         accession_dt: currentDate,
         accession_job_id: accessionJob.value.id,
@@ -548,7 +548,6 @@ const addContainerItem = async () => {
       }
       await postAccessionTrayItem(payload)
     } else {
-      // TODO: figure out what payload data is actually needed here
       const payload = {
         accession_dt: currentDate,
         accession_job_id: accessionJob.value.id,
