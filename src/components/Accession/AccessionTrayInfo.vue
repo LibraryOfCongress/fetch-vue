@@ -3,7 +3,15 @@
     <div class="row">
       <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
         <MoreOptionsMenu
-          :options="[{ text: 'Edit' }]"
+          :options="!route.params.containerId ? [
+            { text: 'Edit' },
+            { text: 'Cancel Job', optionClass: 'text-negative'}
+          ] : [
+            { text: 'Edit' },
+            { text: 'Cancel Job', optionClass: 'text-negative'},
+            { text: 'Edit Tray Barcode' },
+            { text: 'Delete Tray', optionClass: 'text-negative'}
+          ]"
           class="q-mr-sm"
           @click="handleOptionMenu"
         />
@@ -142,6 +150,98 @@
       />
     </div>
   </div>
+
+  <!-- tray barcode edit modal -->
+  <PopupModal
+    v-if="showEditTrayModal"
+    ref="trayBarcodeModal"
+    :title="'Edit Tray Barcode'"
+    @reset="showEditTrayModal = false; trayBarcodeInput = '';"
+    aria-label="trayBarcodeEditModal"
+  >
+    <template #main-content>
+      <q-card-section class="column no-wrap items-center">
+        <div class="form-group">
+          <label class="form-group-label">
+            Type Barcode
+          </label>
+          <TextInput
+            v-model="trayBarcodeInput"
+            placeholder="Please Enter Tray Barcode"
+          />
+        </div>
+      </q-card-section>
+    </template>
+
+    <template #footer-content="{ hideModal }">
+      <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
+        <q-btn
+          no-caps
+          unelevated
+          color="accent"
+          label="submit"
+          class="text-body1 full-width"
+          :disabled="!trayBarcodeInput"
+          :loading="appActionIsLoadingData"
+          @click="updateTrayContainerBarcode"
+        />
+
+        <q-space class="q-mx-xs" />
+
+        <q-btn
+          outline
+          no-caps
+          label="Cancel"
+          class="text-body1 full-width"
+          @click="hideModal"
+        />
+      </q-card-section>
+    </template>
+  </PopupModal>
+
+  <!-- confirmation modal -->
+  <PopupModal
+    v-if="showConfirmationModal"
+    ref="confirmationModal"
+    :title="'Delete'"
+    :text="showConfirmationModal == 'CancelJob' ? 'Are you sure you want to cancel the accession job?' : 'Are you sure you want to delete the tray?'"
+    :show-actions="false"
+    @reset="showConfirmationModal = null"
+    aria-label="confirmationModal"
+  >
+    <template #footer-content="{ hideModal }">
+      <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
+        <q-btn
+          v-if="showConfirmationModal == 'CancelJob'"
+          no-caps
+          unelevated
+          color="negative"
+          label="Cancel Job"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="cancelAccessionJob()"
+        />
+        <q-btn
+          v-else
+          no-caps
+          unelevated
+          color="negative"
+          label="Delete Tray"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="removeTrayContainer()"
+        />
+        <q-space class="q-mx-xs" />
+        <q-btn
+          outline
+          no-caps
+          label="Cancel"
+          class="text-body1 full-width"
+          @click="hideModal"
+        />
+      </q-card-section>
+    </template>
+  </PopupModal>
 </template>
 
 <script setup>
@@ -158,6 +258,7 @@ import BarcodeBox from '@/components/BarcodeBox.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
+import PopupModal from '@/components/PopupModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -176,9 +277,11 @@ const {
 } = storeToRefs(useOptionStore())
 const {
   patchAccessionJob,
+  deleteAccessionJob,
   getAccessionTray,
   postAccessionTray,
-  patchAccessionTray
+  patchAccessionTray,
+  deleteAccessionTray
 } = useAccessionStore()
 const {
   accessionJob,
@@ -189,6 +292,11 @@ const {
 
 // Local Data
 const editMode = ref(false)
+const confirmationModal = ref(null)
+const showConfirmationModal = ref(false)
+const trayBarcodeModal = ref(null)
+const showEditTrayModal = ref(false)
+const trayBarcodeInput = ref('')
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -196,6 +304,13 @@ const handleAlert = inject('handle-alert')
 const handleOptionMenu = (option) => {
   if (option.text == 'Edit') {
     editMode.value = true
+  } else if (option.text == 'Cancel Job') {
+    showConfirmationModal.value = 'CancelJob'
+  } else if (option.text == 'Edit Tray Barcode') {
+    showEditTrayModal.value = true
+    trayBarcodeInput.value = accessionContainer.barcode?.value
+  } else if (option.text == 'Delete Tray') {
+    showConfirmationModal.value = 'DeleteTray'
   }
 }
 
@@ -293,6 +408,34 @@ const updateTrayJob = async () => {
     editMode.value = false
   }
 }
+const cancelAccessionJob = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    await deleteAccessionJob(route.params.jobId)
+
+    handleAlert({
+      type: 'success',
+      text: 'The Accession Job has been canceled.',
+      autoClose: true
+    })
+
+    router.push({
+      name: 'accession',
+      params: {
+        jobId: null
+      }
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = true
+    confirmationModal.value.hideModal()
+  }
+}
 const updateTrayContainer = async () => {
   try {
     appActionIsLoadingData.value = true
@@ -316,6 +459,63 @@ const updateTrayContainer = async () => {
   } finally {
     appActionIsLoadingData.value = false
     editMode.value = false
+  }
+}
+const updateTrayContainerBarcode = async () => {
+  try {
+    appActionIsLoadingData.value = true
+
+    //check if the barcode is in the system otherwise create it
+    await verifyBarcode(trayBarcodeInput.value, 'Tray')
+
+    const payload = {
+      id: accessionContainer.value.id,
+      barcode_id: barcodeDetails.value.id
+    }
+    await patchAccessionTray(payload)
+
+    handleAlert({
+      type: 'success',
+      text: 'The tray has been updated.',
+      autoClose: true
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = false
+    trayBarcodeModal.value.hideModal()
+  }
+}
+const removeTrayContainer = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    await deleteAccessionTray(accessionContainer.value.id)
+
+    handleAlert({
+      type: 'success',
+      text: 'The Tray Container has been deleted.',
+      autoClose: true
+    })
+
+    router.push({
+      name: 'accession',
+      params: {
+        jobId: route.params.jobId
+      }
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = true
+    confirmationModal.value.hideModal()
   }
 }
 

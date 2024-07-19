@@ -109,6 +109,14 @@ export const useAccessionStore = defineStore('accession-store', {
         throw error
       }
     },
+    async deleteAccessionJob (jobId) {
+      try {
+        await this.$api.delete(`${inventoryServiceApi.accessionJobs}${jobId}`)
+        this.resetAccessionStore()
+      } catch (error) {
+        throw error
+      }
+    },
     async getAccessionTray (barcode) {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.traysBarcode}${barcode}`)
@@ -143,6 +151,14 @@ export const useAccessionStore = defineStore('accession-store', {
         const res = await this.$api.patch(`${inventoryServiceApi.trays}${payload.id}`, payload)
         this.accessionContainer = { ...res.data, items: res.data.items ?? [] }
         this.originalAccessionContainer = { ...res.data, items: res.data.items ?? [] }
+      } catch (error) {
+        throw error
+      }
+    },
+    async deleteAccessionTray (trayId) {
+      try {
+        await this.$api.delete(`${inventoryServiceApi.trays}${trayId}`)
+        this.resetAccessionContainer()
       } catch (error) {
         throw error
       }
