@@ -233,7 +233,7 @@
                     v-model="shelvingJob.module_id"
                     :options="renderBuildingModules"
                     option-value="id"
-                    :option-label="opt => opt.module_number.number"
+                    option-label="module_number"
                     :placeholder="'Select Module'"
                     :disabled="renderBuildingModules.length == 0"
                     @update:model-value="handleShelvingJobFormChange('Module')"
@@ -414,7 +414,6 @@ const {
   resetBuildingStore
 } = useBuildingStore()
 const {
-  buildingDetails,
   renderBuildingModules,
   renderBuildingOrModuleAisles,
   renderAisleSides,
@@ -628,7 +627,6 @@ const submitShelvingJob = async () => {
   try {
     appActionIsLoadingData.value = true
     const params = {
-      shelve_on_building: shelvingJob.value.assignLocation == false &&  buildingDetails.value.modules.length == 0 ? true : false,
       module_id: shelvingJob.value.module_id,
       aisle_id: shelvingJob.value.aisle_id,
       side_id: shelvingJob.value.side_id,

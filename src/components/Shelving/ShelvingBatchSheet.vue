@@ -61,7 +61,7 @@
                 :key="containers.id"
               >
                 <td>{{ containers.barcode?.value }}</td>
-                <td>{{ containers.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number }}</td>
+                <td>{{ containers.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number }}</td>
                 <td>{{ containers.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number }}</td>
                 <td>{{ containers.shelf_position?.shelf?.ladder?.side?.side_orientation?.name }}</td>
                 <td>{{ containers.shelf_position?.shelf?.ladder?.ladder_number?.number }}</td>
@@ -73,7 +73,7 @@
                 :key="containers.id"
               >
                 <td>{{ containers.barcode?.value }}</td>
-                <td>{{ containers.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number }}</td>
+                <td>{{ containers.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number }}</td>
                 <td>{{ containers.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number }}</td>
                 <td>{{ containers.shelf_position?.shelf?.ladder?.side?.side_orientation?.name }}</td>
                 <td>{{ containers.shelf_position?.shelf?.ladder?.ladder_number?.number }}</td>

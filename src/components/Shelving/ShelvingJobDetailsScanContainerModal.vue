@@ -59,7 +59,7 @@
               Module:
             </label>
             <p class="text-body1">
-              {{ shelvingJobContainer.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number }}
+              {{ shelvingJobContainer.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number }}
             </p>
           </div>
         </div>
