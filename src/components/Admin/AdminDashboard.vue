@@ -35,7 +35,7 @@
                 icon-right="chevron_right"
                 icon-right-size="28px"
                 class="text-h6 text-bold q-px-sm-lg q-pr-xs-sm q-pr-sm-lg"
-                @click="sublink.title == 'Buildings' ? handleLocationManageRoute(sublink.title) : showLocationManageRouteModal = true"
+                @click="sublink.title == 'Buildings' ? router.push({ name: 'admin-manage-buildings' }) : showLocationManageRouteModal = sublink.title"
               />
             </q-expansion-item>
           </template>
@@ -43,12 +43,19 @@
       </div>
     </div>
   </div>
+
+  <!-- routing modal whenever user selects any nested building field ex: modules, aisles ect-->
+  <AdminLocationManagerRouting
+    v-if="showLocationManageRouteModal !== null"
+    :location-title="showLocationManageRouteModal"
+  />
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import EssentialLink from '@/components/EssentialLink.vue'
+import AdminLocationManagerRouting from '@/components/Admin/AdminLocationManagerRouting.vue'
 
 const router = useRouter()
 
@@ -83,29 +90,7 @@ const adminLinkList = ref([
     ]
   }
 ])
-const showLocationManageRouteModal = ref(false)
-
-// Logic
-const handleLocationManageRoute = (linkTitle) => {
-  switch (linkTitle) {
-  case 'Buildings':
-    router.push({
-      name: 'admin-manage-buildings'
-    })
-    break
-  case 'Modules':
-    //TOOD need to figure out how we want to generate the specified location routes
-    break
-  case 'Aisles':
-    break
-  case 'Ladders':
-    break
-  case 'Shelves':
-    break
-  default:
-    break
-  }
-}
+const showLocationManageRouteModal = ref(null)
 </script>
 
 <style lang="scss" scoped>

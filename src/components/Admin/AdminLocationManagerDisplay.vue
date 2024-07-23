@@ -59,6 +59,14 @@
       </div>
     </div>
   </div>
+
+  <!-- add/edit location property modal -->
+  <AdminLocationManagerModal
+    v-if="showLocationModal.type !== ''"
+    :location-type="locationType"
+    :action-type="showLocationModal.type"
+    @hide="showLocationModal.type = ''"
+  />
 </template>
 
 <script setup>
@@ -68,6 +76,8 @@ import { onBeforeMount, ref, computed } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from 'src/components/EssentialTable.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
+import AdminLocationManagerModal from '@/components/Admin/AdminLocationManagerModal.vue'
+
 // Props
 const mainProps = defineProps({
   locationType: {
