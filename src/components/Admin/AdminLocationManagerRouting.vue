@@ -53,12 +53,15 @@
             <div class="form-group">
               <label class="form-group-label">
                 Module
+                <span class="text-caption text-negative">
+                  (Required)
+                </span>
               </label>
               <SelectInput
                 v-model="locationRoutingForm.module_id"
                 :options="renderBuildingModules"
                 option-value="id"
-                :option-label="opt => opt.module_number.number"
+                option-label="module_number"
                 :placeholder="'Select Module'"
                 :disabled="renderBuildingModules.length == 0"
                 @update:model-value="handleLocationFormChange('Module')"
@@ -74,6 +77,9 @@
             <div class="form-group">
               <label class="form-group-label">
                 Aisle
+                <span class="text-caption text-negative">
+                  (Required)
+                </span>
               </label>
               <SelectInput
                 v-model="locationRoutingForm.aisle_id"
@@ -94,6 +100,9 @@
             <div class="form-group">
               <label class="form-group-label">
                 Side
+                <span class="text-caption text-negative">
+                  (Required)
+                </span>
               </label>
               <ToggleButtonInput
                 v-model="locationRoutingForm.side_id"
@@ -113,6 +122,9 @@
             <div class="form-group">
               <label class="form-group-label">
                 Ladder
+                <span class="text-caption text-negative">
+                  (Required)
+                </span>
               </label>
               <SelectInput
                 v-model="locationRoutingForm.ladder_id"
@@ -139,7 +151,7 @@
           :label="`Manage ${locationTitle}`"
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
-          :disable="false"
+          :disable="!isRoutingValid"
           @click="handleLocationRouting"
         />
 
@@ -158,7 +170,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useBuildingStore } from '@/stores/building-store'
@@ -208,8 +220,39 @@ const locationRoutingForm = ref({
   building_id: null,
   module_id: null,
   aisle_id: null,
-  side_id: 1,
+  side_id: null,
   ladder_id: null
+})
+const isRoutingValid = computed(() => {
+  let routingFormValid = false
+  let optionalFields = []
+  switch (mainProps.locationTitle) {
+  case 'Modules':
+    optionalFields = [
+      'module_id',
+      'aisle_id',
+      'side_id',
+      'ladder_id'
+    ]
+    routingFormValid = Object.keys(locationRoutingForm.value).every(key => optionalFields.includes(key) || locationRoutingForm.value[key] !== null && locationRoutingForm.value[key] !== '')
+    break
+  case 'Aisles':
+    optionalFields = [
+      'aisle_id',
+      'side_id',
+      'ladder_id'
+    ]
+    routingFormValid = Object.keys(locationRoutingForm.value).every(key => optionalFields.includes(key) || locationRoutingForm.value[key] !== null && locationRoutingForm.value[key] !== '')
+    break
+  case 'Ladders':
+    optionalFields = ['ladder_id']
+    routingFormValid = Object.keys(locationRoutingForm.value).every(key => optionalFields.includes(key) || locationRoutingForm.value[key] !== null && locationRoutingForm.value[key] !== '')
+    break
+  case 'Shelves':
+    routingFormValid = Object.keys(locationRoutingForm.value).every(key => locationRoutingForm.value[key] !== null && locationRoutingForm.value[key] !== '')
+    break
+  }
+  return routingFormValid
 })
 
 // Logic
@@ -220,7 +263,6 @@ const renderFormElement = (formField) => {
   switch (formField) {
   case 'Module':
     allowedTitles = [
-      'Modules',
       'Aisles',
       'Ladders',
       'Shelves'
@@ -228,7 +270,6 @@ const renderFormElement = (formField) => {
     return allowedTitles.some(str => mainProps.locationTitle.includes(str))
   case 'Aisle':
     allowedTitles = [
-      'Aisles',
       'Ladders',
       'Shelves'
     ]
@@ -252,18 +293,18 @@ const handleLocationFormChange = async (valueType) => {
     await getBuildingDetails(locationRoutingForm.value.building_id)
     locationRoutingForm.value.module_id = null
     locationRoutingForm.value.aisle_id = null
-    locationRoutingForm.value.side_id = 1
+    locationRoutingForm.value.side_id = null
     locationRoutingForm.value.ladder_id = null
     return
   case 'Module':
     await getModuleDetails(locationRoutingForm.value.module_id)
     locationRoutingForm.value.aisle_id = null
-    locationRoutingForm.value.side_id = 1
+    locationRoutingForm.value.side_id = null
     locationRoutingForm.value.ladder_id = null
     return
   case 'Aisle':
     await getAisleDetails(locationRoutingForm.value.aisle_id)
-    locationRoutingForm.value.side_id = 1
+    locationRoutingForm.value.side_id = null
     locationRoutingForm.value.ladder_id = null
     return
   case 'Side':
@@ -277,7 +318,7 @@ const handleLocationFormChange = async (valueType) => {
 }
 
 const handleLocationRouting = () => {
-  switch (mainProps.locaitonTitle) {
+  switch (mainProps.locationTitle) {
   case 'Modules':
     router.push({
       name: 'admin-manage-modules',

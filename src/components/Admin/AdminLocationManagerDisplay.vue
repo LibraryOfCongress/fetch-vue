@@ -71,8 +71,9 @@
 
 <script setup>
 import { onBeforeMount, ref, computed } from 'vue'
-// import { useBuildingStore } from '@/stores/building-store'
-// import { storeToRefs } from 'pinia'
+import { useGlobalStore } from '@/stores/global-store'
+import { useBuildingStore } from '@/stores/building-store'
+import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from 'src/components/EssentialTable.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
@@ -91,7 +92,16 @@ const mainProps = defineProps({
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-// const { buildingDetails } = storeToRefs(useBuildingStore())
+const { appIsLoadingData } = storeToRefs(useGlobalStore())
+const { getBuildingsList } = useBuildingStore()
+const {
+  buildings,
+  buildingDetails,
+  moduleDetails,
+  aisleDetails,
+  sideDetails,
+  ladderDetails
+} = storeToRefs(useBuildingStore())
 
 // Local Data
 const locationData = ref([]) //TODO this needs to be rendered data from building store
@@ -100,14 +110,22 @@ const locationTableColumns = ref([])
 const locationTableFilters =  ref([])
 const renderLocationTableTitle = computed(() => {
   let title = ''
-  switch (mainProps.locationType) {
-  case 'shelves':
-    title = 'Shelf'
-    break
-  default:
-    title = mainProps.locationType
-    title = title.replace(title[0], title[0].toUpperCase())
-    break
+  const building = buildingDetails.value.name
+  const module = moduleDetails.value?.module_number
+  const aisle = aisleDetails.value?.aisle_number?.number
+  const side = sideDetails.value?.side_orientation?.name
+  const ladder = ladderDetails.value?.ladder_number?.number
+  if (mainProps.locationType == 'buildings') {
+    // returns a title in title case format
+    title = `${mainProps.locationType.replace(mainProps.locationType[0], mainProps.locationType[0].toUpperCase())}`
+  } else if (mainProps.locationType == 'modules') {
+    // returns a title in the format of 'building: Modules'
+    // ex: Fort Meade (1-2-L-3): Shelves
+    title = `${building}: ${mainProps.locationType.replace(mainProps.locationType[0], mainProps.locationType[0].toUpperCase())}`
+  } else {
+    // returns a title in the format of 'building (location selection): locationType'
+    // ex: Fort Meade (1-2-L-3): Shelves
+    title = `${building} (${module ?? ''}${aisle ? '-' + aisle : ''}${side && side == 'Left' ? '-L' : side && side == 'Right' ? '-R' : ''}${ladder ? '-' + ladder : ''}): ${mainProps.locationType.replace(mainProps.locationType[0], mainProps.locationType[0].toUpperCase())}`
   }
   return title
 })
@@ -165,7 +183,7 @@ const showLocationModal = ref({
 
 // Logic
 onBeforeMount(() => {
-  generateLocationTableFields()
+  generateLocationTableInfo()
 })
 
 const handleOptionMenu = async (rowData) => {
@@ -174,10 +192,15 @@ const handleOptionMenu = async (rowData) => {
   showLocationModal.value.type = 'Edit'
 }
 
-const generateLocationTableFields = () => {
+const generateLocationTableInfo = async () => {
   // creates the report table fields needed based on the selected location type
   switch (mainProps.locationType) {
   case 'buildings':
+    appIsLoadingData.value = true
+    await getBuildingsList()
+    appIsLoadingData.value = false
+
+    locationData.value = buildings.value
     locationTableColumns.value = [
       {
         name: 'actions',
@@ -189,7 +212,7 @@ const generateLocationTableFields = () => {
       },
       {
         name: 'building',
-        field: row => row.building?.name,
+        field: 'name',
         label: 'Building',
         align: 'left',
         sortable: true
@@ -217,6 +240,7 @@ const generateLocationTableFields = () => {
     ]
     break
   case 'modules':
+    locationData.value = buildingDetails.value.modules
     locationTableColumns.value = [
       {
         name: 'actions',
@@ -228,7 +252,7 @@ const generateLocationTableFields = () => {
       },
       {
         name: 'module',
-        field: row => row.module?.module_number,
+        field: 'module_number',
         label: 'Module',
         align: 'left',
         sortable: true
@@ -256,6 +280,7 @@ const generateLocationTableFields = () => {
     ]
     break
   case 'aisles':
+    locationData.value = moduleDetails.value.aisles
     locationTableColumns.value = [
       {
         name: 'actions',
@@ -267,7 +292,7 @@ const generateLocationTableFields = () => {
       },
       {
         name: 'aisle',
-        field: row => row.aisle?.aisle_number?.number,
+        field: row => row.aisle_number?.number,
         label: 'Aisle',
         align: 'left',
         sortable: true
@@ -303,6 +328,7 @@ const generateLocationTableFields = () => {
     ]
     break
   case 'ladders':
+    locationData.value = sideDetails.value.ladders
     locationTableColumns.value = [
       {
         name: 'actions',
@@ -314,7 +340,7 @@ const generateLocationTableFields = () => {
       },
       {
         name: 'ladder',
-        field: row => row.ladder?.ladder_number?.number,
+        field: row => row.ladder_number?.number,
         label: 'Ladder',
         align: 'left',
         sortable: true
@@ -350,6 +376,7 @@ const generateLocationTableFields = () => {
     ]
     break
   case 'shelves':
+    locationData.value = ladderDetails.value.shelves
     locationTableColumns.value = [
       {
         name: 'actions',
@@ -361,7 +388,7 @@ const generateLocationTableFields = () => {
       },
       {
         name: 'shelf_number',
-        field: 'shelf_number',
+        field: row => row.shelf_number?.number,
         label: 'Shelf Number',
         align: 'left',
         sortable: true
@@ -410,14 +437,14 @@ const generateLocationTableFields = () => {
       },
       {
         name: 'owner',
-        field: 'owner',
+        field: row => row.owner?.name,
         label: 'Owner',
         align: 'left',
         sortable: true
       },
       {
         name: 'shelf_barcode',
-        field: 'barcode',
+        field: row => row.barcode?.value,
         label: 'Shelf Barcode',
         align: 'left',
         sortable: true

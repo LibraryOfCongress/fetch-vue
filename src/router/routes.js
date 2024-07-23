@@ -68,13 +68,13 @@ const routes = [
       },
       {
         name: 'admin-manage-ladders',
-        path: 'admin/manage/:buildingId/:moduleId/:/aisleId/:sideId/ladders',
+        path: 'admin/manage/:buildingId/:moduleId/:aisleId/:sideId/ladders',
         component: () => import('@/pages/AdminPage.vue'),
         meta: { requiresAuth: true }
       },
       {
         name: 'admin-manage-shelves',
-        path: 'admin/manage/:buildingId/:moduleId/:/aisleId/:sideId/:ladderId/shelves',
+        path: 'admin/manage/:buildingId/:moduleId/:aisleId/:sideId/:ladderId/shelves',
         component: () => import('@/pages/AdminPage.vue'),
         meta: { requiresAuth: true }
       },

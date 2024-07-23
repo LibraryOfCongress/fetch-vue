@@ -48,16 +48,21 @@
   <AdminLocationManagerRouting
     v-if="showLocationManageRouteModal !== null"
     :location-title="showLocationManageRouteModal"
+    @hide="showLocationManageRouteModal = null; resetBuildingStore();"
   />
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onBeforeMount } from 'vue'
 import { useRouter } from 'vue-router'
+import { useBuildingStore } from '@/stores/building-store'
 import EssentialLink from '@/components/EssentialLink.vue'
 import AdminLocationManagerRouting from '@/components/Admin/AdminLocationManagerRouting.vue'
 
 const router = useRouter()
+
+// Store Data
+const { resetBuildingStore } = useBuildingStore()
 
 // Local Data
 const adminLinkList = ref([
@@ -91,6 +96,11 @@ const adminLinkList = ref([
   }
 ])
 const showLocationManageRouteModal = ref(null)
+
+// Logic
+onBeforeMount(() => {
+  resetBuildingStore()
+})
 </script>
 
 <style lang="scss" scoped>
