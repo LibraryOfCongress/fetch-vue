@@ -233,7 +233,7 @@
                     v-model="shelvingJob.module_id"
                     :options="renderBuildingModules"
                     option-value="id"
-                    :option-label="opt => opt.module_number.number"
+                    option-label="module_number"
                     :placeholder="'Select Module'"
                     :disabled="renderBuildingModules.length == 0"
                     @update:model-value="handleShelvingJobFormChange('Module')"

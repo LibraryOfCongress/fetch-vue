@@ -215,9 +215,7 @@ export const useRequestStore = defineStore('request-store', {
                             },
                             'module': {
                               'id': 3,
-                              'module_number': {
-                                'number': 3
-                              },
+                              'module_number': '3',
                               'building': {
                                 'id': 1,
                                 'name': 'Fort Meade'

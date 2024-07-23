@@ -68,7 +68,7 @@
               Module:
             </label>
             <p class="text-body1">
-              {{ refileItem.tray ? refileItem.tray.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number : refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number }}
+              {{ refileItem.tray ? refileItem.tray.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number : refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number }}
             </p>
           </div>
         </div>
