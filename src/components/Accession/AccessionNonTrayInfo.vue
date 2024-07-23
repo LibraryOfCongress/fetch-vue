@@ -188,7 +188,7 @@
 </template>
 
 <script setup>
-import { ref, toRaw, inject } from 'vue'
+import { ref, toRaw, inject, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
@@ -287,6 +287,9 @@ const cancelAccessionJob = async () => {
       text: 'The Accession Job has been canceled.',
       autoClose: true
     })
+    appActionIsLoadingData.value = false
+
+    await nextTick()
 
     router.push({
       name: 'accession',
@@ -300,9 +303,7 @@ const cancelAccessionJob = async () => {
       text: error,
       autoClose: true
     })
-  } finally {
-    appActionIsLoadingData.value = true
-    confirmationModal.value.hideModal()
+    appActionIsLoadingData.value = false
   }
 }
 const updateNonTrayContainer = async () => {

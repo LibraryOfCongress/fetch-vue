@@ -14,7 +14,7 @@
 
 <script setup>
 import { onBeforeMount, inject } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAccessionStore } from 'src/stores/accession-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -23,6 +23,7 @@ import AccessionDashboard from '@/components/Accession/AccessionDashboard.vue'
 import AccessionContainerDisplay from '@/components/Accession/AccessionContainerDisplay.vue'
 
 const route = useRoute()
+const router = useRouter()
 
 // Store Data
 const {
@@ -35,6 +36,7 @@ const { getOptions } = useOptionStore()
 
 // Logic
 const handlePageOffset = inject('handle-page-offset')
+const handleAlert = inject('handle-alert')
 
 onBeforeMount( async () => {
   // load any options info that will be needed in accession
@@ -50,9 +52,33 @@ onBeforeMount( async () => {
 
   if (route.params.containerId) {
     if (accessionJob.value.trayed) {
-      await getAccessionTray(route.params.containerId)
+      await getAccessionTray(route.params.containerId).catch(error => {
+        handleAlert({
+          type: 'error',
+          text: error,
+          autoClose: true
+        })
+        router.push({
+          name: 'accession',
+          params: {
+            jobId: route.params.jobId
+          }
+        })
+      })
     } else {
-      await getAccessionNonTrayItem(route.params.containerId)
+      await getAccessionNonTrayItem(route.params.containerId).catch(error => {
+        handleAlert({
+          type: 'error',
+          text: error,
+          autoClose: true
+        })
+        router.push({
+          name: 'accession',
+          params: {
+            jobId: route.params.jobId
+          }
+        })
+      })
     }
   }
 })

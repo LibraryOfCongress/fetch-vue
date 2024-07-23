@@ -9,7 +9,7 @@
           ] : [
             { text: 'Edit' },
             { text: 'Cancel Job', optionClass: 'text-negative'},
-            { text: 'Edit Tray Barcode' },
+            { text: 'Edit Tray Barcode', disabled: barcodeScanAllowed },
             { text: 'Delete Tray', optionClass: 'text-negative'}
           ]"
           class="q-mr-sm"
@@ -245,7 +245,7 @@
 </template>
 
 <script setup>
-import { ref, watch, toRaw, inject } from 'vue'
+import { ref, watch, toRaw, inject, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
@@ -259,6 +259,7 @@ import SelectInput from '@/components/SelectInput.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
 import PopupModal from '@/components/PopupModal.vue'
+import TextInput from '@/components/TextInput.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -270,7 +271,7 @@ const { compiledBarCode } = useBarcodeScanHandler()
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { verifyBarcode } = useBarcodeStore()
-const { barcodeDetails } = storeToRefs(useBarcodeStore())
+const { barcodeDetails, barcodeScanAllowed } = storeToRefs(useBarcodeStore())
 const {
   sizeClass,
   mediaTypes
@@ -307,8 +308,8 @@ const handleOptionMenu = (option) => {
   } else if (option.text == 'Cancel Job') {
     showConfirmationModal.value = 'CancelJob'
   } else if (option.text == 'Edit Tray Barcode') {
+    trayBarcodeInput.value = accessionContainer.value.barcode.value
     showEditTrayModal.value = true
-    trayBarcodeInput.value = accessionContainer.barcode?.value
   } else if (option.text == 'Delete Tray') {
     showConfirmationModal.value = 'DeleteTray'
   }
@@ -418,6 +419,9 @@ const cancelAccessionJob = async () => {
       text: 'The Accession Job has been canceled.',
       autoClose: true
     })
+    appActionIsLoadingData.value = false
+
+    await nextTick()
 
     router.push({
       name: 'accession',
@@ -431,9 +435,7 @@ const cancelAccessionJob = async () => {
       text: error,
       autoClose: true
     })
-  } finally {
-    appActionIsLoadingData.value = true
-    confirmationModal.value.hideModal()
+    appActionIsLoadingData.value = false
   }
 }
 const updateTrayContainer = async () => {
@@ -479,6 +481,15 @@ const updateTrayContainerBarcode = async () => {
       text: 'The tray has been updated.',
       autoClose: true
     })
+
+    // update our router params without reloading the page
+    router.replace({
+      name: route.name,
+      params: {
+        jobId: route.params.jobId,
+        containerId: trayBarcodeInput.value
+      }
+    })
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -500,6 +511,8 @@ const removeTrayContainer = async () => {
       text: 'The Tray Container has been deleted.',
       autoClose: true
     })
+    confirmationModal.value.hideModal()
+    appActionIsLoadingData.value = false
 
     router.push({
       name: 'accession',
@@ -513,9 +526,7 @@ const removeTrayContainer = async () => {
       text: error,
       autoClose: true
     })
-  } finally {
-    appActionIsLoadingData.value = true
-    confirmationModal.value.hideModal()
+    appActionIsLoadingData.value = false
   }
 }
 

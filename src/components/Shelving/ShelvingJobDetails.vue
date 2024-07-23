@@ -431,7 +431,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'module',
-    field: row => row.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number?.number,
+    field: row => row.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number,
     label: 'Module',
     align: 'left',
     sortable: true,
