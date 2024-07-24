@@ -72,7 +72,7 @@
 
           <div
             v-if="renderFormElement('Aisle')"
-            class="col-xs-12 col-sm-6 q-pr-sm-xs"
+            class="col-xs-12 col-sm-6 q-pr-sm-xs q-mb-md"
           >
             <div class="form-group">
               <label class="form-group-label">
@@ -95,7 +95,7 @@
           </div>
           <div
             v-if="renderFormElement('Side')"
-            class="col-xs-12 col-sm-6 q-pl-sm-xs q-mt-xs-md q-mt-sm-none"
+            class="col-xs-12 col-sm-6 q-pl-sm-xs q-mb-xs-md q-mb-sm-none"
           >
             <div class="form-group">
               <label class="form-group-label">
@@ -117,7 +117,7 @@
 
           <div
             v-if="renderFormElement('Ladder')"
-            class="col-12 q-my-md"
+            class="col-12 q-mb-md"
           >
             <div class="form-group">
               <label class="form-group-label">
@@ -149,7 +149,7 @@
           unelevated
           color="accent"
           :label="`Manage ${locationTitle}`"
-          class="text-body1 full-width"
+          class="text-body1 full-width text-nowrap"
           :loading="appActionIsLoadingData"
           :disable="!isRoutingValid"
           @click="handleLocationRouting"
@@ -171,6 +171,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useBuildingStore } from '@/stores/building-store'
@@ -178,8 +179,6 @@ import { storeToRefs } from 'pinia'
 import SelectInput from '@/components/SelectInput.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
-
-import { useRouter } from 'vue-router'
 
 const router = useRouter()
 

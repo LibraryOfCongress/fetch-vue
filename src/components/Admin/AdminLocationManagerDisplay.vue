@@ -38,7 +38,7 @@
             </div>
           </template>
 
-          <template #table-td="{ colName, props }">
+          <template #table-td="{ colName, props, value }">
             <span
               v-if="colName == 'actions'"
             >
@@ -49,11 +49,9 @@
               />
             </span>
 
-            <!-- <span
-              v-if="colName == 'shelf_width' || colName == 'shelf_height' || colName == 'shelf_depth'"
-            >
-              {{ value }} ft
-            </span> -->
+            <span v-if="colName.includes('_dt')">
+              {{ formatDateTime(value).date }}
+            </span>
           </template>
         </EssentialTable>
       </div>
@@ -65,19 +63,24 @@
     v-if="showLocationModal.type !== ''"
     :location-type="locationType"
     :action-type="showLocationModal.type"
-    @hide="showLocationModal.type = ''"
+    :location-data="showLocationModal.locationData"
+    @hide="showLocationModal.type = ''; showLocationModal.locationData = {}"
   />
 </template>
 
 <script setup>
-import { onBeforeMount, ref, computed } from 'vue'
+import { onBeforeMount, ref, inject, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useBuildingStore } from '@/stores/building-store'
+import { useOptionStore } from '@/stores/option-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from 'src/components/EssentialTable.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import AdminLocationManagerModal from '@/components/Admin/AdminLocationManagerModal.vue'
+
+const route = useRoute()
 
 // Props
 const mainProps = defineProps({
@@ -93,7 +96,13 @@ const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const { appIsLoadingData } = storeToRefs(useGlobalStore())
-const { getBuildingsList } = useBuildingStore()
+const {
+  getBuildingsList,
+  getBuildingDetails,
+  getModuleDetails,
+  getSideDetails,
+  getLadderDetails
+} = useBuildingStore()
 const {
   buildings,
   buildingDetails,
@@ -102,9 +111,36 @@ const {
   sideDetails,
   ladderDetails
 } = storeToRefs(useBuildingStore())
+const { getOptions } = useOptionStore()
+const {
+  owners,
+  sizeClass
+} = storeToRefs(useOptionStore())
 
 // Local Data
-const locationData = ref([]) //TODO this needs to be rendered data from building store
+const locationData = computed(() => {
+  let tableData = []
+  switch (mainProps.locationType) {
+  case 'buildings':
+    tableData = buildings.value
+    break
+  case 'modules':
+    tableData = buildingDetails.value.modules
+    break
+  case 'aisles':
+    tableData = moduleDetails.value.aisles
+    break
+  case 'ladders':
+    tableData = sideDetails.value.ladders
+    break
+  case 'shelves':
+    tableData = ladderDetails.value.shelves
+    break
+  default:
+    break
+  }
+  return tableData
+})
 const locationTableVisibleColumns = ref([])
 const locationTableColumns = ref([])
 const locationTableFilters =  ref([])
@@ -177,30 +213,39 @@ const renderLocationTableOptionsMenu = computed(() => {
 })
 const showLocationModal = ref({
   type: '',
-  locationType: mainProps.locationType
+  locationType: mainProps.locationType,
+  locationData: {}
 })
 
 
 // Logic
+const handleAlert = inject('handle-alert')
+const formatDateTime = inject('format-date-time')
+
 onBeforeMount(() => {
+  loadLocationData()
   generateLocationTableInfo()
 })
 
 const handleOptionMenu = async (rowData) => {
-  // TODO remove rowData if it is not needed to be passed to the locationModal since will have store data
-  console.log(rowData)
+  // load any options info that will be needed in our modal popup
+  if (mainProps.locationType == 'shelves' && (owners.value.length == 0 || sizeClass.value.length == 0)) {
+    appIsLoadingData.value = true
+    await Promise.all([
+      getOptions('owners'),
+      getOptions('sizeClass')
+    ])
+    appIsLoadingData.value = false
+  }
+
+  showLocationModal.value.locationData = rowData
   showLocationModal.value.type = 'Edit'
 }
 
-const generateLocationTableInfo = async () => {
+const generateLocationTableInfo = () => {
   // creates the report table fields needed based on the selected location type
   switch (mainProps.locationType) {
   case 'buildings':
-    appIsLoadingData.value = true
-    await getBuildingsList()
-    appIsLoadingData.value = false
-
-    locationData.value = buildings.value
     locationTableColumns.value = [
       {
         name: 'actions',
@@ -240,7 +285,6 @@ const generateLocationTableInfo = async () => {
     ]
     break
   case 'modules':
-    locationData.value = buildingDetails.value.modules
     locationTableColumns.value = [
       {
         name: 'actions',
@@ -280,7 +324,6 @@ const generateLocationTableInfo = async () => {
     ]
     break
   case 'aisles':
-    locationData.value = moduleDetails.value.aisles
     locationTableColumns.value = [
       {
         name: 'actions',
@@ -328,7 +371,6 @@ const generateLocationTableInfo = async () => {
     ]
     break
   case 'ladders':
-    locationData.value = sideDetails.value.ladders
     locationTableColumns.value = [
       {
         name: 'actions',
@@ -376,7 +418,6 @@ const generateLocationTableInfo = async () => {
     ]
     break
   case 'shelves':
-    locationData.value = ladderDetails.value.shelves
     locationTableColumns.value = [
       {
         name: 'actions',
@@ -465,6 +506,49 @@ const generateLocationTableInfo = async () => {
     break
   default:
     break
+  }
+}
+
+const loadLocationData = async () => {
+  try {
+    appIsLoadingData.value = true
+    switch (mainProps.locationType) {
+    case 'buildings':
+      if (buildings.value.length == 0) {
+        await getBuildingsList()
+      }
+      break
+    case 'modules':
+      if (!buildingDetails.value.id) {
+        await getBuildingDetails(route.params.buildingId)
+      }
+      break
+    case 'aisles':
+      if (!moduleDetails.value.id) {
+        await getModuleDetails(route.params.moduleId)
+      }
+      break
+    case 'ladders':
+      if (!sideDetails.value.id) {
+        await getSideDetails(route.params.sideId)
+      }
+      break
+    case 'shelves':
+      if (!ladderDetails.value.id) {
+        await getLadderDetails(route.params.ladderId)
+      }
+      break
+    default:
+      break
+    }
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 </script>
