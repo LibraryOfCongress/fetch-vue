@@ -158,7 +158,7 @@
     v-if="showConfirmationModal"
     ref="confirmationModal"
     :title="'Delete'"
-    :text="'Are you sure you want to cancel the accession job?'"
+    :text="'Are you sure you want to cancel the accession job? Warning: All associated items will be deleted.'"
     :show-actions="false"
     @reset="showConfirmationModal = null"
     aria-label="confirmationModal"
