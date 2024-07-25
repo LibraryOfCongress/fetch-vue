@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import inventoryServiceApi from '@/http/InventoryService.js'
+import { jwtDecode } from 'jwt-decode'
 
 export const useUserStore = defineStore('user-store', {
   state: () => ({
@@ -18,7 +19,8 @@ export const useUserStore = defineStore('user-store', {
     async patchLogin (payload, type) {
       try {
         if (type == 'Internal') {
-          await this.$api.post(inventoryServiceApi.authLegacyLogin, payload)
+          const res = await this.$api.post(inventoryServiceApi.authLegacyLogin, payload)
+          this.userData = jwtDecode(res.data.detail)
         } else {
           // sso login will pass the direct user data as the payload from a decoded jwt
           this.userData = payload
@@ -27,12 +29,7 @@ export const useUserStore = defineStore('user-store', {
         // set user credentials in local storage
         localStorage.setItem('user', JSON.stringify(this.userData))
       } catch (error) {
-        //TODO: REMOVE TEMP Redirect for 404 legacy login token error
-        if (error.response.status == 404 && error.response.request.responseURL.includes('?token')) {
-          window.location.replace(error.response.request.responseURL)
-        } else {
-          throw error
-        }
+        throw error
       }
     },
     async patchLogout () {
