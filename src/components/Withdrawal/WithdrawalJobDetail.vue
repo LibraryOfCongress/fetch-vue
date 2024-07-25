@@ -272,7 +272,6 @@
                     clickable
                     v-close-popup
                     @click="showAddItemModal = 'Bulk'"
-                    :disable="true"
                     role="menuitem"
                   >
                     <q-item-section>

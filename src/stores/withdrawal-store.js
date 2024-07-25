@@ -105,6 +105,20 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
       } catch (error) {
         throw error
       }
+    },
+    async postWithdrawJobBulkItems (payload) {
+      try {
+        // create a formData Object and assign the file to the formData to be passed to api as 'multipart/form-data' content
+        let formData = new FormData()
+        formData.append('file', payload.file)
+        console.log('bulk uploading items to withdraw', payload, formData)
+        //TODO setup api call to upload a list of items to withdraw job
+        // const res = await this.$api.post(`${inventoryServiceApi.bulkUpload}${payload.id}`, payload)
+        // this.withdrawJob = res.data
+        // this.originalWithdrawJob = { ...this.withdrawJob }
+      } catch (error) {
+        throw error
+      }
     }
   }
 })

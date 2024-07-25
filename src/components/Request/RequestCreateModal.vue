@@ -114,7 +114,7 @@
       >
         <div class="col-grow">
           <p class="text-body2">
-            Support files: .xls, .xlsx, .uslm, .pdf, .docx
+            Support files: .csv
           </p>
         </div>
         <div class="col-auto flex justify-end">
@@ -130,7 +130,7 @@
         <div class="col-12 q-mt-md">
           <FileUploadInput
             :allow-multiple-files="false"
-            :allowed-file-types="['.xls', '.xlsx', '.uslm', '.pdf', '.docx']"
+            :allowed-file-types="['.csv','.xlsx']"
             input-class="q-py-xs-md q-px-xs-lg q-py-sm-xl q-px-sm-lg"
             @file-change="requestFile = $event"
           />
@@ -201,7 +201,7 @@ const {
   requestsPriorities,
   requestsLocations
 } = storeToRefs(useOptionStore())
-const { postRequestJob } = useRequestStore()
+const { postRequestJob, postRequestBatchJob } = useRequestStore()
 const { requestJob } = storeToRefs(useRequestStore())
 
 // Local Data
@@ -256,13 +256,22 @@ const createRequestJob = async () => {
         priority_id: manualRequestForm.value.priority_id
       }
       await postRequestJob(payload)
+      handleAlert({
+        type: 'success',
+        text: 'Successfully created the request.',
+        autoClose: true
+      })
     } else {
-      // TODO setup api call to sumbit request batch job
       payload = {
-        request_type_id: 'file',
-        request_file: requestFile.value
+        file: requestFile.value[0].file
       }
-      console.log(requestFile.value)
+      await postRequestBatchJob(payload)
+
+      handleAlert({
+        type: 'success',
+        text: 'Successfully created the request batch job.',
+        autoClose: true
+      })
 
       // route the user to the batch request detail page
       router.push({
@@ -272,12 +281,6 @@ const createRequestJob = async () => {
         }
       })
     }
-
-    handleAlert({
-      type: 'success',
-      text: 'Successfully created the request.',
-      autoClose: true
-    })
   } catch (error) {
     handleAlert({
       type: 'error',

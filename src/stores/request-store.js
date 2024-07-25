@@ -255,6 +255,18 @@ export const useRequestStore = defineStore('request-store', {
       } catch (error) {
         throw error
       }
+    },
+    async postRequestBatchJob (payload) {
+      try {
+        // create a formData Object and assign the file to the formData to be passed to api as 'multipart/form-data' content
+        let formData = new FormData()
+        formData.append('file', payload.file)
+        console.log('creating a request batch job', payload, formData)
+        // TODO setup api call to sumbit request batch job axios will auto configure the content type to 'multipart/form-data'
+        // await this.$api.post(inventoryServiceApi.bulkUpload, formData)
+      } catch (error) {
+        throw error
+      }
     }
   }
 })

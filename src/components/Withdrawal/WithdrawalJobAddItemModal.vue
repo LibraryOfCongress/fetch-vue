@@ -1,12 +1,13 @@
 <template>
   <PopupModal
     @reset="emit('hide')"
+    ref="withdrawalAddItemModal"
     aria-label="withdrawalJobItemModal"
   >
     <template #header-content="{ hideModal }">
       <q-card-section class="row items-center q-pb-none">
         <h2 class="text-h6 text-bold">
-          {{ entryType == 'Scan' ? 'Scan Item' : 'Manual Barcode Entry' }}
+          {{ entryType == 'Scan' ? 'Scan Item' : entryType == 'Bulk' ? 'Bulk Upload Items' : 'Manual Barcode Entry' }}
         </h2>
 
         <q-btn
@@ -42,6 +43,33 @@
         </div>
       </q-card-section>
       <q-card-section
+        v-else-if="entryType == 'Bulk'"
+        class="row q-pb-sm"
+      >
+        <div class="col-grow">
+          <p class="text-body2">
+            Support files: .csv
+          </p>
+        </div>
+        <div class="col-auto flex justify-end">
+          <a
+            tabindex="0"
+            class="link text-body2 text-accent"
+            @click="null"
+          >
+            Click to Download Template
+          </a>
+        </div>
+        <div class="col-12 q-mt-md">
+          <FileUploadInput
+            :allow-multiple-files="false"
+            :allowed-file-types="['.csv', '.xlsx']"
+            input-class="q-py-xs-md q-px-xs-lg q-py-sm-xl q-px-sm-lg"
+            @file-change="withdrawFile = $event"
+          />
+        </div>
+      </q-card-section>
+      <q-card-section
         v-else
         class="row q-pb-sm"
       >
@@ -70,7 +98,18 @@
           color="accent"
           label="Done"
           class="text-body1 full-width"
-          @click="hideModal();"
+          @click="hideModal()"
+        />
+        <q-btn
+          v-else-if="entryType == 'Bulk'"
+          no-caps
+          unelevated
+          color="accent"
+          label="Upload Items"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          :disabled="withdrawFile.length == 0"
+          @click="bulkAddItemToWithdrawJob()"
         />
         <q-btn
           v-else
@@ -81,7 +120,7 @@
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
           :disabled="!itemBarcode"
-          @click="triggerItemScan(itemBarcode); hideModal();"
+          @click="triggerItemScan(itemBarcode)"
         />
 
         <q-space class="q-mx-xs" />
@@ -107,6 +146,7 @@ import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 import PopupModal from '@/components/PopupModal.vue'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 import TextInput from '@/components/TextInput.vue'
+import FileUploadInput from '@/components/FileUploadInput.vue'
 
 // Props
 defineProps({
@@ -124,12 +164,14 @@ const { compiledBarCode } = useBarcodeScanHandler()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
-const { postWithdrawJobItem } = useWithdrawalStore()
+const { postWithdrawJobItem, postWithdrawJobBulkItems } = useWithdrawalStore()
 const { withdrawJob, withdrawJobItems } = storeToRefs(useWithdrawalStore())
 
 // Local Data
+const withdrawalAddItemModal = ref(null)
 const itemBarcode = ref(null)
 const showAddAlert = ref(false)
+const withdrawFile = ref([])
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -180,6 +222,34 @@ const addItemToWithdrawJob = async () => {
   } finally {
     appActionIsLoadingData.value = false
     itemBarcode.value = null
+    withdrawalAddItemModal.value.hideModal()
+  }
+}
+
+const bulkAddItemToWithdrawJob = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    const payload = {
+      job_id: withdrawJob.value.id,
+      file: withdrawFile.value[0].file
+    }
+    await postWithdrawJobBulkItems(payload)
+
+    handleAlert({
+      type: 'success',
+      text: 'Successfully bulk added items to the Withdraw Job!',
+      autoClose: true
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = false
+    withdrawFile.value = []
+    withdrawalAddItemModal.value.hideModal()
   }
 }
 </script>

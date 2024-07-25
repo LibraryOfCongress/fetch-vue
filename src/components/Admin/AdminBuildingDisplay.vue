@@ -299,7 +299,7 @@
         <q-card-section class="row items-end">
           <div class="col-grow">
             <p class="text-body2">
-              Support files: .xls, .xlsx, .uslm, .pdf, .docx
+              Support files: .csv
             </p>
           </div>
           <div class="col-auto flex justify-end">
@@ -315,7 +315,7 @@
           <div class="col-12 q-mt-md">
             <FileUploadInput
               :allow-multiple-files="false"
-              :allowed-file-types="['.xls', '.xlsx', '.uslm', '.pdf', '.docx']"
+              :allowed-file-types="['.csv']"
               input-class="q-py-xs-md q-px-xs-lg q-py-sm-xl q-px-sm-lg"
               @file-change="setBulkUploadFile"
             />
