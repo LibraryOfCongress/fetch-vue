@@ -118,19 +118,22 @@
           </p>
         </div>
         <div class="col-auto flex justify-end">
-          <a
-            tabindex="0"
+          <DownloadExcel
             class="link text-body2 text-accent"
-            @click="null"
+            :data="bulkRequestTemplateData"
+            type="csv"
+            name="bulk-request-template.csv"
+            worksheet="Bulk Requests"
+            aria-label="downloadRequestTemplateLink"
           >
             Click to Download Template
-          </a>
+          </DownloadExcel>
         </div>
 
         <div class="col-12 q-mt-md">
           <FileUploadInput
             :allow-multiple-files="false"
-            :allowed-file-types="['.csv','.xlsx']"
+            :allowed-file-types="['.csv']"
             input-class="q-py-xs-md q-px-xs-lg q-py-sm-xl q-px-sm-lg"
             @file-change="requestFile = $event"
           />
@@ -205,6 +208,16 @@ const { postRequestJob, postRequestBatchJob } = useRequestStore()
 const { requestJob } = storeToRefs(useRequestStore())
 
 // Local Data
+const bulkRequestTemplateData = ref([
+  {
+    'Item Barcode': '',
+    'External Request ID': '',
+    'Requestor Name': '',
+    'Priority': '',
+    'Request Type': '',
+    'Delivery Location': ''
+  }
+])
 const requestFile = ref([])
 const manualRequestForm = ref({
   barcode: null,

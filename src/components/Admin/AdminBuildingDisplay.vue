@@ -303,13 +303,16 @@
             </p>
           </div>
           <div class="col-auto flex justify-end">
-            <a
-              tabindex="0"
+            <DownloadExcel
               class="link text-body2 text-accent"
-              @click="null"
+              :data="bulkShelvingTemplateData"
+              type="csv"
+              name="bulk-shelving-template.csv"
+              worksheet="Bulk Shelving"
+              aria-label="downloadShelvingTemplateLink"
             >
               Click to Download Template
-            </a>
+            </DownloadExcel>
           </div>
 
           <div class="col-12 q-mt-md">
@@ -469,6 +472,21 @@ const { getBuildingsList } = useBuildingStore()
 const { buildings, buildingDetails } = storeToRefs(useBuildingStore())
 
 // Local Data
+const bulkShelvingTemplateData = ref([
+  {
+    'Side': '',
+    'Ladder': '',
+    'Shelf Number': '',
+    'Width': '',
+    'Height': '',
+    'Depth': '',
+    'Size Class': '',
+    'Container Type': '',
+    'Max Capacity': '',
+    'Owner': '',
+    'Shelf Barcode': ''
+  }
+])
 const buildingFormTitle = ref('')
 const buildingForm = ref({
   building: '',

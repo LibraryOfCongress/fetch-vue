@@ -52,13 +52,16 @@
           </p>
         </div>
         <div class="col-auto flex justify-end">
-          <a
-            tabindex="0"
+          <DownloadExcel
             class="link text-body2 text-accent"
-            @click="null"
+            :data="bulkWithdrawTemplateData"
+            type="csv"
+            name="bulk-withdraw-template.csv"
+            worksheet="Bulk Withdraw"
+            aria-label="downloadWithdrawTemplateLink"
           >
             Click to Download Template
-          </a>
+          </DownloadExcel>
         </div>
         <div class="col-12 q-mt-md">
           <FileUploadInput
@@ -168,6 +171,12 @@ const { postWithdrawJobItem, postWithdrawJobBulkItems } = useWithdrawalStore()
 const { withdrawJob, withdrawJobItems } = storeToRefs(useWithdrawalStore())
 
 // Local Data
+const bulkWithdrawTemplateData = ref([
+  {
+    'Item Barcode': '',
+    'Tray Barcode': ''
+  }
+])
 const withdrawalAddItemModal = ref(null)
 const itemBarcode = ref(null)
 const showAddAlert = ref(false)
