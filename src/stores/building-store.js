@@ -399,11 +399,17 @@ export const useBuildingStore = defineStore('building-store', {
       try {
         const res = await this.$api.post(inventoryServiceApi.aisles, payload)
 
-        // add the newly added aisle to the top of the moduleDetail aisle array
+        // add the newly added aisle to the top of the moduleDetail aisle array with a manual serialized aisle_number
         this.moduleDetails.aisles = [
-          res.data,
+          { ...res.data, aisle_number: { number: payload.aisle_number } },
           ...this.moduleDetails.aisles
         ]
+
+        // generate sides left and right on the newly created aisle
+        await Promise.all([
+          this.postSide({ aisle_id: res.data.id, side_orientation_id: 2 }),
+          this.postSide({ aisle_id: res.data.id, side_orientation_id: 1 })
+        ])
       } catch (error) {
         throw error
       }
@@ -426,6 +432,14 @@ export const useBuildingStore = defineStore('building-store', {
         throw error
       }
     },
+    async postSide (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.sides, payload)
+        this.sideDetails = res.data
+      } catch (error) {
+        throw error
+      }
+    },
     async getLadderDetails (id) {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.ladders}${id}`)
@@ -440,7 +454,7 @@ export const useBuildingStore = defineStore('building-store', {
 
         // add the newly added ladder to the top of the sideDetail ladders array
         this.sideDetails.ladders = [
-          res.data,
+          { ...res.data, ladder_number: { number: payload.ladder_number } },
           ...this.sideDetails.ladders
         ]
       } catch (error) {
@@ -471,7 +485,7 @@ export const useBuildingStore = defineStore('building-store', {
 
         // add the newly added shelve to the top of the ladderDetail shelves array
         this.ladderDetails.shelves = [
-          res.data,
+          { ...res.data, shelf_number: { number: payload.shelf_number } },
           ...this.ladderDetails.shelves
         ]
       } catch (error) {

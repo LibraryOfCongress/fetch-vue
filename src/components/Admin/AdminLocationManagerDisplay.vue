@@ -10,11 +10,11 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
-          :heading-rearrange-class="'q-mr-xs-md q-mr-sm-none'"
+          :heading-rearrange-class="'q-mr-xs-auto q-mr-sm-none q-ml-sm-auto'"
         >
           <template #heading-row>
             <div
-              class="col-xs-5 col-sm-auto q-mr-auto q-pl-xs-md"
+              class="col-xs-12 col-lg-auto q-mr-auto q-pb-xs-sm q-pb-lg-none"
               :class="currentScreenSize == 'xs' ? '' : 'self-center'"
             >
               <label class="text-h4 text-bold">
@@ -23,8 +23,8 @@
             </div>
 
             <div
-              class="col-xs-6 col-sm-auto flex q-pr-xs-md"
-              :class="currentScreenSize == 'xs' ? 'justify-end q-mb-md' : 'order-1'"
+              class="col-xs-5 col-sm-auto flex justify-end"
+              :class="'order-1'"
             >
               <q-btn
                 no-caps
@@ -100,6 +100,7 @@ const {
   getBuildingsList,
   getBuildingDetails,
   getModuleDetails,
+  getAisleDetails,
   getSideDetails,
   getLadderDetails
 } = useBuildingStore()
@@ -494,11 +495,7 @@ const generateLocationTableInfo = () => {
     locationTableVisibleColumns.value = [
       'actions',
       'shelf_number',
-      'shelf_width',
-      'shelf_height',
-      'shelf_depth',
       'size_class',
-      'max_capacity',
       'container_type',
       'owner',
       'shelf_barcode'
@@ -530,11 +527,16 @@ const loadLocationData = async () => {
       break
     case 'ladders':
       if (!sideDetails.value.id) {
+        await getModuleDetails(route.params.moduleId)
+        await getAisleDetails(route.params.aisleId)
         await getSideDetails(route.params.sideId)
       }
       break
     case 'shelves':
       if (!ladderDetails.value.id) {
+        await getModuleDetails(route.params.moduleId)
+        await getAisleDetails(route.params.aisleId)
+        await getSideDetails(route.params.sideId)
         await getLadderDetails(route.params.ladderId)
       }
       break

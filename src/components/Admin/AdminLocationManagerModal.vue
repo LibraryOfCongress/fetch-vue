@@ -60,7 +60,7 @@
                   :options="field.options"
                   :option-type="field.optionType"
                   option-value="id"
-                  :option-label="'name'"
+                  :option-label="field.field == 'container_type_id' ? 'type' : 'name'"
                   :placeholder="`Select ${field.label}`"
                   @update:model-value="null"
                   :aria-label="`${field.field}_select`"
@@ -142,7 +142,8 @@ const emit = defineEmits([
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   owners,
-  sizeClass
+  sizeClass,
+  containerTypes
 } = storeToRefs(useOptionStore())
 const {
   postBuilding,
@@ -237,6 +238,7 @@ const generateLocationModal = () => {
       ladder_id: route.params.ladderId,
       owner_id: mainProps.locationData.owner?.id ?? null,
       size_class_id: mainProps.locationData.size_class_id ?? null,
+      container_type_id: mainProps.locationData.container_type_id ?? null,
       width: mainProps.locationData.width ?? '',
       depth: mainProps.locationData.depth ?? '',
       height: mainProps.locationData.height ?? '',
@@ -257,6 +259,12 @@ const generateLocationModal = () => {
         label: 'Container Size',
         options: sizeClass,
         optionType: 'sizeClass'
+      },
+      {
+        field: 'container_type_id',
+        label: 'Container Type',
+        options: containerTypes,
+        optionType: 'containerTypes'
       },
       {
         field: 'barcode_value',
