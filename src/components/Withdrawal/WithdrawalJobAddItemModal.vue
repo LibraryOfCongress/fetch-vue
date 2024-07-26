@@ -58,6 +58,7 @@
             type="csv"
             name="bulk-withdraw-template.csv"
             worksheet="Bulk Withdraw"
+            :escape-csv="false"
             aria-label="downloadWithdrawTemplateLink"
           >
             Click to Download Template
@@ -250,11 +251,16 @@ const bulkAddItemToWithdrawJob = async () => {
       autoClose: true
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
+    //TODO figure out how to handle error logging for the user
+    if (error.response?.data?.errors) {
+      error.response.data.errors.forEach(err => {
+        handleAlert({
+          type: 'error',
+          text: `Batch withdraw upload failed: ${JSON.stringify(err)}`,
+          autoClose: true
+        })
+      })
+    }
   } finally {
     appActionIsLoadingData.value = false
     withdrawFile.value = []

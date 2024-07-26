@@ -124,6 +124,7 @@
             type="csv"
             name="bulk-request-template.csv"
             worksheet="Bulk Requests"
+            :escape-csv="false"
             aria-label="downloadRequestTemplateLink"
           >
             Click to Download Template
@@ -282,7 +283,7 @@ const createRequestJob = async () => {
 
       handleAlert({
         type: 'success',
-        text: 'Successfully created the request batch job.',
+        text: 'Successfully uploaded batch requests.',
         autoClose: true
       })
 
@@ -295,11 +296,24 @@ const createRequestJob = async () => {
       })
     }
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
+    if (mainProps.type == 'manual') {
+      handleAlert({
+        type: 'error',
+        text: error,
+        autoClose: true
+      })
+    } else {
+      //TODO figure out how to handle error logging for the user
+      if (error.response?.data?.errors) {
+        error.response.data.errors.forEach(err => {
+          handleAlert({
+            type: 'error',
+            text: `Batch request upload failed: ${JSON.stringify(err)}`,
+            autoClose: true
+          })
+        })
+      }
+    }
   } finally {
     appActionIsLoadingData.value = false
   }

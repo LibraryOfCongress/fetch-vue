@@ -309,6 +309,7 @@
               type="csv"
               name="bulk-shelving-template.csv"
               worksheet="Bulk Shelving"
+              :escape-csv="false"
               aria-label="downloadShelvingTemplateLink"
             >
               Click to Download Template
