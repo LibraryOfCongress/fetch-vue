@@ -112,16 +112,16 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
         let formData = new FormData()
         formData.append('file', payload.file)
         const res = await this.$api.post(`${inventoryServiceApi.batchUpload}withdraw-jobs/${this.withdrawJob.id}`, formData)
-        console.log('bulk uploading items to withdraw', payload, res)
+
+        //refresh the withdraw job
+        await this.getWithdrawJob(this.withdrawJob.id)
 
         // check if success message contains errors and return them
         if (res.data.errors && res.data.errors.length > 0) {
           // TODO setup a way to read success errors
           console.log('errors found', res.data.errors)
+          return res.data.errors
         }
-
-        //refresh the withdraw job
-        await this.getWithdrawJob(this.withdrawJob.id)
       } catch (error) {
         throw error
       }

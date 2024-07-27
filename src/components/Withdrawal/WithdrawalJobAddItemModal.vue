@@ -243,13 +243,23 @@ const bulkAddItemToWithdrawJob = async () => {
       job_id: withdrawJob.value.id,
       file: withdrawFile.value[0].file
     }
-    await postWithdrawJobBulkItems(payload)
+    const res = await postWithdrawJobBulkItems(payload)
 
     handleAlert({
       type: 'success',
       text: 'Successfully bulk added items to the Withdraw Job!',
       autoClose: true
     })
+    // check if errors are returned in our 200 response and display them
+    if (res) {
+      res.forEach(err => {
+        handleAlert({
+          type: 'error',
+          text: `Batch withdraw upload failed for the following: ${JSON.stringify(err)}`,
+          autoClose: true
+        })
+      })
+    }
   } catch (error) {
     //TODO figure out how to handle error logging for the user
     if (error.response?.data?.errors) {

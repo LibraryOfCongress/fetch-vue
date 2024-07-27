@@ -263,10 +263,14 @@ export const useRequestStore = defineStore('request-store', {
         formData.append('file', payload.file)
         const res = await this.$api.post(`${inventoryServiceApi.batchUpload}request`, formData)
 
+        //TEMP remove once batch view is built out
+        await this.getRequestJobList()
+
         // check if success message contains errors and return them
         if (res.data.errors && res.data.errors.length > 0) {
           // TODO setup a way to read success errors
           console.log('errors found', res.data.errors)
+          return res.data.errors
         }
       } catch (error) {
         throw error

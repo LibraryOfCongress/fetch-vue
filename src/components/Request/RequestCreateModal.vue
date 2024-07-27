@@ -279,13 +279,23 @@ const createRequestJob = async () => {
       payload = {
         file: requestFile.value[0].file
       }
-      await postRequestBatchJob(payload)
+      const res = await postRequestBatchJob(payload)
 
       handleAlert({
         type: 'success',
         text: 'Successfully uploaded batch requests.',
         autoClose: true
       })
+      // check if errors are returned in our 200 response and display them
+      if (res) {
+        res.forEach(err => {
+          handleAlert({
+            type: 'error',
+            text: `Batch request upload failed for the following: ${JSON.stringify(err)}`,
+            autoClose: true
+          })
+        })
+      }
 
       // route the user to the batch request detail page
       router.push({
