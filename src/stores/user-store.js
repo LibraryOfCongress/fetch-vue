@@ -18,24 +18,19 @@ export const useUserStore = defineStore('user-store', {
     },
     async patchLogin (payload, type) {
       try {
-        let incomingToken = null
         if (type == 'Internal') {
           const res = await this.$api.post(inventoryServiceApi.authLegacyLogin, payload)
-          incomingToken = res.data.detail
           this.userData = jwtDecode(res.data.detail)
+          // assign token for internal login since there is no longer a route query token redirect
+          this.userData.token = res.data.detail
         } else {
           // sso login will pass the direct user data as the payload from a decoded jwt
           this.userData = payload
         }
 
-        // append token to userData object
-        let localStorageUser = this.userData
-        localStorageUser.token = incomingToken
-
 
         // set user credentials in local storage
-        // localStorage.setItem('user', JSON.stringify(this.userData))
-        localStorage.setItem('user', JSON.stringify(localStorageUser))
+        localStorage.setItem('user', JSON.stringify(this.userData))
       } catch (error) {
         throw error
       }
