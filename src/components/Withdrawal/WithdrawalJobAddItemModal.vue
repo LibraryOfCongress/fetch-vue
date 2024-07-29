@@ -270,6 +270,12 @@ const bulkAddItemToWithdrawJob = async () => {
           autoClose: true
         })
       })
+    } else {
+      handleAlert({
+        type: 'error',
+        text: error,
+        autoClose: true
+      })
     }
   } finally {
     appActionIsLoadingData.value = false
