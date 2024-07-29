@@ -215,7 +215,6 @@ const {
 } = storeToRefs(useOptionStore())
 const {
   patchAccessionJob,
-  deleteAccessionJob,
   patchAccessionNonTrayItem
 } = useAccessionStore()
 const {
@@ -280,7 +279,12 @@ const updateNonTrayJob = async () => {
 const cancelAccessionJob = async () => {
   try {
     appActionIsLoadingData.value = true
-    await deleteAccessionJob(route.params.jobId)
+    // await deleteAccessionJob(route.params.jobId)
+    const payload = {
+      id: route.params.jobId,
+      status: 'Cancelled'
+    }
+    await patchAccessionJob(payload)
 
     handleAlert({
       type: 'success',
