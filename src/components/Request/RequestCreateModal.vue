@@ -171,9 +171,9 @@
 
 <script setup>
 import { ref, inject, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
+import { useUserStore } from '@/stores/user-store'
 import { useRequestStore } from '@/stores/request-store'
 import { storeToRefs } from 'pinia'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
@@ -181,8 +181,6 @@ import PopupModal from '@/components/PopupModal.vue'
 import TextInput from '@/components/TextInput.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import FileUploadInput from '@/components/FileUploadInput.vue'
-
-const router = useRouter()
 
 // Props
 const mainProps = defineProps({
@@ -193,20 +191,23 @@ const mainProps = defineProps({
 })
 
 // Emits
-const emit = defineEmits(['hide'])
+const emit = defineEmits([
+  'hide',
+  'changeDisplay'
+])
 
 // Composables
 const { compiledBarCode } = useBarcodeScanHandler()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { userData } = storeToRefs(useUserStore())
 const {
   requestsTypes,
   requestsPriorities,
   requestsLocations
 } = storeToRefs(useOptionStore())
 const { postRequestJob, postRequestBatchJob } = useRequestStore()
-const { requestJob } = storeToRefs(useRequestStore())
 
 // Local Data
 const bulkRequestTemplateData = ref([
@@ -275,9 +276,12 @@ const createRequestJob = async () => {
         text: 'Successfully created the request.',
         autoClose: true
       })
+
+      emit('changeDisplay', 'request_view')
     } else {
       payload = {
-        file: requestFile.value[0].file
+        file: requestFile.value[0].file,
+        user_id: userData.value.user_id
       }
       const res = await postRequestBatchJob(payload)
 
@@ -297,13 +301,7 @@ const createRequestJob = async () => {
         })
       }
 
-      // route the user to the batch request detail page
-      router.push({
-        name: 'request',
-        params: {
-          jobId: requestJob.value.id
-        }
-      })
+      emit('changeDisplay', 'batch_view')
     }
   } catch (error) {
     if (mainProps.type == 'manual') {
