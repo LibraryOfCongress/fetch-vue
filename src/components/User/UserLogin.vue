@@ -94,8 +94,7 @@ onMounted(async () => {
     // decode the token and pass and store that info in localstorage
     appActionIsLoadingData.value = true
     const payload = {
-      // assign token only if prod or stage, api is open on dev/test/local
-      token: process.env.VITE_ENV == 'production' || process.env.VITE_ENV == 'stage' ? route.query.token : null,
+      token: route.query.token,
       ...jwtDecode(route.query.token)
     }
     await patchLogin(payload, 'Sso')

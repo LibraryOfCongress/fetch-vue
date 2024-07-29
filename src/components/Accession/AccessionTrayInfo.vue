@@ -204,7 +204,7 @@
     v-if="showConfirmationModal"
     ref="confirmationModal"
     :title="'Delete'"
-    :text="showConfirmationModal == 'CancelJob' ? 'Are you sure you want to cancel the accession job?' : 'Are you sure you want to delete the tray?'"
+    :text="showConfirmationModal == 'CancelJob' ? 'Are you sure you want to cancel the accession job? Warning: All associated trays and items will be deleted.' : 'Are you sure you want to delete the tray? Warning: All associated tray items will be deleted.'"
     :show-actions="false"
     @reset="showConfirmationModal = null"
     aria-label="confirmationModal"
