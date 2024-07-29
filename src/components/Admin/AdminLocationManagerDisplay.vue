@@ -234,7 +234,8 @@ const handleOptionMenu = async (rowData) => {
     appIsLoadingData.value = true
     await Promise.all([
       getOptions('owners'),
-      getOptions('sizeClass')
+      getOptions('sizeClass'),
+      getOptions('containerTypes')
     ])
     appIsLoadingData.value = false
   }
@@ -437,42 +438,42 @@ const generateLocationTableInfo = () => {
       },
       {
         name: 'shelf_width',
-        field: 'shelf_width',
+        field: 'width',
         label: 'Shelf Width',
         align: 'left',
         sortable: true
       },
       {
         name: 'shelf_height',
-        field: 'shelf_height',
+        field: 'height',
         label: 'Shelf Height',
         align: 'left',
         sortable: true
       },
       {
         name: 'shelf_depth',
-        field: 'shelf_depth',
+        field: 'depth',
         label: 'Shelf Depth',
         align: 'left',
         sortable: true
       },
       {
         name: 'size_class',
-        field: 'size_class',
+        field: row => row.size_class?.name,
         label: 'Size Class',
         align: 'left',
         sortable: true
       },
       {
         name: 'max_capacity',
-        field: 'max_capacity',
+        field: 'capacity',
         label: 'Max Capacity',
         align: 'left',
         sortable: true
       },
       {
         name: 'container_type',
-        field: 'container_type',
+        field: row => row.container_type?.type,
         label: 'Container Type',
         align: 'left',
         sortable: true
@@ -490,15 +491,27 @@ const generateLocationTableInfo = () => {
         label: 'Shelf Barcode',
         align: 'left',
         sortable: true
+      },
+      {
+        name: 'sort_priority',
+        field: 'sort_priority',
+        label: 'Location Logical Order',
+        align: 'left',
+        sortable: true
       }
     ]
     locationTableVisibleColumns.value = [
       'actions',
       'shelf_number',
+      'shelf_width',
+      'shelf_height',
+      'shelf_depth',
       'size_class',
+      'max_capacity',
       'container_type',
       'owner',
-      'shelf_barcode'
+      'shelf_barcode',
+      'sort_priority'
     ]
     break
   default:

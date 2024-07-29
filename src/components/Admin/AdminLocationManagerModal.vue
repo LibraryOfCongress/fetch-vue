@@ -202,7 +202,7 @@ const generateLocationModal = () => {
   case 'aisles':
     locationForm.value = {
       module_id: route.params.moduleId,
-      sort_priority: mainProps.locationData.sort_priority ?? '',
+      sort_priority: mainProps.locationData.sort_priority ?? null,
       aisle_number: mainProps.locationData.aisle_number?.number ?? ''
     }
     locationFields.value = [
@@ -219,7 +219,7 @@ const generateLocationModal = () => {
   case 'ladders':
     locationForm.value = {
       side_id: route.params.sideId,
-      sort_priority: mainProps.locationData.sort_priority ?? '',
+      sort_priority: mainProps.locationData.sort_priority ?? null,
       ladder_number: mainProps.locationData.ladder_number?.number ?? ''
     }
     locationFields.value = [
@@ -237,14 +237,14 @@ const generateLocationModal = () => {
     locationForm.value = {
       ladder_id: route.params.ladderId,
       owner_id: mainProps.locationData.owner?.id ?? null,
-      size_class_id: mainProps.locationData.size_class_id ?? null,
-      container_type_id: mainProps.locationData.container_type_id ?? null,
+      size_class_id: mainProps.locationData.size_class?.id ?? null,
+      container_type_id: mainProps.locationData.container_type?.id ?? null,
       width: mainProps.locationData.width ?? '',
       depth: mainProps.locationData.depth ?? '',
       height: mainProps.locationData.height ?? '',
       capacity: mainProps.locationData.capacity ?? '',
       barcode_value: mainProps.locationData.barcode?.value ?? '',
-      sort_priority: mainProps.locationData.sort_priority ?? '',
+      sort_priority: mainProps.locationData.sort_priority ?? null,
       shelf_number: mainProps.locationData.shelf_number?.number ?? ''
     },
     locationFields.value = [
