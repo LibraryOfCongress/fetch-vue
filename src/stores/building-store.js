@@ -419,7 +419,7 @@ export const useBuildingStore = defineStore('building-store', {
         const res = await this.$api.patch(`${inventoryServiceApi.aisles}${payload.id}`, payload)
 
         // update the specific aisle with the response info
-        this.moduleDetails.aisles[this.moduleDetails.aisles.findIndex(a => a.id == payload.id)] = res.data
+        this.moduleDetails.aisles[this.moduleDetails.aisles.findIndex(a => a.id == payload.id)] = { ...res.data, aisle_number: { number: payload.aisle_number } }
       } catch (error) {
         throw error
       }
@@ -466,7 +466,7 @@ export const useBuildingStore = defineStore('building-store', {
         const res = await this.$api.patch(`${inventoryServiceApi.ladders}${payload.id}`, payload)
 
         // update the specific ladder with the response info
-        this.sideDetails.ladders[this.sideDetails.ladders.findIndex(l => l.id == payload.id)] = res.data
+        this.sideDetails.ladders[this.sideDetails.ladders.findIndex(l => l.id == payload.id)] = { ...res.data, ladder_number: { number: payload.ladder_number } }
       } catch (error) {
         throw error
       }
@@ -497,7 +497,7 @@ export const useBuildingStore = defineStore('building-store', {
         const res = await this.$api.patch(`${inventoryServiceApi.shelves}${payload.id}`, payload)
 
         // update the specific shelve with the response info
-        this.ladderDetails.shelves[this.ladderDetails.shelves.findIndex(s => s.id == payload.id)] = res.data
+        this.ladderDetails.shelves[this.ladderDetails.shelves.findIndex(s => s.id == payload.id)] = { ...res.data, shelf_number: { number: payload.shelf_number } }
       } catch (error) {
         throw error
       }
