@@ -77,131 +77,129 @@ export const useBuildingStore = defineStore('building-store', {
     },
     async getBuildingsList () {
       try {
-        // TODO: setup api call to retrieve all buildings
-        // const res = await this.$api.get(
-        //   inventoryServiceApi.examplesNumbers + 12
-        // )
-        this.buildings = [
-          {
-            id: 1,
-            name: 'Cabin Branch',
-            modules: [
-              {
-                id: 10,
-                name: 'module 1',
-                aisles: [
-                  {
-                    id: 1,
-                    ladders: 12
-                  },
-                  {
-                    id: 2,
-                    ladders: 13
-                  },
-                  {
-                    id: 3,
-                    ladders: 14
-                  },
-                  {
-                    id: 4,
-                    ladders: 15
-                  }
-                ]
-              },
-              {
-                id: 11,
-                name: 'module 2',
-                aisles: [
-                  {
-                    id: 1,
-                    ladders: 12
-                  },
-                  {
-                    id: 2,
-                    ladders: 13
-                  },
-                  {
-                    id: 3,
-                    ladders: 14
-                  },
-                  {
-                    id: 4,
-                    ladders: 15
-                  }
-                ]
-              },
-              {
-                id: 12,
-                name: 'module 3',
-                aisles: [
-                  {
-                    id: 1,
-                    ladders: 12
-                  },
-                  {
-                    id: 2,
-                    ladders: 13
-                  },
-                  {
-                    id: 3,
-                    ladders: 14
-                  },
-                  {
-                    id: 4,
-                    ladders: 15
-                  }
-                ]
-              },
-              {
-                id: 13,
-                name: 'module 4',
-                aisles: [
-                  {
-                    id: 1,
-                    ladders: 12
-                  },
-                  {
-                    id: 2,
-                    ladders: 13
-                  },
-                  {
-                    id: 3,
-                    ladders: 14
-                  },
-                  {
-                    id: 4,
-                    ladders: 15
-                  }
-                ]
-              }
-            ],
-            available_shelves: 120
-          },
-          {
-            id: 2,
-            name: 'Fort Meade',
-            modules: [],
-            aisles: [
-              {
-                id: 1,
-                ladders: 12
-              },
-              {
-                id: 2,
-                ladders: 13
-              },
-              {
-                id: 3,
-                ladders: 14
-              },
-              {
-                id: 4,
-                ladders: 15
-              }
-            ],
-            available_shelves: 60
-          }
-        ]
+        const res = await this.$api.get(`${inventoryServiceApi.buildings}`)
+        this.buildings = res.data.items
+        // this.buildings = [
+        //   {
+        //     id: 1,
+        //     name: 'Cabin Branch',
+        //     modules: [
+        //       {
+        //         id: 10,
+        //         name: 'module 1',
+        //         aisles: [
+        //           {
+        //             id: 1,
+        //             ladders: 12
+        //           },
+        //           {
+        //             id: 2,
+        //             ladders: 13
+        //           },
+        //           {
+        //             id: 3,
+        //             ladders: 14
+        //           },
+        //           {
+        //             id: 4,
+        //             ladders: 15
+        //           }
+        //         ]
+        //       },
+        //       {
+        //         id: 11,
+        //         name: 'module 2',
+        //         aisles: [
+        //           {
+        //             id: 1,
+        //             ladders: 12
+        //           },
+        //           {
+        //             id: 2,
+        //             ladders: 13
+        //           },
+        //           {
+        //             id: 3,
+        //             ladders: 14
+        //           },
+        //           {
+        //             id: 4,
+        //             ladders: 15
+        //           }
+        //         ]
+        //       },
+        //       {
+        //         id: 12,
+        //         name: 'module 3',
+        //         aisles: [
+        //           {
+        //             id: 1,
+        //             ladders: 12
+        //           },
+        //           {
+        //             id: 2,
+        //             ladders: 13
+        //           },
+        //           {
+        //             id: 3,
+        //             ladders: 14
+        //           },
+        //           {
+        //             id: 4,
+        //             ladders: 15
+        //           }
+        //         ]
+        //       },
+        //       {
+        //         id: 13,
+        //         name: 'module 4',
+        //         aisles: [
+        //           {
+        //             id: 1,
+        //             ladders: 12
+        //           },
+        //           {
+        //             id: 2,
+        //             ladders: 13
+        //           },
+        //           {
+        //             id: 3,
+        //             ladders: 14
+        //           },
+        //           {
+        //             id: 4,
+        //             ladders: 15
+        //           }
+        //         ]
+        //       }
+        //     ],
+        //     available_shelves: 120
+        //   },
+        //   {
+        //     id: 2,
+        //     name: 'Fort Meade',
+        //     modules: [],
+        //     aisles: [
+        //       {
+        //         id: 1,
+        //         ladders: 12
+        //       },
+        //       {
+        //         id: 2,
+        //         ladders: 13
+        //       },
+        //       {
+        //         id: 3,
+        //         ladders: 14
+        //       },
+        //       {
+        //         id: 4,
+        //         ladders: 15
+        //       }
+        //     ],
+        //     available_shelves: 60
+        //   }
+        // ]
       } catch (error) {
         return error
       }
@@ -335,10 +333,56 @@ export const useBuildingStore = defineStore('building-store', {
         throw error
       }
     },
+    async postBuilding (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.buildings, payload)
+
+        // add the newly added building to the top of the list
+        this.buildings = [
+          res.data,
+          ...this.buildings
+        ]
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchBuilding (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.buildings}${payload.id}`, payload)
+
+        // update the specific building with the response info
+        this.buildings[this.buildings.findIndex(b => b.id == payload.id)] = res.data
+      } catch (error) {
+        throw error
+      }
+    },
     async getModuleDetails (id) {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.modules}${id}`)
         this.moduleDetails = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async postModule (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.modules, payload)
+
+        // add the newly added module to the top of the buildingDetail module array
+        this.buildingDetails.modules = [
+          res.data,
+          ...this.buildingDetails.modules
+        ]
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchModule (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.modules}${payload.id}`, payload)
+
+        // update the specific module with the response info
+        this.buildingDetails.modules[this.buildingDetails.modules.findIndex(m => m.id == payload.id)] = res.data
       } catch (error) {
         throw error
       }
@@ -351,9 +395,46 @@ export const useBuildingStore = defineStore('building-store', {
         throw error
       }
     },
+    async postAisle (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.aisles, payload)
+
+        // add the newly added aisle to the top of the moduleDetail aisle array with a manual serialized aisle_number
+        this.moduleDetails.aisles = [
+          { ...res.data, aisle_number: { number: payload.aisle_number } },
+          ...this.moduleDetails.aisles
+        ]
+
+        // generate sides left and right on the newly created aisle
+        await Promise.all([
+          this.postSide({ aisle_id: res.data.id, side_orientation_id: 2 }),
+          this.postSide({ aisle_id: res.data.id, side_orientation_id: 1 })
+        ])
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchAisle (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.aisles}${payload.id}`, payload)
+
+        // update the specific aisle with the response info
+        this.moduleDetails.aisles[this.moduleDetails.aisles.findIndex(a => a.id == payload.id)] = { ...res.data, aisle_number: { number: payload.aisle_number } }
+      } catch (error) {
+        throw error
+      }
+    },
     async getSideDetails (id) {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.sides}${id}`)
+        this.sideDetails = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async postSide (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.sides, payload)
         this.sideDetails = res.data
       } catch (error) {
         throw error
@@ -367,10 +448,56 @@ export const useBuildingStore = defineStore('building-store', {
         throw error
       }
     },
+    async postLadder (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.ladders, payload)
+
+        // add the newly added ladder to the top of the sideDetail ladders array
+        this.sideDetails.ladders = [
+          { ...res.data, ladder_number: { number: payload.ladder_number } },
+          ...this.sideDetails.ladders
+        ]
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchLadder (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.ladders}${payload.id}`, payload)
+
+        // update the specific ladder with the response info
+        this.sideDetails.ladders[this.sideDetails.ladders.findIndex(l => l.id == payload.id)] = { ...res.data, ladder_number: { number: payload.ladder_number } }
+      } catch (error) {
+        throw error
+      }
+    },
     async getShelfDetails (id) {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.shelves}${id}`)
         this.shelfDetails = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async postShelve (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.shelves, payload)
+
+        // add the newly added shelve to the top of the ladderDetail shelves array
+        this.ladderDetails.shelves = [
+          { ...res.data, shelf_number: { number: payload.shelf_number } },
+          ...this.ladderDetails.shelves
+        ]
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchShelve (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.shelves}${payload.id}`, payload)
+
+        // update the specific shelve with the response info
+        this.ladderDetails.shelves[this.ladderDetails.shelves.findIndex(s => s.id == payload.id)] = { ...res.data, shelf_number: { number: payload.shelf_number } }
       } catch (error) {
         throw error
       }

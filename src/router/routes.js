@@ -49,6 +49,36 @@ const routes = [
         meta: { requiresAuth: true }
       },
       {
+        name: 'admin-manage-buildings',
+        path: 'admin/manage/buildings',
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        name: 'admin-manage-modules',
+        path: 'admin/manage/:buildingId/modules',
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        name: 'admin-manage-aisles',
+        path: 'admin/manage/:buildingId/:moduleId/aisles',
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        name: 'admin-manage-ladders',
+        path: 'admin/manage/:buildingId/:moduleId/:aisleId/:sideId/ladders',
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        name: 'admin-manage-shelves',
+        path: 'admin/manage/:buildingId/:moduleId/:aisleId/:sideId/:ladderId/shelves',
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
         name: 'item-management',
         path: 'item-management/:type?',
         component: () => import('@/pages/ItemManagementPage.vue')

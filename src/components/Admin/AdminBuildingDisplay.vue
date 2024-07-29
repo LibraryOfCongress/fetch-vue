@@ -116,7 +116,7 @@
               <div class="building-card-details q-mb-xs">
                 <label class="text-body1">Modules:</label>
                 <p class="text-body1">
-                  {{ building.modules.length == 0 ? 'N/A' : building.modules.length }}
+                  {{ building.modules_total == 0 ? 'N/A' : building.modules_total }}
                 </p>
               </div>
 
