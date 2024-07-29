@@ -199,6 +199,7 @@
       v-if="showCreateRequestByType"
       :type="showCreateRequestByType"
       @hide="showCreateRequestByType = null"
+      @change-display="showCreateRequestByType = null; requestDisplayType = $event"
     />
 
     <!-- Create/Add To Picklist Modal -->
@@ -455,14 +456,14 @@ const requestBatchTableVisibleColumns = ref([
 const requestBatchTableColumns = ref([
   {
     name: 'import_source',
-    field: 'import_source',
+    field: 'file_type',
     label: 'Import Source',
     align: 'left',
     sortable: true
   },
   {
     name: 'request_count',
-    field: 'request_count',
+    field: row => row.requests?.length,
     label: '# of Requests',
     align: 'left',
     sortable: true
@@ -476,14 +477,14 @@ const requestBatchTableColumns = ref([
   },
   {
     name: 'uploaded_by',
-    field: 'uploaded_by',
+    field: row => row.user?.email,
     label: 'Uploaded By',
     align: 'left',
     sortable: true
   },
   {
     name: 'import_dt',
-    field: 'import_dt',
+    field: 'create_dt',
     label: 'Date Imported',
     align: 'left',
     sortable: true

@@ -21,7 +21,7 @@
             Import Source:
           </label>
           <p class="text-body1">
-            {{ requestBatchJob.import_source }}
+            {{ requestBatchJob.file_type }}
           </p>
         </div>
       </div>
@@ -33,7 +33,7 @@
             Uploaded By:
           </label>
           <p class="text-body1">
-            {{ requestBatchJob.uploaded_by }}
+            {{ requestBatchJob.user?.email }}
           </p>
         </div>
       </div>
@@ -45,7 +45,7 @@
             # of Requests
           </label>
           <p class="text-body1">
-            {{ requestBatchJob.request_count }}
+            {{ requestBatchJob.requests?.length }}
           </p>
         </div>
       </div>
@@ -57,7 +57,7 @@
             Date Imported:
           </label>
           <p class="text-body1">
-            {{ formatDateTime(requestBatchJob.import_dt).date }}
+            {{ formatDateTime(requestBatchJob.create_dt).date }}
           </p>
         </div>
       </div>
@@ -69,7 +69,7 @@
         :table-columns="requestTableColumns"
         :table-visible-columns="requestTableVisibleColumns"
         :filter-options="requestTableFilters"
-        :table-data="requestBatchJob.items"
+        :table-data="requestItems"
         :enable-table-reorder="false"
         :enable-selection="showCreatePickList || showAddPickList"
         :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
@@ -105,7 +105,7 @@
                   <q-item
                     clickable
                     v-close-popup
-                    @click="showAddPickList = true"
+                    @click="showPickListModal = 'Add'"
                     role="menuitem"
                   >
                     <q-item-section>
@@ -155,7 +155,7 @@
                 outline
                 label="Cancel"
                 class="btn-no-wrap text-body1 q-ml-xs full-height"
-                @click="showCreatePickList = false; showAddPickList = false; clearTableSelection();"
+                @click="resetPickListForm()"
               />
             </div>
           </div>
@@ -170,15 +170,15 @@
             :button-two-color="'black'"
             :button-two-label="'Cancel'"
             :button-two-outline="true"
-            @button-two-click="showCreatePickList = false; showAddPickList = false; clearTableSelection();"
+            @button-two-click="resetPickListForm()"
           />
         </template>
 
         <template #table-td="{ colName, value }">
           <span
             v-if="colName == 'request_type'"
-            class="outline text-nowrap"
-            :class="'text-highlight'"
+            class="text-nowrap"
+            :class="value ? 'text-highlight outline' : null"
           >
             {{ value }}
           </span>
@@ -191,8 +191,8 @@
           </span>
           <span
             v-else-if="colName == 'media_type'"
-            class="outline text-nowrap"
-            :class="'text-highlight'"
+            class="text-nowrap"
+            :class="value ? 'text-highlight outline' : null"
           >
             {{ value }}
           </span>
@@ -210,25 +210,104 @@
     :item-data="selectedRequestItem"
     @close="selectedRequestItem = null"
   />
+
+  <!-- Add To Picklist Modal -->
+  <PopupModal
+    v-if="showPickListModal"
+    :show-actions="false"
+    @reset="showPickListModal = null"
+    aria-label="picklistJobModal"
+  >
+    <template #header-content="{ hideModal }">
+      <q-card-section class="row items-center justify-between q-pb-none">
+        <h2 class="text-h6">
+          {{ 'Select Pick List Job' }}
+        </h2>
+
+        <q-btn
+          icon="close"
+          flat
+          round
+          dense
+          aria-label="Close"
+          @click="addToPickListJob = null; hideModal();"
+        />
+      </q-card-section>
+    </template>
+
+    <template #main-content>
+      <q-card-section class="column no-wrap items-center">
+        <div
+          class="form-group"
+        >
+          <label class="form-group-label">
+            Add To Pick List
+          </label>
+          <SelectInput
+            v-model="addToPickListJob"
+            :options="picklists"
+            option-type="picklists"
+            option-value="id"
+            option-label="id"
+            :placeholder="'Select Pick List Job'"
+            aria-label="picklistJobSelect"
+          />
+        </div>
+      </q-card-section>
+    </template>
+
+    <template #footer-content="{ hideModal }">
+      <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
+        <q-btn
+          no-caps
+          unelevated
+          color="accent"
+          label="Submit"
+          class="text-body1 full-width text-nowrap"
+          :disabled="!addToPickListJob"
+          :loading="appActionIsLoadingData"
+          @click="showAddPickList = true; hideModal();"
+        />
+
+        <q-space class="q-mx-xs" />
+
+        <q-btn
+          outline
+          no-caps
+          label="Cancel"
+          class="text-body1 full-width"
+          @click="addToPickListJob = null; hideModal();"
+        />
+      </q-card-section>
+    </template>
+  </PopupModal>
 </template>
 
 <script setup>
-import { onBeforeMount, ref, inject } from 'vue'
+import { onBeforeMount, ref, inject, computed } from 'vue'
 import { useGlobalStore } from '@/stores/global-store'
+import { useOptionStore } from '@/stores/option-store'
 import { useRequestStore } from '@/stores/request-store'
+import { usePicklistStore } from '@/stores/picklist-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import InfoDisplayLayout from '@/components/InfoDisplayLayout.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
 import RequestItemOverlay from '@/components/Request/RequestItemOverlay.vue'
+import PopupModal from '@/components/PopupModal.vue'
+import SelectInput from '@/components/SelectInput.vue'
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { picklists } = storeToRefs(useOptionStore())
 const { requestBatchJob } = storeToRefs(useRequestStore())
+const { getRequestBatchJob } = useRequestStore()
+const { postPicklistJob, patchPicklistJobItem } = usePicklistStore()
+const { picklistJob } = storeToRefs(usePicklistStore())
 
 // Local Data
 const requestTableComponent = ref(null)
@@ -347,6 +426,25 @@ const requestTableFilters =  ref([
     ]
   }
 ])
+const requestItems = computed(() => {
+  let requests = requestBatchJob.value.requests
+  if (showCreatePickList.value) {
+    // filter out any requests that already belong to a picklist
+    requests = requests.filter(r => r.pick_list == null)
+  } else if (showAddPickList.value) {
+    // filter out the requests that match the selected picklist job
+    requests = requests.filter(r => {
+      if (r.pick_list && r.pick_list[0]) {
+        return r.pick_list[0][1] !== addToPickListJob.value
+      } else {
+        return true
+      }
+    })
+  }
+  return requests
+})
+const showPickListModal = ref(null)
+const addToPickListJob = ref(null)
 const showCreatePickList = ref(false)
 const showAddPickList = ref(false)
 const selectedRequestItems = ref([])
@@ -368,6 +466,14 @@ onBeforeMount(() => {
   }
 })
 
+const resetPickListForm = () => {
+  showCreatePickList.value = false
+  showAddPickList.value = false
+  showPickListModal.value = null
+  addToPickListJob.value = null
+  clearTableSelection()
+}
+
 const clearTableSelection = () => {
   requestTableComponent.value.clearSelectedData()
   selectedRequestItems.value = []
@@ -376,8 +482,18 @@ const clearTableSelection = () => {
 const createPickListJob = async () => {
   try {
     appActionIsLoadingData.value = true
-    // TODO: setup api call to create the pick list job using the selected pick list items
-    // await postRequestJob()
+    const payload = {
+      request_ids: selectedRequestItems.value.map(item => item.id)
+    }
+    await postPicklistJob(payload)
+
+    // display an alert with the created picklist job id so you can click that and link directly to the new job if needed
+    handleAlert({
+      type: 'success',
+      text: `Successfully created Pick List #: <a href='/picklist/${picklistJob.value.id}' tabindex='0'>${picklistJob.value.id}</a>`,
+      autoClose: false
+    })
+    await getRequestBatchJob(requestBatchJob.value.id)
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -386,13 +502,25 @@ const createPickListJob = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
+    resetPickListForm()
   }
 }
 const updatePickListJob = async () => {
   try {
     appActionIsLoadingData.value = true
-    // TODO: setup api call to update and existing pick list job using the selected pick list items
-    // await patchRequestJob()
+    const payload = {
+      id: addToPickListJob.value,
+      request_ids: selectedRequestItems.value.map(item => item.id)
+    }
+    await patchPicklistJobItem(payload)
+
+    // display an alert with the updated picklist job id so you can click that and link directly to the job if needed
+    handleAlert({
+      type: 'success',
+      text: `Successfully added items to Pick List #: <a href='/picklist/${picklistJob.value.id}' tabindex='0'>${picklistJob.value.id}</a>`,
+      autoClose: false
+    })
+    await getRequestBatchJob(requestBatchJob.value.id)
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -401,6 +529,7 @@ const updatePickListJob = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
+    resetPickListForm()
   }
 }
 </script>

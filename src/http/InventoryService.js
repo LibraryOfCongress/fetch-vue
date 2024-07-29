@@ -13,6 +13,7 @@ export default {
   authSsoLogout: '/auth/sso/logout/',
   barcodes: '/barcodes/',
   barcodesValue: '/barcodes/value/',
+  batchUpload: '/batch-upload/',
   buildings: '/buildings/',
   containerTypes: '/container-types/',
   groups: '/groups/',
