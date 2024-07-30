@@ -39,7 +39,13 @@ export default boot(({ app }) => {
   api.interceptors.response.use((response) => {
     return response
   }, (error) => {
-    if (error.response.status == 401 && userStore.userData.user_id) {
+    if (!error.response) {
+      error.response = {
+        data: {
+          detail: error.message
+        }
+      }
+    } else if (error.response.status == 401 && userStore.userData.user_id) {
       // if we get a 401 error then user needs to be logged out
       userStore.patchLogout()
     }

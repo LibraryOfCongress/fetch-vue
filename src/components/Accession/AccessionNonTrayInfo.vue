@@ -3,7 +3,10 @@
     <div class="row">
       <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
         <MoreOptionsMenu
-          :options="[{ text: 'Edit' }]"
+          :options="[
+            { text: 'Edit' },
+            { text: 'Cancel Job', optionClass: 'text-negative'}
+          ]"
           class="q-mr-sm"
           @click="handleOptionMenu"
         />
@@ -149,11 +152,44 @@
       />
     </div>
   </div>
+
+  <!-- confirmation modal -->
+  <PopupModal
+    v-if="showConfirmationModal"
+    ref="confirmationModal"
+    :title="'Delete'"
+    :text="'Are you sure you want to cancel the accession job? Warning: All associated items will be deleted.'"
+    :show-actions="false"
+    @reset="showConfirmationModal = null"
+    aria-label="confirmationModal"
+  >
+    <template #footer-content="{ hideModal }">
+      <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
+        <q-btn
+          no-caps
+          unelevated
+          color="negative"
+          label="Cancel Job"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="cancelAccessionJob()"
+        />
+        <q-space class="q-mx-xs" />
+        <q-btn
+          outline
+          no-caps
+          label="Cancel"
+          class="text-body1 full-width"
+          @click="hideModal"
+        />
+      </q-card-section>
+    </template>
+  </PopupModal>
 </template>
 
 <script setup>
-import { ref, toRaw, inject } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, toRaw, inject, nextTick } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useGlobalStore } from '@/stores/global-store'
@@ -163,8 +199,10 @@ import BarcodeBox from '@/components/BarcodeBox.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
+import PopupModal from '@/components/PopupModal.vue'
 
 const route = useRoute()
+const router = useRouter()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
@@ -188,6 +226,8 @@ const {
 
 // Local Data
 const editMode = ref(false)
+const confirmationModal = ref(null)
+const showConfirmationModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -195,6 +235,8 @@ const handleAlert = inject('handle-alert')
 const handleOptionMenu = (option) => {
   if (option.text == 'Edit') {
     editMode.value = true
+  } else if (option.text == 'Cancel Job') {
+    showConfirmationModal.value = 'CancelJob'
   }
 }
 
@@ -232,6 +274,40 @@ const updateNonTrayJob = async () => {
   } finally {
     appActionIsLoadingData.value = false
     editMode.value = false
+  }
+}
+const cancelAccessionJob = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    // await deleteAccessionJob(route.params.jobId)
+    const payload = {
+      id: route.params.jobId,
+      status: 'Cancelled'
+    }
+    await patchAccessionJob(payload)
+
+    handleAlert({
+      type: 'success',
+      text: 'The Accession Job has been canceled.',
+      autoClose: true
+    })
+    appActionIsLoadingData.value = false
+
+    await nextTick()
+
+    router.push({
+      name: 'accession',
+      params: {
+        jobId: null
+      }
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+    appActionIsLoadingData.value = false
   }
 }
 const updateNonTrayContainer = async () => {

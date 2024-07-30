@@ -194,5 +194,6 @@ See [Quasar PWA With Vite](https://quasar.dev/quasar-cli-vite/developing-pwa/int
 
 See [Vitest](https://vitest.dev/guide/).
 See [Vue-Html-To-Paper](https://www.npmjs.com/package/vue-html-to-paper).
+See [Vue-Json-Excel3](https://www.npmjs.com/package/vue-json-excel3?activeTab=readme).
 
 

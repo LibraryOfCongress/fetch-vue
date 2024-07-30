@@ -146,6 +146,56 @@ const breadcrumbList = computed(() => {
       ]
     }
     break
+  case 'admin-manage-buildings':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Admin',
+        to: '/admin'
+      },
+      { text: 'Manage Buildings' }
+    ]
+    break
+  case 'admin-manage-modules':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Admin',
+        to: '/admin'
+      },
+      { text: 'Manage Modules' }
+    ]
+    break
+  case 'admin-manage-aisles':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Admin',
+        to: '/admin'
+      },
+      { text: 'Manage Aisles' }
+    ]
+    break
+  case 'admin-manage-ladders':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Admin',
+        to: '/admin'
+      },
+      { text: 'Manage Ladders' }
+    ]
+    break
+  case 'admin-manage-shelves':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Admin',
+        to: '/admin'
+      },
+      { text: 'Manage Shelves' }
+    ]
+    break
   case 'item-management':
     if (!route.params.type) {
       breadCrumbs = [

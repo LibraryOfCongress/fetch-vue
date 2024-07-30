@@ -116,7 +116,7 @@
               <div class="building-card-details q-mb-xs">
                 <label class="text-body1">Modules:</label>
                 <p class="text-body1">
-                  {{ building.modules.length == 0 ? 'N/A' : building.modules.length }}
+                  {{ building.modules_total == 0 ? 'N/A' : building.modules_total }}
                 </p>
               </div>
 
@@ -299,23 +299,27 @@
         <q-card-section class="row items-end">
           <div class="col-grow">
             <p class="text-body2">
-              Support files: .xls, .xlsx, .uslm, .pdf, .docx
+              Support files: .csv
             </p>
           </div>
           <div class="col-auto flex justify-end">
-            <a
-              tabindex="0"
+            <DownloadExcel
               class="link text-body2 text-accent"
-              @click="null"
+              :data="bulkShelvingTemplateData"
+              type="csv"
+              name="bulk-shelving-template.csv"
+              worksheet="Bulk Shelving"
+              :escape-csv="false"
+              aria-label="downloadShelvingTemplateLink"
             >
               Click to Download Template
-            </a>
+            </DownloadExcel>
           </div>
 
           <div class="col-12 q-mt-md">
             <FileUploadInput
               :allow-multiple-files="false"
-              :allowed-file-types="['.xls', '.xlsx', '.uslm', '.pdf', '.docx']"
+              :allowed-file-types="['.csv']"
               input-class="q-py-xs-md q-px-xs-lg q-py-sm-xl q-px-sm-lg"
               @file-change="setBulkUploadFile"
             />
@@ -469,6 +473,21 @@ const { getBuildingsList } = useBuildingStore()
 const { buildings, buildingDetails } = storeToRefs(useBuildingStore())
 
 // Local Data
+const bulkShelvingTemplateData = ref([
+  {
+    'Side': '',
+    'Ladder': '',
+    'Shelf Number': '',
+    'Width': '',
+    'Height': '',
+    'Depth': '',
+    'Size Class': '',
+    'Container Type': '',
+    'Max Capacity': '',
+    'Owner': '',
+    'Shelf Barcode': ''
+  }
+])
 const buildingFormTitle = ref('')
 const buildingForm = ref({
   building: '',

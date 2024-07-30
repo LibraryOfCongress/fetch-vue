@@ -17,7 +17,7 @@ FROM develop-stage as build-stage
 RUN npm install
 
 # if you need to change env reference just change the "ENVIRONMENT=STRING"
-RUN ENVIRONMENT=dev quasar build -m pwa
+RUN quasar build -m pwa
 
 ADD certificates/ca-bundle.crt /usr/local/share/ca-certificates/ca-bundle.crt
 ADD certificates/ca-bundle.trust.crt /usr/local/share/ca-certificates/ca-bundle.trust.crt

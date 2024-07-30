@@ -17,7 +17,7 @@ FROM develop-stage as build-stage
 RUN npm install
 
 # if you need to change env reference just change the "ENVIRONMENT=STRING"
-RUN ENVIRONMENT=staging quasar build -m pwa
+RUN quasar build -m pwa
 
 ADD certificates/ca-bundle.crt /usr/local/share/ca-certificates/ca-bundle.crt
 ADD certificates/ca-bundle.trust.crt /usr/local/share/ca-certificates/ca-bundle.trust.crt
@@ -36,7 +36,7 @@ COPY --from=build-stage /app/env/.env env/.env
 
 RUN rm /etc/nginx/conf.d/default.conf
 
-COPY nginx/develop.conf /etc/nginx/conf.d/default.conf
+COPY nginx/staging.conf /etc/nginx/conf.d/default.conf
 
 RUN apk --update --no-cache add openssl
 RUN rm -rf /etc/ssl/certs

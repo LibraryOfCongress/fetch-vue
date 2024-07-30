@@ -42,7 +42,7 @@
         <div class="col-12 q-mb-md">
           <div class="form-group">
             <label class="form-group-label">
-              External Request Id
+              External Request Id <span class="text-caption text-negative">(Required)</span>
             </label>
             <TextInput
               v-model="manualRequestForm.external_request_id"
@@ -53,7 +53,7 @@
         <div class="col-12 q-mb-md">
           <div class="form-group">
             <label class="form-group-label">
-              Requestor Name <span class="text-caption text-negative">(Required)</span>
+              Requestor Name
             </label>
             <TextInput
               v-model="manualRequestForm.requestor_name"
@@ -80,7 +80,7 @@
         <div class="col-12 q-mb-md">
           <div class="form-group">
             <label class="form-group-label">
-              Select Request Type <span class="text-caption text-negative">(Required)</span>
+              Select Request Type
             </label>
             <SelectInput
               v-model="manualRequestForm.request_type_id"
@@ -95,7 +95,7 @@
         <div class="col-12">
           <div class="form-group">
             <label class="form-group-label">
-              Delivery Location <span class="text-caption text-negative">(Required)</span>
+              Delivery Location
             </label>
             <SelectInput
               v-model="manualRequestForm.building_id"
@@ -114,23 +114,27 @@
       >
         <div class="col-grow">
           <p class="text-body2">
-            Support files: .xls, .xlsx, .uslm, .pdf, .docx
+            Support files: .csv
           </p>
         </div>
         <div class="col-auto flex justify-end">
-          <a
-            tabindex="0"
+          <DownloadExcel
             class="link text-body2 text-accent"
-            @click="null"
+            :data="bulkRequestTemplateData"
+            type="csv"
+            name="bulk-request-template.csv"
+            worksheet="Bulk Requests"
+            :escape-csv="false"
+            aria-label="downloadRequestTemplateLink"
           >
             Click to Download Template
-          </a>
+          </DownloadExcel>
         </div>
 
         <div class="col-12 q-mt-md">
           <FileUploadInput
             :allow-multiple-files="false"
-            :allowed-file-types="['.xls', '.xlsx', '.uslm', '.pdf', '.docx']"
+            :allowed-file-types="['.csv']"
             input-class="q-py-xs-md q-px-xs-lg q-py-sm-xl q-px-sm-lg"
             @file-change="requestFile = $event"
           />
@@ -167,9 +171,9 @@
 
 <script setup>
 import { ref, inject, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
+import { useUserStore } from '@/stores/user-store'
 import { useRequestStore } from '@/stores/request-store'
 import { storeToRefs } from 'pinia'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
@@ -177,8 +181,6 @@ import PopupModal from '@/components/PopupModal.vue'
 import TextInput from '@/components/TextInput.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import FileUploadInput from '@/components/FileUploadInput.vue'
-
-const router = useRouter()
 
 // Props
 const mainProps = defineProps({
@@ -189,22 +191,35 @@ const mainProps = defineProps({
 })
 
 // Emits
-const emit = defineEmits(['hide'])
+const emit = defineEmits([
+  'hide',
+  'changeDisplay'
+])
 
 // Composables
 const { compiledBarCode } = useBarcodeScanHandler()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { userData } = storeToRefs(useUserStore())
 const {
   requestsTypes,
   requestsPriorities,
   requestsLocations
 } = storeToRefs(useOptionStore())
-const { postRequestJob } = useRequestStore()
-const { requestJob } = storeToRefs(useRequestStore())
+const { postRequestJob, postRequestBatchJob } = useRequestStore()
 
 // Local Data
+const bulkRequestTemplateData = ref([
+  {
+    'Item Barcode': '',
+    'External Request ID': '',
+    'Requestor Name': '',
+    'Priority': '',
+    'Request Type': '',
+    'Delivery Location': ''
+  }
+])
 const requestFile = ref([])
 const manualRequestForm = ref({
   barcode: null,
@@ -219,8 +234,10 @@ const isCreateRequestjobFormValid = computed(() => {
   if (mainProps.type == 'manual') {
     // if any value in our form is null or empty form is not valid except for priority since thats optional
     const optionalFields = [
-      'external_request_id',
-      'priority_id'
+      'requestor_name',
+      'priority_id',
+      'request_type_id',
+      'building_id'
     ]
     formIsValid = Object.keys(manualRequestForm.value).every(key => optionalFields.includes(key) || (manualRequestForm.value[key] !== null && manualRequestForm.value[key] !== ''))
   } else {
@@ -254,34 +271,57 @@ const createRequestJob = async () => {
         priority_id: manualRequestForm.value.priority_id
       }
       await postRequestJob(payload)
-    } else {
-      // TODO setup api call to sumbit request batch job
-      payload = {
-        request_type_id: 'file',
-        request_file: requestFile.value
-      }
-      console.log(requestFile.value)
-
-      // route the user to the batch request detail page
-      router.push({
-        name: 'request',
-        params: {
-          jobId: requestJob.value.id
-        }
+      handleAlert({
+        type: 'success',
+        text: 'Successfully created the request.',
+        autoClose: true
       })
-    }
 
-    handleAlert({
-      type: 'success',
-      text: 'Successfully created the request.',
-      autoClose: true
-    })
+      emit('changeDisplay', 'request_view')
+    } else {
+      payload = {
+        file: requestFile.value[0].file,
+        user_id: userData.value.user_id
+      }
+      const res = await postRequestBatchJob(payload)
+
+      handleAlert({
+        type: 'success',
+        text: 'Successfully uploaded batch requests.',
+        autoClose: true
+      })
+      // check if errors are returned in our 200 response and display them
+      if (res) {
+        res.forEach(err => {
+          handleAlert({
+            type: 'error',
+            text: `Batch request upload failed for the following: ${JSON.stringify(err)}`,
+            autoClose: true
+          })
+        })
+      }
+
+      emit('changeDisplay', 'batch_view')
+    }
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
+    if (mainProps.type == 'manual') {
+      handleAlert({
+        type: 'error',
+        text: error,
+        autoClose: true
+      })
+    } else {
+      //TODO figure out how to handle error logging for the user
+      if (error.response?.data?.errors) {
+        error.response.data.errors.forEach(err => {
+          handleAlert({
+            type: 'error',
+            text: `Batch request upload failed: ${JSON.stringify(err)}`,
+            autoClose: true
+          })
+        })
+      }
+    }
   } finally {
     appActionIsLoadingData.value = false
   }
