@@ -38,10 +38,17 @@
               <div class="form-group">
                 <label class="form-group-label">
                   {{ field.label }}
+                  <span
+                    v-if="field.required"
+                    class="text-caption text-negative"
+                  >
+                    (Required)
+                  </span>
                 </label>
                 <TextInput
                   v-model="locationForm[field.field]"
                   :placeholder="`Enter ${field.label}`"
+                  :disabled="field.disabled"
                   :aria-label="`${field.field}_input`"
                 />
               </div>
@@ -54,6 +61,12 @@
               <div class="form-group">
                 <label class="form-group-label">
                   {{ field.label }}
+                  <span
+                    v-if="field.required"
+                    class="text-caption text-negative"
+                  >
+                    (Required)
+                  </span>
                 </label>
                 <SelectInput
                   v-model="locationForm[field.field]"
@@ -62,6 +75,7 @@
                   option-value="id"
                   :option-label="field.field == 'container_type_id' ? 'type' : 'name'"
                   :placeholder="`Select ${field.label}`"
+                  :disabled="field.disabled"
                   @update:model-value="null"
                   :aria-label="`${field.field}_select`"
                 />
@@ -81,7 +95,7 @@
           :label="actionType == 'Add' ? `Add ${titleCaseLocationType}` : `Update ${titleCaseLocationType}`"
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
-          :disable="false"
+          :disabled="isLocationFormValid"
           @click="actionType == 'Add' ? addNewLocationType() : updateLocationType()"
         />
 
@@ -105,6 +119,7 @@ import { useRoute } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useBuildingStore } from '@/stores/building-store'
+import { useBarcodeStore } from '@/stores/barcode-store'
 import { storeToRefs } from 'pinia'
 import SelectInput from '@/components/SelectInput.vue'
 import TextInput from '@/components/TextInput.vue'
@@ -157,6 +172,8 @@ const {
   postShelve,
   patchShelve
 } = useBuildingStore()
+const { verifyBarcode } = useBarcodeStore()
+const { barcodeDetails } = storeToRefs(useBarcodeStore())
 
 // Local Data
 const titleCaseLocationType = computed(() => {
@@ -165,6 +182,10 @@ const titleCaseLocationType = computed(() => {
 const locationModal = ref(null)
 const locationFields = ref(null)
 const locationForm = ref({})
+const isLocationFormValid = computed(() => {
+  const optionalFields = locationFields.value.flatMap(f => !f.required ? f.field : [] )
+  return !Object.keys(locationForm.value).every(key => optionalFields.includes(key) || locationForm.value[key] !== null && locationForm.value[key] !== '')
+})
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -183,7 +204,8 @@ const generateLocationModal = () => {
     locationFields.value = [
       {
         field: 'name',
-        label: 'Building Name'
+        label: 'Building Name',
+        required: mainProps.actionType == 'Add'
       }
     ]
     break
@@ -195,7 +217,8 @@ const generateLocationModal = () => {
     locationFields.value = [
       {
         field: 'module_number',
-        label: 'Module Number'
+        label: 'Module Number',
+        required: mainProps.actionType == 'Add'
       }
     ]
     break
@@ -208,7 +231,9 @@ const generateLocationModal = () => {
     locationFields.value = [
       {
         field: 'aisle_number',
-        label: 'Aisle Number'
+        label: 'Aisle Number',
+        required: mainProps.actionType == 'Add',
+        disabled: mainProps.actionType == 'Edit'
       },
       {
         field: 'sort_priority',
@@ -225,7 +250,9 @@ const generateLocationModal = () => {
     locationFields.value = [
       {
         field: 'ladder_number',
-        label: 'Ladder Number'
+        label: 'Ladder Number',
+        required: mainProps.actionType == 'Add',
+        disabled: mainProps.actionType == 'Edit'
       },
       {
         field: 'sort_priority',
@@ -252,27 +279,34 @@ const generateLocationModal = () => {
         field: 'owner_id',
         label: 'Owner',
         options: owners,
-        optionType: 'owners'
+        optionType: 'owners',
+        required: mainProps.actionType == 'Add'
       },
       {
         field: 'size_class_id',
         label: 'Container Size',
         options: sizeClass,
-        optionType: 'sizeClass'
+        optionType: 'sizeClass',
+        required: mainProps.actionType == 'Add'
       },
       {
         field: 'container_type_id',
         label: 'Container Type',
         options: containerTypes,
-        optionType: 'containerTypes'
+        optionType: 'containerTypes',
+        required: mainProps.actionType == 'Add'
       },
       {
         field: 'barcode_value',
-        label: 'Shelf Barcode'
+        label: 'Shelf Barcode',
+        disabled: mainProps.actionType == 'Edit',
+        required: mainProps.actionType == 'Add'
       },
       {
         field: 'shelf_number',
-        label: 'Shelf Number'
+        label: 'Shelf Number',
+        disabled: mainProps.actionType == 'Edit',
+        required: mainProps.actionType == 'Add'
       },
       {
         field: 'sort_priority',
@@ -280,19 +314,23 @@ const generateLocationModal = () => {
       },
       {
         field: 'capacity',
-        label: 'Max Capacity'
+        label: 'Max Capacity',
+        required: mainProps.actionType == 'Add'
       },
       {
         field: 'width',
-        label: 'Width (in)'
+        label: 'Width (in)',
+        required: mainProps.actionType == 'Add'
       },
       {
         field: 'depth',
-        label: 'Depth (in)'
+        label: 'Depth (in)',
+        required: mainProps.actionType == 'Add'
       },
       {
         field: 'height',
-        label: 'Height (in)'
+        label: 'Height (in)',
+        required: mainProps.actionType == 'Add'
       }
     ]
     break
@@ -320,6 +358,20 @@ const addNewLocationType = async () => {
       await postLadder(payload)
       break
     case 'shelves':
+      // if payload includes a shelf barcode validate it and create the shelf barcode
+      if (payload.barcode_value !== '') {
+        const res = await verifyBarcode(payload.barcode_value, 'Shelf')
+        if (res == 'barcode_exists') {
+          // if the inputed shelf barcode exists throw an error since shelf barcode has to be new when adding new shelves
+          handleAlert({
+            type: 'error',
+            text: 'The shelf barcode inputed already exists. Please try again.',
+            autoClose: true
+          })
+          return
+        }
+        payload.barcode_id = barcodeDetails.value.id
+      }
       await postShelve(payload)
       break
     default:

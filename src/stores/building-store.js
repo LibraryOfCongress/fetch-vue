@@ -406,10 +406,8 @@ export const useBuildingStore = defineStore('building-store', {
         ]
 
         // generate sides left and right on the newly created aisle
-        await Promise.all([
-          this.postSide({ aisle_id: res.data.id, side_orientation_id: 2 }),
-          this.postSide({ aisle_id: res.data.id, side_orientation_id: 1 })
-        ])
+        await this.postSide({ aisle_id: res.data.id, side_orientation_id: 1 }),
+        await this.postSide({ aisle_id: res.data.id, side_orientation_id: 2 })
       } catch (error) {
         throw error
       }

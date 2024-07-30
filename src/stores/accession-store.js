@@ -159,6 +159,9 @@ export const useAccessionStore = defineStore('accession-store', {
       try {
         await this.$api.delete(`${inventoryServiceApi.trays}${trayId}`)
         this.resetAccessionContainer()
+
+        // remove the deleted tray from the accessionJob data
+        this.accessionJob.trays = this.accessionJob.trays.filter(tray => tray.id !== trayId)
       } catch (error) {
         throw error
       }
