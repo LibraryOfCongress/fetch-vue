@@ -281,7 +281,8 @@ const {
   getAccessionTray,
   postAccessionTray,
   patchAccessionTray,
-  deleteAccessionTray
+  deleteAccessionTray,
+  deleteAccessionTrayItem
 } = useAccessionStore()
 const {
   accessionJob,
@@ -508,6 +509,8 @@ const updateTrayContainerBarcode = async () => {
 const removeTrayContainer = async () => {
   try {
     appActionIsLoadingData.value = true
+    // delete all tray items before deleting the tray
+    await deleteAccessionTrayItem(accessionContainer.value.items.map(item => item.id))
     await deleteAccessionTray(accessionContainer.value.id)
 
     handleAlert({
