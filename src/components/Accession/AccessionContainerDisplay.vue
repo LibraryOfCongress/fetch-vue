@@ -210,6 +210,7 @@
           <TextInput
             v-model="manualBarcodeEdit"
             placeholder="Please Enter Barcode"
+            @keyup.enter="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); hideModal();"
           />
         </div>
       </q-card-section>
