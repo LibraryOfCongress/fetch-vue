@@ -198,8 +198,8 @@
     <RequestCreateModal
       v-if="showCreateRequestByType"
       :type="showCreateRequestByType"
+      @change-display="requestDisplayType = $event; showCreateRequestByType = null;"
       @hide="showCreateRequestByType = null"
-      @change-display="showCreateRequestByType = null; requestDisplayType = $event"
     />
 
     <!-- Create/Add To Picklist Modal -->
