@@ -70,7 +70,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 
 const router = useRouter()
 
@@ -117,13 +117,14 @@ const renderAlertType = computed(() => {
 })
 
 // Logic
-onMounted(() => {
+onMounted(async () => {
   if (mainProps.persistent) {
     showAlertModal.value = true
     audioAlert()
   }
 
   // check if text contains a local link and convert them to router events
+  await nextTick()
   checkForRouteLinks()
 })
 

@@ -328,7 +328,7 @@ const handleTrayScan = async (barcode_value) => {
       handleAlert({
         type: 'error',
         text: `The tray can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
-        autoClose: true
+        persistent: true
       })
       return
     }
@@ -369,7 +369,7 @@ const handleTrayScan = async (barcode_value) => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   }
 }
@@ -402,7 +402,7 @@ const updateTrayJob = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -438,7 +438,7 @@ const cancelAccessionJob = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
     appActionIsLoadingData.value = false
   }
@@ -461,7 +461,7 @@ const updateTrayContainer = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -499,7 +499,7 @@ const updateTrayContainerBarcode = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -531,7 +531,7 @@ const removeTrayContainer = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
     appActionIsLoadingData.value = false
   }

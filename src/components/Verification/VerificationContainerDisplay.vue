@@ -599,7 +599,7 @@ const triggerItemScan = async (barcode_value) => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   }
 }
@@ -616,17 +616,11 @@ const validateItemBarcode = async () => {
       const nonTrayItemId = verificationContainer.value.id
       await verifyNonTrayItem(nonTrayItemId)
     }
-
-    handleAlert({
-      type: 'success',
-      text: 'The item has been validated.',
-      autoClose: true
-    })
   } catch (error) {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -664,17 +658,11 @@ const addContainerItem = async () => {
       }
       await postVerificationNonTrayItem(payload)
     }
-
-    handleAlert({
-      type: 'success',
-      text: 'The item has been added.',
-      autoClose: true
-    })
   } catch (error) {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   }
 }
@@ -720,7 +708,7 @@ const updateContainerItem = async (barcode_value) => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     // clear out any selected items in the table
@@ -758,7 +746,7 @@ const deleteContainerItem = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     // clear out any selected items in the table
@@ -819,7 +807,7 @@ const setNextVerificationTray = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   }
 }
@@ -870,7 +858,7 @@ const completeVerificationJob = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
