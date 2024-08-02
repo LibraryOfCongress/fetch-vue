@@ -70,7 +70,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick, inject } from 'vue'
 
 const router = useRouter()
 
@@ -117,6 +117,8 @@ const renderAlertType = computed(() => {
 })
 
 // Logic
+const audioAlert = inject('audio-alert')
+
 onMounted(async () => {
   if (mainProps.persistent) {
     showAlertModal.value = true
@@ -141,28 +143,6 @@ const checkForRouteLinks = () => {
       })
     }
   })
-}
-
-const audioAlert = () => {
-  const beep = new AudioContext()
-
-  let oscillatorNode = beep.createOscillator()
-  let gainNode = beep.createGain()
-  oscillatorNode.connect(gainNode)
-
-  // Set the oscillator frequency in hertz
-  oscillatorNode.frequency.value = 280
-
-  // Set the type of oscillator
-  oscillatorNode.type= 'square'
-  gainNode.connect(beep.destination)
-
-  // Set the gain to the volume
-  gainNode.gain.value = 100 * 0.01
-
-  // Start audio with the desired duration
-  oscillatorNode.start(beep.currentTime)
-  oscillatorNode.stop(beep.currentTime + 250 * 0.001)
 }
 </script>
 
