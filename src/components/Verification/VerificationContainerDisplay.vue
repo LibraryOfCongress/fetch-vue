@@ -334,6 +334,30 @@
           @click="hideModal"
         />
       </q-card-section>
+      <q-card-section
+        v-else-if="showConfirmation.type == 'addItem'"
+        class="row no-wrap justify-between items-center q-pt-sm"
+      >
+        <q-btn
+          no-caps
+          unelevated
+          color="accent"
+          label="Add New Item"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="handleConfirmationModal('addItem'); hideModal();"
+        />
+
+        <q-space class="q-mx-xs" />
+
+        <q-btn
+          outline
+          no-caps
+          label="Cancel"
+          class="text-body1 full-width"
+          @click="hideModal"
+        />
+      </q-card-section>
     </template>
   </PopupModal>
 
@@ -531,6 +555,7 @@ const renderIsEditMode = computed(() => {
 
 // Logic
 const handleAlert = inject('handle-alert')
+const audioAlert = inject('audio-alert')
 
 watch(route, () => {
   if (!route.params.containerId) {
@@ -555,7 +580,6 @@ watch(compiledBarCode, (barcode_value) => {
 })
 const triggerItemScan = async (barcode_value) => {
   try {
-    // example barcode for trayed item 'BK123'
     // check if the barcode is in the system otherwise create it
     await verifyBarcode(barcode_value, 'Item')
 
@@ -564,10 +588,12 @@ const triggerItemScan = async (barcode_value) => {
       if (verificationJob.value.trayed && verificationContainer.value.items.some(item => item.barcode.id == barcodeDetails.value.id)) {
         await validateItemBarcode()
       } else {
-        await addContainerItem(barcode_value)
+
+        // display alert to confirm adding new items at verification job level
+        showConfirmation.value = { type: 'addItem', text:'Are you sure you want to add a new item to the job?' }
+        audioAlert()
       }
     } else {
-      // example barcode for non tray item: 'CL555923'
       // check if we have a current active item and validate it if it hasnt been verified yet
       if (verificationContainer.value.id && !verificationContainer.value.scanned_for_verification) {
         await validateItemBarcode()
@@ -578,7 +604,9 @@ const triggerItemScan = async (barcode_value) => {
         // get the scanned non tray item barcode info
         await getVerificationNonTrayItem(barcode_value)
       } else {
-        await addContainerItem(barcode_value)
+        // display alert to confirm adding new items at verification job level
+        showConfirmation.value = { type: 'addItem', text:'Are you sure you want to add a new item to the job?' }
+        audioAlert()
       }
 
       // set job status to running if it isnt already running
@@ -587,19 +615,22 @@ const triggerItemScan = async (barcode_value) => {
       }
 
       // set the scanned item barcode as the container id in the route
-      router.push({
-        name: 'verification-container',
-        params: {
-          jobId: verificationJob.value.id,
-          containerId: verificationContainer.value.barcode.value
-        }
-      })
+      if (verificationContainer.value.id) {
+        router.push({
+          name: 'verification-container',
+          params: {
+            jobId: verificationJob.value.id,
+            containerId: verificationContainer.value.barcode.value
+          }
+        })
+      }
     }
   } catch (error) {
+    console.log('test', error)
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   }
 }
@@ -616,17 +647,11 @@ const validateItemBarcode = async () => {
       const nonTrayItemId = verificationContainer.value.id
       await verifyNonTrayItem(nonTrayItemId)
     }
-
-    handleAlert({
-      type: 'success',
-      text: 'The item has been validated.',
-      autoClose: true
-    })
   } catch (error) {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -664,17 +689,11 @@ const addContainerItem = async () => {
       }
       await postVerificationNonTrayItem(payload)
     }
-
-    handleAlert({
-      type: 'success',
-      text: 'The item has been added.',
-      autoClose: true
-    })
   } catch (error) {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   }
 }
@@ -720,7 +739,7 @@ const updateContainerItem = async (barcode_value) => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     // clear out any selected items in the table
@@ -758,7 +777,7 @@ const deleteContainerItem = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     // clear out any selected items in the table
@@ -781,6 +800,8 @@ const setBarcodeEditDisplay = () => {
 const handleConfirmationModal = async (confirmType) => {
   if (confirmType == 'delete') {
     await deleteContainerItem()
+  } else if (confirmType == 'addItem') {
+    await addContainerItem()
   } else if (confirmType == 'completeJob') {
     await completeVerificationJob()
   } else if (confirmType == 'completePrint') {
@@ -819,7 +840,7 @@ const setNextVerificationTray = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   }
 }
@@ -870,7 +891,7 @@ const completeVerificationJob = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false

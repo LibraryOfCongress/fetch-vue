@@ -254,7 +254,7 @@ const updateNonTrayJob = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -281,7 +281,7 @@ const updateNonTrayItem = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
