@@ -354,7 +354,7 @@ const itemTableColumns = ref([
   },
   {
     name: 'tray_barcode',
-    field: row => row.tray?.barcode?.value,
+    field: row => row.item ? row.item?.tray?.barcode?.value : '',
     label: 'Tray Barcode',
     align: 'left',
     sortable: true
