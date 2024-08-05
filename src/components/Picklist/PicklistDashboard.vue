@@ -77,6 +77,7 @@ const { picklistJobList } = storeToRefs(usePicklistStore())
 // Local Data
 const picklistTableVisibleColumns = ref([
   'id',
+  'building',
   'request_items',
   'status',
   'user',
@@ -88,6 +89,13 @@ const picklistTableColumns = ref([
     name: 'id',
     field: 'id',
     label: 'Job Number #',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'building',
+    field: row => row.building?.name,
+    label: 'Building',
     align: 'left',
     sortable: true
   },
