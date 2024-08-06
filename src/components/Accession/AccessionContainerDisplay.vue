@@ -32,7 +32,7 @@
           <MoreOptionsMenu
             v-else
             :options="[{
-              text: 'Add Tray',
+              text: `Add Tray (${accessionJob.trays.length})`,
               disabled: !accessionContainer.id || !allItemsVerified || accessionJob.status == 'Paused'
             }, {
               text: `${selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'}`,
@@ -67,7 +67,7 @@
             unelevated
             icon="add"
             color="accent"
-            label="Add Tray"
+            :label="`Add Tray (${accessionJob.trays.length})`"
             class="btn-no-wrap text-body1"
             :disabled="!accessionContainer.id || !allItemsVerified || accessionJob.status == 'Paused'"
             @click="showNextTrayModal = !showNextTrayModal"
@@ -329,24 +329,6 @@
   >
     <template #main-content="{ hideModal }">
       <q-card-section class="row accession-next-tray">
-        <div
-          v-for="tray in accessionJob.trays"
-          :key="tray.id"
-          class="col-12 q-mb-sm"
-          role="list"
-        >
-          <q-item class="accession-next-tray-item">
-            <div class="col-12 text-left">
-              <p class="text-h6 text-color-black">
-                Tray #: {{ tray.id }}
-              </p>
-              <p class="text-body1">
-                Trayed
-              </p>
-            </div>
-          </q-item>
-        </div>
-
         <div class="col-12">
           <q-btn
             no-caps
@@ -354,11 +336,28 @@
             outline
             icon="add"
             color="accent"
-            label="Add Tray"
+            :label="`Add Tray (${accessionJob.trays.length})`"
             align="left"
             class="accession-next-tray-action btn-dashed btn-no-wrap text-body1 full-width"
             @click="addNewTray(); hideModal();"
           />
+        </div>
+        <div
+          v-for="tray in accessionJob.trays"
+          :key="tray.id"
+          class="col-12 q-mt-sm"
+          role="list"
+        >
+          <q-item class="accession-next-tray-item">
+            <div class="col-12 text-left">
+              <p class="text-h6 text-color-black">
+                Tray #: {{ tray.barcode.value }}
+              </p>
+              <p class="text-body1">
+                Trayed
+              </p>
+            </div>
+          </q-item>
         </div>
       </q-card-section>
     </template>
@@ -511,7 +510,7 @@ const triggerItemScan = async (barcode_value) => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -561,17 +560,11 @@ const addContainerItem = async () => {
       }
       await postAccessionNonTrayItem(payload)
     }
-
-    handleAlert({
-      type: 'success',
-      text: 'The item has been added.',
-      autoClose: true
-    })
   } catch (error) {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   }
 }
@@ -618,7 +611,7 @@ const updateContainerItem = async (barcode_value) => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     // clear out any selected items in the table
@@ -657,7 +650,7 @@ const deleteContainerItem = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     // clear out any selected items in the table
@@ -757,7 +750,7 @@ const completeAccessionJob = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false

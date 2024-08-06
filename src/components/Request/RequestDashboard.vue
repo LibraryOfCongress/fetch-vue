@@ -336,6 +336,7 @@ const requestTableVisibleColumns = ref([
   'request_type',
   'barcode',
   'external_request_id',
+  'building',
   'requestor_name',
   'status',
   'priority',
@@ -370,6 +371,13 @@ const requestTableColumns = ref([
     name: 'external_request_id',
     field: 'external_request_id',
     label: 'External Request ID',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'building',
+    field: row => row.building?.name,
+    label: 'Building',
     align: 'left',
     sortable: true
   },

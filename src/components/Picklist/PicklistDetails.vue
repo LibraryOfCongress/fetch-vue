@@ -330,6 +330,7 @@ const editJob = ref(false)
 const itemTableVisibleColumns = ref([
   'actions',
   'barcode',
+  'tray_barcode',
   'owner',
   'size_class',
   'item_location',
@@ -348,6 +349,13 @@ const itemTableColumns = ref([
     name: 'barcode',
     field: row => row.item ? row.item?.barcode?.value : row.non_tray_item?.barcode?.value,
     label: 'Barcode',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'tray_barcode',
+    field: row => row.item ? row.item?.tray?.barcode?.value : '',
+    label: 'Tray Barcode',
     align: 'left',
     sortable: true
   },
@@ -409,7 +417,7 @@ onBeforeMount(() => {
     itemTableVisibleColumns.value = [
       'actions',
       'barcode',
-      'size_class',
+      'tray_barcode',
       'item_location',
       'status'
     ]

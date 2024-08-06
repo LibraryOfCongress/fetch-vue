@@ -207,6 +207,28 @@ const getItemLocation = (itemData) => {
   return `${module}-${aisle}-${side == 'Right' ? 'R' : side == 'Left' ? 'L' : side}-${ladder}-${shelf}-${shelfPosition}`.replace('undefined-', '')
 }
 provide('get-item-location', getItemLocation)
+const audioAlert = () => {
+  const beep = new AudioContext()
+
+  let oscillatorNode = beep.createOscillator()
+  let gainNode = beep.createGain()
+  oscillatorNode.connect(gainNode)
+
+  // Set the oscillator frequency in hertz
+  oscillatorNode.frequency.value = 280
+
+  // Set the type of oscillator
+  oscillatorNode.type= 'square'
+  gainNode.connect(beep.destination)
+
+  // Set the gain to the volume
+  gainNode.gain.value = 100 * 0.01
+
+  // Start audio with the desired duration
+  oscillatorNode.start(beep.currentTime)
+  oscillatorNode.stop(beep.currentTime + 250 * 0.001)
+}
+provide('audio-alert', audioAlert)
 </script>
 
 <style lang="scss" scoped>
