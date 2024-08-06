@@ -81,9 +81,9 @@ export const useAccessionStore = defineStore('accession-store', {
         throw error
       }
     },
-    async getAccessionJob (id) {
+    async getAccessionJob (workflowId) {
       try {
-        const res = await this.$api.get(`${inventoryServiceApi.accessionJobs}${id}`)
+        const res = await this.$api.get(`${inventoryServiceApi.accessionJobsWorkflow}${workflowId}`)
         this.accessionJob = { ...res.data }
         this.originalAccessionJob = { ...res.data }
       } catch (error) {

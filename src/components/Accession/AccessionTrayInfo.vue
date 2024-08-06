@@ -16,7 +16,7 @@
           @click="handleOptionMenu"
         />
         <h1 class="text-h4 text-bold">
-          {{ `Job: ${accessionJob.id}` }}
+          {{ `Job: ${accessionJob.workflow_id}` }}
         </h1>
       </div>
 
@@ -361,7 +361,7 @@ const handleTrayScan = async (barcode_value) => {
     router.push({
       name: 'accession-container',
       params: {
-        jobId: accessionJob.value.id,
+        jobId: accessionJob.value.workflow_id,
         containerId: accessionContainer.value.barcode.value
       }
     })
@@ -387,7 +387,7 @@ const updateTrayJob = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
-      id: route.params.jobId,
+      id: accessionJob.value.id,
       media_type_id: accessionJob.value.media_type_id
     }
 
@@ -412,9 +412,8 @@ const updateTrayJob = async () => {
 const cancelAccessionJob = async () => {
   try {
     appActionIsLoadingData.value = true
-    // await deleteAccessionJob(route.params.jobId)
     const payload = {
-      id: route.params.jobId,
+      id: accessionJob.value.id,
       status: 'Cancelled'
     }
     await patchAccessionJob(payload)
@@ -491,7 +490,7 @@ const updateTrayContainerBarcode = async () => {
     router.replace({
       name: route.name,
       params: {
-        jobId: route.params.jobId,
+        jobId: accessionJob.value.workflow_id,
         containerId: trayBarcodeInput.value
       }
     })
@@ -524,7 +523,7 @@ const removeTrayContainer = async () => {
     router.push({
       name: 'accession',
       params: {
-        jobId: route.params.jobId
+        jobId: accessionJob.value.workflow_id
       }
     })
   } catch (error) {

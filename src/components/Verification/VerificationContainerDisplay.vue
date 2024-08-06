@@ -615,15 +615,13 @@ const triggerItemScan = async (barcode_value) => {
       }
 
       // set the scanned item barcode as the container id in the route
-      if (verificationContainer.value.id) {
-        router.push({
-          name: 'verification-container',
-          params: {
-            jobId: verificationJob.value.id,
-            containerId: verificationContainer.value.barcode.value
-          }
-        })
-      }
+      router.push({
+        name: 'verification-container',
+        params: {
+          jobId: verificationJob.value.workflow_id,
+          containerId: verificationContainer.value.barcode.value
+        }
+      })
     }
   } catch (error) {
     console.log('test', error)
@@ -723,7 +721,7 @@ const updateContainerItem = async (barcode_value) => {
       router.push({
         name: 'verification-container',
         params: {
-          jobId: verificationJob.value.id,
+          jobId: verificationJob.value.workflow_id,
           containerId: barcode_value
         }
       })
@@ -758,7 +756,7 @@ const deleteContainerItem = async () => {
       router.push({
         name: 'verification',
         params: {
-          jobId: verificationJob.value.id
+          jobId: verificationJob.value.workflow_id
         }
       })
     }
@@ -835,7 +833,7 @@ const setNextVerificationTray = async () => {
     }
 
     // send the user back to the job and wait for next tray to be scanned
-    router.push({ name: 'verification', params: { jobId: verificationJob.value.id } })
+    router.push({ name: 'verification', params: { jobId: verificationJob.value.workflow_id } })
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -847,7 +845,7 @@ const setNextVerificationTray = async () => {
 const updateVerificationJobStatus = async (status) => {
   try {
     const payload = {
-      id: route.params.jobId,
+      id: verificationJob.value.id,
       status
     }
     await patchVerificationJob(payload)
@@ -869,7 +867,7 @@ const completeVerificationJob = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
-      id: route.params.jobId,
+      id: verificationJob.value.id,
       status: 'Completed'
     }
     await patchVerificationJob(payload)

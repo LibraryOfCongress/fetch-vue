@@ -11,7 +11,7 @@
           @click="handleOptionMenu"
         />
         <h1 class="text-h4 text-bold">
-          {{ `Job: ${accessionJob.id}` }}
+          {{ `Job: ${accessionJob.workflow_id}` }}
         </h1>
       </div>
 
@@ -253,7 +253,7 @@ const updateNonTrayJob = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
-      id: route.params.jobId,
+      id: accessionJob.value.id,
       media_type_id: accessionJob.value.media_type_id,
       size_class_id: accessionJob.value.size_class_id
     }
@@ -279,9 +279,8 @@ const updateNonTrayJob = async () => {
 const cancelAccessionJob = async () => {
   try {
     appActionIsLoadingData.value = true
-    // await deleteAccessionJob(route.params.jobId)
     const payload = {
-      id: route.params.jobId,
+      id: accessionJob.value.id,
       status: 'Cancelled'
     }
     await patchAccessionJob(payload)
