@@ -22,7 +22,11 @@ export const useSearchStore = defineStore('search-store', {
         } else {
           // exact searches for job types will load the direct job by job number
           let jobEndpoint = `${searchType.toLowerCase()}Jobs`
-          if (searchType == 'Request') {
+          if (searchType == 'Accession') {
+            jobEndpoint = 'accessionJobsWorkflow'
+          } else if (searchType == 'Verification') {
+            jobEndpoint = 'verificationJobsWorkflow'
+          } else if (searchType == 'Request') {
             jobEndpoint = 'requests'
           } else if (searchType == 'Picklist') {
             jobEndpoint = 'picklists'

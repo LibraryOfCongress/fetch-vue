@@ -10,7 +10,7 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
-          @selected-table-row="loadAccessionJob($event.id)"
+          @selected-table-row="loadAccessionJob($event.workflow_id)"
         >
           <template #heading-row>
             <div
@@ -255,7 +255,7 @@ const accessionTableVisibleColumns = ref([
 const accessionTableColumns = ref([
   {
     name: 'id',
-    field: 'id',
+    field: 'workflow_id',
     label: 'Job Number',
     align: 'left',
     sortable: true
@@ -342,15 +342,15 @@ const loadAccessionJobs = async () => {
     appIsLoadingData.value = false
   }
 }
-const loadAccessionJob = async (jobId) => {
+const loadAccessionJob = async (workflowId) => {
   try {
     appIsLoadingData.value = true
-    await getAccessionJob(jobId)
+    await getAccessionJob(workflowId)
 
     router.push({
       name: 'accession',
       params: {
-        jobId
+        jobId: workflowId
       }
     })
   } catch (error) {
@@ -379,7 +379,7 @@ const submitAccessionJob = async () => {
     router.push({
       name: 'accession',
       params: {
-        jobId: accessionJob.value.id
+        jobId: accessionJob.value.workflow_id
       }
     })
 

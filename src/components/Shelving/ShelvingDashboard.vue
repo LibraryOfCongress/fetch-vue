@@ -171,7 +171,7 @@
                   :hide-selected="false"
                   :options="verificationJobList"
                   option-value="id"
-                  option-label="id"
+                  option-label="workflow_id"
                   :placeholder="'Select Verification Job(s) by Number'"
                   @focus="loadVerificationJobs"
                   aria-label="verificationJobSelection"
@@ -180,7 +180,7 @@
                     <q-item v-bind="itemProps">
                       <q-item-section>
                         <q-item-label class="text-body1">
-                          <span>Job #: {{ opt.id }}</span>
+                          <span>Job #: {{ opt.workflow_id }}</span>
                           <span class="text-secondary"> - 0 Containers ({{ opt.trayed ? 'Trayed' : 'Non-Tray' }})</span>
                         </q-item-label>
                       </q-item-section>

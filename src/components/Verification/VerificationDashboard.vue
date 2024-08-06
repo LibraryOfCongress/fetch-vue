@@ -10,7 +10,7 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
-          @selected-table-row="loadVerificationJob($event.id)"
+          @selected-table-row="loadVerificationJob($event.workflow_id)"
         >
           <template #heading-row>
             <div
@@ -77,7 +77,7 @@ const verificationTableVisibleColumns = ref([
 const verificationTableColumns = ref([
   {
     name: 'id',
-    field: 'id',
+    field: 'workflow_id',
     label: 'Job Number',
     align: 'left',
     sortable: true
@@ -147,15 +147,15 @@ const loadVerificationJobs = async () => {
     appIsLoadingData.value = false
   }
 }
-const loadVerificationJob = async (jobId) => {
+const loadVerificationJob = async (workflowId) => {
   try {
     appIsLoadingData.value = true
-    await getVerificationJob(jobId)
+    await getVerificationJob(workflowId)
 
     router.push({
       name: 'verification',
       params: {
-        jobId
+        jobId: workflowId
       }
     })
   } catch (error) {

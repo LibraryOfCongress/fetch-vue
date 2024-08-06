@@ -5,7 +5,7 @@
         <section>
           <header>
             <h1 class="text-h4 text-bold q-mb-sm">
-              Job: {{ accessionJobDetails.id }}
+              Job: {{ accessionJobDetails.workflow_id }}
             </h1>
           </header>
         </section>

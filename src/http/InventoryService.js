@@ -7,6 +7,7 @@ export default {
   // can be called with the api filter like so
   // this.$api.get(inventoryService.examples, { id: entryId })
   accessionJobs: '/accession-jobs/',
+  accessionJobsWorkflow: '/accession-jobs/workflow/',
   aisles: '/aisles/',
   authLegacyLogin: '/auth/legacy/login',
   authSsoLogin: '/auth/sso/login/',
@@ -43,5 +44,6 @@ export default {
   traysBarcode: '/trays/barcode/',
   users: '/users/',
   verificationJobs: '/verification-jobs/',
+  verificationJobsWorkflow: '/verification-jobs/workflow/',
   withdrawJobs: '/withdraw-jobs/'
 }

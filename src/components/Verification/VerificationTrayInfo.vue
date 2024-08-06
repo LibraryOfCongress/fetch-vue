@@ -10,7 +10,7 @@
           @click="handleOptionMenu"
         />
         <h1 class="text-h4 text-bold">
-          {{ `Job: ${verificationJob.id}` }}
+          {{ `Job: ${verificationJob.workflow_id}` }}
         </h1>
       </div>
 
@@ -205,7 +205,6 @@ const {
 const {
   patchVerificationJob,
   getVerificationTray,
-  //TODO: remove? postVerificationTray,
   patchVerificationTray
 } = useVerificationStore()
 const {
@@ -269,7 +268,7 @@ const handleTrayScan = async (barcode_value) => {
       router.push({
         name: 'verification-container',
         params: {
-          jobId: verificationJob.value.id,
+          jobId: verificationJob.value.workflow_id,
           containerId: verificationContainer.value.barcode.value
         }
       })

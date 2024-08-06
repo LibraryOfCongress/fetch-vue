@@ -10,7 +10,7 @@
           @click="handleOptionMenu"
         />
         <h1 class="text-h4 text-bold">
-          {{ `Job: ${verificationJob.id}` }}
+          {{ `Job: ${verificationJob.workflow_id}` }}
         </h1>
       </div>
 

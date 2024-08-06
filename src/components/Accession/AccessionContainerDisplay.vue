@@ -502,7 +502,7 @@ const triggerItemScan = async (barcode_value) => {
       router.push({
         name: 'accession-container',
         params: {
-          jobId: accessionJob.value.id,
+          jobId: accessionJob.value.workflow_id,
           containerId: accessionContainer.value.barcode.value
         }
       })
@@ -602,7 +602,7 @@ const updateContainerItem = async (barcode_value) => {
       router.push({
         name: 'accession-container',
         params: {
-          jobId: accessionJob.value.id,
+          jobId: accessionJob.value.workflow_id,
           containerId: barcode_value
         }
       })
@@ -638,7 +638,7 @@ const deleteContainerItem = async () => {
       router.push({
         name: 'accession',
         params: {
-          jobId: accessionJob.value.id
+          jobId: accessionJob.value.workflow_id
         }
       })
     }
@@ -699,7 +699,7 @@ const addNewTray = async () => {
   router.push({
     name: 'accession',
     params: {
-      jobId: accessionJob.value.id
+      jobId: accessionJob.value.workflow_id
     }
   })
 }
@@ -707,7 +707,7 @@ const addNewTray = async () => {
 const updateAccessionJobStatus = async (status) => {
   try {
     const payload = {
-      id: route.params.jobId,
+      id: accessionJob.value.id,
       status
     }
 
@@ -735,7 +735,7 @@ const completeAccessionJob = async () => {
     }
 
     const payload = {
-      id: route.params.jobId,
+      id: accessionJob.value.id,
       status: 'Completed'
     }
     await patchAccessionJob(payload)
