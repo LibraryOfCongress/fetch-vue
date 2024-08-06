@@ -1,140 +1,62 @@
 <template>
-  <div class="verification-container">
-    <!-- jobs in progress list -->
-    <div class="row">
-      <div class="col-12">
-        <h1 class="text-h4 text-bold q-mb-xs-md q-mb-sm-lg">
-          Jobs In Progress
-        </h1>
-      </div>
-
-      <div
-        v-if="jobsInProgress.length == 0"
-        class="col-auto"
-      >
-        <p class="text-h6">
-          No jobs currently in progress...
-        </p>
-      </div>
-      <template v-else>
-        <div
-          v-for="job in jobsInProgress"
-          :key="job.id"
-          class="col-xs-12 col-sm-auto q-pa-xs-xs q-pa-lg-sm q-pa-xl-md"
+  <div class="verification-dashboard">
+    <div class="row q-mb-xs-xl q-mb-sm-none">
+      <div class="col-grow q-mb-xs-md q-mb-sm-none">
+        <EssentialTable
+          :table-columns="verificationTableColumns"
+          :table-visible-columns="verificationTableVisibleColumns"
+          :filter-options="verificationTableFilters"
+          :table-data="verificationJobList"
+          :enable-table-reorder="false"
+          :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
+          :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          @selected-table-row="loadVerificationJob($event.id)"
         >
-          <q-card
-            flat
-            bordered
-            class="verification-card"
-            @click="loadVerificationJob(job.id)"
-          >
-            <q-card-section class="q-pa-none">
-              <div class="verification-card-barcode text-h4">
-                {{ job.id }}
-              </div>
-            </q-card-section>
+          <template #heading-row>
+            <div
+              class="col-sm-5 col-md-12 col-lg-auto"
+              :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
+            >
+              <h1 class="text-h4 text-bold">
+                Verification Jobs
+              </h1>
+            </div>
+          </template>
 
-            <q-card-section class="q-py-md q-px-md">
-              <div class="verification-card-details q-mb-xs">
-                <label class="text-body1">Job #:</label>
-                <p class="text-body1">
-                  {{ job.id }}
-                </p>
-              </div>
-
-              <div class="verification-card-details q-mb-xs">
-                <p class="text-body1 text-secondary">
-                  {{ !job.trayed ? 'Non-Trayed' : 'Trayed' }}
-                </p>
-              </div>
-
-              <div class="verification-card-details">
-                <label class="text-body1">Status:</label>
-                <p
-                  class="text-body1 outline"
-                  :class="[ job.status == 'Paused' ? 'text-highlight-warning' : 'text-highlight' ]"
-                >
-                  {{ job.status }}
-                </p>
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-      </template>
-    </div>
-
-    <!-- jobs in queue list -->
-    <div class="row q-mt-xl">
-      <div class="col-12">
-        <h1 class="text-h4 text-bold q-mb-xs-md q-mb-sm-lg">
-          Jobs In Queue
-        </h1>
+          <template #table-td="{ colName, value }">
+            <span
+              v-if="colName == 'status'"
+              class="outline text-nowrap"
+              :class="value == 'Created' || value == 'Completed' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-warning' : 'text-highlight-negative'"
+            >
+              {{ value }}
+            </span>
+            <span
+              v-if="colName == 'trayed'"
+              class="text-secondary"
+            >
+              {{ value == true ? 'Trayed' : 'Non-Trayed' }}
+            </span>
+          </template>
+        </EssentialTable>
       </div>
-
-      <div
-        v-if="jobsInQueue.length == 0"
-        class="col-auto"
-      >
-        <p class="text-h6">
-          No jobs currently in queue...
-        </p>
-      </div>
-      <template v-else>
-        <div
-          v-for="job in jobsInQueue"
-          :key="job.id"
-          class="col-xs-12 col-sm-auto q-pa-xs-xs q-pa-lg-sm q-pa-xl-md"
-        >
-          <q-card
-            flat
-            bordered
-            class="verification-card"
-            @click="loadVerificationJob(job.id)"
-          >
-            <q-card-section class="q-pa-none">
-              <div class="verification-card-barcode text-h4">
-                {{ job.id }}
-              </div>
-            </q-card-section>
-
-            <q-card-section class="q-py-md q-px-md">
-              <div class="verification-card-details q-mb-xs">
-                <label class="text-body1">Job #:</label>
-                <p class="text-body1">
-                  {{ job.id }}
-                </p>
-              </div>
-
-              <div class="verification-card-details q-mb-xs">
-                <p class="text-body1 text-secondary">
-                  {{ !job.trayed ? 'Non-Trayed' : 'Trayed' }}
-                </p>
-              </div>
-
-              <div class="verification-card-details">
-                <label class="text-body1">Status:</label>
-                <p
-                  class="text-body1 outline text-highlight"
-                >
-                  {{ job.status }}
-                </p>
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-      </template>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, inject } from 'vue'
+import { ref, onBeforeMount, inject } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useVerificationStore } from 'src/stores/verification-store'
+import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import EssentialTable from '@/components/EssentialTable.vue'
 
 const router = useRouter()
+
+// Composables
+const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const { appIsLoadingData } = storeToRefs(useGlobalStore())
@@ -145,28 +67,76 @@ const {
 } = useVerificationStore()
 const { verificationJobList } = storeToRefs(useVerificationStore())
 
+
 // Local Data
-const jobsInProgress = ref([])
-const jobsInQueue = ref([])
+const verificationTableVisibleColumns = ref([
+  'id',
+  'trayed',
+  'status'
+])
+const verificationTableColumns = ref([
+  {
+    name: 'id',
+    field: 'id',
+    label: 'Job Number',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'trayed',
+    field: 'trayed',
+    label: 'Job Type',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'status',
+    field: 'status',
+    label: 'Status',
+    align: 'left',
+    sortable: true
+  }
+])
+const verificationTableFilters =  ref([
+  {
+    field: 'status',
+    options: [
+      {
+        text: 'Created',
+        value: false
+      },
+      {
+        text: 'Paused',
+        value: false
+      },
+      {
+        text: 'Running',
+        value: false
+      }
+    ]
+  }
+])
 
 // Logic
 const handleAlert = inject('handle-alert')
 
-onMounted(() => {
+onBeforeMount(() => {
   resetVerificationStore()
   loadVerificationJobs()
+
+  if (currentScreenSize.value == 'xs') {
+    verificationTableVisibleColumns.value = [
+      'id',
+      'trayed',
+      'status'
+    ]
+  }
 })
 
 const loadVerificationJobs = async () => {
   try {
     appIsLoadingData.value = true
     await getVerificationJobList()
-
-    // filter jobs by status
-    if (verificationJobList.value.length > 0) {
-      jobsInProgress.value = verificationJobList.value.filter(job => job.status !== 'Created' && job.status !== 'Completed')
-      jobsInQueue.value = verificationJobList.value.filter(job => job.status == 'Created')
-    }
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -199,58 +169,5 @@ const loadVerificationJob = async (jobId) => {
   }
 }
 </script>
-
 <style lang="scss" scoped>
-.verification {
-  &-card {
-    position: relative;
-    display: flex;
-    flex-flow: column nowrap;
-    min-width: 250px;
-    padding: 0;
-    border-color: $secondary;
-    border-radius: 4px;
-    transition: 0.3s ease;
-
-    @media (max-width: $breakpoint-sm-min) {
-      flex-flow: row nowrap;
-
-      .q-card__section {
-        width: 50%;
-      }
-    }
-
-    &:hover:not(:disabled) {
-      color: $accent;
-      border-color: $accent;
-      cursor: pointer;
-    }
-
-    &-barcode {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-      height: 100%;
-      padding: 2.5rem .5rem;
-      background-color: $secondary;
-      color: $color-white;
-
-      @media (max-width: $breakpoint-sm-min) {
-        padding: 1rem .75rem;
-        word-break: break-word;
-      }
-    }
-
-    &-details {
-      display: flex;
-      flex-flow: row wrap;
-      width: 100%;
-
-      label {
-        margin-right: .5rem;
-      }
-    }
-  }
-}
 </style>
