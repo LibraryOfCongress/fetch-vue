@@ -210,7 +210,7 @@ const addItemToWithdrawJob = async () => {
     appActionIsLoadingData.value = true
     const payload = {
       job_id: withdrawJob.value.id,
-      barcode_values: [itemBarcode.value]
+      barcode_value: itemBarcode.value
     }
     await postWithdrawJobItem(payload)
 
