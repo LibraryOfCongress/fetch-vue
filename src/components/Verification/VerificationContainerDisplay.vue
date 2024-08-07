@@ -149,7 +149,7 @@
           <EssentialTable
             ref="verificationTableComponent"
             :table-columns="verificationTableColumns"
-            :table-data="verificationJob.trayed ? verificationContainer.items : verificationJob.non_tray_items"
+            :table-data="verificationJob.trayed ? verificationContainer.items.slice().reverse() : verificationJob.non_tray_items.slice().reverse()"
             :hide-table-rearrange="true"
             :enable-selection="true"
             @selected-data="selectedItems = $event"
