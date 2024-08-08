@@ -662,7 +662,7 @@ const updateShelvingJobStatus = async (status) => {
     const payload = {
       id: route.params.jobId,
       status,
-      timestamp: new Date().toISOString()
+      run_timestamp: new Date().toISOString()
     }
 
     await patchShelvingJob(payload)

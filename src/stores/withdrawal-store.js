@@ -102,6 +102,11 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
         const res = await this.$api.post(`${inventoryServiceApi.withdrawJobs}${this.withdrawJob.id}/add_items`, payload)
         this.withdrawJob = res.data
         this.originalWithdrawJob = { ...this.withdrawJob }
+
+        // check if success message contains errors and return them
+        if (res.data.errors && res.data.errors.length > 0) {
+          return res.data.errors
+        }
       } catch (error) {
         throw error
       }
@@ -118,8 +123,6 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
 
         // check if success message contains errors and return them
         if (res.data.errors && res.data.errors.length > 0) {
-          // TODO setup a way to read success errors
-          console.log('errors found', res.data.errors)
           return res.data.errors
         }
       } catch (error) {
