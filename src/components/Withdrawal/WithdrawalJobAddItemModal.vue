@@ -212,23 +212,44 @@ const addItemToWithdrawJob = async () => {
       job_id: withdrawJob.value.id,
       barcode_value: itemBarcode.value
     }
-    await postWithdrawJobItem(payload)
+    const res = await postWithdrawJobItem(payload)
 
     handleAlert({
       type: 'success',
       text: 'Successfully added an item to the Withdraw Job!',
       autoClose: true
     })
+    // check if errors are returned in our 200 response and display them
+    if (res) {
+      res.forEach(err => {
+        handleAlert({
+          type: 'error',
+          text: `Batch withdraw upload failed for the following: ${JSON.stringify(err)}`,
+          autoClose: true
+        })
+      })
+    }
+
     showAddAlert.value = true
     setTimeout(() => {
       showAddAlert.value = false
     }, 2500)
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
+    if (error.response?.data?.errors) {
+      error.response.data.errors.forEach(err => {
+        handleAlert({
+          type: 'error',
+          text: `Batch withdraw upload failed: ${JSON.stringify(err)}`,
+          autoClose: true
+        })
+      })
+    } else {
+      handleAlert({
+        type: 'error',
+        text: error,
+        autoClose: true
+      })
+    }
   } finally {
     appActionIsLoadingData.value = false
     itemBarcode.value = null
