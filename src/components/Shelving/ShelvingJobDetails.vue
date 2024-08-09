@@ -633,7 +633,8 @@ const executeShelvingJob = async () => {
     const payload = {
       id: route.params.jobId,
       status: 'Running',
-      user_id: shelvingJob.value.user_id ? shelvingJob.value.user_id : userData.value.id
+      user_id: shelvingJob.value.user_id ? shelvingJob.value.user_id : userData.value.id,
+      run_timestamp: new Date().toISOString()
     }
     await patchShelvingJob(payload)
 
@@ -720,7 +721,8 @@ const completeShelvingJob = async (printBool) => {
     appActionIsLoadingData.value = true
     const payload = {
       id: route.params.jobId,
-      status: 'Completed'
+      status: 'Completed',
+      run_timestamp: new Date().toISOString()
     }
     await patchShelvingJob(payload)
 
