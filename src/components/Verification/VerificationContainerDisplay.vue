@@ -846,7 +846,8 @@ const updateVerificationJobStatus = async (status) => {
   try {
     const payload = {
       id: verificationJob.value.id,
-      status
+      status,
+      run_timestamp: new Date().toISOString()
     }
     await patchVerificationJob(payload)
 
@@ -868,7 +869,8 @@ const completeVerificationJob = async () => {
     appActionIsLoadingData.value = true
     const payload = {
       id: verificationJob.value.id,
-      status: 'Completed'
+      status: 'Completed',
+      run_timestamp: new Date().toISOString()
     }
     await patchVerificationJob(payload)
 

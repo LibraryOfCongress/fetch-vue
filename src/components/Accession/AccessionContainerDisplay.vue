@@ -701,7 +701,8 @@ const updateAccessionJobStatus = async (status) => {
   try {
     const payload = {
       id: accessionJob.value.id,
-      status
+      status,
+      run_timestamp: new Date().toISOString()
     }
 
     await patchAccessionJob(payload)
@@ -729,7 +730,8 @@ const completeAccessionJob = async () => {
 
     const payload = {
       id: accessionJob.value.id,
-      status: 'Completed'
+      status: 'Completed',
+      run_timestamp: new Date().toISOString()
     }
     await patchAccessionJob(payload)
 
