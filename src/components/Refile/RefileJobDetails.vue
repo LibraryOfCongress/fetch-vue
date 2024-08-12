@@ -4,8 +4,8 @@
       <div class="flex q-mb-xs">
         <MoreOptionsMenu
           :options="[
-            { text: 'Edit', disabled: appIsOffline || editJob || refileJob.status == 'Paused' || refileJob.status == 'Completed' },
-            { text: 'Delete Job', optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed' || refileJobItems.some(itm => itm.status == 'In')}
+            { text: 'Edit', hidden: !checkUserPermission('can_assign_and_reassign_refile_job'), disabled: appIsOffline || editJob || refileJob.status == 'Paused' || refileJob.status == 'Completed' },
+            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_refile_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed' || refileJobItems.some(itm => itm.status == 'In')}
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
@@ -128,7 +128,7 @@
             :icon="refileJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
             :label="refileJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
             class="btn-no-wrap text-body1 q-mr-sm"
-            :disabled="appPendingSync"
+            :disabled="appPendingSync || !checkUserPermission('can_edit_refile_job')"
             @click="refileJob.status == 'Paused' ? updateRefileJobStatus('Running') : updateRefileJobStatus('Paused')"
           />
           <q-btn
@@ -137,7 +137,7 @@
             color="positive"
             :label="refileJob.status == 'Created' ? 'Execute Refile Job' : 'Complete Job'"
             class="btn-no-wrap text-body1"
-            :disabled="appIsOffline || appPendingSync || refileJob.status == 'Paused' || !allItemsRefiled"
+            :disabled="appIsOffline || appPendingSync || refileJob.status == 'Paused' || !allItemsRefiled || !checkUserPermission('can_execute_and_complete_refile_job')"
             :loading="appActionIsLoadingData"
             @click="refileJob.status == 'Created' ? executeRefileJob() : showConfirmationModal = 'CompleteJob'"
           />
@@ -161,12 +161,12 @@
         :button-one-icon="refileJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
         :button-one-label="refileJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
         :button-one-outline="true"
-        :button-one-disabled="appPendingSync || refileJob.status == 'Created'"
+        :button-one-disabled="appPendingSync || refileJob.status == 'Created' || !checkUserPermission('can_edit_refile_job')"
         @button-one-click="refileJob.status == 'Paused' ? updateRefileJobStatus('Running') : updateRefileJobStatus('Paused')"
         button-two-color="positive"
         :button-two-label="refileJob.status == 'Created' ? 'Execute Refile Job' : 'Complete Job'"
         :button-two-outline="false"
-        :button-two-disabled="appIsOffline || appPendingSync || refileJob.status == 'Paused' || !allItemsRefiled"
+        :button-two-disabled="appIsOffline || appPendingSync || refileJob.status == 'Paused' || !allItemsRefiled || !checkUserPermission('can_execute_and_complete_refile_job')"
         :button-two-loading="appActionIsLoadingData"
         @button-two-click="refileJob.status == 'Created' ? executeRefileJob() : showConfirmationModal = 'CompleteJob'"
       />
@@ -201,7 +201,7 @@
             v-if="colName == 'actions'"
           >
             <MoreOptionsMenu
-              :options="[{ text: 'Revert Item to Queue', disabled: props.row.status !== 'Out' || refileJob.status == 'Paused' || refileJob.status == 'Completed' }]"
+              :options="[{ text: 'Revert Item to Queue', disabled: props.row.status !== 'Out' || refileJob.status == 'Paused' || refileJob.status == 'Completed' || !checkUserPermission('can_edit_refile_job') }]"
               class=""
               @click="handleOptionMenu($event, props.row)"
             />
@@ -286,6 +286,7 @@ import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import InfoDisplayLayout from '@/components/InfoDisplayLayout.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
@@ -304,6 +305,7 @@ const {
   getDataInIndexDb,
   deleteDataInIndexDb
 } = useIndexDbHandler()
+const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const {

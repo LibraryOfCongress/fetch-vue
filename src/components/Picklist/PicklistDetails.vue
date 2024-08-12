@@ -4,8 +4,8 @@
       <div class="flex q-mb-xs">
         <MoreOptionsMenu
           :options="[
-            { text: 'Edit', disabled: appIsOffline || editJob || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' },
-            { text: 'Delete Job', optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed' || picklistItems.some(itm => itm.status !== 'Requested')}
+            { text: 'Edit', hidden: !checkUserPermission('can_assign_and_reassign_picklist_job'), disabled: appIsOffline || editJob || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' },
+            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_picklist_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed' || picklistItems.some(itm => itm.status !== 'Requested')}
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
@@ -135,7 +135,7 @@
             :icon="picklistJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
             :label="picklistJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
             class="btn-no-wrap text-body1 q-mr-sm"
-            :disabled="appPendingSync"
+            :disabled="appPendingSync || !checkUserPermission('can_edit_picklist_job')"
             @click="picklistJob.status == 'Paused' ? updatePicklistJobStatus('Running') : updatePicklistJobStatus('Paused')"
           />
           <q-btn
@@ -144,7 +144,7 @@
             color="positive"
             :label="picklistJob.status == 'Created' ? 'Retrieve Pick List' : 'Complete Job'"
             class="btn-no-wrap text-body1"
-            :disabled="appIsOffline || appPendingSync || picklistJob.status == 'Paused' || !allItemsRetrieved"
+            :disabled="appIsOffline || appPendingSync || picklistJob.status == 'Paused' || !allItemsRetrieved || !checkUserPermission('can_edit_picklist_job')"
             :loading="appActionIsLoadingData"
             @click="picklistJob.status == 'Created' ? executePicklistJob() : showConfirmationModal = 'CompleteJob'"
           />
@@ -168,12 +168,12 @@
         :button-one-icon="picklistJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
         :button-one-label="picklistJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
         :button-one-outline="true"
-        :button-one-disabled="appPendingSync || picklistJob.status == 'Created'"
+        :button-one-disabled="appPendingSync || picklistJob.status == 'Created' || !checkUserPermission('can_edit_picklist_job')"
         @button-one-click="picklistJob.status == 'Paused' ? updatePicklistJobStatus('Running') : updatePicklistJobStatus('Paused')"
         button-two-color="positive"
         :button-two-label="picklistJob.status == 'Created' ? 'Retrieve Pick List' : 'Complete Job'"
         :button-two-outline="false"
-        :button-two-disabled="appIsOffline || appPendingSync || picklistJob.status == 'Paused' || !allItemsRetrieved"
+        :button-two-disabled="appIsOffline || appPendingSync || picklistJob.status == 'Paused' || !allItemsRetrieved || !checkUserPermission('can_edit_picklist_job')"
         :button-two-loading="appActionIsLoadingData"
         @button-two-click="picklistJob.status == 'Created' ? executePicklistJob() : showConfirmationModal = 'CompleteJob'"
       />
@@ -206,7 +206,7 @@
             v-if="colName == 'actions'"
           >
             <MoreOptionsMenu
-              :options="[{ text: 'Revert Item to Queue', disabled: props.row.status !== 'Requested' || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' }]"
+              :options="[{ text: 'Revert Item to Queue', disabled: props.row.status !== 'Requested' || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' || !checkUserPermission('can_edit_picklist_job')}]"
               class=""
               @click="handleOptionMenu($event, props.row)"
             />
@@ -285,6 +285,7 @@ import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import InfoDisplayLayout from '@/components/InfoDisplayLayout.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
@@ -302,6 +303,7 @@ const {
   getDataInIndexDb,
   deleteDataInIndexDb
 } = useIndexDbHandler()
+const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const {

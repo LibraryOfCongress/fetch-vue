@@ -318,6 +318,7 @@ import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useGroupStore } from '@/stores/group-store'
+import { useUserStore } from '@/stores/user-store'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import TextInput from '@/components/TextInput.vue'
@@ -341,6 +342,8 @@ const {
   postAdminGroupUser,
   deleteAdminGroupUser
 } = useGroupStore()
+const { getUserPermissions } = useUserStore()
+const { userData } = storeToRefs(useUserStore())
 
 // Local Data
 const renameGroupInput = ref('')
@@ -519,6 +522,11 @@ const addAdminGroupUser = async () => {
       text: 'The group users have been updated.',
       autoClose: true
     })
+
+    // check if the signed in user exists in an edited group and reload permissions on the user if change to group is detected
+    if (groupDetails.value.users.some(usr => usr.id == userData.value.user_id)) {
+      loadUserPermissions()
+    }
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -540,6 +548,11 @@ const removeAdminGroupUser = async () => {
       text: 'The user has been successfully deleted from the group.',
       autoClose: true
     })
+
+    // check if the delete user is the signed user and reload their permissions
+    if (selectedGroupUserId.value == userData.value.user_id) {
+      loadUserPermissions()
+    }
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -549,6 +562,18 @@ const removeAdminGroupUser = async () => {
   } finally {
     appActionIsLoadingData.value = false
     confirmationModal.value.hideModal()
+  }
+}
+
+const loadUserPermissions = async () => {
+  try {
+    await getUserPermissions()
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
   }
 }
 </script>

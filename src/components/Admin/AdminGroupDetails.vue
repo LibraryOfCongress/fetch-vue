@@ -40,6 +40,21 @@
             label="Refile"
             class="admin-group-details-tablist-tab"
           />
+          <q-tab
+            name="withdraw"
+            label="Withdraw"
+            class="admin-group-details-tablist-tab"
+          />
+          <q-tab
+            name="reporting"
+            label="Reporting"
+            class="admin-group-details-tablist-tab"
+          />
+          <q-tab
+            name="admin"
+            label="Admin"
+            class="admin-group-details-tablist-tab"
+          />
         </q-tabs>
 
         <!-- group tabs - content -->
@@ -295,6 +310,7 @@ import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useGroupStore } from '@/stores/group-store'
+import { useUserStore } from '@/stores/user-store'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 
@@ -312,6 +328,7 @@ const {
   postAdminGroupPermission,
   deleteAdminGroupPermission
 } = useGroupStore()
+const { getUserPermissions } = useUserStore()
 
 // Local Data
 const activeTab = ref('accession')
@@ -363,6 +380,9 @@ const addAdminGroupPermission = async (permissionId) => {
       permissionId
     }
     await postAdminGroupPermission(payload)
+
+    // reload user permissions
+    await getUserPermissions()
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -381,6 +401,9 @@ const removeAdminGroupPermission = async (permissionId) => {
       permissionId
     }
     await deleteAdminGroupPermission(payload)
+
+    // reload user permissions
+    await getUserPermissions()
   } catch (error) {
     handleAlert({
       type: 'error',

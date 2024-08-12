@@ -42,6 +42,7 @@
                 <q-menu>
                   <q-list>
                     <q-item
+                      v-if="checkUserPermission('can_add_refile_item_to_queue')"
                       clickable
                       v-close-popup
                       @click="handleOptionMenu('Queue')"
@@ -49,13 +50,14 @@
                     >
                       <q-item-section>
                         <q-item-label>
-                          <span>
+                          <span class="text-nowrap">
                             Add Item to Queue
                           </span>
                         </q-item-label>
                       </q-item-section>
                     </q-item>
                     <q-item
+                      v-if="checkUserPermission('can_add_to_refile_job')"
                       clickable
                       v-close-popup
                       @click="handleOptionMenu('Add')"
@@ -70,6 +72,7 @@
                       </q-item-section>
                     </q-item>
                     <q-item
+                      v-if="checkUserPermission('can_create_refile_job')"
                       clickable
                       v-close-popup
                       @click="handleOptionMenu('Create')"
@@ -77,7 +80,7 @@
                     >
                       <q-item-section>
                         <q-item-label>
-                          <span>
+                          <span class="text-nowrap">
                             Create Refile Job
                           </span>
                         </q-item-label>
@@ -267,8 +270,10 @@ import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useRefileStore } from '@/stores/refile-store'
+import { useUserStore } from '@/stores/user-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import RefileAddQueueItem from '@/components/Refile/RefileAddQueueItem.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
@@ -280,6 +285,7 @@ const router = useRouter()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
+const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
@@ -293,6 +299,7 @@ const {
   postRefileJobItem
 } = useRefileStore()
 const { refileJobList, refileJob } = storeToRefs(useRefileStore())
+const { userData } = storeToRefs(useUserStore())
 
 // Local Data
 const refileTableComponent = ref(null)
@@ -499,7 +506,7 @@ const loadRefileJobs = async () => {
   try {
     appIsLoadingData.value = true
     if (refileDisplayType.value == 'refile_job') {
-      await getRefileJobList()
+      await getRefileJobList({ user_id: checkUserPermission('can_view_all_refile_jobs') ? null : userData.value.user_id })
     } else {
       await getRefileQueueList()
     }

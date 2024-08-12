@@ -5,7 +5,7 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit' },
-            { text: 'Cancel Job', optionClass: 'text-negative'}
+            { text: 'Cancel Job', optionClass: 'text-negative', hidden: !checkUserPermission('can_cancel_accession')}
           ]"
           class="q-mr-sm"
           @click="handleOptionMenu"
@@ -192,6 +192,7 @@ import { ref, toRaw, inject, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { useGlobalStore } from '@/stores/global-store'
 import { useAccessionStore } from '@/stores/accession-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -206,6 +207,7 @@ const router = useRouter()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
+const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())

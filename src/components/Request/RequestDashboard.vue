@@ -41,6 +41,7 @@
                 <q-menu>
                   <q-list>
                     <q-item
+                      v-if="checkUserPermission('can_add_to_picklist_job')"
                       clickable
                       v-close-popup
                       @click="showPickListModal = 'Add'"
@@ -55,6 +56,7 @@
                       </q-item-section>
                     </q-item>
                     <q-item
+                      v-if="checkUserPermission('can_create_picklist_job')"
                       clickable
                       v-close-popup
                       @click="showPickListModal = 'Create'"
@@ -69,6 +71,7 @@
                       </q-item-section>
                     </q-item>
                     <q-item
+                      v-if="checkUserPermission('can_create_and_submit_manual_requests')"
                       clickable
                       v-close-popup
                       @click="showCreateRequestByType = 'manual'"
@@ -83,6 +86,7 @@
                       </q-item-section>
                     </q-item>
                     <q-item
+                      v-if="checkUserPermission('can_create_and_submit_batch_requests')"
                       clickable
                       v-close-popup
                       @click="showCreateRequestByType = 'bulk'"
@@ -300,6 +304,7 @@ import { useRequestStore } from '@/stores/request-store'
 import { usePicklistStore } from '@/stores/picklist-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import EssentialTable from '@/components/EssentialTable.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
@@ -313,6 +318,7 @@ const route = useRoute()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
+const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
