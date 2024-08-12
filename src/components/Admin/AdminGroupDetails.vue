@@ -5,6 +5,8 @@
         <!-- group tabs -->
         <q-tabs
           v-model="activeTab"
+          :outside-arrows="currentScreenSize !== 'xs'"
+          mobile-arrows
           class="admin-group-details-tablist"
           active-color="accent"
           indicator-color="accent"

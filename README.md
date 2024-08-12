@@ -100,9 +100,17 @@ When adding api calls try to follow the current naming conventions (naming your 
 
 _Please do not call api requests from a component/view_
 
+## 4. Handling Users/Group Permissions
 
+_The Permissions for the FETCH application belong to groups which are created via the admin dashboard. These groups have permissions assigned to them and when a user belongs to that group they recieve that groups permissions. *Side note: users can belong to multiple groups so they will inherit permissions from all groups that the user belongs to._
 
-## 4. Linting files (this is automatically handled during pre-commit)
+### Setting Up Route Blocking/Navigation Guards For Permissions
+A Navigational guard function is setup in the _src/router/index.js_ file which blocks routes based on these meta tags: 'requiresAuth' or 'requiresPerm'. The meta tags are setup in the _src/router/routes.js_ file. If a route 'requiresAuth' this means a user must be logged in to the application inorder to view a route with 'requiresAuth' set to true. This is a similar behaviour for 'requiresPerm', except this field takes a string which correllates to permissions set in the api which are assigned through the users groups.
+
+### Handling UI Level Permissions
+A composable for handling ui permissions which is found under _src/composables/usePermissionHandler.js_. was created to make checking permissions simple and efficient. All you have to do is import the composable and the function `checkUserPermissions('api_string_permission_here')` to your component/page and set it up where you need to enforce any permissions.
+
+## 5. Linting files (this is automatically handled during pre-commit)
 
 Make sure you have pre-commit installed or the auto linting wont work.
 To install pre-commit run the following:
@@ -126,7 +134,7 @@ npm run lint
 npm run lint:fix
 ```
 
-## 5. Unit Testing
+## 6. Unit Testing
 
 Unit tests are located in the test/vitest folder and are required anytime you create a new composable or global component. Dont worry about testing views or view specific components as these are not isolated pieces of code and do not require unit tests.
 
@@ -140,7 +148,7 @@ npm run test:unit
 npm run test:unit:ci
 ```
 
-## 6. Building and Testing The PWA App On Mobile / Desktop
+## 7. Building and Testing The PWA App On Mobile / Desktop
 
 The best way to handle testing the PWA portion of the application will require an external hosting server/service which is needed so our dev url can have an ssl cert (pwa's can only run on https). For this guide we will use ngrok. (there are other services and ways which can be found in quasar's documentation link below)
 
