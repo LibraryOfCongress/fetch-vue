@@ -52,13 +52,13 @@
         >
           <q-tab-panel name="accession">
             <div
-              v-for="permission in permissionsList.filter(p => p.name.includes('Accession'))"
+              v-for="permission in permissionsList.filter(p => p.name.includes('accession'))"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
               <div class="col-xs-12 col-sm-8 col-md-10 flex items-center">
                 <p :class="currentScreenSize !== 'xs' ? 'text-h6' : 'text-body1 q-mb-xs'">
-                  {{ permission.name }}
+                  {{ renderPermissionName(permission.name) }}
                 </p>
               </div>
               <div class="col-xs-12 col-sm-4 col-md-2">
@@ -78,13 +78,13 @@
 
           <q-tab-panel name="verification">
             <div
-              v-for="permission in permissionsList.filter(p => p.name.includes('Verification'))"
+              v-for="permission in permissionsList.filter(p => p.name.includes('verification'))"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
               <div class="col-xs-12 col-sm-8 col-md-10 flex items-center">
                 <p :class="currentScreenSize !== 'xs' ? 'text-h6' : 'text-body1 q-mb-xs'">
-                  {{ permission.name }}
+                  {{ renderPermissionName(permission.name) }}
                 </p>
               </div>
               <div class="col-xs-12 col-sm-4 col-md-2">
@@ -104,13 +104,13 @@
 
           <q-tab-panel name="shelving">
             <div
-              v-for="permission in permissionsList.filter(p => p.name.includes('Shelving'))"
+              v-for="permission in permissionsList.filter(p => p.name.includes('shelving'))"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
               <div class="col-xs-12 col-sm-8 col-md-10 flex items-center">
                 <p :class="currentScreenSize !== 'xs' ? 'text-h6' : 'text-body1 q-mb-xs'">
-                  {{ permission.name }}
+                  {{ renderPermissionName(permission.name) }}
                 </p>
               </div>
               <div class="col-xs-12 col-sm-4 col-md-2">
@@ -130,13 +130,13 @@
 
           <q-tab-panel name="request">
             <div
-              v-for="permission in permissionsList.filter(p => p.name.includes('Request'))"
+              v-for="permission in permissionsList.filter(p => p.name.includes('request'))"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
               <div class="col-xs-12 col-sm-8 col-md-10 flex items-center">
                 <p :class="currentScreenSize !== 'xs' ? 'text-h6' : 'text-body1 q-mb-xs'">
-                  {{ permission.name }}
+                  {{ renderPermissionName(permission.name) }}
                 </p>
               </div>
               <div class="col-xs-12 col-sm-4 col-md-2">
@@ -156,13 +156,13 @@
 
           <q-tab-panel name="picklist">
             <div
-              v-for="permission in permissionsList.filter(p => p.name.includes('Picklist'))"
+              v-for="permission in permissionsList.filter(p => p.name.includes('picklist'))"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
               <div class="col-xs-12 col-sm-8 col-md-10 flex items-center">
                 <p :class="currentScreenSize !== 'xs' ? 'text-h6' : 'text-body1 q-mb-xs'">
-                  {{ permission.name }}
+                  {{ renderPermissionName(permission.name) }}
                 </p>
               </div>
               <div class="col-xs-12 col-sm-4 col-md-2">
@@ -182,13 +182,91 @@
 
           <q-tab-panel name="refile">
             <div
-              v-for="permission in permissionsList.filter(p => p.name.includes('Refile'))"
+              v-for="permission in permissionsList.filter(p => p.name.includes('refile'))"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
             >
               <div class="col-xs-12 col-sm-8 col-md-10 flex items-center">
                 <p :class="currentScreenSize !== 'xs' ? 'text-h6' : 'text-body1 q-mb-xs'">
-                  {{ permission.name }}
+                  {{ renderPermissionName(permission.name) }}
+                </p>
+              </div>
+              <div class="col-xs-12 col-sm-4 col-md-2">
+                <div class="form-group">
+                  <ToggleButtonInput
+                    :model-value="renderPermissionValue(permission)"
+                    @update:model-value="$event == true ? addAdminGroupPermission(permission.id) : removeAdminGroupPermission(permission.id)"
+                    :options="[
+                      {label: 'Yes', value: true},
+                      {label: 'No', value: false}
+                    ]"
+                  />
+                </div>
+              </div>
+            </div>
+          </q-tab-panel>
+
+          <q-tab-panel name="withdraw">
+            <div
+              v-for="permission in permissionsList.filter(p => p.name.includes('withdraw'))"
+              :key="permission.id"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <div class="col-xs-12 col-sm-8 col-md-10 flex items-center">
+                <p :class="currentScreenSize !== 'xs' ? 'text-h6' : 'text-body1 q-mb-xs'">
+                  {{ renderPermissionName(permission.name) }}
+                </p>
+              </div>
+              <div class="col-xs-12 col-sm-4 col-md-2">
+                <div class="form-group">
+                  <ToggleButtonInput
+                    :model-value="renderPermissionValue(permission)"
+                    @update:model-value="$event == true ? addAdminGroupPermission(permission.id) : removeAdminGroupPermission(permission.id)"
+                    :options="[
+                      {label: 'Yes', value: true},
+                      {label: 'No', value: false}
+                    ]"
+                  />
+                </div>
+              </div>
+            </div>
+          </q-tab-panel>
+
+          <q-tab-panel name="reporting">
+            <div
+              v-for="permission in permissionsList.filter(p => p.name.includes('reports') || p.name.includes('search') || p.name.includes('detail'))"
+              :key="permission.id"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <div class="col-xs-12 col-sm-8 col-md-10 flex items-center">
+                <p :class="currentScreenSize !== 'xs' ? 'text-h6' : 'text-body1 q-mb-xs'">
+                  {{ renderPermissionName(permission.name) }}
+                </p>
+              </div>
+              <div class="col-xs-12 col-sm-4 col-md-2">
+                <div class="form-group">
+                  <ToggleButtonInput
+                    :model-value="renderPermissionValue(permission)"
+                    @update:model-value="$event == true ? addAdminGroupPermission(permission.id) : removeAdminGroupPermission(permission.id)"
+                    :options="[
+                      {label: 'Yes', value: true},
+                      {label: 'No', value: false}
+                    ]"
+                  />
+                </div>
+              </div>
+            </div>
+          </q-tab-panel>
+
+          <q-tab-panel name="admin">
+            <div
+              v-for="permission in permissionsList.filter(p => p.name.includes('admin') || p.name.includes('manage'))"
+              :key="permission.id"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <div class="col-xs-12 col-sm-8 col-md-10 flex items-center">
+                <p :class="currentScreenSize !== 'xs' ? 'text-h6' : 'text-body1 q-mb-xs'">
+                  {{ renderPermissionName(permission.name) }}
                 </p>
               </div>
               <div class="col-xs-12 col-sm-4 col-md-2">
@@ -252,6 +330,11 @@ const renderPermissionValue = (permissionData) => {
   } else {
     return false
   }
+}
+const renderPermissionName = (permissionName) => {
+  // removes all _ characters and replace the first letter in each word with to uppercase (regex)
+  // ex: some_permission_here = Some Permission Here
+  return permissionName.replaceAll('_', ' ').replace(/(^\w{1})|(\s{1}\w{1})/g, match => match.toUpperCase())
 }
 
 const loadAdminGroupPermissions = async () => {
