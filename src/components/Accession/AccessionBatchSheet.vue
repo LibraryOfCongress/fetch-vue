@@ -14,7 +14,7 @@
 
         <section>
           <p class="text-bold q-mb-sm">
-            Accession Job Completed Data/Time: {{ new Date().toLocaleString() }}
+            Accession Job Completed Date: {{ formatDateTime(accessionJobDetails.last_transition).date }}
           </p>
           <p class="text-bold">
             Accession Job User: {{ accessionJobDetails.assigned_user ? accessionJobDetails.assigned_user : 'No Assignee' }}
@@ -90,7 +90,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, inject } from 'vue'
 import PrintTemplate from '@/components/PrintTemplate.vue'
 // Props
 const mainProps = defineProps({
@@ -104,6 +104,8 @@ const mainProps = defineProps({
 const printTemplate = ref(null)
 
 // Logic
+const formatDateTime = inject('format-date-time')
+
 const printBatchReport = () => {
   printTemplate.value.print()
 }

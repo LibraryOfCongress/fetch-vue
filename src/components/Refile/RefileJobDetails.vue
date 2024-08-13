@@ -5,7 +5,7 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit', disabled: appIsOffline || editJob || refileJob.status == 'Paused' || refileJob.status == 'Completed' },
-            { text: 'Delete Job', optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed' || refileJobItems.some(itm => itm.status == 'In')}
+            { text: 'Delete Job', optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed' || refileJob.refile_job_items.some(itm => itm.status == 'In')}
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
@@ -177,7 +177,7 @@
         :table-columns="itemTableColumns"
         :table-visible-columns="itemTableVisibleColumns"
         :filter-options="itemTableFilters"
-        :table-data="refileJobItems"
+        :table-data="refileJob.refile_job_items"
         :row-key="'barcode'"
         :enable-table-reorder="false"
         :enable-selection="false"
@@ -323,7 +323,6 @@ const {
 const {
   refileJob,
   originalRefileJob,
-  refileJobItems,
   allItemsRefiled,
   refileItem
 } = storeToRefs(useRefileStore())
@@ -449,14 +448,14 @@ watch(compiledBarCode, (barcode) => {
 })
 const triggerItemScan = (barcode_value) => {
   // check if the scanned barcode is in the item data and that the barcode hasnt been refiled already
-  if (!refileJobItems.value.some(itm => itm.barcode.value == barcode_value)) {
+  if (!refileJob.value.refile_job_items.some(itm => itm.barcode.value == barcode_value)) {
     handleAlert({
       type: 'error',
       text: 'The scanned item does not exist in this refile job. Please try again.',
       autoClose: true
     })
     return
-  } else if (refileJobItems.value.some(itm => itm.barcode.value == barcode_value && itm.status !== 'Out')) {
+  } else if (refileJob.value.refile_job_items.some(itm => itm.barcode.value == barcode_value && itm.status !== 'Out')) {
     handleAlert({
       type: 'error',
       text: 'The scanned item has already been marked as refiled.',
