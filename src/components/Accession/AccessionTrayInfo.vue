@@ -5,10 +5,10 @@
         <MoreOptionsMenu
           :options="!route.params.containerId ? [
             { text: 'Edit' },
-            { text: 'Cancel Job', optionClass: 'text-negative'}
+            { text: 'Cancel Job', optionClass: 'text-negative', hidden: !checkUserPermission('can_cancel_accession')}
           ] : [
             { text: 'Edit' },
-            { text: 'Cancel Job', optionClass: 'text-negative'},
+            { text: 'Cancel Job', optionClass: 'text-negative', hidden: !checkUserPermission('can_cancel_accession')},
             { text: 'Edit Tray Barcode', disabled: barcodeScanAllowed },
             { text: 'Delete Tray', optionClass: 'text-negative'}
           ]"
@@ -168,6 +168,7 @@
           <TextInput
             v-model="trayBarcodeInput"
             placeholder="Please Enter Tray Barcode"
+            @keyup.enter="!trayBarcodeInput ? null : updateTrayContainerBarcode()"
           />
         </div>
       </q-card-section>
@@ -250,6 +251,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { useGlobalStore } from '@/stores/global-store'
 import { useBarcodeStore } from '@/stores/barcode-store'
 import { useAccessionStore } from '@/stores/accession-store'
@@ -267,6 +269,7 @@ const router = useRouter()
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
 const { compiledBarCode } = useBarcodeScanHandler()
+const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())

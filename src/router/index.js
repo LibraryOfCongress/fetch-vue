@@ -26,16 +26,23 @@ export default route(function () {
     }
   })
 
-  // route guard for authentication
+  // route guard for authentication and permissions
   router.beforeEach((to, from) => {
     const globalStore = useGlobalStore()
-    const isLoggedIn = localStorage.getItem('user')
-    if (to.meta.requiresAuth && !isLoggedIn) {
+    const userInfo = JSON.parse(localStorage.getItem('user'))
+    if (to.meta.requiresAuth && !userInfo) {
       // bind the to path to our globalStore to handle alert messages for blocked routes
       globalStore.appRouteGuard = to
 
       // return the user to the home page or their previous page if they are not logged in
       return from ? { name: from.name } : { name: 'home' }
+    } else if (userInfo && to.meta.requiresPerm) {
+      // if a route requires permissions check that permission against the users permissions to see if they can access the route.
+      const userHasPermission = userInfo.permissions ? userInfo.permissions.some(perm => perm === to.meta.requiresPerm) : false
+      if (!userHasPermission) {
+        globalStore.appRouteGuard = to
+        return from ? { name: from.name } : { name: 'home' }
+      }
     }
   })
 

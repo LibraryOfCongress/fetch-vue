@@ -8,7 +8,8 @@ export const useUserStore = defineStore('user-store', {
       user_id: null,
       username: '',
       first_name: '',
-      last_name: ''
+      last_name: '',
+      permissions: []
     }
   }),
   actions: {
@@ -28,9 +29,10 @@ export const useUserStore = defineStore('user-store', {
           this.userData = payload
         }
 
-
         // set user credentials in local storage
         localStorage.setItem('user', JSON.stringify(this.userData))
+
+        await this.getUserPermissions()
       } catch (error) {
         throw error
       }
@@ -43,6 +45,22 @@ export const useUserStore = defineStore('user-store', {
         this.resetUserStore()
       } catch (error) {
         throw error
+      }
+    },
+    async getUserPermissions () {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.users}${this.userData.user_id}/permissions`)
+        this.userData.permissions = res.data.permissions
+        // update user credentials in local storage
+        localStorage.setItem('user', JSON.stringify(this.userData))
+      } catch (error) {
+        if (error.response?.status == '404') {
+          this.userData.permissions = []
+          // update user credentials in local storage
+          localStorage.setItem('user', JSON.stringify(this.userData))
+        } else {
+          throw error
+        }
       }
     }
   }

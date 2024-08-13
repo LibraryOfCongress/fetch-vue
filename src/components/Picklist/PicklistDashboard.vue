@@ -56,14 +56,17 @@ import { onBeforeMount, ref, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { usePicklistStore } from '@/stores/picklist-store'
+import { useUserStore } from '@/stores/user-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import EssentialTable from '@/components/EssentialTable.vue'
 
 const router = useRouter()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
+const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appIsLoadingData } = storeToRefs(useGlobalStore())
@@ -73,6 +76,7 @@ const {
   getPicklistJob
 } = usePicklistStore()
 const { picklistJobList } = storeToRefs(usePicklistStore())
+const { userData } = storeToRefs(useUserStore())
 
 // Local Data
 const picklistTableVisibleColumns = ref([
@@ -176,7 +180,7 @@ onBeforeMount(() => {
 const loadPicklistJobs = async () => {
   try {
     appIsLoadingData.value = true
-    await getPicklistJobList()
+    await getPicklistJobList({ user_id: checkUserPermission('can_view_all_picklist_jobs') ? null : userData.value.user_id })
   } catch (error) {
     handleAlert({
       type: 'error',

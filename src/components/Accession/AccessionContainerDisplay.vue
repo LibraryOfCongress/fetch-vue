@@ -197,6 +197,7 @@
   <!-- barcode edit modal -->
   <PopupModal
     v-if="showBarcodeEdit"
+    ref="barcodeEditModal"
     :title="selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'"
     @reset="resetBarcodeEdit"
     aria-label="barcodeEditModal"
@@ -210,7 +211,7 @@
           <TextInput
             v-model="manualBarcodeEdit"
             placeholder="Please Enter Barcode"
-            @keyup.enter="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); hideModal();"
+            @keyup.enter="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit)"
           />
         </div>
       </q-card-section>
@@ -226,7 +227,7 @@
           class="text-body1 full-width"
           :disabled="!manualBarcodeEdit"
           :loading="appActionIsLoadingData"
-          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); hideModal();"
+          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit)"
         />
 
         <q-space class="q-mx-xs" />
@@ -418,6 +419,7 @@ const {
 const { accessionJob, accessionContainer, allItemsVerified } = storeToRefs(useAccessionStore())
 
 // Local Data
+const barcodeEditModal = ref(null)
 const trayInfoComponent = ref(null)
 const nonTrayInfoComponent = ref(null)
 const accessionTableComponent = ref(null)
@@ -514,6 +516,7 @@ const triggerItemScan = async (barcode_value) => {
     })
   } finally {
     appActionIsLoadingData.value = false
+    barcodeEditModal.value.hideModal()
   }
 }
 const resetBarcodeEdit = () => {
@@ -617,6 +620,7 @@ const updateContainerItem = async (barcode_value) => {
     // clear out any selected items in the table
     accessionTableComponent.value.clearSelectedData()
     appActionIsLoadingData.value = false
+    barcodeEditModal.value.hideModal()
   }
 }
 const deleteContainerItem = async () => {

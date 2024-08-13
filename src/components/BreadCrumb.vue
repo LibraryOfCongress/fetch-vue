@@ -196,18 +196,23 @@ const breadcrumbList = computed(() => {
       { text: 'Manage Shelves' }
     ]
     break
-  case 'item-management':
-    if (!route.params.type) {
-      breadCrumbs = [
-        ...breadCrumbs,
-        { text: 'Item Management Tray' }
-      ]
-    } else {
-      breadCrumbs = [
-        ...breadCrumbs,
-        { text: 'Item Management Non Tray' }
-      ]
-    }
+  case 'item-management-items':
+    breadCrumbs = [
+      ...breadCrumbs,
+      { text: 'Item Management - Tray/Non-Tray Items' }
+    ]
+    break
+  case 'item-management-shelf':
+    breadCrumbs = [
+      ...breadCrumbs,
+      { text: 'Item Management - Shelf' }
+    ]
+    break
+  case 'item-management-tray':
+    breadCrumbs = [
+      ...breadCrumbs,
+      { text: 'Item Management - Tray' }
+    ]
     break
   case 'picklist':
     if (!route.params.jobId) {
