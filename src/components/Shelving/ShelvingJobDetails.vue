@@ -3,7 +3,7 @@
     <template #number-box-content>
       <div class="flex q-mb-xs">
         <MoreOptionsMenu
-          :options="[{ text: 'Edit', disabled: appIsOffline || editJob || shelvingJob.status == 'Paused' || shelvingJob.status == 'Completed' }, { text: 'Print Job' }]"
+          :options="[{ text: 'Edit', hidden: !checkUserPermission('can_assign_and_reassign_shelving_job'), disabled: appIsOffline || editJob || shelvingJob.status == 'Paused' || shelvingJob.status == 'Completed' }, { text: 'Print Job' }]"
           class="q-mr-xs"
           @click="handleOptionMenu"
         />
@@ -144,7 +144,7 @@
             color="positive"
             :label="shelvingJob.status == 'Created' ? 'Execute Job' : 'Complete Job'"
             class="btn-no-wrap text-body1"
-            :disabled="appIsOffline || appPendingSync || shelvingJob.status == 'Paused' || !allContainersShelved"
+            :disabled="appIsOffline || appPendingSync || !checkUserPermission('can_create_and_execute_shelving_job') || shelvingJob.status == 'Paused' || !allContainersShelved"
             :loading="appActionIsLoadingData"
             @click="shelvingJob.status == 'Created' ? executeShelvingJob() : showCompleteJobModal = true"
           />
@@ -340,6 +340,7 @@ import { useBuildingStore } from '@/stores/building-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
 import InfoDisplayLayout from '@/components/InfoDisplayLayout.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
@@ -362,6 +363,7 @@ const {
   getDataInIndexDb,
   deleteDataInIndexDb
 } = useIndexDbHandler()
+const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const {
@@ -633,7 +635,8 @@ const executeShelvingJob = async () => {
     const payload = {
       id: route.params.jobId,
       status: 'Running',
-      user_id: shelvingJob.value.user_id ? shelvingJob.value.user_id : userData.value.id
+      user_id: shelvingJob.value.user_id ? shelvingJob.value.user_id : userData.value.id,
+      run_timestamp: new Date().toISOString()
     }
     await patchShelvingJob(payload)
 
@@ -720,7 +723,8 @@ const completeShelvingJob = async (printBool) => {
     appActionIsLoadingData.value = true
     const payload = {
       id: route.params.jobId,
-      status: 'Completed'
+      status: 'Completed',
+      run_timestamp: new Date().toISOString()
     }
     await patchShelvingJob(payload)
 

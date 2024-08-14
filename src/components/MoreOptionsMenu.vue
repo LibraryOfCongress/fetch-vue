@@ -8,7 +8,7 @@
     <q-menu>
       <q-list class="more-menu-list">
         <q-item
-          v-for="(opt, i) in options"
+          v-for="(opt, i) in options.filter(opt => !opt.hidden)"
           :key="i"
           :clickable="!opt.disabled"
           v-close-popup

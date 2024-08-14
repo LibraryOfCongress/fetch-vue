@@ -98,7 +98,7 @@
             label="Delete"
             class="btn-no-wrap text-body1"
             :disabled="selectedItems.length == 0 || accessionJob.status == 'Paused'"
-            @click="showConfirmation = { type: 'delete', text:'Are you sure you want to delete selected items?' }"
+            @click="showConfirmation = { type: 'deleteItem', text:'Are you sure you want to delete selected items?' }"
           />
         </div>
 
@@ -197,6 +197,7 @@
   <!-- barcode edit modal -->
   <PopupModal
     v-if="showBarcodeEdit"
+    ref="barcodeEditModal"
     :title="selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'"
     @reset="resetBarcodeEdit"
     aria-label="barcodeEditModal"
@@ -210,7 +211,7 @@
           <TextInput
             v-model="manualBarcodeEdit"
             placeholder="Please Enter Barcode"
-            @keyup.enter="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); hideModal();"
+            @keyup.enter="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit)"
           />
         </div>
       </q-card-section>
@@ -226,7 +227,7 @@
           class="text-body1 full-width"
           :disabled="!manualBarcodeEdit"
           :loading="appActionIsLoadingData"
-          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); hideModal();"
+          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit)"
         />
 
         <q-space class="q-mx-xs" />
@@ -293,7 +294,31 @@
         />
       </q-card-section>
       <q-card-section
-        v-else-if="showConfirmation.type == 'delete'"
+        v-else-if="showConfirmation.type == 'deleteItem'"
+        class="row no-wrap justify-between items-center q-pt-sm"
+      >
+        <q-btn
+          no-caps
+          unelevated
+          color="negative"
+          label="Delete Item(s)"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="handleConfirmation('deleteItem'); hideModal();"
+        />
+
+        <q-space class="q-mx-xs" />
+
+        <q-btn
+          outline
+          no-caps
+          label="Cancel"
+          class="accession-modal-btn text-body1 full-width"
+          @click="hideModal"
+        />
+      </q-card-section>
+      <q-card-section
+        v-else-if="showConfirmation.type == 'confirmReaccession'"
         class="row no-wrap justify-between items-center q-pt-sm"
       >
         <q-btn
@@ -303,7 +328,7 @@
           label="Confirm"
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
-          @click="handleConfirmation('delete'); hideModal();"
+          @click="handleConfirmation('confirmReaccession'); hideModal();"
         />
 
         <q-space class="q-mx-xs" />
@@ -418,6 +443,7 @@ const {
 const { accessionJob, accessionContainer, allItemsVerified } = storeToRefs(useAccessionStore())
 
 // Local Data
+const barcodeEditModal = ref(null)
 const trayInfoComponent = ref(null)
 const nonTrayInfoComponent = ref(null)
 const accessionTableComponent = ref(null)
@@ -476,8 +502,12 @@ const triggerItemScan = async (barcode_value) => {
   try {
     appActionIsLoadingData.value = true
     // example barcode for trayed item 'BK123'
-    // check if the barcode is in the system otherwise create it
-    await verifyBarcode(barcode_value, 'Item')
+    // check if the barcode is in the system otherwise create it or flag it for reaccession if barcode is withdrawn
+    const res = await verifyBarcode(barcode_value, 'Item')
+    if (res == 'barcode_exists' && barcodeDetails.value.withdrawn) {
+      showConfirmation.value = { type: 'confirmReaccession', text:'This item barcode has been withdrawn. Are you sure you want to re-accession this item?' }
+      return
+    }
 
     if (accessionJob.value.trayed) {
       // check if the scanned barcode already exists in the tray job if not add it
@@ -514,6 +544,7 @@ const triggerItemScan = async (barcode_value) => {
     })
   } finally {
     appActionIsLoadingData.value = false
+    barcodeEditModal.value.hideModal()
   }
 }
 const resetBarcodeEdit = () => {
@@ -617,6 +648,7 @@ const updateContainerItem = async (barcode_value) => {
     // clear out any selected items in the table
     accessionTableComponent.value.clearSelectedData()
     appActionIsLoadingData.value = false
+    barcodeEditModal.value.hideModal()
   }
 }
 const deleteContainerItem = async () => {
@@ -660,8 +692,10 @@ const deleteContainerItem = async () => {
 }
 
 const handleConfirmation = async (confirmType) => {
-  if (confirmType == 'delete') {
+  if (confirmType == 'deleteItem') {
     await deleteContainerItem()
+  } else if (confirmType == 'confirmReaccession') {
+    await addContainerItem()
   } else if (confirmType == 'completeJob') {
     await completeAccessionJob()
   } else if (confirmType == 'completePrint') {
@@ -677,7 +711,7 @@ const handleOptionMenu = (option) => {
   } else if (option.text == 'Enter Barcode' || option.text == 'Edit Barcode') {
     setBarcodeEditDisplay()
   } else if (option.text == 'Delete Items') {
-    showConfirmation.value = { type: 'delete', text:'Are you sure you want to delete selected items?' }
+    showConfirmation.value = { type: 'deleteItem', text:'Are you sure you want to delete selected items?' }
   }
 }
 
@@ -701,7 +735,8 @@ const updateAccessionJobStatus = async (status) => {
   try {
     const payload = {
       id: accessionJob.value.id,
-      status
+      status,
+      run_timestamp: new Date().toISOString()
     }
 
     await patchAccessionJob(payload)
@@ -729,7 +764,8 @@ const completeAccessionJob = async () => {
 
     const payload = {
       id: accessionJob.value.id,
-      status: 'Completed'
+      status: 'Completed',
+      run_timestamp: new Date().toISOString()
     }
     await patchAccessionJob(payload)
 

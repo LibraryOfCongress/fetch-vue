@@ -42,9 +42,9 @@ export const useRefileStore = defineStore('refile-store', {
         owner: null
       }
     },
-    async getRefileJobList () {
+    async getRefileJobList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.refileJobs)
+        const res = await this.$api.get(inventoryServiceApi.refileJobs, { params: qParams })
         this.refileJobList = res.data.items
       } catch (error) {
         throw error

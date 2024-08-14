@@ -40,9 +40,9 @@ export const usePicklistStore = defineStore('picklist-store', {
     resetPicklistStore () {
       this.$reset()
     },
-    async getPicklistJobList () {
+    async getPicklistJobList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.picklists)
+        const res = await this.$api.get(inventoryServiceApi.picklists, { params: qParams })
         this.picklistJobList = res.data.items
       } catch (error) {
         throw error

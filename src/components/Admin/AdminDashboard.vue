@@ -53,48 +53,57 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount } from 'vue'
+import { ref, computed, onBeforeMount } from 'vue'
 import { useRouter } from 'vue-router'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { useBuildingStore } from '@/stores/building-store'
 import EssentialLink from '@/components/EssentialLink.vue'
 import AdminLocationManagerRouting from '@/components/Admin/AdminLocationManagerRouting.vue'
 
 const router = useRouter()
 
+// Composables
+const { checkUserPermission } = usePermissionHandler()
+
 // Store Data
 const { resetBuildingStore } = useBuildingStore()
 
 // Local Data
-const adminLinkList = ref([
-  {
-    title: 'Buildings',
-    link: '/admin/buildings/'
-  },
-  {
-    title: 'Groups & Permissions',
-    link: '/admin/groups/'
-  },
-  {
-    title: 'Location Manager',
-    sublinks: [
-      {
-        title: 'Buildings'
-      },
-      {
-        title: 'Modules'
-      },
-      {
-        title: 'Aisles'
-      },
-      {
-        title: 'Ladders'
-      },
-      {
-        title: 'Shelves'
-      }
-    ]
-  }
-])
+const adminLinkList = computed(() => {
+  let linkList = [
+    {
+      title: 'Buildings',
+      link: '/admin/buildings/'
+    },
+    {
+      title: 'Groups & Permissions',
+      link: '/admin/groups/',
+      hidden: !checkUserPermission('can_manage_groups_and_permissions')
+    },
+    {
+      title: 'Location Manager',
+      sublinks: [
+        {
+          title: 'Buildings'
+        },
+        {
+          title: 'Modules'
+        },
+        {
+          title: 'Aisles'
+        },
+        {
+          title: 'Ladders'
+        },
+        {
+          title: 'Shelves'
+        }
+      ],
+      hidden: !checkUserPermission('can_manage_locations')
+    }
+  ]
+  return linkList.filter(l => !l.hidden)
+})
 const showLocationManageRouteModal = ref(null)
 
 // Logic

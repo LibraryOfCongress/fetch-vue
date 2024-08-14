@@ -215,6 +215,7 @@
   <!-- barcode edit modal -->
   <PopupModal
     v-if="showBarcodeEdit"
+    ref="barcodeEditModal"
     :title="selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'"
     @reset="resetBarcodeEdit"
     aria-label="barcodeEditModal"
@@ -228,7 +229,7 @@
           <TextInput
             v-model="manualBarcodeEdit"
             placeholder="Please Enter Barcode"
-            @keyup.enter="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); hideModal();"
+            @keyup.enter="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit);"
           />
         </div>
       </q-card-section>
@@ -244,7 +245,7 @@
           class="text-body1 full-width"
           :disabled="!manualBarcodeEdit"
           :loading="appActionIsLoadingData"
-          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); hideModal();"
+          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit);"
         />
 
         <q-space class="q-mx-xs" />
@@ -518,6 +519,7 @@ const {
 } = storeToRefs(useVerificationStore())
 
 // Local Data
+const barcodeEditModal = ref(null)
 const batchSheetComponent = ref(null)
 const trayInfoComponent = ref(null)
 const nonTrayInfoComponent = ref(null)
@@ -580,6 +582,7 @@ watch(compiledBarCode, (barcode_value) => {
 })
 const triggerItemScan = async (barcode_value) => {
   try {
+    appActionIsLoadingData.value = true
     // check if the barcode is in the system otherwise create it
     await verifyBarcode(barcode_value, 'Item')
 
@@ -630,6 +633,9 @@ const triggerItemScan = async (barcode_value) => {
       text: error,
       persistent: true
     })
+  } finally {
+    appActionIsLoadingData.value = false
+    barcodeEditModal.value.hideModal()
   }
 }
 const validateItemBarcode = async () => {
@@ -697,6 +703,7 @@ const addContainerItem = async () => {
 }
 const updateContainerItem = async (barcode_value) => {
   try {
+    appActionIsLoadingData.value = true
     // update the barcode in the system
     await patchBarcode(selectedItems.value[0].barcode.id, barcode_value)
 
@@ -742,6 +749,8 @@ const updateContainerItem = async (barcode_value) => {
   } finally {
     // clear out any selected items in the table
     verificationTableComponent.value.clearSelectedData()
+    appActionIsLoadingData.value = true
+    barcodeEditModal.value.hideModal()
   }
 }
 const deleteContainerItem = async () => {
@@ -846,7 +855,8 @@ const updateVerificationJobStatus = async (status) => {
   try {
     const payload = {
       id: verificationJob.value.id,
-      status
+      status,
+      run_timestamp: new Date().toISOString()
     }
     await patchVerificationJob(payload)
 
@@ -868,7 +878,8 @@ const completeVerificationJob = async () => {
     appActionIsLoadingData.value = true
     const payload = {
       id: verificationJob.value.id,
-      status: 'Completed'
+      status: 'Completed',
+      run_timestamp: new Date().toISOString()
     }
     await patchVerificationJob(payload)
 
