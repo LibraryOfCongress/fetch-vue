@@ -8,8 +8,7 @@ export const useRefileStore = defineStore('refile-store', {
     refileJobList: [],
     refileJob: {
       id: null,
-      items: [],
-      non_tray_items: []
+      refile_job_items: []
     },
     originalRefileJob: null,
     refileItem: {
@@ -21,18 +20,10 @@ export const useRefileStore = defineStore('refile-store', {
     }
   }),
   getters: {
-    refileJobItems: (state) => {
-      let itemList = []
-      if (state.refileJob.id) {
-        itemList = itemList.concat(state.refileJob.items, state.refileJob.non_tray_items)
-      }
-      // return the list sorted alphnumerically
-      return itemList.sort(new Intl.Collator('en', { numeric:true, sensitivity:'accent' }).compare)
-    },
     allItemsRefiled: (state) => {
       if (state.refileJob.id && state.refileJob.status !== 'Created') {
         // if were in a running refile job, we check that items exist and none of the items are pending refile state
-        return state.refileJobItems.length == 0 || state.refileJobItems.some(itm => itm.status == 'Out') ? false : true
+        return state.refileJob.refile_job_items.length == 0 || state.refileJob.refile_job_items.some(itm => itm.status == 'Out') ? false : true
       } else {
         return true
       }
@@ -112,7 +103,7 @@ export const useRefileStore = defineStore('refile-store', {
     },
     getRefileJobItem (barcode_value) {
       // find the item with the matching barcode_value and set the data as the refileItem
-      this.refileItem = this.refileJobItems.find(itm => itm.barcode.value == barcode_value)
+      this.refileItem = this.refileJob.refile_job_items.find(itm => itm.barcode.value == barcode_value)
     },
     async postRefileJobItem (payload) {
       try {

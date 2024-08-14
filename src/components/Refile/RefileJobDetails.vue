@@ -5,7 +5,7 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit', hidden: !checkUserPermission('can_assign_and_reassign_refile_job'), disabled: appIsOffline || editJob || refileJob.status == 'Paused' || refileJob.status == 'Completed' },
-            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_refile_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed' || refileJobItems.some(itm => itm.status == 'In')}
+            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_refile_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed' || refileJob.refile_job_items.some(itm => itm.status == 'In')}
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
@@ -56,7 +56,7 @@
             # of Items:
           </label>
           <p class="text-body1">
-            {{ refileJob.items.length + refileJob.non_tray_items.length }}
+            {{ refileJob.refile_job_items.length }}
           </p>
         </div>
       </div>
@@ -177,7 +177,7 @@
         :table-columns="itemTableColumns"
         :table-visible-columns="itemTableVisibleColumns"
         :filter-options="itemTableFilters"
-        :table-data="refileJobItems"
+        :table-data="refileJob.refile_job_items"
         :row-key="'barcode'"
         :enable-table-reorder="false"
         :enable-selection="false"
@@ -325,7 +325,6 @@ const {
 const {
   refileJob,
   originalRefileJob,
-  refileJobItems,
   allItemsRefiled,
   refileItem
 } = storeToRefs(useRefileStore())
@@ -451,14 +450,14 @@ watch(compiledBarCode, (barcode) => {
 })
 const triggerItemScan = (barcode_value) => {
   // check if the scanned barcode is in the item data and that the barcode hasnt been refiled already
-  if (!refileJobItems.value.some(itm => itm.barcode.value == barcode_value)) {
+  if (!refileJob.value.refile_job_items.some(itm => itm.barcode.value == barcode_value)) {
     handleAlert({
       type: 'error',
       text: 'The scanned item does not exist in this refile job. Please try again.',
       autoClose: true
     })
     return
-  } else if (refileJobItems.value.some(itm => itm.barcode.value == barcode_value && itm.status !== 'Out')) {
+  } else if (refileJob.value.refile_job_items.some(itm => itm.barcode.value == barcode_value && itm.status !== 'Out')) {
     handleAlert({
       type: 'error',
       text: 'The scanned item has already been marked as refiled.',
