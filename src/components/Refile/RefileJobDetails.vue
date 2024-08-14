@@ -56,7 +56,7 @@
             # of Items:
           </label>
           <p class="text-body1">
-            {{ refileJob.items.length + refileJob.non_tray_items.length }}
+            {{ refileJob.refile_job_items.length }}
           </p>
         </div>
       </div>
