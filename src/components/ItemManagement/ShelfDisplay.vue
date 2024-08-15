@@ -1,9 +1,9 @@
 <template>
-  <div class="non-tray">
+  <div class="shelf">
     <div class="row">
       <div class="col">
         <h1 class="text-h4 text-bold q-mb-lg">
-          {{ nonTrayData.title }}
+          {{ shelfData.title }}
         </h1>
       </div>
     </div>
@@ -11,45 +11,45 @@
     <div class="row">
       <div class="col-xs-12 col-sm-4 col-md-3 q-pr-xl q-pr-xs-none q-pr-sm-md q-pb-xs-sm q-pb-sm-none">
         <BarcodeBox
-          :barcode="nonTrayData.id"
+          :barcode="shelfData.id"
           class="q-py-xs-md"
         />
       </div>
       <div class="col-xs-6 col-sm-4 col-md-3">
         <div class="column no-wrap">
-          <div class="non-tray-details">
-            <label class="non-tray-details-label text-h6">
+          <div class="shelf-details">
+            <label class="shelf-details-label text-h6">
               Facility
             </label>
-            <p class="non-tray-details-text outline">
-              {{ nonTrayData.facility }}
+            <p class="shelf-details-text outline">
+              {{ shelfData.facility }}
             </p>
           </div>
 
-          <div class="non-tray-details">
-            <label class="non-tray-details-label text-h6">
+          <div class="shelf-details">
+            <label class="shelf-details-label text-h6">
               Shelf Location
             </label>
-            <p class="non-tray-details-text">
-              {{ nonTrayData.shelf_location }}
+            <p class="shelf-details-text">
+              {{ shelfData.shelf_location }}
             </p>
           </div>
 
-          <div class="non-tray-details">
-            <label class="non-tray-details-label text-h6">
+          <div class="shelf-details">
+            <label class="shelf-details-label text-h6">
               Media Type
             </label>
-            <p class="non-tray-details-text text-highlight">
-              {{ nonTrayData.media_type }}
+            <p class="shelf-details-text text-highlight">
+              {{ shelfData.media_type }}
             </p>
           </div>
 
-          <div class="non-tray-details">
-            <label class="non-tray-details-label text-h6">
+          <div class="shelf-details">
+            <label class="shelf-details-label text-h6">
               Container Type
             </label>
-            <p class="non-tray-details-text outline">
-              {{ nonTrayData.container_type }}
+            <p class="shelf-details-text outline">
+              {{ shelfData.container_type }}
             </p>
           </div>
         </div>
@@ -59,39 +59,39 @@
         class="col-sm-3 col-md-3"
       >
         <div class="column no-wrap">
-          <div class="non-tray-details">
-            <label class="non-tray-details-label text-h6">
+          <div class="shelf-details">
+            <label class="shelf-details-label text-h6">
               Accession Date
             </label>
-            <p class="non-tray-details-text">
-              {{ nonTrayData.accession_date }}
+            <p class="shelf-details-text">
+              {{ shelfData.accession_date }}
             </p>
           </div>
 
-          <div class="non-tray-details">
-            <label class="non-tray-details-label text-h6">
+          <div class="shelf-details">
+            <label class="shelf-details-label text-h6">
               Item Count
             </label>
-            <p class="non-tray-details-text outline">
-              {{ nonTrayData.items.length }}
+            <p class="shelf-details-text outline">
+              {{ shelfData.items.length }}
             </p>
           </div>
 
-          <div class="non-tray-details">
-            <label class="non-tray-details-label text-h6">
+          <div class="shelf-details">
+            <label class="shelf-details-label text-h6">
               # of Items Out
             </label>
-            <p class="non-tray-details-text outline">
-              {{ nonTrayData.items_out_count }}
+            <p class="shelf-details-text outline">
+              {{ shelfData.items_out_count }}
             </p>
           </div>
 
-          <div class="non-tray-details">
-            <label class="non-tray-details-label text-h6">
+          <div class="shelf-details">
+            <label class="shelf-details-label text-h6">
               Delete Count
             </label>
-            <p class="non-tray-details-text outline">
-              {{ nonTrayData.items_delete_count }}
+            <p class="shelf-details-text outline">
+              {{ shelfData.items_delete_count }}
             </p>
           </div>
         </div>
@@ -105,7 +105,7 @@
         <EssentialTable
           :table-columns="nonTrayItemsTableColumns"
           :table-visible-columns="nonTrayItemsTableVisibleColumns"
-          :table-data="nonTrayData.items"
+          :table-data="shelfData.items"
           :hide-table-rearrange="true"
           :heading-row-class="'q-mb-lg'"
           @selected-table-row="$emit('selected-item', $event)"
@@ -147,7 +147,7 @@ import BarcodeBox from '@/components/BarcodeBox.vue'
 export default defineComponent({
   name: 'NonTrayDisplay',
   props: {
-    nonTrayData: {
+    shelfData: {
       type: Object,
       required: true
     }
@@ -231,7 +231,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.non-tray {
+.shelf {
   &-details {
     position: relative;
     display: flex;

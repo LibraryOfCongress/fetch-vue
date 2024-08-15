@@ -308,7 +308,7 @@
             </div>
             <!-- text inputs -->
             <div
-              v-else-if="param.query == 'job_id'"
+              v-else-if="param.query == 'job_id' || param.query == 'workflow_id'"
               class="col-12 q-mb-md"
             >
               <div class="form-group">
@@ -785,14 +785,14 @@ const generateReportModal = () => {
     break
   case 'Verification Change':
     reportForm.value = {
-      job_id: null,
+      workflow_id: null,
       from_dt: null,
       to_dt: null,
       assigned_user_id: null
     }
     reportParams.value = [
       {
-        query: 'job_id',
+        query: 'workflow_id',
         label: 'Job Number',
         options: [],
         optionType: ''

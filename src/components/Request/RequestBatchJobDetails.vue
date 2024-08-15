@@ -103,6 +103,7 @@
               <q-menu>
                 <q-list class="text-no-wrap">
                   <q-item
+                    v-if="checkUserPermission('can_add_to_picklist_job')"
                     clickable
                     v-close-popup
                     @click="showPickListModal = 'Add'"
@@ -117,6 +118,7 @@
                     </q-item-section>
                   </q-item>
                   <q-item
+                    v-if="checkUserPermission('can_create_picklist_job')"
                     clickable
                     v-close-popup
                     @click="showCreatePickList = true"
@@ -291,6 +293,7 @@ import { useRequestStore } from '@/stores/request-store'
 import { usePicklistStore } from '@/stores/picklist-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import InfoDisplayLayout from '@/components/InfoDisplayLayout.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
@@ -300,6 +303,7 @@ import SelectInput from '@/components/SelectInput.vue'
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
+const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())

@@ -78,7 +78,7 @@
             unelevated
             color="accent"
             label="Scan New Shelf"
-            :disabled="!directToShelfJob.shelf_barcode.value"
+            :disabled="!directToShelfJob.shelf_barcode.value || !checkUserPermission('can_create_and_execute_direct_shelving_job')"
             class="btn-no-wrap text-body1 q-mr-sm"
             @click="clearShelfDetails()"
           />
@@ -88,7 +88,7 @@
             color="positive"
             label="Complete Job"
             class="btn-no-wrap text-body1"
-            :disabled="appIsOffline || appPendingSync || !allContainersShelved"
+            :disabled="appIsOffline || appPendingSync || !allContainersShelved || !checkUserPermission('can_create_and_execute_direct_shelving_job')"
             :loading="appActionIsLoadingData"
             @click="completeDirectToShelfJob()"
           />
@@ -99,12 +99,12 @@
         button-one-color="accent"
         button-one-label="Scan New Shelf"
         :button-one-outline="false"
-        :button-one-disabled="!directToShelfJob.shelf_barcode.value"
+        :button-one-disabled="!directToShelfJob.shelf_barcode.value || !checkUserPermission('can_create_and_execute_direct_shelving_job')"
         @button-one-click="clearShelfDetails()"
         button-two-color="positive"
         button-two-label="Complete Job"
         :button-two-outline="false"
-        :button-two-disabled="appIsOffline || appPendingSync || !allContainersShelved"
+        :button-two-disabled="appIsOffline || appPendingSync || !allContainersShelved || !checkUserPermission('can_create_and_execute_direct_shelving_job')"
         :button-two-loading="appActionIsLoadingData"
         @button-two-click="completeDirectToShelfJob()"
       />
@@ -221,6 +221,7 @@ import { useShelvingStore } from '@/stores/shelving-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
 import InfoDisplayLayout from '@/components/InfoDisplayLayout.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
@@ -239,6 +240,7 @@ const {
   getDataInIndexDb,
   deleteDataInIndexDb
 } = useIndexDbHandler()
+const { checkUserPermission } = usePermissionHandler()
 
 // // Store Data
 const {
@@ -387,6 +389,15 @@ watch(compiledBarCode, (barcode) => {
 })
 const triggerShelfScan = async (barcode_value) => {
   try {
+    if (!checkUserPermission('can_create_and_execute_direct_shelving_job')) {
+      handleAlert({
+        type: 'error',
+        text: 'Sorry you do not have permission to execute direct to shelf jobs!',
+        autoClose: true
+      })
+      return
+    }
+
     // if user is online send a get request to get the scanned shelfs data
     if (!appIsOffline.value) {
       appIsLoadingData.value = true
@@ -481,7 +492,8 @@ const completeDirectToShelfJob = async () => {
     appActionIsLoadingData.value = true
     const payload = {
       id: directToShelfJob.value.id,
-      status: 'Completed'
+      status: 'Completed',
+      run_timestamp: new Date().toISOString()
     }
     await patchDirectShelvingJob(payload)
 

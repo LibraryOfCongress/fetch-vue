@@ -118,7 +118,7 @@
             padding="14px md"
             label="Direct To Shelve"
             class="full-width text-body1 q-mb-md"
-            :disabled="appIsOffline"
+            :disabled="appIsOffline || !checkUserPermission('can_create_and_execute_direct_shelving_job')"
             @click="shelvingJob.type = 'Direct'"
           />
 
@@ -128,7 +128,7 @@
             padding="14px md"
             label="From Verification Job"
             class="full-width text-body1"
-            :disabled="appIsOffline"
+            :disabled="appIsOffline || !checkUserPermission('can_create_and_execute_shelving_job')"
             @click="shelvingJob.type = 'Verification'"
           />
         </q-card-section>
@@ -171,7 +171,7 @@
                   :hide-selected="false"
                   :options="verificationJobList"
                   option-value="id"
-                  option-label="id"
+                  option-label="workflow_id"
                   :placeholder="'Select Verification Job(s) by Number'"
                   @focus="loadVerificationJobs"
                   aria-label="verificationJobSelection"
@@ -180,7 +180,7 @@
                     <q-item v-bind="itemProps">
                       <q-item-section>
                         <q-item-label class="text-body1">
-                          <span>Job #: {{ opt.id }}</span>
+                          <span>Job #: {{ opt.workflow_id }}</span>
                           <span class="text-secondary"> - 0 Containers ({{ opt.trayed ? 'Trayed' : 'Non-Tray' }})</span>
                         </q-item-label>
                       </q-item-section>
@@ -385,6 +385,7 @@ import { useBuildingStore } from '@/stores/building-store'
 import { useShelvingStore } from '@/stores/shelving-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import EssentialTable from '@/components/EssentialTable.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
@@ -394,6 +395,7 @@ const router = useRouter()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
+const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const {
@@ -581,7 +583,7 @@ const handleShelvingJobFormChange = async (valueType) => {
 const loadShelvingJobs = async () => {
   try {
     appIsLoadingData.value = true
-    await getShelvingJobList()
+    await getShelvingJobList({ user_id: checkUserPermission('can_view_all_shelving_jobs') ? null : userData.value.user_id })
   } catch (error) {
     handleAlert({
       type: 'error',

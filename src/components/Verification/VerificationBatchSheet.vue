@@ -5,7 +5,7 @@
         <section>
           <header>
             <h1 class="text-h4 text-bold q-mb-sm">
-              Job: {{ verificationJobDetails.id }}
+              Job: {{ verificationJobDetails.workflow_id }}
             </h1>
           </header>
         </section>
@@ -14,7 +14,7 @@
 
         <section>
           <p class="text-bold q-mb-sm">
-            Verification Job Completed Data/Time: {{ new Date().toLocaleString() }}
+            Verification Job Completed Date: {{ formatDateTime(verificationJobDetails.last_transition).date }}
           </p>
           <p class="text-bold">
             Verification Job User: {{ verificationJobDetails.assigned_user ? verificationJobDetails.assigned_user : 'No Assignee' }}
@@ -90,7 +90,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, inject } from 'vue'
 import PrintTemplate from '@/components/PrintTemplate.vue'
 // Props
 const mainProps = defineProps({
@@ -112,6 +112,8 @@ const renderTotalItems = computed(() => {
 })
 
 // Logic
+const formatDateTime = inject('format-date-time')
+
 const printBatchReport = () => {
   printTemplate.value.print()
 }

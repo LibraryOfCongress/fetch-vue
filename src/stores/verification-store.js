@@ -115,9 +115,9 @@ export const useVerificationStore = defineStore('verification-store', {
         throw error
       }
     },
-    async getVerificationJob (id) {
+    async getVerificationJob (workflowId) {
       try {
-        const res = await this.$api.get(`${inventoryServiceApi.verificationJobs}${id}`)
+        const res = await this.$api.get(`${inventoryServiceApi.verificationJobsWorkflow}${workflowId}`)
         this.verificationJob = res.data
         this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {
@@ -142,24 +142,6 @@ export const useVerificationStore = defineStore('verification-store', {
         throw error
       }
     },
-    // TODO: check if we can add trays ad the verificaiton level
-    // async postVerificationTray (payload) {
-    //   try {
-    //     const res = await this.$api.post(inventoryServiceApi.trays, payload)
-
-    //     this.verificationContainer = { ...res.data, items: res.data.items ?? [] }
-    //     this.originalVerificationContainer = { ...this.verificationContainer }
-
-    //     // add the new tray to verificationJob trays
-    //     this.verificationJob.trays = [
-    //       ...this.verificationJob.trays,
-    //       res.data
-    //     ]
-    //     this.originalVerificationJob.trays = [...this.verificationJob.trays]
-    //   } catch (error) {
-    //     throw error
-    //   }
-    // },
     async patchVerificationTray (payload) {
       try {
         const res = await this.$api.patch(`${inventoryServiceApi.trays}${payload.id}`, payload)

@@ -10,7 +10,7 @@
           @click="handleOptionMenu"
         />
         <h1 class="text-h4 text-bold">
-          {{ `Job: ${verificationJob.id}` }}
+          {{ `Job: ${verificationJob.workflow_id}` }}
         </h1>
       </div>
 
@@ -254,7 +254,7 @@ const updateNonTrayJob = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -281,7 +281,7 @@ const updateNonTrayItem = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false

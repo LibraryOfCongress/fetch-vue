@@ -162,7 +162,7 @@ const addItemToQueue = async (barcode_value) => {
     await verifyBarcode(barcode_value, 'Item', true)
 
     const payload = {
-      barcode_values: [barcode_value]
+      barcode_value
     }
     await postRefileQueueItem(payload)
 

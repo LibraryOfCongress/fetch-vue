@@ -107,6 +107,7 @@
         color="white"
         label="Advanced Search"
         class="search-bar-advanced btn-no-wrap text-body2"
+        :disabled="!searchType"
         @click="showAdvancedSearchModal = true"
         aria-label="advancedSearchButton"
       />
@@ -119,6 +120,7 @@
       color="white"
       icon="tune"
       class="search-bar-advanced btn-no-wrap text-body2"
+      :disabled="!searchType"
       @click="showAdvancedSearchModal = true"
       aria-label="advancedSearchButton"
     />
@@ -137,6 +139,7 @@
 import { onMounted, ref, watch, inject, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { useGlobalStore } from '@/stores/global-store'
 import { useSearchStore } from '@/stores/search-store'
 import { useAccessionStore } from '@/stores/accession-store'
@@ -154,6 +157,7 @@ const router = useRouter()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
+const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
@@ -178,39 +182,52 @@ const renderSearchPlaceholder = computed(() => {
   return placeholderText
 })
 const searchText = ref('')
-const searchType = ref('Item')
-const searchTypes = ref([
-  {
-    name: 'Item'
-  },
-  {
-    name: 'Tray'
-  },
-  {
-    name: 'Shelf'
-  },
-  {
-    name: 'Accession'
-  },
-  {
-    name: 'Verification'
-  },
-  {
-    name: 'Shelving'
-  },
-  {
-    name: 'Request'
-  },
-  {
-    name: 'Picklist'
-  },
-  {
-    name: 'Refile'
-  },
-  {
-    name: 'Withdraw'
-  }
-])
+const searchType = ref('')
+const searchTypes = computed(() => {
+  let searchList = [
+    {
+      name: 'Item',
+      hidden: !checkUserPermission('can_access_item_detail')
+    },
+    {
+      name: 'Tray',
+      hidden: !checkUserPermission('can_access_tray_detail')
+    },
+    {
+      name: 'Shelf',
+      hidden: !checkUserPermission('can_access_shelf_detail')
+    },
+    {
+      name: 'Accession',
+      hidden: !checkUserPermission('can_access_accession')
+    },
+    {
+      name: 'Verification',
+      hidden: !checkUserPermission('can_access_verification')
+    },
+    {
+      name: 'Shelving',
+      hidden: !checkUserPermission('can_access_shelving')
+    },
+    {
+      name: 'Request',
+      hidden: !checkUserPermission('can_access_request')
+    },
+    {
+      name: 'Picklist',
+      hidden: !checkUserPermission('can_access_picklist')
+    },
+    {
+      name: 'Refile',
+      hidden: !checkUserPermission('can_access_refile')
+    },
+    {
+      name: 'Withdraw',
+      hidden: !checkUserPermission('can_access_withdraw')
+    }
+  ]
+  return searchList.filter(i => !i.hidden)
+})
 const showExactSearch = ref(false)
 const showAdvancedSearchModal = ref(false)
 const exactSearchResponseInfo = ref(null)

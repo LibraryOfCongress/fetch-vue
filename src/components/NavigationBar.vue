@@ -7,6 +7,7 @@
     >
       <q-toolbar class="bg-secondary justify-between">
         <q-btn
+          v-if="userData.user_id"
           color="white"
           flat
           dense
@@ -16,7 +17,7 @@
         />
 
         <div class="nav-search">
-          <SearchBar />
+          <SearchBar v-if="checkUserPermission('can_access_search')" />
         </div>
 
         <div class="nav-actions">
@@ -99,6 +100,7 @@
 
     <!-- side nav -->
     <q-drawer
+      v-if="userData.user_id"
       v-model="leftDrawerOpen"
       show-if-above
       class="nav-side bg-primary"
@@ -139,6 +141,7 @@
 
         <!-- admin level link -->
         <EssentialLink
+          v-if="checkUserPermission('can_access_admin')"
           v-bind="adminLink"
           :icon-size="'28px'"
           class="nav-list-link-admin text-white"
@@ -180,13 +183,14 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch, inject } from 'vue'
+import { onMounted, ref, computed, watch, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useBarcodeStore } from '@/stores/barcode-store'
 import { useUserStore } from '@/stores/user-store'
 import { useBackgroundSyncHandler } from '@/composables/useBackgroundSyncHandler.js'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import EssentialLink from '@/components/EssentialLink.vue'
 import SearchBar from '@/components/Search/SearchBar.vue'
 import PopupModal from '@/components/PopupModal.vue'
@@ -203,6 +207,7 @@ const {
   triggerBackgroundSync,
   deleteDataInBackgroundSyncDb
 } = useBackgroundSyncHandler()
+const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const {
@@ -215,48 +220,68 @@ const { barcodeScanAllowed } = storeToRefs(useBarcodeStore())
 const { userData } = storeToRefs(useUserStore())
 
 // Local Data
-const essentialLinks = ref([
-  {
-    title: 'Accession',
-    icon: 'mdi-barcode-scan',
-    link: '/accession'
-  },
-  {
-    title: 'Verification',
-    icon: 'done_all',
-    link: '/verification'
-  },
-  {
-    title: 'Shelving',
-    icon: 'subject',
-    link: '/shelving'
-  },
-  {
-    title: 'Request',
-    icon: 'manage_search',
-    link: '/request'
-  },
-  {
-    title: 'Pick List',
-    icon: 'list',
-    link: '/picklist'
-  },
-  {
-    title: 'Refile',
-    icon: 'format_list_numbered',
-    link: '/refile'
-  },
-  {
-    title: 'Withdrawal',
-    icon: 'archive',
-    link: '/withdrawal'
-  },
-  {
-    title: 'Reports',
-    icon: 'task',
-    link: '/reports'
-  }
-])
+const essentialLinks = computed(() => {
+  let navLinks = [
+    {
+      title: 'Accession',
+      icon: 'mdi-barcode-scan',
+      link: '/accession',
+      requiresPerm: 'can_access_accession'
+    },
+    {
+      title: 'Verification',
+      icon: 'done_all',
+      link: '/verification',
+      requiresPerm: 'can_access_verification'
+    },
+    {
+      title: 'Shelving',
+      icon: 'subject',
+      link: '/shelving',
+      requiresPerm: 'can_access_shelving'
+    },
+    {
+      title: 'Request',
+      icon: 'manage_search',
+      link: '/request',
+      requiresPerm: 'can_access_request'
+    },
+    {
+      title: 'Pick List',
+      icon: 'list',
+      link: '/picklist',
+      requiresPerm: 'can_access_picklist'
+    },
+    {
+      title: 'Refile',
+      icon: 'format_list_numbered',
+      link: '/refile',
+      requiresPerm: 'can_access_refile'
+    },
+    {
+      title: 'Withdrawal',
+      icon: 'archive',
+      link: '/withdrawal',
+      requiresPerm: 'can_access_withdraw'
+    },
+    {
+      title: 'Reports',
+      icon: 'task',
+      link: '/reports',
+      requiresPerm: 'can_access_reports'
+    }
+  ]
+
+  // filter out any links that have 'requirePerm' if the logged in user doesnt have that permission
+  navLinks = navLinks.filter(l => {
+    if (l.requiresPerm && !userData.value.permissions?.some(perm => perm === l.requiresPerm)) {
+      return false
+    } else {
+      return true
+    }
+  })
+  return navLinks
+})
 const adminLink = ref({
   title: 'Admin',
   icon: 'mdi-shield-account',

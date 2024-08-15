@@ -605,7 +605,7 @@ const generateReportTableFields = () => {
     generatedTableColumns.value = [
       {
         name: 'id',
-        field: 'id',
+        field: 'workflow_id',
         label: 'Verification Job #',
         align: 'left',
         sortable: true
