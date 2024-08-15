@@ -14,7 +14,7 @@
 
         <section>
           <p class="text-bold q-mb-sm">
-            Shelving Job Completed Data/Time: {{ new Date().toLocaleString() }}
+            Shelving Job Completed Date: {{ formatDateTime(shelvingJobDetails.last_transition).date }}
           </p>
           <p class="text-bold">
             Shelving Job User: {{ shelvingJobDetails.user ? shelvingJobDetails.user?.first_name : 'No Assignee' }}
@@ -89,7 +89,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 import PrintTemplate from '@/components/PrintTemplate.vue'
 // Props
 defineProps({
@@ -103,6 +103,8 @@ defineProps({
 const printTemplate = ref(null)
 
 // Logic
+const formatDateTime = inject('format-date-time')
+
 const printBatchReport = () => {
   printTemplate.value.print()
 }

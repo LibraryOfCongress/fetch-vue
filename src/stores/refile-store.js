@@ -8,8 +8,7 @@ export const useRefileStore = defineStore('refile-store', {
     refileJobList: [],
     refileJob: {
       id: null,
-      items: [],
-      non_tray_items: []
+      refile_job_items: []
     },
     originalRefileJob: null,
     refileItem: {
@@ -21,18 +20,10 @@ export const useRefileStore = defineStore('refile-store', {
     }
   }),
   getters: {
-    refileJobItems: (state) => {
-      let itemList = []
-      if (state.refileJob.id) {
-        itemList = itemList.concat(state.refileJob.items, state.refileJob.non_tray_items)
-      }
-      // return the list sorted alphnumerically
-      return itemList.sort(new Intl.Collator('en', { numeric:true, sensitivity:'accent' }).compare)
-    },
     allItemsRefiled: (state) => {
       if (state.refileJob.id && state.refileJob.status !== 'Created') {
         // if were in a running refile job, we check that items exist and none of the items are pending refile state
-        return state.refileJobItems.length == 0 || state.refileJobItems.some(itm => itm.status == 'Out') ? false : true
+        return state.refileJob.refile_job_items.length == 0 || state.refileJob.refile_job_items.some(itm => itm.status == 'Out') ? false : true
       } else {
         return true
       }
@@ -51,9 +42,9 @@ export const useRefileStore = defineStore('refile-store', {
         owner: null
       }
     },
-    async getRefileJobList () {
+    async getRefileJobList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.refileJobs)
+        const res = await this.$api.get(inventoryServiceApi.refileJobs, { params: qParams })
         this.refileJobList = res.data.items
       } catch (error) {
         throw error
@@ -112,7 +103,7 @@ export const useRefileStore = defineStore('refile-store', {
     },
     getRefileJobItem (barcode_value) {
       // find the item with the matching barcode_value and set the data as the refileItem
-      this.refileItem = this.refileJobItems.find(itm => itm.barcode.value == barcode_value)
+      this.refileItem = this.refileJob.refile_job_items.find(itm => itm.barcode.value == barcode_value)
     },
     async postRefileJobItem (payload) {
       try {
@@ -180,8 +171,7 @@ export const useRefileStore = defineStore('refile-store', {
     async postRefileQueueItem (payload) {
       try {
         const res = await this.$api.patch(inventoryServiceApi.refileQueue, payload)
-        // items can only be addded individually to the queue using this endpoint so we need to check which item type was added and return it as the refileItem
-        this.refileItem = res.data.items && res.data.items.length > 0 ? res.data.items[0] : res.data.non_tray_items[0]
+        this.refileItem = res.data.item ? res.data.item : res.data.non_tray_item
       } catch (error) {
         throw error
       }

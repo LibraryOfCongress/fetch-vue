@@ -3,15 +3,19 @@
     :style-fn="handlePageOffset"
     padding
   >
-    <NonTrayDisplay
-      v-if="$route.params.type == 'non-tray'"
-      :non-tray-data="nonTrayData"
-      @selected-item="selectedItemData = $event"
-    />
     <TrayDisplay
-      v-else
+      v-if="$route.name == 'item-management-tray'"
       :tray-data="trayData"
       @selected-item="selectedItemData = $event"
+    />
+    <ShelfDisplay
+      v-else-if="$route.name == 'item-management-shelf'"
+      :shelf-data="shelfData"
+      @selected-item="selectedItemData = $event"
+    />
+    <ItemDisplay
+      v-else-if="$route.name == 'item-management-items'"
+      :item-data="itemData"
     />
 
     <ItemDataOverlay
@@ -26,7 +30,8 @@
 <script setup>
 import { inject, ref } from 'vue'
 import TrayDisplay from '@/components/ItemManagement/TrayDisplay.vue'
-import NonTrayDisplay from '@/components/ItemManagement/NonTrayDisplay.vue'
+import ShelfDisplay from '@/components/ItemManagement/ShelfDisplay.vue'
+import ItemDisplay from '@/components/ItemManagement/ItemDisplay.vue'
 import ItemDataOverlay from '@/components/ItemManagement/ItemDataOverlay.vue'
 
 // Local Data
@@ -97,7 +102,7 @@ const trayData = ref({
   items_out_count: 9,
   items_delete_count: 2
 })
-const nonTrayData = ref({
+const shelfData = ref({
   id: '',
   title: 'Shelf McShelf',
   facility: 'Fort Meade',
@@ -131,6 +136,26 @@ const nonTrayData = ref({
   ],
   items_out_count: 9,
   items_delete_count: 2
+})
+const itemData = ref({
+  id: '00924891289',
+  title: 'Some Book by Arthur McAuthor',
+  media_type: 'Document',
+  size_class: 'C High',
+  temp_location: 'A22L L9 SH12 T2',
+  permanent_location: 'Conveyance',
+  subcollection: 123,
+  volume: 10,
+  arrival_date: '12/31/1999',
+  accession_date: '01/01/2001',
+  withdraw_date: '10/22/2023',
+  container_type: 'Book Tray',
+  dimensions: '11.5" x 8.5".',
+  condition: 'Do Not Send',
+  owner: 'George Clinton',
+  status: 'In',
+  building: 'Fort Meade',
+  location: '1-2-L-2-3'
 })
 const selectedItemData = ref(null)
 

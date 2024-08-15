@@ -5,10 +5,10 @@
         <MoreOptionsMenu
           :options="!route.params.containerId ? [
             { text: 'Edit' },
-            { text: 'Cancel Job', optionClass: 'text-negative'}
+            { text: 'Cancel Job', optionClass: 'text-negative', hidden: !checkUserPermission('can_cancel_accession')}
           ] : [
             { text: 'Edit' },
-            { text: 'Cancel Job', optionClass: 'text-negative'},
+            { text: 'Cancel Job', optionClass: 'text-negative', hidden: !checkUserPermission('can_cancel_accession')},
             { text: 'Edit Tray Barcode', disabled: barcodeScanAllowed },
             { text: 'Delete Tray', optionClass: 'text-negative'}
           ]"
@@ -16,7 +16,7 @@
           @click="handleOptionMenu"
         />
         <h1 class="text-h4 text-bold">
-          {{ `Job: ${accessionJob.id}` }}
+          {{ `Job: ${accessionJob.workflow_id}` }}
         </h1>
       </div>
 
@@ -168,6 +168,7 @@
           <TextInput
             v-model="trayBarcodeInput"
             placeholder="Please Enter Tray Barcode"
+            @keyup.enter="!trayBarcodeInput ? null : updateTrayContainerBarcode()"
           />
         </div>
       </q-card-section>
@@ -250,6 +251,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { useGlobalStore } from '@/stores/global-store'
 import { useBarcodeStore } from '@/stores/barcode-store'
 import { useAccessionStore } from '@/stores/accession-store'
@@ -267,6 +269,7 @@ const router = useRouter()
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
 const { compiledBarCode } = useBarcodeScanHandler()
+const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
@@ -328,7 +331,7 @@ const handleTrayScan = async (barcode_value) => {
       handleAlert({
         type: 'error',
         text: `The tray can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
-        autoClose: true
+        persistent: true
       })
       return
     }
@@ -361,7 +364,7 @@ const handleTrayScan = async (barcode_value) => {
     router.push({
       name: 'accession-container',
       params: {
-        jobId: accessionJob.value.id,
+        jobId: accessionJob.value.workflow_id,
         containerId: accessionContainer.value.barcode.value
       }
     })
@@ -369,7 +372,7 @@ const handleTrayScan = async (barcode_value) => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   }
 }
@@ -387,7 +390,7 @@ const updateTrayJob = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
-      id: route.params.jobId,
+      id: accessionJob.value.id,
       media_type_id: accessionJob.value.media_type_id
     }
 
@@ -402,7 +405,7 @@ const updateTrayJob = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -412,9 +415,8 @@ const updateTrayJob = async () => {
 const cancelAccessionJob = async () => {
   try {
     appActionIsLoadingData.value = true
-    // await deleteAccessionJob(route.params.jobId)
     const payload = {
-      id: route.params.jobId,
+      id: accessionJob.value.id,
       status: 'Cancelled'
     }
     await patchAccessionJob(payload)
@@ -438,7 +440,7 @@ const cancelAccessionJob = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
     appActionIsLoadingData.value = false
   }
@@ -461,7 +463,7 @@ const updateTrayContainer = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -491,7 +493,7 @@ const updateTrayContainerBarcode = async () => {
     router.replace({
       name: route.name,
       params: {
-        jobId: route.params.jobId,
+        jobId: accessionJob.value.workflow_id,
         containerId: trayBarcodeInput.value
       }
     })
@@ -499,7 +501,7 @@ const updateTrayContainerBarcode = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -524,14 +526,14 @@ const removeTrayContainer = async () => {
     router.push({
       name: 'accession',
       params: {
-        jobId: route.params.jobId
+        jobId: accessionJob.value.workflow_id
       }
     })
   } catch (error) {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
     appActionIsLoadingData.value = false
   }

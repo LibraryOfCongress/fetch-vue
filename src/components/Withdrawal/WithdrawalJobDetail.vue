@@ -659,8 +659,12 @@ const completeWithdrawJob = async () => {
 const removeWithdrawItems = async (barcode_values) => {
   try {
     appIsLoadingData.value = true
+    // const payload = {
+    //   barcode_values
+    // }
+    // TEMP singular barcode delete until multidelete is implemented
     const payload = {
-      barcode_values
+      barcode_value: barcode_values[0]
     }
     await deleteWithdrawJobItems(payload)
 

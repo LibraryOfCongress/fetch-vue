@@ -10,7 +10,7 @@
           @click="handleOptionMenu"
         />
         <h1 class="text-h4 text-bold">
-          {{ `Job: ${verificationJob.id}` }}
+          {{ `Job: ${verificationJob.workflow_id}` }}
         </h1>
       </div>
 
@@ -205,7 +205,6 @@ const {
 const {
   patchVerificationJob,
   getVerificationTray,
-  //TODO: remove? postVerificationTray,
   patchVerificationTray
 } = useVerificationStore()
 const {
@@ -234,7 +233,7 @@ const handleTrayScan = async (barcode_value) => {
       handleAlert({
         type: 'error',
         text: `The tray can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
-        autoClose: true
+        persistent: true
       })
       return
     }
@@ -244,7 +243,7 @@ const handleTrayScan = async (barcode_value) => {
       handleAlert({
         type: 'error',
         text: `The scanned tray ${barcode_value} doesnt exist on this verification job. Please scan a tray that is associated to this job.`,
-        autoClose: true
+        persistent: true
       })
       return
     } else {
@@ -269,7 +268,7 @@ const handleTrayScan = async (barcode_value) => {
       router.push({
         name: 'verification-container',
         params: {
-          jobId: verificationJob.value.id,
+          jobId: verificationJob.value.workflow_id,
           containerId: verificationContainer.value.barcode.value
         }
       })
@@ -278,7 +277,7 @@ const handleTrayScan = async (barcode_value) => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   }
 }
@@ -321,7 +320,7 @@ const updateTrayJob = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -346,7 +345,7 @@ const updateTrayContainer = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false

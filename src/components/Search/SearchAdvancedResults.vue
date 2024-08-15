@@ -259,6 +259,144 @@ const generateSearchTableFields = () => {
       'size_class'
     ]
     break
+  case 'Accession':
+    searchResultsTableColumns.value = [
+      {
+        name: 'from_dt',
+        field: 'from_dt',
+        label: 'Date (From)',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'to_dt',
+        field: 'to_dt',
+        label: 'Date (To)',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'shelf_location',
+        field: row => getItemLocation(row),
+        label: 'Shelf Location',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'job_id',
+        field: 'workflow_id',
+        label: 'Job Number',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'status',
+        field: 'status',
+        label: 'Status',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'create_dt',
+        field: 'create_dt',
+        label: 'Date Created',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'complet_dt',
+        field: 'complet_dt',
+        label: 'Date Completed',
+        align: 'left',
+        sortable: true
+      }
+    ]
+    searchResultsTableVisibleColumns.value = [
+      'from_dt',
+      'to_dt',
+      'job_id',
+      'status',
+      'create_dt',
+      'complete_dt'
+    ]
+    if (currentScreenSize.value == 'xs') {
+      searchResultsTableVisibleColumns.value = [
+        'from_dt',
+        'to_dt',
+        'job_id',
+        'status'
+      ]
+    }
+    break
+  case 'Verification':
+    searchResultsTableColumns.value = [
+      {
+        name: 'from_dt',
+        field: 'from_dt',
+        label: 'Date (From)',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'to_dt',
+        field: 'to_dt',
+        label: 'Date (To)',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'shelf_location',
+        field: row => getItemLocation(row),
+        label: 'Shelf Location',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'job_id',
+        field: 'workflow_id',
+        label: 'Job Number',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'status',
+        field: 'status',
+        label: 'Status',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'create_dt',
+        field: 'create_dt',
+        label: 'Date Created',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'complet_dt',
+        field: 'complet_dt',
+        label: 'Date Completed',
+        align: 'left',
+        sortable: true
+      }
+    ]
+    searchResultsTableVisibleColumns.value = [
+      'from_dt',
+      'to_dt',
+      'job_id',
+      'status',
+      'create_dt',
+      'complete_dt'
+    ]
+    if (currentScreenSize.value == 'xs') {
+      searchResultsTableVisibleColumns.value = [
+        'from_dt',
+        'to_dt',
+        'job_id',
+        'status'
+      ]
+    }
+    break
   default:
     searchResultsTableColumns.value = [
       {

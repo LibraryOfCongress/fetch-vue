@@ -41,6 +41,7 @@
                 <q-menu>
                   <q-list>
                     <q-item
+                      v-if="checkUserPermission('can_add_to_picklist_job')"
                       clickable
                       v-close-popup
                       @click="showPickListModal = 'Add'"
@@ -55,6 +56,7 @@
                       </q-item-section>
                     </q-item>
                     <q-item
+                      v-if="checkUserPermission('can_create_picklist_job')"
                       clickable
                       v-close-popup
                       @click="showPickListModal = 'Create'"
@@ -69,6 +71,7 @@
                       </q-item-section>
                     </q-item>
                     <q-item
+                      v-if="checkUserPermission('can_create_and_submit_manual_requests')"
                       clickable
                       v-close-popup
                       @click="showCreateRequestByType = 'manual'"
@@ -83,6 +86,7 @@
                       </q-item-section>
                     </q-item>
                     <q-item
+                      v-if="checkUserPermission('can_create_and_submit_batch_requests')"
                       clickable
                       v-close-popup
                       @click="showCreateRequestByType = 'bulk'"
@@ -198,8 +202,8 @@
     <RequestCreateModal
       v-if="showCreateRequestByType"
       :type="showCreateRequestByType"
+      @change-display="requestDisplayType = $event; showCreateRequestByType = null;"
       @hide="showCreateRequestByType = null"
-      @change-display="showCreateRequestByType = null; requestDisplayType = $event"
     />
 
     <!-- Create/Add To Picklist Modal -->
@@ -300,6 +304,7 @@ import { useRequestStore } from '@/stores/request-store'
 import { usePicklistStore } from '@/stores/picklist-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import EssentialTable from '@/components/EssentialTable.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
@@ -313,6 +318,7 @@ const route = useRoute()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
+const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
@@ -336,6 +342,7 @@ const requestTableVisibleColumns = ref([
   'request_type',
   'barcode',
   'external_request_id',
+  'building',
   'requestor_name',
   'status',
   'priority',
@@ -370,6 +377,13 @@ const requestTableColumns = ref([
     name: 'external_request_id',
     field: 'external_request_id',
     label: 'External Request ID',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'building',
+    field: row => row.building?.name,
+    label: 'Building',
     align: 'left',
     sortable: true
   },

@@ -149,7 +149,7 @@
           <EssentialTable
             ref="verificationTableComponent"
             :table-columns="verificationTableColumns"
-            :table-data="verificationJob.trayed ? verificationContainer.items : verificationJob.non_tray_items"
+            :table-data="verificationJob.trayed ? verificationContainer.items.slice().reverse() : verificationJob.non_tray_items.slice().reverse()"
             :hide-table-rearrange="true"
             :enable-selection="true"
             @selected-data="selectedItems = $event"
@@ -215,6 +215,7 @@
   <!-- barcode edit modal -->
   <PopupModal
     v-if="showBarcodeEdit"
+    ref="barcodeEditModal"
     :title="selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'"
     @reset="resetBarcodeEdit"
     aria-label="barcodeEditModal"
@@ -228,6 +229,7 @@
           <TextInput
             v-model="manualBarcodeEdit"
             placeholder="Please Enter Barcode"
+            @keyup.enter="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit);"
           />
         </div>
       </q-card-section>
@@ -243,7 +245,7 @@
           class="text-body1 full-width"
           :disabled="!manualBarcodeEdit"
           :loading="appActionIsLoadingData"
-          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); hideModal();"
+          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit);"
         />
 
         <q-space class="q-mx-xs" />
@@ -321,6 +323,30 @@
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
           @click="handleConfirmationModal('delete'); hideModal();"
+        />
+
+        <q-space class="q-mx-xs" />
+
+        <q-btn
+          outline
+          no-caps
+          label="Cancel"
+          class="text-body1 full-width"
+          @click="hideModal"
+        />
+      </q-card-section>
+      <q-card-section
+        v-else-if="showConfirmation.type == 'addItem'"
+        class="row no-wrap justify-between items-center q-pt-sm"
+      >
+        <q-btn
+          no-caps
+          unelevated
+          color="accent"
+          label="Add New Item"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="handleConfirmationModal('addItem'); hideModal();"
         />
 
         <q-space class="q-mx-xs" />
@@ -493,6 +519,7 @@ const {
 } = storeToRefs(useVerificationStore())
 
 // Local Data
+const barcodeEditModal = ref(null)
 const batchSheetComponent = ref(null)
 const trayInfoComponent = ref(null)
 const nonTrayInfoComponent = ref(null)
@@ -530,6 +557,7 @@ const renderIsEditMode = computed(() => {
 
 // Logic
 const handleAlert = inject('handle-alert')
+const audioAlert = inject('audio-alert')
 
 watch(route, () => {
   if (!route.params.containerId) {
@@ -554,7 +582,7 @@ watch(compiledBarCode, (barcode_value) => {
 })
 const triggerItemScan = async (barcode_value) => {
   try {
-    // example barcode for trayed item 'BK123'
+    appActionIsLoadingData.value = true
     // check if the barcode is in the system otherwise create it
     await verifyBarcode(barcode_value, 'Item')
 
@@ -563,10 +591,12 @@ const triggerItemScan = async (barcode_value) => {
       if (verificationJob.value.trayed && verificationContainer.value.items.some(item => item.barcode.id == barcodeDetails.value.id)) {
         await validateItemBarcode()
       } else {
-        await addContainerItem(barcode_value)
+
+        // display alert to confirm adding new items at verification job level
+        showConfirmation.value = { type: 'addItem', text:'Are you sure you want to add a new item to the job?' }
+        audioAlert()
       }
     } else {
-      // example barcode for non tray item: 'CL555923'
       // check if we have a current active item and validate it if it hasnt been verified yet
       if (verificationContainer.value.id && !verificationContainer.value.scanned_for_verification) {
         await validateItemBarcode()
@@ -577,7 +607,9 @@ const triggerItemScan = async (barcode_value) => {
         // get the scanned non tray item barcode info
         await getVerificationNonTrayItem(barcode_value)
       } else {
-        await addContainerItem(barcode_value)
+        // display alert to confirm adding new items at verification job level
+        showConfirmation.value = { type: 'addItem', text:'Are you sure you want to add a new item to the job?' }
+        audioAlert()
       }
 
       // set job status to running if it isnt already running
@@ -589,17 +621,21 @@ const triggerItemScan = async (barcode_value) => {
       router.push({
         name: 'verification-container',
         params: {
-          jobId: verificationJob.value.id,
+          jobId: verificationJob.value.workflow_id,
           containerId: verificationContainer.value.barcode.value
         }
       })
     }
   } catch (error) {
+    console.log('test', error)
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
+  } finally {
+    appActionIsLoadingData.value = false
+    barcodeEditModal.value.hideModal()
   }
 }
 const validateItemBarcode = async () => {
@@ -615,17 +651,11 @@ const validateItemBarcode = async () => {
       const nonTrayItemId = verificationContainer.value.id
       await verifyNonTrayItem(nonTrayItemId)
     }
-
-    handleAlert({
-      type: 'success',
-      text: 'The item has been validated.',
-      autoClose: true
-    })
   } catch (error) {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -663,22 +693,17 @@ const addContainerItem = async () => {
       }
       await postVerificationNonTrayItem(payload)
     }
-
-    handleAlert({
-      type: 'success',
-      text: 'The item has been added.',
-      autoClose: true
-    })
   } catch (error) {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   }
 }
 const updateContainerItem = async (barcode_value) => {
   try {
+    appActionIsLoadingData.value = true
     // update the barcode in the system
     await patchBarcode(selectedItems.value[0].barcode.id, barcode_value)
 
@@ -703,7 +728,7 @@ const updateContainerItem = async (barcode_value) => {
       router.push({
         name: 'verification-container',
         params: {
-          jobId: verificationJob.value.id,
+          jobId: verificationJob.value.workflow_id,
           containerId: barcode_value
         }
       })
@@ -719,11 +744,13 @@ const updateContainerItem = async (barcode_value) => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     // clear out any selected items in the table
     verificationTableComponent.value.clearSelectedData()
+    appActionIsLoadingData.value = true
+    barcodeEditModal.value.hideModal()
   }
 }
 const deleteContainerItem = async () => {
@@ -738,7 +765,7 @@ const deleteContainerItem = async () => {
       router.push({
         name: 'verification',
         params: {
-          jobId: verificationJob.value.id
+          jobId: verificationJob.value.workflow_id
         }
       })
     }
@@ -757,7 +784,7 @@ const deleteContainerItem = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     // clear out any selected items in the table
@@ -780,6 +807,8 @@ const setBarcodeEditDisplay = () => {
 const handleConfirmationModal = async (confirmType) => {
   if (confirmType == 'delete') {
     await deleteContainerItem()
+  } else if (confirmType == 'addItem') {
+    await addContainerItem()
   } else if (confirmType == 'completeJob') {
     await completeVerificationJob()
   } else if (confirmType == 'completePrint') {
@@ -813,20 +842,21 @@ const setNextVerificationTray = async () => {
     }
 
     // send the user back to the job and wait for next tray to be scanned
-    router.push({ name: 'verification', params: { jobId: verificationJob.value.id } })
+    router.push({ name: 'verification', params: { jobId: verificationJob.value.workflow_id } })
   } catch (error) {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   }
 }
 const updateVerificationJobStatus = async (status) => {
   try {
     const payload = {
-      id: route.params.jobId,
-      status
+      id: verificationJob.value.id,
+      status,
+      run_timestamp: new Date().toISOString()
     }
     await patchVerificationJob(payload)
 
@@ -847,8 +877,9 @@ const completeVerificationJob = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
-      id: route.params.jobId,
-      status: 'Completed'
+      id: verificationJob.value.id,
+      status: 'Completed',
+      run_timestamp: new Date().toISOString()
     }
     await patchVerificationJob(payload)
 
@@ -869,7 +900,7 @@ const completeVerificationJob = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false

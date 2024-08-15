@@ -1,5 +1,6 @@
 <template>
   <PopupModal
+    ref="requestCreateModal"
     :show-actions="false"
     @reset="emit('hide')"
     aria-label="manualRequestModal"
@@ -152,7 +153,7 @@
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
           :disabled="!isCreateRequestjobFormValid"
-          @click="createRequestJob(); hideModal()"
+          @click="createRequestJob()"
         />
 
         <q-space class="q-mx-xs" />
@@ -210,6 +211,7 @@ const {
 const { postRequestJob, postRequestBatchJob } = useRequestStore()
 
 // Local Data
+const requestCreateModal = ref(null)
 const bulkRequestTemplateData = ref([
   {
     'Item Barcode': '',
@@ -324,6 +326,7 @@ const createRequestJob = async () => {
     }
   } finally {
     appActionIsLoadingData.value = false
+    requestCreateModal.value.hideModal()
   }
 }
 </script>

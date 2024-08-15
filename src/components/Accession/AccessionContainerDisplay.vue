@@ -32,7 +32,7 @@
           <MoreOptionsMenu
             v-else
             :options="[{
-              text: 'Add Tray',
+              text: `Add Tray (${accessionJob.trays.length})`,
               disabled: !accessionContainer.id || !allItemsVerified || accessionJob.status == 'Paused'
             }, {
               text: `${selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'}`,
@@ -67,7 +67,7 @@
             unelevated
             icon="add"
             color="accent"
-            label="Add Tray"
+            :label="`Add Tray (${accessionJob.trays.length})`"
             class="btn-no-wrap text-body1"
             :disabled="!accessionContainer.id || !allItemsVerified || accessionJob.status == 'Paused'"
             @click="showNextTrayModal = !showNextTrayModal"
@@ -98,7 +98,7 @@
             label="Delete"
             class="btn-no-wrap text-body1"
             :disabled="selectedItems.length == 0 || accessionJob.status == 'Paused'"
-            @click="showConfirmation = { type: 'delete', text:'Are you sure you want to delete selected items?' }"
+            @click="showConfirmation = { type: 'deleteItem', text:'Are you sure you want to delete selected items?' }"
           />
         </div>
 
@@ -197,6 +197,7 @@
   <!-- barcode edit modal -->
   <PopupModal
     v-if="showBarcodeEdit"
+    ref="barcodeEditModal"
     :title="selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'"
     @reset="resetBarcodeEdit"
     aria-label="barcodeEditModal"
@@ -210,6 +211,7 @@
           <TextInput
             v-model="manualBarcodeEdit"
             placeholder="Please Enter Barcode"
+            @keyup.enter="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit)"
           />
         </div>
       </q-card-section>
@@ -225,7 +227,7 @@
           class="text-body1 full-width"
           :disabled="!manualBarcodeEdit"
           :loading="appActionIsLoadingData"
-          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit); hideModal();"
+          @click="selectedItems.length == 1 ? updateContainerItem(manualBarcodeEdit) : triggerItemScan(manualBarcodeEdit)"
         />
 
         <q-space class="q-mx-xs" />
@@ -292,7 +294,31 @@
         />
       </q-card-section>
       <q-card-section
-        v-else-if="showConfirmation.type == 'delete'"
+        v-else-if="showConfirmation.type == 'deleteItem'"
+        class="row no-wrap justify-between items-center q-pt-sm"
+      >
+        <q-btn
+          no-caps
+          unelevated
+          color="negative"
+          label="Delete Item(s)"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="handleConfirmation('deleteItem'); hideModal();"
+        />
+
+        <q-space class="q-mx-xs" />
+
+        <q-btn
+          outline
+          no-caps
+          label="Cancel"
+          class="accession-modal-btn text-body1 full-width"
+          @click="hideModal"
+        />
+      </q-card-section>
+      <q-card-section
+        v-else-if="showConfirmation.type == 'confirmReaccession'"
         class="row no-wrap justify-between items-center q-pt-sm"
       >
         <q-btn
@@ -302,7 +328,7 @@
           label="Confirm"
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
-          @click="handleConfirmation('delete'); hideModal();"
+          @click="handleConfirmation('confirmReaccession'); hideModal();"
         />
 
         <q-space class="q-mx-xs" />
@@ -328,24 +354,6 @@
   >
     <template #main-content="{ hideModal }">
       <q-card-section class="row accession-next-tray">
-        <div
-          v-for="tray in accessionJob.trays"
-          :key="tray.id"
-          class="col-12 q-mb-sm"
-          role="list"
-        >
-          <q-item class="accession-next-tray-item">
-            <div class="col-12 text-left">
-              <p class="text-h6 text-color-black">
-                Tray #: {{ tray.id }}
-              </p>
-              <p class="text-body1">
-                Trayed
-              </p>
-            </div>
-          </q-item>
-        </div>
-
         <div class="col-12">
           <q-btn
             no-caps
@@ -353,11 +361,28 @@
             outline
             icon="add"
             color="accent"
-            label="Add Tray"
+            :label="`Add Tray (${accessionJob.trays.length})`"
             align="left"
             class="accession-next-tray-action btn-dashed btn-no-wrap text-body1 full-width"
             @click="addNewTray(); hideModal();"
           />
+        </div>
+        <div
+          v-for="tray in accessionJob.trays"
+          :key="tray.id"
+          class="col-12 q-mt-sm"
+          role="list"
+        >
+          <q-item class="accession-next-tray-item">
+            <div class="col-12 text-left">
+              <p class="text-h6 text-color-black">
+                Tray #: {{ tray.barcode.value }}
+              </p>
+              <p class="text-body1">
+                Trayed
+              </p>
+            </div>
+          </q-item>
         </div>
       </q-card-section>
     </template>
@@ -418,6 +443,7 @@ const {
 const { accessionJob, accessionContainer, allItemsVerified } = storeToRefs(useAccessionStore())
 
 // Local Data
+const barcodeEditModal = ref(null)
 const trayInfoComponent = ref(null)
 const nonTrayInfoComponent = ref(null)
 const accessionTableComponent = ref(null)
@@ -476,8 +502,12 @@ const triggerItemScan = async (barcode_value) => {
   try {
     appActionIsLoadingData.value = true
     // example barcode for trayed item 'BK123'
-    // check if the barcode is in the system otherwise create it
-    await verifyBarcode(barcode_value, 'Item')
+    // check if the barcode is in the system otherwise create it or flag it for reaccession if barcode is withdrawn
+    const res = await verifyBarcode(barcode_value, 'Item')
+    if (res == 'barcode_exists' && barcodeDetails.value.withdrawn) {
+      showConfirmation.value = { type: 'confirmReaccession', text:'This item barcode has been withdrawn. Are you sure you want to re-accession this item?' }
+      return
+    }
 
     if (accessionJob.value.trayed) {
       // check if the scanned barcode already exists in the tray job if not add it
@@ -501,7 +531,7 @@ const triggerItemScan = async (barcode_value) => {
       router.push({
         name: 'accession-container',
         params: {
-          jobId: accessionJob.value.id,
+          jobId: accessionJob.value.workflow_id,
           containerId: accessionContainer.value.barcode.value
         }
       })
@@ -510,10 +540,11 @@ const triggerItemScan = async (barcode_value) => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
+    barcodeEditModal.value.hideModal()
   }
 }
 const resetBarcodeEdit = () => {
@@ -560,17 +591,11 @@ const addContainerItem = async () => {
       }
       await postAccessionNonTrayItem(payload)
     }
-
-    handleAlert({
-      type: 'success',
-      text: 'The item has been added.',
-      autoClose: true
-    })
   } catch (error) {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   }
 }
@@ -601,7 +626,7 @@ const updateContainerItem = async (barcode_value) => {
       router.push({
         name: 'accession-container',
         params: {
-          jobId: accessionJob.value.id,
+          jobId: accessionJob.value.workflow_id,
           containerId: barcode_value
         }
       })
@@ -617,12 +642,13 @@ const updateContainerItem = async (barcode_value) => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     // clear out any selected items in the table
     accessionTableComponent.value.clearSelectedData()
     appActionIsLoadingData.value = false
+    barcodeEditModal.value.hideModal()
   }
 }
 const deleteContainerItem = async () => {
@@ -637,7 +663,7 @@ const deleteContainerItem = async () => {
       router.push({
         name: 'accession',
         params: {
-          jobId: accessionJob.value.id
+          jobId: accessionJob.value.workflow_id
         }
       })
     }
@@ -656,7 +682,7 @@ const deleteContainerItem = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     // clear out any selected items in the table
@@ -666,8 +692,10 @@ const deleteContainerItem = async () => {
 }
 
 const handleConfirmation = async (confirmType) => {
-  if (confirmType == 'delete') {
+  if (confirmType == 'deleteItem') {
     await deleteContainerItem()
+  } else if (confirmType == 'confirmReaccession') {
+    await addContainerItem()
   } else if (confirmType == 'completeJob') {
     await completeAccessionJob()
   } else if (confirmType == 'completePrint') {
@@ -683,7 +711,7 @@ const handleOptionMenu = (option) => {
   } else if (option.text == 'Enter Barcode' || option.text == 'Edit Barcode') {
     setBarcodeEditDisplay()
   } else if (option.text == 'Delete Items') {
-    showConfirmation.value = { type: 'delete', text:'Are you sure you want to delete selected items?' }
+    showConfirmation.value = { type: 'deleteItem', text:'Are you sure you want to delete selected items?' }
   }
 }
 
@@ -698,7 +726,7 @@ const addNewTray = async () => {
   router.push({
     name: 'accession',
     params: {
-      jobId: accessionJob.value.id
+      jobId: accessionJob.value.workflow_id
     }
   })
 }
@@ -706,8 +734,9 @@ const addNewTray = async () => {
 const updateAccessionJobStatus = async (status) => {
   try {
     const payload = {
-      id: route.params.jobId,
-      status
+      id: accessionJob.value.id,
+      status,
+      run_timestamp: new Date().toISOString()
     }
 
     await patchAccessionJob(payload)
@@ -734,8 +763,9 @@ const completeAccessionJob = async () => {
     }
 
     const payload = {
-      id: route.params.jobId,
-      status: 'Completed'
+      id: accessionJob.value.id,
+      status: 'Completed',
+      run_timestamp: new Date().toISOString()
     }
     await patchAccessionJob(payload)
 
@@ -756,7 +786,7 @@ const completeAccessionJob = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false

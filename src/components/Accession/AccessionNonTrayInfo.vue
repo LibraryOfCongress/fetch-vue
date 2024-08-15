@@ -5,13 +5,13 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit' },
-            { text: 'Cancel Job', optionClass: 'text-negative'}
+            { text: 'Cancel Job', optionClass: 'text-negative', hidden: !checkUserPermission('can_cancel_accession')}
           ]"
           class="q-mr-sm"
           @click="handleOptionMenu"
         />
         <h1 class="text-h4 text-bold">
-          {{ `Job: ${accessionJob.id}` }}
+          {{ `Job: ${accessionJob.workflow_id}` }}
         </h1>
       </div>
 
@@ -192,6 +192,7 @@ import { ref, toRaw, inject, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { useGlobalStore } from '@/stores/global-store'
 import { useAccessionStore } from '@/stores/accession-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -206,6 +207,7 @@ const router = useRouter()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
+const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
@@ -253,7 +255,7 @@ const updateNonTrayJob = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
-      id: route.params.jobId,
+      id: accessionJob.value.id,
       media_type_id: accessionJob.value.media_type_id,
       size_class_id: accessionJob.value.size_class_id
     }
@@ -269,7 +271,7 @@ const updateNonTrayJob = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -279,9 +281,8 @@ const updateNonTrayJob = async () => {
 const cancelAccessionJob = async () => {
   try {
     appActionIsLoadingData.value = true
-    // await deleteAccessionJob(route.params.jobId)
     const payload = {
-      id: route.params.jobId,
+      id: accessionJob.value.id,
       status: 'Cancelled'
     }
     await patchAccessionJob(payload)
@@ -305,7 +306,7 @@ const cancelAccessionJob = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
     appActionIsLoadingData.value = false
   }
@@ -349,7 +350,7 @@ const updateNonTrayContainer = async () => {
     handleAlert({
       type: 'error',
       text: error,
-      autoClose: true
+      persistent: true
     })
   } finally {
     appActionIsLoadingData.value = false
