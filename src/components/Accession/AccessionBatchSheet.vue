@@ -137,7 +137,7 @@ const renderTrayItems = (trayData) => {
     )
   }
   return trayItemsById.length
-};
+}
 
 defineExpose({ printBatchReport })
 </script>

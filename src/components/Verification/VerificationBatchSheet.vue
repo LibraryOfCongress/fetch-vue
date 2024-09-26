@@ -17,7 +17,7 @@
             Verification Job Completed Date: {{ formatDateTime(verificationJobDetails.last_transition).date }}
           </p>
           <p class="text-bold">
-            Verification Job User: 
+            Verification Job User:
             {{
               verificationJobDetails.user
                 ? verificationJobDetails.user.email
