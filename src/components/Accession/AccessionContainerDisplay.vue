@@ -634,13 +634,15 @@ const triggerItemScan = async (barcode_value) => {
       }
 
       // set the scanned item barcode as the container id in the route
-      router.push({
-        name: 'accession-container',
-        params: {
-          jobId: accessionJob.value.workflow_id,
-          containerId: accessionContainer.value.barcode.value
-        }
-      })
+      if (accessionContainer.value.id) {
+        router.push({
+          name: 'accession-container',
+          params: {
+            jobId: accessionJob.value.workflow_id,
+            containerId: accessionContainer.value.barcode.value
+          }
+        })
+      }
     }
   } catch (error) {
     handleAlert({
