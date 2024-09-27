@@ -14,7 +14,7 @@
 
         <section>
           <p class="text-bold q-mb-sm">
-            Verification Job Completed Date: {{ formatDateTime(verificationJobDetails.last_transition).date }}
+            Verification Job Completed Date: {{ verificationJobDetails.status == 'Completed' ? formatDateTime(verificationJobDetails.last_transition).date : '' }}
           </p>
           <p class="text-bold">
             Verification Job User:

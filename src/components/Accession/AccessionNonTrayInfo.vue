@@ -5,7 +5,8 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit' },
-            { text: 'Cancel Job', optionClass: 'text-negative', hidden: !checkUserPermission('can_cancel_accession')}
+            { text: 'Cancel Job', optionClass: 'text-negative', hidden: !checkUserPermission('can_cancel_accession')},
+            { text: 'Print Job' }
           ]"
           class="q-mr-sm"
           @click="handleOptionMenu"
@@ -226,6 +227,9 @@ const {
   originalAccessionJob
 } = storeToRefs(useAccessionStore())
 
+// Emits
+const emit = defineEmits(['print'])
+
 // Local Data
 const editMode = ref(false)
 const confirmationModal = ref(null)
@@ -239,6 +243,8 @@ const handleOptionMenu = (option) => {
     editMode.value = true
   } else if (option.text == 'Cancel Job') {
     showConfirmationModal.value = 'CancelJob'
+  } else if (option.text == 'Print Job') {
+    emit('print')
   }
 }
 
