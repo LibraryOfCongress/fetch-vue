@@ -23,7 +23,7 @@ export const useVerificationStore = defineStore('verification-store', {
       owner: '',
       owner_id: null,
       container_type: '',
-      size_class: '', 
+      size_class: '',
       size_class_id: null,
       media_type: '',
       media_type_id: null,
