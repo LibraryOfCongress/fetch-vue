@@ -175,6 +175,9 @@ export const useAccessionStore = defineStore('accession-store', {
           res.data
         ]
         this.originalAccessionContainer = { ... this.accessionContainer }
+
+        // reload the accession job data to get the latest items
+        await this.getAccessionJob(this.accessionJob.workflow_id)
       } catch (error) {
         throw error
       }
@@ -190,6 +193,8 @@ export const useAccessionStore = defineStore('accession-store', {
           res.data
         ]
         this.originalAccessionContainer = { ...this.accessionContainer }
+        // reload the accession job data to get the latest items
+        await this.getAccessionJob(this.accessionJob.workflow_id)
       } catch (error) {
         throw error
       }
@@ -207,6 +212,8 @@ export const useAccessionStore = defineStore('accession-store', {
           items: filteredItems
         }
         this.originalAccessionContainer = { ...this.accessionContainer }
+        // reload the accession job data to get the latest items
+        await this.getAccessionJob(this.accessionJob.workflow_id)
       } catch (error) {
         throw error
       }

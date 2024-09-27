@@ -17,7 +17,12 @@
             Verification Job Completed Date: {{ formatDateTime(verificationJobDetails.last_transition).date }}
           </p>
           <p class="text-bold">
-            Verification Job User: {{ verificationJobDetails.assigned_user ? verificationJobDetails.assigned_user : 'No Assignee' }}
+            Verification Job User:
+            {{
+              verificationJobDetails.user
+                ? verificationJobDetails.user.email
+                : "No Assignee"
+            }}
           </p>
         </section>
 
@@ -79,7 +84,7 @@
               >
                 <td>{{ tray.barcode?.value }}</td>
                 <td>{{ tray.size_class?.name }}</td>
-                <td>{{ tray.items ? tray.items.length : 0 }}</td>
+                <td>{{ renderTrayItems(tray) }}</td>
               </tr>
             </tbody>
           </table>
@@ -104,8 +109,7 @@ const mainProps = defineProps({
 const printTemplate = ref(null)
 const renderTotalItems = computed(() => {
   if (mainProps.verificationJobDetails.trayed) {
-    //TODO: need to figure out how we want to calculate total items for trayed jobs
-    return 0
+    return mainProps.verificationJobDetails.items.length
   } else {
     return mainProps.verificationJobDetails.non_tray_items.length
   }
@@ -116,6 +120,19 @@ const formatDateTime = inject('format-date-time')
 
 const printBatchReport = () => {
   printTemplate.value.print()
+}
+const renderTrayItems = (trayData) => {
+  let trayItemsById = []
+  if (
+    mainProps.verificationJobDetails.items.some(
+      (itm) => itm.tray_id == trayData.id
+    )
+  ) {
+    trayItemsById = mainProps.verificationJobDetails.items.filter(
+      (itm) => itm.tray_id == trayData.id
+    )
+  }
+  return trayItemsById.length
 }
 
 defineExpose({ printBatchReport })
