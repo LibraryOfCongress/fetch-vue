@@ -23,7 +23,7 @@ export const useVerificationStore = defineStore('verification-store', {
       owner: '',
       owner_id: null,
       container_type: '',
-      size_class: '',
+      size_class: '', 
       size_class_id: null,
       media_type: '',
       media_type_id: null,
@@ -74,42 +74,6 @@ export const useVerificationStore = defineStore('verification-store', {
       try {
         const res = await this.$api.get(inventoryServiceApi.verificationJobs, { params: paramsObj })
         this.verificationJobList = res.data.items
-        // const res = {
-        //   data: [
-        //     {
-        //       id: 1234567891,
-        //       type: 1,
-        //       owner: 'John Doe',
-        //       container_size: 'B Low',
-        //       media_type: 'Vinyl Recording',
-        //       status: 'Paused'
-        //     },
-        //     {
-        //       id: 1234567892,
-        //       type: 2,
-        //       owner: 'John Doe',
-        //       container_size: 'A High',
-        //       media_type: 'Vinyl Recording',
-        //       status: 'Running'
-        //     },
-        //     {
-        //       id: 1234567893,
-        //       type: 1,
-        //       owner: 'John Doe',
-        //       container_size: 'B High',
-        //       media_type: 'Vinyl Recording',
-        //       status: 'In Queue'
-        //     },
-        //     {
-        //       id: 1234567894,
-        //       type: 2,
-        //       owner: 'John Doe',
-        //       container_size: 'A Low',
-        //       media_type: 'Vinyl Recording',
-        //       status: 'In Queue'
-        //     }
-        //   ]
-        // }
         return res
       } catch (error) {
         throw error
@@ -164,6 +128,8 @@ export const useVerificationStore = defineStore('verification-store', {
           res.data
         ]
         this.originalVerificationContainer = { ... this.verificationContainer }
+        // reload the verification job data to get the latest items
+        await this.getVerificationJob(this.verificationJob.workflow_id)
       } catch (error) {
         throw error
       }
@@ -179,6 +145,8 @@ export const useVerificationStore = defineStore('verification-store', {
           res.data
         ]
         this.originalVerificationContainer = { ...this.verificationContainer }
+        // reload the verification job data to get the latest items
+        await this.getVerificationJob(this.verificationJob.workflow_id)
       } catch (error) {
         throw error
       }
@@ -196,6 +164,8 @@ export const useVerificationStore = defineStore('verification-store', {
           items: filteredItems
         }
         this.originalVerificationContainer = { ...this.verificationContainer }
+        // reload the verification job data to get the latest items
+        await this.getVerificationJob(this.verificationJob.workflow_id)
       } catch (error) {
         throw error
       }
