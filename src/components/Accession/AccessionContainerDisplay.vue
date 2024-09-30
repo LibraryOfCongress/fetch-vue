@@ -3,10 +3,12 @@
     <AccessionNonTrayInfo
       v-if="!accessionJob.trayed"
       ref="nonTrayInfoComponent"
+      @print="batchSheetComponent.printBatchReport()"
     />
     <AccessionTrayInfo
       v-else
       ref="trayInfoComponent"
+      @print="batchSheetComponent.printBatchReport()"
     />
 
     <div class="col-12 col-lg-8 col-xl-9 accession-container-scan">
@@ -891,7 +893,7 @@ const completeAccessionJob = async () => {
       id: accessionJob.value.id,
       status: 'Completed',
       run_timestamp: new Date().toISOString(),
-      user_id: userData.value.id
+      user_id: userData.value.user_id
     }
     await patchAccessionJob(payload)
 

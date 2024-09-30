@@ -70,16 +70,6 @@
             @click="handleOptionMenu"
           />
         </div>
-        <div
-          v-else
-          class="col-auto"
-        >
-          <MoreOptionsMenu
-            :options="[{ text: 'Print Job' }]"
-            class="q-mr-sm"
-            @click="handleOptionMenu"
-          />
-        </div>
 
         <div class="col-auto">
           <h2 class="text-h4 text-bold">
@@ -1070,7 +1060,7 @@ const completeVerificationJob = async () => {
       id: verificationJob.value.id,
       status: 'Completed',
       run_timestamp: new Date().toISOString(),
-      user_id: userData.value.id
+      user_id: userData.value.user_id
     }
     await patchVerificationJob(payload)
 

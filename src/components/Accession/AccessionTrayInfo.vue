@@ -5,12 +5,14 @@
         <MoreOptionsMenu
           :options="!route.params.containerId ? [
             { text: 'Edit' },
-            { text: 'Cancel Job', optionClass: 'text-negative', hidden: !checkUserPermission('can_cancel_accession')}
+            { text: 'Cancel Job', optionClass: 'text-negative', hidden: !checkUserPermission('can_cancel_accession')},
+            { text: 'Print Job' }
           ] : [
             { text: 'Edit' },
             { text: 'Cancel Job', optionClass: 'text-negative', hidden: !checkUserPermission('can_cancel_accession')},
             { text: 'Edit Tray Barcode', disabled: barcodeScanAllowed },
-            { text: 'Delete Tray', optionClass: 'text-negative'}
+            { text: 'Delete Tray', optionClass: 'text-negative'},
+            { text: 'Print Job' }
           ]"
           class="q-mr-sm"
           @click="handleOptionMenu"
@@ -294,6 +296,9 @@ const {
   originalAccessionJob
 } = storeToRefs(useAccessionStore())
 
+// Emits
+const emit = defineEmits(['print'])
+
 // Local Data
 const editMode = ref(false)
 const confirmationModal = ref(null)
@@ -315,6 +320,8 @@ const handleOptionMenu = (option) => {
     showEditTrayModal.value = true
   } else if (option.text == 'Delete Tray') {
     showConfirmationModal.value = 'DeleteTray'
+  } else if (option.text == 'Print Job') {
+    emit('print')
   }
 }
 

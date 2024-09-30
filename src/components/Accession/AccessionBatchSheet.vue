@@ -15,7 +15,7 @@
         <section>
           <p class="text-bold q-mb-sm">
             Accession Job Completed Date:
-            {{ formatDateTime(accessionJobDetails.last_transition).date }}
+            {{ accessionJobDetails.status == 'Completed' ? formatDateTime(accessionJobDetails.last_transition).date : '' }}
           </p>
           <p class="text-bold">
             Accession Job User:
