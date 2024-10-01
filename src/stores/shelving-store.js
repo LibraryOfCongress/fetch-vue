@@ -179,7 +179,7 @@ export const useShelvingStore = defineStore('shelving-store', {
     },
     async getShelvingJobList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.shelvingJobs, { params: qParams })
+        const res = await this.$api.get(inventoryServiceApi.shelvingJobs, { params: { ...qParams, size: 100 } })
         this.shelvingJobList = res.data.items
       } catch (error) {
         throw error

@@ -45,9 +45,9 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
       }
       this.originalWithdrawJob = null
     },
-    async getWithdrawJobList () {
+    async getWithdrawJobList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.withdrawJobs)
+        const res = await this.$api.get(inventoryServiceApi.withdrawJobs, { params: { ...qParams, size:100 } })
         this.withdrawJobList = res.data.items
       } catch (error) {
         throw error

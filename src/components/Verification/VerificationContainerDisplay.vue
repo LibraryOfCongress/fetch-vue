@@ -26,13 +26,14 @@
                   selectedItems.length == 1 ? 'Edit Barcode' : 'Enter Barcode'
                 }`,
                 disabled:
-                  verificationJob.status == 'Paused' || barcodeScanAllowed,
+                  verificationJob.status == 'Paused' || verificationJob.status == 'Completed' || barcodeScanAllowed,
               },
               {
                 text: 'Delete Items',
                 disabled:
                   selectedItems.length == 0 ||
-                  verificationJob.status == 'Paused',
+                  verificationJob.status == 'Paused' ||
+                  verificationJob.status == 'Completed'
               },
             ]"
             class="q-mr-sm"
@@ -48,7 +49,8 @@
                 disabled:
                   !allItemsVerified ||
                   verificationJob.status == 'Paused' ||
-                  verificationJob.trays.length <= 1,
+                  verificationJob.status == 'Completed' ||
+                  verificationJob.trays.length <= 1
               },
               {
                 text: `${
@@ -57,13 +59,15 @@
                 disabled:
                   !verificationContainer.id ||
                   verificationJob.status == 'Paused' ||
+                  verificationJob.status == 'Completed' ||
                   barcodeScanAllowed,
               },
               {
                 text: 'Delete Items',
                 disabled:
                   selectedItems.length == 0 ||
-                  verificationJob.status == 'Paused',
+                  verificationJob.status == 'Paused' ||
+                  verificationJob.status == 'Completed'
               },
             ]"
             class="q-mr-sm"
@@ -104,6 +108,7 @@
             class="text-body1"
             :disabled="
               verificationJob.status == 'Paused' ||
+                verificationJob.status == 'Completed' ||
                 !allItemsVerified ||
                 allTraysCompleted
             "
@@ -131,6 +136,7 @@
             :disabled="
               (verificationJob.trayed && !verificationContainer.id) ||
                 verificationJob.status == 'Paused' ||
+                verificationJob.status == 'Completed' ||
                 barcodeScanAllowed
             "
             @click="setBarcodeEditDisplay"
@@ -144,7 +150,7 @@
             label="Delete"
             class="btn-no-wrap text-body1"
             :disabled="
-              selectedItems.length == 0 || verificationJob.status == 'Paused'
+              selectedItems.length == 0 || verificationJob.status == 'Paused' || verificationJob.status == 'Completed'
             "
             @click="
               showConfirmation = {
@@ -171,6 +177,7 @@
               verificationJob.status !== 'Paused' ? 'Pause Job' : 'Resume Job'
             "
             class="btn-no-wrap text-body1"
+            :disabled="verificationJob.status == 'Completed'"
             @click="
               verificationJob.status !== 'Paused'
                 ? updateVerificationJobStatus('Paused')
@@ -193,7 +200,8 @@
             :disabled="
               !allTraysCompleted ||
                 !allItemsVerified ||
-                verificationJob.status == 'Paused'
+                verificationJob.status == 'Paused' ||
+                verificationJob.status == 'Completed'
             "
             @click="
               showConfirmation = {
@@ -290,6 +298,7 @@
         verificationJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'
       "
       :button-one-outline="true"
+      :button-one-disabled="verificationJob.status == 'Completed'"
       @button-one-click="
         verificationJob.status !== 'Paused'
           ? updateVerificationJobStatus('Paused')
@@ -301,7 +310,8 @@
       :button-two-disabled="
         !allTraysCompleted ||
           !allItemsVerified ||
-          verificationJob.status == 'Paused'
+          verificationJob.status == 'Paused' ||
+          verificationJob.status == 'Completed'
       "
       :button-two-loading="appActionIsLoadingData"
       @button-two-click="
@@ -718,7 +728,7 @@ watch(route, () => {
 
 watch(compiledBarCode, (barcode_value) => {
   // ignore scans if job is paused
-  if (verificationJob.value.status == 'Paused') {
+  if (verificationJob.value.status == 'Paused' || verificationJob.value.status == 'Completed') {
     return
   }
 

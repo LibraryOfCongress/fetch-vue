@@ -73,9 +73,9 @@ export const useAccessionStore = defineStore('accession-store', {
         items: []
       }
     },
-    async getAccessionJobList () {
+    async getAccessionJobList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.accessionJobs)
+        const res = await this.$api.get(inventoryServiceApi.accessionJobs, { params: { ...qParams, size: 100 } })
         this.accessionJobList = res.data.items.filter(job => job.status !== 'Completed')
       } catch (error) {
         throw error
