@@ -77,7 +77,7 @@ export const useBuildingStore = defineStore('building-store', {
     },
     async getBuildingsList () {
       try {
-        const res = await this.$api.get(`${inventoryServiceApi.buildings}`)
+        const res = await this.$api.get(`${inventoryServiceApi.buildings}`, { params: { size: 100 } })
         this.buildings = res.data.items
         // this.buildings = [
         //   {
@@ -502,7 +502,7 @@ export const useBuildingStore = defineStore('building-store', {
     },
     async getShelfPositionsList (shelf_id, available = false) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.shelvesPositions, { params: { shelf_id, empty: available } })
+        const res = await this.$api.get(inventoryServiceApi.shelvesPositions, { params: { shelf_id, empty: available, size: 100 } })
         this.shelfPositions = res.data.items
       } catch (error) {
         throw error
