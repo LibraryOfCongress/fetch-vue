@@ -5,7 +5,7 @@
     <div class="row">
       <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
         <MoreOptionsMenu
-          :options="[{ text: 'Edit' }, { text: 'Print Job' }]"
+          :options="[{ text: 'Edit', disabled: verificationJob.status == 'Completed' }, { text: 'Print Job' }]"
           class="q-mr-sm"
           @click="handleOptionMenu"
         />

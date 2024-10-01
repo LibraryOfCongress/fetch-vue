@@ -26,13 +26,13 @@
                 }`,
                 disabled:
                   (accessionJob.trayed && !accessionContainer.id) ||
-                  accessionJob.status == 'Paused' ||
+                  accessionJob.status == 'Paused' || accessionJob.status == 'Completed' ||
                   barcodeScanAllowed,
               },
               {
                 text: 'Delete Items',
                 disabled:
-                  selectedItems.length == 0 || accessionJob.status == 'Paused',
+                  selectedItems.length == 0 || accessionJob.status == 'Paused' || accessionJob.status == 'Completed'
               },
             ]"
             class="q-mr-sm"
@@ -46,7 +46,7 @@
                 disabled:
                   !accessionContainer.id ||
                   !allItemsVerified ||
-                  accessionJob.status == 'Paused',
+                  accessionJob.status == 'Paused' || accessionJob.status == 'Completed'
               },
               {
                 text: `${
@@ -54,13 +54,13 @@
                 }`,
                 disabled:
                   (accessionJob.trayed && !accessionContainer.id) ||
-                  accessionJob.status == 'Paused' ||
+                  accessionJob.status == 'Paused' || accessionJob.status == 'Completed' ||
                   barcodeScanAllowed,
               },
               {
                 text: 'Delete Items',
                 disabled:
-                  selectedItems.length == 0 || accessionJob.status == 'Paused',
+                  selectedItems.length == 0 || accessionJob.status == 'Paused' || accessionJob.status == 'Completed'
               },
             ]"
             class="q-mr-sm"
@@ -99,7 +99,8 @@
             :disabled="
               !accessionContainer.id ||
                 !allItemsVerified ||
-                accessionJob.status == 'Paused'
+                accessionJob.status == 'Paused' ||
+                accessionJob.status == 'Completed'
             "
             @click="showNextTrayModal = !showNextTrayModal"
           />
@@ -125,6 +126,7 @@
             :disabled="
               (accessionJob.trayed && !accessionContainer.id) ||
                 accessionJob.status == 'Paused' ||
+                accessionJob.status == 'Completed' ||
                 barcodeScanAllowed
             "
             @click="setBarcodeEditDisplay"
@@ -137,7 +139,7 @@
             label="Delete"
             class="btn-no-wrap text-body1"
             :disabled="
-              selectedItems.length == 0 || accessionJob.status == 'Paused'
+              selectedItems.length == 0 || accessionJob.status == 'Paused' || accessionJob.status == 'Completed'
             "
             @click="
               showConfirmation = {
@@ -159,6 +161,7 @@
             label="Pause Job"
             class="btn-no-wrap text-body1"
             :class="currentScreenSize == 'xs' ? 'full-width q-mb-md' : ''"
+            :disabled="accessionJob.status == 'Completed'"
             @click="updateAccessionJobStatus('Paused')"
           />
           <q-btn
@@ -171,6 +174,7 @@
             label="Resume Job"
             class="btn-no-wrap text-body1"
             :class="currentScreenSize == 'xs' ? 'full-width q-mb-md' : ''"
+            :disabled="accessionJob.status == 'Completed'"
             @click="updateAccessionJobStatus('Running')"
           />
           <q-btn
@@ -182,7 +186,7 @@
             class="btn-no-wrap text-body1 q-ml-sm"
             :class="currentScreenSize == 'xs' ? 'full-width' : ''"
             :outline="!allItemsVerified || accessionJob.status == 'Paused'"
-            :disabled="!allItemsVerified || accessionJob.status == 'Paused'"
+            :disabled="!allItemsVerified || accessionJob.status == 'Paused' || accessionJob.status == 'Completed'"
             @click="
               showConfirmation = {
                 type: 'completeJob',
@@ -241,6 +245,7 @@
         accessionJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'
       "
       :button-one-outline="true"
+      :button-one-disabled="accessionJob.status == 'Completed'"
       @button-one-click="
         accessionJob.status == 'Paused'
           ? updateAccessionJobStatus('Running')
@@ -250,7 +255,7 @@
       button-two-label="Complete Job"
       :button-two-outline="false"
       :button-two-disabled="
-        !allItemsVerified || accessionJob.status == 'Paused'
+        !allItemsVerified || accessionJob.status == 'Paused' || accessionJob.status == 'Completed'
       "
       :button-two-loading="appActionIsLoadingData"
       @button-two-click="
@@ -583,6 +588,10 @@ watch(route, () => {
 })
 
 watch(compiledBarCode, (barcode) => {
+  if (accessionJob.value.status == 'Paused' || accessionJob.value.status == 'Completed') {
+    return
+  }
+
   if (
     barcode !== '' &&
     accessionJob.value.trayed &&

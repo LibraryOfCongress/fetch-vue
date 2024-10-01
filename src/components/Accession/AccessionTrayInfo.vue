@@ -4,14 +4,14 @@
       <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
         <MoreOptionsMenu
           :options="!route.params.containerId ? [
-            { text: 'Edit' },
-            { text: 'Cancel Job', optionClass: 'text-negative', hidden: !checkUserPermission('can_cancel_accession')},
+            { text: 'Edit', disabled: accessionJob.status == 'Completed' },
+            { text: 'Cancel Job', optionClass: 'text-negative', disabled: accessionJob.status == 'Completed', hidden: !checkUserPermission('can_cancel_accession')},
             { text: 'Print Job' }
           ] : [
-            { text: 'Edit' },
-            { text: 'Cancel Job', optionClass: 'text-negative', hidden: !checkUserPermission('can_cancel_accession')},
-            { text: 'Edit Tray Barcode', disabled: barcodeScanAllowed },
-            { text: 'Delete Tray', optionClass: 'text-negative'},
+            { text: 'Edit', disabled: accessionJob.status == 'Completed'},
+            { text: 'Cancel Job', optionClass: 'text-negative', disabled: accessionJob.status == 'Completed', hidden: !checkUserPermission('can_cancel_accession')},
+            { text: 'Edit Tray Barcode', disabled: barcodeScanAllowed || accessionJob.status == 'Completed'},
+            { text: 'Delete Tray', optionClass: 'text-negative', disabled: accessionJob.status == 'Completed'},
             { text: 'Print Job' }
           ]"
           class="q-mr-sm"
