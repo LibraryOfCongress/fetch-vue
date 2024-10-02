@@ -326,7 +326,7 @@ const handleOptionMenu = (option) => {
 }
 
 watch(compiledBarCode, (barcode) => {
-  if (barcode !== '' && !accessionContainer.value.id) {
+  if (barcode !== '' && !accessionContainer.value.id && (accessionJob.value.status !== 'Paused' || accessionJob.value.status !== 'Completed')) {
     handleTrayScan(barcode)
   }
 })
