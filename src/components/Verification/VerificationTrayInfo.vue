@@ -221,7 +221,7 @@ const editMode = ref(false)
 const handleAlert = inject('handle-alert')
 
 watch(compiledBarCode, (barcode_value) => {
-  if (barcode_value !== '' && !verificationContainer.value.id && verificationJob.value.status !== 'Paused') {
+  if (barcode_value !== '' && !verificationContainer.value.id && (verificationJob.value.status !== 'Paused' || verificationJob.value.status !== 'Completed')) {
     handleTrayScan(barcode_value)
   }
 })
