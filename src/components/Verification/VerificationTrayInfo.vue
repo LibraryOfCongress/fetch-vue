@@ -229,7 +229,7 @@ const handleTrayScan = async (barcode_value) => {
   try {
     // stop the scan if no size class matches the scanned tray
     const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
-    if (!generateSizeClass) {
+    if (!generateSizeClass && verificationJob.value.status !== 'Completed') {
       handleAlert({
         type: 'error',
         text: `The tray can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
@@ -255,23 +255,25 @@ const handleTrayScan = async (barcode_value) => {
       await getVerificationTray(barcode_value)
 
       // set tray scanned status to true if the scanned tray wasnt already scanned at some point
-      if (!verificationContainer.value.scanned_for_verification) {
+      if (!verificationContainer.value.scanned_for_verification && verificationJob.value.status !== 'Completed') {
         await patchVerificationTray({ id: verificationContainer.value.id, scanned_for_verification: true })
       }
 
       // set job status to running if it isnt already running
-      if (verificationJob.value.status !== 'Running') {
+      if (verificationJob.value.status !== 'Running' && verificationJob.value.status !== 'Completed') {
         await updateTrayJob()
       }
 
       // set the scanned tray barcode as the container id in the route
-      router.push({
-        name: 'verification-container',
-        params: {
-          jobId: verificationJob.value.workflow_id,
-          containerId: verificationContainer.value.barcode.value
-        }
-      })
+      if (verificationContainer.value.id) {
+        router.push({
+          name: 'verification-container',
+          params: {
+            jobId: verificationJob.value.workflow_id,
+            containerId: verificationContainer.value.barcode.value
+          }
+        })
+      }
     }
   } catch (error) {
     handleAlert({
