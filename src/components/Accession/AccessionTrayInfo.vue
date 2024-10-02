@@ -334,7 +334,7 @@ const handleTrayScan = async (barcode_value) => {
   try {
     // stop the scan if no size class matches the scanned tray
     const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
-    if (!generateSizeClass) {
+    if (!generateSizeClass && accessionJob.value.status !== 'Completed') {
       handleAlert({
         type: 'error',
         text: `The tray can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
@@ -368,13 +368,15 @@ const handleTrayScan = async (barcode_value) => {
     }
 
     // set the scanned tray barcode as the container id in the route
-    router.push({
-      name: 'accession-container',
-      params: {
-        jobId: accessionJob.value.workflow_id,
-        containerId: accessionContainer.value.barcode.value
-      }
-    })
+    if (accessionContainer.value.id) {
+      router.push({
+        name: 'accession-container',
+        params: {
+          jobId: accessionJob.value.workflow_id,
+          containerId: accessionContainer.value.barcode.value
+        }
+      })
+    }
   } catch (error) {
     handleAlert({
       type: 'error',
