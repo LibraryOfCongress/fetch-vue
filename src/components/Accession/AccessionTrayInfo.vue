@@ -326,7 +326,7 @@ const handleOptionMenu = (option) => {
 }
 
 watch(compiledBarCode, (barcode) => {
-  if (barcode !== '' && !accessionContainer.value.id && accessionJob.value.status !== 'Paused' && accessionJob.value.status !== 'Completed') {
+  if (barcode !== '' && !accessionContainer.value.id && accessionJob.value.status !== 'Paused') {
     handleTrayScan(barcode)
   }
 })
@@ -350,7 +350,7 @@ const handleTrayScan = async (barcode_value) => {
     // if the scanned tray exists in the accessionJob load the tray details
     if (accessionJob.value.trays && accessionJob.value.trays.some(tray => tray.barcode_id == barcodeDetails.value.id)) {
       await getAccessionTray(barcode_value)
-    } else {
+    } else if (accessionJob.value.status !== 'Completed') {
       // if the scanned tray barcode doesnt exist create the scanned tray using the scanned barcodes uuid
       const currentDate = new Date()
       const payload = {
