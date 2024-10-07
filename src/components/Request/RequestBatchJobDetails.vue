@@ -1,12 +1,12 @@
 <template>
   <InfoDisplayLayout class="request-job">
     <template #number-box-content>
-      <label
+      <h1
         id="requestJobId"
         class="info-display-details-label text-h4 q-mb-xs"
       >
         Request List:
-      </label>
+      </h1>
       <p class="info-display-number-box text-h4">
         {{ requestBatchJob.id }}
       </p>
@@ -82,9 +82,9 @@
             class="col-xs-7 col-sm-5 q-mb-md-sm"
             :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
           >
-            <label class="text-h4 text-bold">
+            <h2 class="text-h4 text-bold">
               Items in List:
-            </label>
+            </h2>
           </div>
 
           <div

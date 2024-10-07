@@ -20,9 +20,9 @@
               class="col-sm-5 col-md-12 q-mb-md-sm"
               :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
             >
-              <label class="text-h4 text-bold">
-                Requests
-              </label>
+              <h1 class="text-h4 text-bold">
+                {{ requestDisplayType == 'request_view' ? 'Requests' : 'Batch Requests' }}
+              </h1>
             </div>
 
             <div

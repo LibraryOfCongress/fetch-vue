@@ -10,12 +10,12 @@
           class="q-mr-xs"
           @click="handleOptionMenu"
         />
-        <label
+        <h1
           id="withdrawJobId"
           class="info-display-details-label text-h4"
         >
           Withdraw Job:
-        </label>
+        </h1>
       </div>
       <p class="info-display-number-box text-h4">
         {{ withdrawJob.id }}
@@ -220,9 +220,9 @@
       >
         <template #heading-row>
           <div class="col-xs-7 col-sm-5 col-md-auto q-mb-md-sm">
-            <label class="text-h4 text-bold">
+            <h2 class="text-h4 text-bold">
               Items in Job:
-            </label>
+            </h2>
           </div>
 
           <div
