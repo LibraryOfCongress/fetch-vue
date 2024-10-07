@@ -21,7 +21,7 @@
               :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
             >
               <h1 class="text-h4 text-bold">
-                Requests
+                {{ requestDisplayType == 'request_view' ? 'Requests' : 'Batch Requests' }}
               </h1>
             </div>
 

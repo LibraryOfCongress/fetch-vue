@@ -22,7 +22,7 @@
               :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
             >
               <h1 class="text-h4 text-bold">
-                Refile
+                {{ refileDisplayType == 'refile_job' ? 'Refile Jobs' : 'Refile Queue' }}
               </h1>
             </div>
 

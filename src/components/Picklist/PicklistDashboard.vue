@@ -19,7 +19,7 @@
               :class="currentScreenSize == 'xs' ? '' : 'self-center'"
             >
               <h1 class="text-h4 text-bold">
-                Pick List
+                Pick List Jobs
               </h1>
             </div>
           </template>

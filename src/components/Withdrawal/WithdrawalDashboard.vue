@@ -18,7 +18,7 @@
               :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
             >
               <h1 class="text-h4 text-bold">
-                Withdrawal
+                Withdraw Jobs
               </h1>
             </div>
 
