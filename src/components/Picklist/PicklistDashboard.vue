@@ -18,9 +18,9 @@
               class="col-xs-12 col-sm-5 col-md-12 col-lg-auto q-mb-xs-sm q-mb-sm-none"
               :class="currentScreenSize == 'xs' ? '' : 'self-center'"
             >
-              <label class="text-h4 text-bold">
+              <h1 class="text-h4 text-bold">
                 Pick List
-              </label>
+              </h1>
             </div>
           </template>
 

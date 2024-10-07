@@ -17,9 +17,9 @@
               class="col-xs-12 col-lg-auto q-mr-auto q-pb-xs-sm q-pb-lg-none"
               :class="currentScreenSize == 'xs' ? '' : 'self-center'"
             >
-              <label class="text-h4 text-bold">
+              <h1 class="text-h4 text-bold">
                 {{ renderLocationTableTitle }}
-              </label>
+              </h1>
             </div>
 
             <div
