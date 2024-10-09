@@ -7,6 +7,7 @@
     class="essential-link"
     :dense="dense"
     :class="disabled ? 'disabled' : ''"
+    :aria-disabled="disabled"
     @click="emit('click')"
   >
     <q-item-section
