@@ -23,7 +23,7 @@
             :placeholder="'Select Module'"
             :disabled="renderBuildingModules.length == 0"
             @update:model-value="handleLocationFormChange('Module')"
-            aria-label="module"
+            aria-label="moduleSelect"
           />
         </div>
 
@@ -42,7 +42,7 @@
               :placeholder="'Select Aisle'"
               :disabled="renderBuildingOrModuleAisles.length == 0"
               @update:model-value="handleLocationFormChange('Aisle')"
-              aria-label="aisle"
+              aria-label="aisleSelect"
             />
           </div>
         </div>
@@ -78,7 +78,7 @@
             :placeholder="'Select Ladder'"
             :disabled="renderSideLadders.length == 0"
             @update:model-value="handleLocationFormChange('Ladder')"
-            aria-label="ladder"
+            aria-label="ladderSelect"
           />
         </div>
 
@@ -99,7 +99,7 @@
               :placeholder="'Select Shelf'"
               :disabled="renderLadderShelves.length == 0"
               @update:model-value="handleLocationFormChange('Shelf')"
-              aria-label="shelf"
+              aria-label="shelfSelect"
             />
           </div>
         </div>
@@ -119,7 +119,7 @@
               :option-label="opt => opt.shelf_position_number.number"
               :placeholder="'Select Shelf Position'"
               :disabled="shelfPositions.length == 0"
-              aria-label="shelfPosition"
+              aria-label="shelfPositionSelect"
             />
           </div>
         </div>

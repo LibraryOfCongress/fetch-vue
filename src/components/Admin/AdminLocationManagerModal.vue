@@ -77,7 +77,7 @@
                   :placeholder="`Select ${field.label}`"
                   :disabled="field.disabled"
                   @update:model-value="null"
-                  :aria-label="`${field.field}_select`"
+                  :aria-label="`${field.field}Select`"
                 />
               </div>
             </div>

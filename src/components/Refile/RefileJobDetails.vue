@@ -43,7 +43,7 @@
             option-type="users"
             option-value="id"
             option-label="first_name"
-            aria-label="user"
+            aria-label="userSelect"
             class="q-pr-xs-sm q-pr-md-none"
           />
         </div>

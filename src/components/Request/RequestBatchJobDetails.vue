@@ -99,8 +99,15 @@
               label="Create"
               class="text-body1 q-ml-xs-none q-ml-sm-sm"
               :disabled="showCreatePickList || showAddPickList"
+              aria-label="createRequestJobMenu"
+              aria-haspopup="menu"
+              :aria-expanded="requestJobMenuState"
             >
-              <q-menu>
+              <q-menu
+                @show="requestJobMenuState = true"
+                @hide="requestJobMenuState = false"
+                aria-label="requestJobMenuList"
+              >
                 <q-list class="text-no-wrap">
                   <q-item
                     v-if="checkUserPermission('can_add_to_picklist_job')"
@@ -314,6 +321,7 @@ const { postPicklistJob, patchPicklistJobItem } = usePicklistStore()
 const { picklistJob } = storeToRefs(usePicklistStore())
 
 // Local Data
+const requestJobMenuState = ref(false)
 const requestTableComponent = ref(null)
 const requestTableVisibleColumns = ref([
   'id',

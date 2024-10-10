@@ -11,6 +11,7 @@
     @click="isStageOrProd ? ssoLogin() : null"
   >
     <q-menu
+      v-if="!isStageOrProd"
       :offset="[12, 9]"
       :class="$style['authentication-menu']"
     >

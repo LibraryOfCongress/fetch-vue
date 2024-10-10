@@ -62,7 +62,7 @@
               option-type="sizeClass"
               option-value="id"
               option-label="name"
-              aria-label="sizeClass"
+              aria-label="sizeClassSelect"
             />
             <SelectInput
               v-else
@@ -71,7 +71,7 @@
               option-type="sizeClass"
               option-value="id"
               option-label="name"
-              aria-label="sizeClass"
+              aria-label="sizeClassSelect"
             />
           </div>
 
@@ -92,7 +92,7 @@
               option-type="mediaTypes"
               option-value="id"
               option-label="name"
-              aria-label="mediaType"
+              aria-label="mediaTypeSelect"
             />
             <SelectInput
               v-else
@@ -101,7 +101,7 @@
               option-type="mediaTypes"
               option-value="id"
               option-label="name"
-              aria-label="mediaType"
+              aria-label="mediaTypeSelect"
             />
           </div>
         </div>
