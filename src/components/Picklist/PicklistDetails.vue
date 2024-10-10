@@ -55,7 +55,7 @@
             option-type="users"
             option-value="id"
             option-label="first_name"
-            aria-label="user"
+            aria-label="userSelect"
           >
             <template #no-option>
               <q-item>

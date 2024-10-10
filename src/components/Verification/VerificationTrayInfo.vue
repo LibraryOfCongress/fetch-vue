@@ -42,7 +42,7 @@
               option-type="owners"
               option-value="id"
               option-label="name"
-              aria-label="owner"
+              aria-label="ownerSelect"
             />
           </div>
 
@@ -77,7 +77,7 @@
               option-type="sizeClass"
               option-value="id"
               option-label="name"
-              aria-label="sizeClass"
+              aria-label="sizeClassSelect"
             />
           </div>
 
@@ -99,7 +99,7 @@
                 option-type="mediaTypes"
                 option-value="id"
                 option-label="name"
-                aria-label="mediaType"
+                aria-label="mediaTypeSelect"
               />
               <SelectInput
                 v-else
@@ -108,7 +108,7 @@
                 option-type="mediaTypes"
                 option-value="id"
                 option-label="name"
-                aria-label="mediaType"
+                aria-label="mediaTypeSelect"
               />
             </template>
           </div>

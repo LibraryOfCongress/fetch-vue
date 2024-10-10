@@ -75,6 +75,7 @@
               option-value="id"
               option-label="value"
               :placeholder="'Select Priority'"
+              aria-label="prioritySelect"
             />
           </div>
         </div>
@@ -90,6 +91,7 @@
               option-value="id"
               option-label="type"
               :placeholder="'Select Request Type'"
+              aria-label="requestTypeSelect"
             />
           </div>
         </div>
@@ -105,6 +107,7 @@
               option-value="id"
               option-label="name"
               :placeholder="'Select Delivery Location'"
+              aria-label="requestLocationSelect"
             />
           </div>
         </div>

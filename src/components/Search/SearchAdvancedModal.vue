@@ -156,7 +156,7 @@
                 :placeholder="`Select Size Class`"
                 :disabled="!searchForm.shelf_id"
                 @update:model-value="null"
-                :aria-label="`size_class_id_select`"
+                :aria-label="`sizeClassSelect`"
               />
             </div>
           </div>
@@ -175,7 +175,7 @@
                 :placeholder="`Select Owner`"
                 :disabled="!searchForm.shelf_id"
                 @update:model-value="null"
-                :aria-label="`owner_id_select`"
+                :aria-label="`ownerSelect`"
               />
             </div>
           </div>
@@ -277,7 +277,7 @@
                   :option-label="param.optionType == 'users' ? 'first_name' : 'name'"
                   :placeholder="`Select ${param.label}`"
                   @update:model-value="null"
-                  :aria-label="`${param.query}_select`"
+                  :aria-label="`${param.query}Select`"
                 />
               </div>
             </div>

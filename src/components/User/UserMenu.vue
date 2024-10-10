@@ -1,17 +1,22 @@
 <template>
-  <q-avatar
-    rounded
-    size="md"
-    role="button"
-    aria-label="UserMenu"
+  <q-btn
+    no-caps
+    flat
+    dense
+    round
     icon="person"
-    color="secondary"
-    class="user-avatar text-white"
-    font-size="25px"
+    color="white"
+    class="user-avatar"
+    aria-label="UserMenu"
+    aria-haspopup="menu"
+    :aria-expanded="userMenuState"
   >
     <q-menu
       class="user-menu"
-      :offset="[11, 10]"
+      :offset="[11, 9]"
+      @show="userMenuState = true"
+      @hide="userMenuState = false"
+      aria-label="userMenuList"
     >
       <q-list style="min-width: 200px">
         <q-item
@@ -93,7 +98,7 @@
         </q-item>
       </q-list>
     </q-menu>
-  </q-avatar>
+  </q-btn>
 </template>
 
 <script setup>
@@ -112,6 +117,7 @@ const { patchLogout } = useUserStore()
 const { barcodeScanAllowed, barcodeInputDelay } = storeToRefs(useBarcodeStore())
 
 // Local Data
+const userMenuState = ref(false)
 const userOptions = ref([
   {
     text: 'Settings',

@@ -63,7 +63,7 @@
             </p>
             <SelectInput
               v-else
-              aria-label="containerSize"
+              aria-label="containerSizeSelect"
               v-model="accessionContainer.size_class_id"
               :options="sizeClass"
               option-type="sizeClass"
@@ -85,7 +85,7 @@
             <template v-else>
               <SelectInput
                 v-if="!accessionContainer.id"
-                aria-label="mediaType"
+                aria-label="mediaTypeSelect"
                 v-model="accessionJob.media_type_id"
                 :options="mediaTypes"
                 option-type="mediaTypes"
@@ -94,7 +94,7 @@
               />
               <SelectInput
                 v-else
-                aria-label="mediaType"
+                aria-label="mediaTypeSelect"
                 v-model="accessionContainer.media_type_id"
                 :options="mediaTypes"
                 option-type="mediaTypes"

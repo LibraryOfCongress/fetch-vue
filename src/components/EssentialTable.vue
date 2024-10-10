@@ -19,12 +19,17 @@
           :label="currentScreenSize == 'xs' ? 'Filter' : ''"
           class="table-component-filter"
           :class="currentScreenSize == 'xs' ? 'text-accent' : ''"
-          aria-label="tableFilter"
+          aria-label="tableFilterOptions"
+          aria-haspopup="menu"
+          :aria-expanded="tableFilterMenuState"
         >
           <q-menu
             :transition-show="currentScreenSize == 'xs' ? 'scale' : 'fade'"
             :transition-hide="currentScreenSize == 'xs' ? 'scale' : 'fade'"
             :class="currentScreenSize == 'xs' ? $style['mobile-menu'] : ''"
+            @show="tableFilterMenuState = true"
+            @hide="tableFilterMenuState = false"
+            aria-label="tableFilterOptionsMenu"
           >
             <q-item-label class="text-h6 q-pa-md">
               Filter Options
@@ -59,6 +64,7 @@
                         v-model="opt.value"
                         @update:model-value="filterTableData(opt)"
                         aria-label="tableFilterOptionCheckbox"
+                        role="menuitemcheckbox"
                       />
                     </q-item-section>
 
@@ -83,11 +89,13 @@
           outlined
           multiple
           :dense="currentScreenSize == 'xs'"
+          aria-label="tableRearrangeMenu"
           :display-value="'Rearrange'"
           v-model="localTableVisibleColumns"
           :options="localTableColumns.filter(opt => !opt.required)"
           emit-value
           map-options
+          use-input
           option-value="name"
           option-label="label"
           class="table-component-rearrange full-width"
@@ -354,6 +362,7 @@ const paginationConfig = ref({
   page: 1,
   rowsPerPage: 0
 })
+const tableFilterMenuState = ref(false)
 
 // Logic
 onMounted(() => {
@@ -498,6 +507,17 @@ defineExpose({ clearSelectedData })
 
     @media (max-width: $breakpoint-sm-min) {
       min-width: 100px;
+    }
+
+    :deep(.q-field__input) {
+      // hides the input from user since our rearrange menu is just a dropdown
+      position: absolute;
+      outline: 0 !important;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      border: 0;
+      opacity: 0;
     }
   }
 

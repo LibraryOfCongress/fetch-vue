@@ -7,9 +7,15 @@
       icon-right="arrow_drop_down"
       :label="searchType"
       aria-label="searchBarMenu"
+      aria-haspopup="menu"
+      :aria-expanded="searchMenuState"
       class="search-bar-menu text-body2 text-secondary"
     >
-      <q-menu>
+      <q-menu
+        @show="searchMenuState = true"
+        @hide="searchMenuState = false"
+        aria-label="searchMenuList"
+      >
         <q-list>
           <q-item
             v-for="obj in searchTypes"
@@ -172,6 +178,7 @@ const { refileJob } = storeToRefs(useRefileStore())
 const { withdrawJob } = storeToRefs(useWithdrawalStore())
 
 // Local Data
+const searchMenuState = ref(false)
 const renderSearchPlaceholder = computed(() => {
   let placeholderText = 'Search'
   if (searchType.value == 'Item' || searchType.value == 'Tray' || searchType.value == 'Shelf') {
