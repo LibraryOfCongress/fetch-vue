@@ -171,6 +171,7 @@
           :selection="enableSelection ? 'multiple' : 'none'"
           v-model:selected="selectedTableData"
           class="table-component-table"
+          tabindex="0"
         >
           <template #header-cell-actions="props">
             <!-- if we ever pass in an actions column it will always use the smallest col size -->
@@ -195,14 +196,17 @@
               :style="props.col.headerStyle"
             >
               <span
+                :tabindex="props.col.label ? 0 : -1"
                 class="flex no-wrap items-center"
-                @click="props.sort(props.col.name);"
+                :aria-label="`${props.col.label}TableColumnSortAscendDescend`"
+                @keydown.enter="props.sort(props.col.name)"
+                @click="props.sort(props.col.name)"
               >
                 {{ props.col.label }}
                 <q-icon
                   name="arrow_upward"
                   class="q-table__sort-icon q-table__sort-icon--left"
-                  aria-label="tableColumnSort"
+                  aria-label="tableColumnSortIcon"
                 />
               </span>
             </q-th>
@@ -217,10 +221,12 @@
 
           <template #body-cell="props">
             <q-td
+              :tabindex="props.value ? 0 : -1"
               :props="props"
               :style="[ props.col.name == 'actions' ? 'padding-left:8px;' : null ]"
               :class="(props.row[highlightRowKey] && props.row[highlightRowKey] == highlightRowValue) ? highlightRowClass : null"
               @click="props.col.name !== 'actions' ? emit('selected-table-row', props.row) : null"
+              @keydown.enter="props.col.name !== 'actions' ? emit('selected-table-row', props.row) : null"
             >
               <slot
                 name="table-td"
