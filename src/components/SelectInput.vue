@@ -150,8 +150,10 @@ const renderLabel = (opt) => {
     // ex opt => opt.barcode.value we only need 'barcode.value' from that function
     const paramPath = mainProps.optionLabel.toString().split('.').slice(1).join('.')
     return getNestedKeyPath(opt, paramPath)
-  } else {
+  } else if (mainProps.optionLabel) {
     return opt[mainProps.optionLabel]
+  } else {
+    return opt
   }
 }
 </script>
