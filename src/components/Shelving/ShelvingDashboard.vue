@@ -181,7 +181,7 @@
                       <q-item-section>
                         <q-item-label class="text-body1">
                           <span>Job #: {{ opt.workflow_id }}</span>
-                          <span class="text-secondary"> - 0 Containers ({{ opt.trayed ? 'Trayed' : 'Non-Tray' }})</span>
+                          <span class="text-secondary"> - {{ opt.trayed ? 'Trayed' : 'Non-Tray' }} ({{ opt.trayed ? `${opt.tray_count} containers, ${opt.item_count} items` : `${opt.non_tray_item_count} items` }})</span>
                         </q-item-label>
                       </q-item-section>
                       <q-item-section side>

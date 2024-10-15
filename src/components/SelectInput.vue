@@ -29,6 +29,22 @@
         </q-item>
       </slot>
     </template>
+
+    <template #option="{ itemProps, opt, selected, toggleOption }">
+      <slot
+        name="option"
+        :item-props="itemProps"
+        :opt="opt"
+        :selected="selected"
+        :toggle-option="toggleOption"
+      >
+        <q-item v-bind="itemProps">
+          <q-item-section>
+            <span>{{ renderLabel(opt) }}</span>
+          </q-item-section>
+        </q-item>
+      </slot>
+    </template>
   </q-select>
 </template>
 
@@ -128,6 +144,16 @@ const filterOptions = async (val, update) => {
     }
   })
 }
+const renderLabel = (opt) => {
+  if (mainProps.optionLabel.toString().includes('.')) {
+    // if we pass in a arrow function label we convert it to read as a property key
+    // ex opt => opt.barcode.value we only need 'barcode.value' from that function
+    const paramPath = mainProps.optionLabel.toString().split('.').slice(1).join('.')
+    return getNestedKeyPath(opt, paramPath)
+  } else {
+    return opt[mainProps.optionLabel]
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -142,7 +168,7 @@ const filterOptions = async (val, update) => {
     }
 
     .q-chip__icon {
-      margin-top: 0;
+      margin-top: -3px;
     }
   }
 
