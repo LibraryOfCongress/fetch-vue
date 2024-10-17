@@ -15,7 +15,7 @@ RUN cat env/.env
 FROM develop-stage AS build-stage
 
 RUN npm install
-RUN npm config set ca=""
+RUN npm config set strict-ssl false
 
 # if you need to change env reference just change the "ENVIRONMENT=STRING"
 RUN quasar build -m pwa
