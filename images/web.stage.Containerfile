@@ -1,5 +1,5 @@
 # develop stage
-FROM node:18-alpine as develop-stage
+FROM node:18-alpine AS develop-stage
 
 WORKDIR /app
 
@@ -12,9 +12,10 @@ COPY . .
 RUN cat env/.env
 
 # build stage
-FROM develop-stage as build-stage
+FROM develop-stage AS build-stage
 
-RUN npm install
+# RUN npm install
+RUN npm install npm -g --ca=null
 
 # if you need to change env reference just change the "ENVIRONMENT=STRING"
 RUN quasar build -m pwa
@@ -27,7 +28,7 @@ RUN chmod 644 /usr/local/share/ca-certificates/ca-bundle.trust.crt
 ENV REQUESTS_CA_BUNDLE=/usr/local/share/ca-certificates/ca-bundle.crt
 
 # production stage
-FROM nginx:1.17.5-alpine as production-stage
+FROM nginx:1.17.5-alpine AS production-stage
 
 COPY --from=build-stage /app/dist/pwa /usr/share/nginx/html
 
