@@ -5,7 +5,7 @@
     <div class="row">
       <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
         <MoreOptionsMenu
-          :options="currentScreenSize !== 'xs' ? [{ text: 'Edit' }] : [{ text: 'Edit' }, { text: 'Print Job' }]"
+          :options="[{ text: 'Edit', disabled: verificationJob.status == 'Completed' }, { text: 'Print Job' }]"
           class="q-mr-sm"
           @click="handleOptionMenu"
         />
@@ -42,7 +42,7 @@
               option-type="owners"
               option-value="id"
               option-label="name"
-              aria-label="owner"
+              aria-label="ownerSelect"
             />
           </div>
 
@@ -74,7 +74,7 @@
               option-type="sizeClass"
               option-value="id"
               option-label="name"
-              aria-label="sizeClass"
+              aria-label="sizeClassSelect"
             />
             <SelectInput
               v-else
@@ -83,7 +83,7 @@
               option-type="sizeClass"
               option-value="id"
               option-label="name"
-              aria-label="sizeClass"
+              aria-label="sizeClassSelect"
             />
           </div>
 
@@ -104,7 +104,7 @@
               option-type="mediaTypes"
               option-value="id"
               option-label="name"
-              aria-label="mediaType"
+              aria-label="mediaTypeSelect"
             />
             <SelectInput
               v-else
@@ -113,7 +113,7 @@
               option-type="mediaTypes"
               option-value="id"
               option-label="name"
-              aria-label="mediaType"
+              aria-label="mediaTypeSelect"
             />
           </div>
         </div>

@@ -17,9 +17,9 @@
               class="col-sm-5 col-md-12 col-lg-auto"
               :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
             >
-              <label class="text-h4 text-bold">
-                Withdrawal
-              </label>
+              <h1 class="text-h4 text-bold">
+                Withdraw Jobs
+              </h1>
             </div>
 
             <div

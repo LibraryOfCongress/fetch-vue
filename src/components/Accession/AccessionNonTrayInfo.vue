@@ -4,8 +4,9 @@
       <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
         <MoreOptionsMenu
           :options="[
-            { text: 'Edit' },
-            { text: 'Cancel Job', optionClass: 'text-negative', hidden: !checkUserPermission('can_cancel_accession')}
+            { text: 'Edit', disabled: accessionJob.status == 'Completed' },
+            { text: 'Cancel Job', optionClass: 'text-negative', disabled: accessionJob.status == 'Completed', hidden: !checkUserPermission('can_cancel_accession')},
+            { text: 'Print Job' }
           ]"
           class="q-mr-sm"
           @click="handleOptionMenu"
@@ -61,7 +62,7 @@
               option-type="sizeClass"
               option-value="id"
               option-label="name"
-              aria-label="sizeClass"
+              aria-label="sizeClassSelect"
             />
             <SelectInput
               v-else
@@ -70,7 +71,7 @@
               option-type="sizeClass"
               option-value="id"
               option-label="name"
-              aria-label="sizeClass"
+              aria-label="sizeClassSelect"
             />
           </div>
 
@@ -91,7 +92,7 @@
               option-type="mediaTypes"
               option-value="id"
               option-label="name"
-              aria-label="mediaType"
+              aria-label="mediaTypeSelect"
             />
             <SelectInput
               v-else
@@ -100,7 +101,7 @@
               option-type="mediaTypes"
               option-value="id"
               option-label="name"
-              aria-label="mediaType"
+              aria-label="mediaTypeSelect"
             />
           </div>
         </div>
@@ -226,6 +227,9 @@ const {
   originalAccessionJob
 } = storeToRefs(useAccessionStore())
 
+// Emits
+const emit = defineEmits(['print'])
+
 // Local Data
 const editMode = ref(false)
 const confirmationModal = ref(null)
@@ -239,6 +243,8 @@ const handleOptionMenu = (option) => {
     editMode.value = true
   } else if (option.text == 'Cancel Job') {
     showConfirmationModal.value = 'CancelJob'
+  } else if (option.text == 'Print Job') {
+    emit('print')
   }
 }
 

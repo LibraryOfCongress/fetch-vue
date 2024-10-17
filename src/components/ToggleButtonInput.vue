@@ -12,6 +12,7 @@
     :style="[ currentScreenSize == 'xs' ? 'height:40px;' : 'height:56px;' ]"
     :options="localOptions"
     :disable="disabled"
+    aria-label="toggleOptionsGroup"
   />
 </template>
 

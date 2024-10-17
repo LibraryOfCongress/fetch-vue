@@ -20,9 +20,9 @@
               class="col-sm-5 col-md-12 q-mb-md-sm"
               :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
             >
-              <label class="text-h4 text-bold">
-                Requests
-              </label>
+              <h1 class="text-h4 text-bold">
+                {{ requestDisplayType == 'request_view' ? 'Requests' : 'Batch Requests' }}
+              </h1>
             </div>
 
             <div
@@ -37,8 +37,15 @@
                 label="Create"
                 class="text-body1 q-ml-xs-none q-ml-sm-sm"
                 :disabled="showCreatePickList || showAddPickList"
+                aria-label="createRequestJobMenu"
+                aria-haspopup="menu"
+                :aria-expanded="requestJobMenuState"
               >
-                <q-menu>
+                <q-menu
+                  @show="requestJobMenuState = true"
+                  @hide="requestJobMenuState = false"
+                  aria-label="requestJobMenuList"
+                >
                   <q-list>
                     <q-item
                       v-if="checkUserPermission('can_add_to_picklist_job')"
@@ -243,7 +250,7 @@
               option-value="id"
               option-label="name"
               :placeholder="'Select Building'"
-              aria-label="building"
+              aria-label="buildingSelect"
             />
           </div>
 
@@ -336,6 +343,7 @@ const { postPicklistJob, patchPicklistJobItem } = usePicklistStore()
 const { picklistJob } = storeToRefs(usePicklistStore())
 
 // Local Data
+const requestJobMenuState = ref(false)
 const requestTableComponent = ref(null)
 const requestTableVisibleColumns = ref([
   'id',

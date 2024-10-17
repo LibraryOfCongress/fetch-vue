@@ -31,15 +31,14 @@ export const useOptionStore = defineStore('option-store', {
     },
     async getOptions (optionType) {
       try {
-        const res = await this.$api.get(
-          inventoryServiceApi[optionType]
-        )
+        const res = await this.$api.get(inventoryServiceApi[optionType], { params: { size: 100 } })
 
         this[optionType] = res.data.items
       } catch (error) {
         throw error
       }
     },
+    //TEMP testing page functions
     async getOwnerTierList () {
       try {
         const res = await this.$api.get(inventoryServiceApi.ownersTiers)

@@ -4,8 +4,14 @@
     icon="more_vert"
     class="more-menu"
     aria-label="optionsMenu"
+    aria-haspopup="menu"
+    :aria-expanded="optionMenuState"
   >
-    <q-menu>
+    <q-menu
+      @show="optionMenuState = true"
+      @hide="optionMenuState = false"
+      aria-label="optionsMenuList"
+    >
       <q-list class="more-menu-list">
         <q-item
           v-for="(opt, i) in options.filter(opt => !opt.hidden)"
@@ -26,6 +32,8 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
+
 defineProps({
   options: {
     type: Array,
@@ -34,6 +42,8 @@ defineProps({
 })
 
 const emit = defineEmits(['click'])
+
+const optionMenuState = ref(false)
 </script>
 
 <style lang="scss" scoped>

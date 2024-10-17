@@ -19,12 +19,17 @@
           :label="currentScreenSize == 'xs' ? 'Filter' : ''"
           class="table-component-filter"
           :class="currentScreenSize == 'xs' ? 'text-accent' : ''"
-          aria-label="tableFilter"
+          aria-label="tableFilterOptions"
+          aria-haspopup="menu"
+          :aria-expanded="tableFilterMenuState"
         >
           <q-menu
             :transition-show="currentScreenSize == 'xs' ? 'scale' : 'fade'"
             :transition-hide="currentScreenSize == 'xs' ? 'scale' : 'fade'"
             :class="currentScreenSize == 'xs' ? $style['mobile-menu'] : ''"
+            @show="tableFilterMenuState = true"
+            @hide="tableFilterMenuState = false"
+            aria-label="tableFilterOptionsMenu"
           >
             <q-item-label class="text-h6 q-pa-md">
               Filter Options
@@ -59,6 +64,7 @@
                         v-model="opt.value"
                         @update:model-value="filterTableData(opt)"
                         aria-label="tableFilterOptionCheckbox"
+                        role="menuitemcheckbox"
                       />
                     </q-item-section>
 
@@ -83,11 +89,13 @@
           outlined
           multiple
           :dense="currentScreenSize == 'xs'"
+          aria-label="tableRearrangeMenu"
           :display-value="'Rearrange'"
           v-model="localTableVisibleColumns"
           :options="localTableColumns.filter(opt => !opt.required)"
           emit-value
           map-options
+          use-input
           option-value="name"
           option-label="label"
           class="table-component-rearrange full-width"
@@ -163,6 +171,7 @@
           :selection="enableSelection ? 'multiple' : 'none'"
           v-model:selected="selectedTableData"
           class="table-component-table"
+          tabindex="0"
         >
           <template #header-cell-actions="props">
             <!-- if we ever pass in an actions column it will always use the smallest col size -->
@@ -187,14 +196,17 @@
               :style="props.col.headerStyle"
             >
               <span
+                :tabindex="props.col.label ? 0 : -1"
                 class="flex no-wrap items-center"
-                @click="props.sort(props.col.name);"
+                :aria-label="`${props.col.label}TableColumnSortAscendDescend`"
+                @keydown.enter="props.sort(props.col.name)"
+                @click="props.sort(props.col.name)"
               >
                 {{ props.col.label }}
                 <q-icon
                   name="arrow_upward"
                   class="q-table__sort-icon q-table__sort-icon--left"
-                  aria-label="tableColumnSort"
+                  aria-label="tableColumnSortIcon"
                 />
               </span>
             </q-th>
@@ -209,10 +221,12 @@
 
           <template #body-cell="props">
             <q-td
+              :tabindex="props.value ? 0 : -1"
               :props="props"
               :style="[ props.col.name == 'actions' ? 'padding-left:8px;' : null ]"
               :class="(props.row[highlightRowKey] && props.row[highlightRowKey] == highlightRowValue) ? highlightRowClass : null"
               @click="props.col.name !== 'actions' ? emit('selected-table-row', props.row) : null"
+              @keydown.enter="props.col.name !== 'actions' ? emit('selected-table-row', props.row) : null"
             >
               <slot
                 name="table-td"
@@ -354,6 +368,7 @@ const paginationConfig = ref({
   page: 1,
   rowsPerPage: 0
 })
+const tableFilterMenuState = ref(false)
 
 // Logic
 onMounted(() => {
@@ -498,6 +513,17 @@ defineExpose({ clearSelectedData })
 
     @media (max-width: $breakpoint-sm-min) {
       min-width: 100px;
+    }
+
+    :deep(.q-field__input) {
+      // hides the input from user since our rearrange menu is just a dropdown
+      position: absolute;
+      outline: 0 !important;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      border: 0;
+      opacity: 0;
     }
   }
 

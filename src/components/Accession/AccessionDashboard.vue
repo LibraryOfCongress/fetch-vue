@@ -136,7 +136,7 @@
               option-value="id"
               option-label="name"
               :placeholder="'Select Owner'"
-              aria-label="owner"
+              aria-label="ownerSelect"
             />
           </div>
 
@@ -154,7 +154,7 @@
               option-value="id"
               option-label="name"
               :placeholder="'Select Size Class'"
-              aria-label="containerSize"
+              aria-label="containerSizeSelect"
             />
           </div>
 
@@ -169,7 +169,7 @@
               option-value="id"
               option-label="name"
               :placeholder="'Select Media Type'"
-              aria-label="mediaType"
+              aria-label="mediaTypeSelect"
             />
           </div>
         </q-card-section>

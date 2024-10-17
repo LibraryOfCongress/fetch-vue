@@ -38,23 +38,16 @@
       </div>
 
       <div class="col-xs-12 col-sm-4 col-md-3 q-pa-xs-xs q-pa-lg-sm q-pa-xl-md">
-        <q-card
-          flat
-          bordered
-          class="admin-groups-card admin-groups-card-dashed"
+        <q-btn
+          no-caps
+          unelevated
+          outline
+          icon="add"
+          label="Add New Group"
+          align="left"
+          class="admin-groups-card admin-groups-card-dashed text-h5 text-bold"
           @click="showAddGroupModal = true"
-        >
-          <q-card-section class="admin-groups-card-details q-pa-md">
-            <q-icon
-              name="add"
-              size="25px"
-              class="q-mr-sm text-bold"
-            />
-            <p class="text-h5 text-bold">
-              Add New Group
-            </p>
-          </q-card-section>
-        </q-card>
+        />
       </div>
     </div>
   </div>
@@ -595,10 +588,20 @@ const loadUserPermissions = async () => {
       border-width: 2px;
       border-color: $color-black;
 
+      &::before {
+        border: none;
+      }
+
       &:hover:not(:disabled) {
         color: $accent;
         border-color: $accent;
         cursor: pointer;
+      }
+
+      :deep(.q-icon) {
+        font-size: 25px;
+        font-weight: 700;
+        margin-left: 0;
       }
     }
 
