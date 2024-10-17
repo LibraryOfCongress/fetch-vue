@@ -10,12 +10,12 @@
           class="q-mr-xs"
           @click="handleOptionMenu"
         />
-        <label
+        <h1
           id="withdrawJobId"
           class="info-display-details-label text-h4"
         >
           Withdraw Job:
-        </label>
+        </h1>
       </div>
       <p class="info-display-number-box text-h4">
         {{ withdrawJob.id }}
@@ -43,7 +43,7 @@
             option-type="users"
             option-value="id"
             option-label="first_name"
-            aria-label="user"
+            aria-label="userSelect"
             class="q-pr-xs-sm q-pr-md-none"
           />
         </div>
@@ -220,9 +220,9 @@
       >
         <template #heading-row>
           <div class="col-xs-7 col-sm-5 col-md-auto q-mb-md-sm">
-            <label class="text-h4 text-bold">
+            <h2 class="text-h4 text-bold">
               Items in Job:
-            </label>
+            </h2>
           </div>
 
           <div
@@ -237,8 +237,15 @@
               label="Add Items"
               class="text-body1 q-ml-xs-none q-ml-sm-sm"
               :disabled="withdrawJob.status == 'Completed'"
+              aria-label="addWithdrawItemsMenu"
+              aria-haspopup="menu"
+              :aria-expanded="withdrawItemsMenuState"
             >
-              <q-menu>
+              <q-menu
+                @show="withdrawItemsMenuState = true"
+                @hide="withdrawItemsMenuState = false"
+                aria-label="withdrawItemsMenuList"
+              >
                 <q-list>
                   <q-item
                     clickable
@@ -409,6 +416,7 @@ const {
 } = storeToRefs(useWithdrawalStore())
 
 // Local Data
+const withdrawItemsMenuState = ref(false)
 const editJob = ref(false)
 const itemTableVisibleColumns = ref([
   'actions',

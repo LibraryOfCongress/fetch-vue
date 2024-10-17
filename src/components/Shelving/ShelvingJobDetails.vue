@@ -7,12 +7,12 @@
           class="q-mr-xs"
           @click="handleOptionMenu"
         />
-        <label
+        <h1
           id="jobNumber"
           class="info-display-details-label text-h4"
         >
           Job Number:
-        </label>
+        </h1>
       </div>
       <p class="info-display-number-box text-h4">
         {{ shelvingJob.id }}
@@ -53,7 +53,7 @@
             option-type="users"
             option-value="id"
             option-label="first_name"
-            aria-label="user"
+            aria-label="userSelect"
           >
             <template #no-option>
               <q-item>
@@ -197,9 +197,9 @@
           <div
             class="col-xs-12 col-sm-grow q-mr-auto"
           >
-            <label class="text-h4 text-bold">
+            <h2 class="text-h4 text-bold">
               Containers in Job:
-            </label>
+            </h2>
           </div>
         </template>
 

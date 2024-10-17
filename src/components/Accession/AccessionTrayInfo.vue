@@ -4,13 +4,15 @@
       <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
         <MoreOptionsMenu
           :options="!route.params.containerId ? [
-            { text: 'Edit' },
-            { text: 'Cancel Job', optionClass: 'text-negative', hidden: !checkUserPermission('can_cancel_accession')}
+            { text: 'Edit', disabled: accessionJob.status == 'Completed' },
+            { text: 'Cancel Job', optionClass: 'text-negative', disabled: accessionJob.status == 'Completed', hidden: !checkUserPermission('can_cancel_accession')},
+            { text: 'Print Job' }
           ] : [
-            { text: 'Edit' },
-            { text: 'Cancel Job', optionClass: 'text-negative', hidden: !checkUserPermission('can_cancel_accession')},
-            { text: 'Edit Tray Barcode', disabled: barcodeScanAllowed },
-            { text: 'Delete Tray', optionClass: 'text-negative'}
+            { text: 'Edit', disabled: accessionJob.status == 'Completed'},
+            { text: 'Cancel Job', optionClass: 'text-negative', disabled: accessionJob.status == 'Completed', hidden: !checkUserPermission('can_cancel_accession')},
+            { text: 'Edit Tray Barcode', disabled: barcodeScanAllowed || accessionJob.status == 'Completed'},
+            { text: 'Delete Tray', optionClass: 'text-negative', disabled: accessionJob.status == 'Completed'},
+            { text: 'Print Job' }
           ]"
           class="q-mr-sm"
           @click="handleOptionMenu"
@@ -61,7 +63,7 @@
             </p>
             <SelectInput
               v-else
-              aria-label="containerSize"
+              aria-label="containerSizeSelect"
               v-model="accessionContainer.size_class_id"
               :options="sizeClass"
               option-type="sizeClass"
@@ -83,7 +85,7 @@
             <template v-else>
               <SelectInput
                 v-if="!accessionContainer.id"
-                aria-label="mediaType"
+                aria-label="mediaTypeSelect"
                 v-model="accessionJob.media_type_id"
                 :options="mediaTypes"
                 option-type="mediaTypes"
@@ -92,7 +94,7 @@
               />
               <SelectInput
                 v-else
-                aria-label="mediaType"
+                aria-label="mediaTypeSelect"
                 v-model="accessionContainer.media_type_id"
                 :options="mediaTypes"
                 option-type="mediaTypes"
@@ -294,6 +296,9 @@ const {
   originalAccessionJob
 } = storeToRefs(useAccessionStore())
 
+// Emits
+const emit = defineEmits(['print'])
+
 // Local Data
 const editMode = ref(false)
 const confirmationModal = ref(null)
@@ -315,11 +320,13 @@ const handleOptionMenu = (option) => {
     showEditTrayModal.value = true
   } else if (option.text == 'Delete Tray') {
     showConfirmationModal.value = 'DeleteTray'
+  } else if (option.text == 'Print Job') {
+    emit('print')
   }
 }
 
 watch(compiledBarCode, (barcode) => {
-  if (barcode !== '' && !accessionContainer.value.id) {
+  if (barcode !== '' && !accessionContainer.value.id && accessionJob.value.status !== 'Paused') {
     handleTrayScan(barcode)
   }
 })
@@ -327,7 +334,7 @@ const handleTrayScan = async (barcode_value) => {
   try {
     // stop the scan if no size class matches the scanned tray
     const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
-    if (!generateSizeClass) {
+    if (!generateSizeClass && accessionJob.value.status !== 'Completed') {
       handleAlert({
         type: 'error',
         text: `The tray can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
@@ -343,7 +350,7 @@ const handleTrayScan = async (barcode_value) => {
     // if the scanned tray exists in the accessionJob load the tray details
     if (accessionJob.value.trays && accessionJob.value.trays.some(tray => tray.barcode_id == barcodeDetails.value.id)) {
       await getAccessionTray(barcode_value)
-    } else {
+    } else if (accessionJob.value.status !== 'Completed') {
       // if the scanned tray barcode doesnt exist create the scanned tray using the scanned barcodes uuid
       const currentDate = new Date()
       const payload = {
@@ -361,13 +368,15 @@ const handleTrayScan = async (barcode_value) => {
     }
 
     // set the scanned tray barcode as the container id in the route
-    router.push({
-      name: 'accession-container',
-      params: {
-        jobId: accessionJob.value.workflow_id,
-        containerId: accessionContainer.value.barcode.value
-      }
-    })
+    if (accessionContainer.value.id) {
+      router.push({
+        name: 'accession-container',
+        params: {
+          jobId: accessionJob.value.workflow_id,
+          containerId: accessionContainer.value.barcode.value
+        }
+      })
+    }
   } catch (error) {
     handleAlert({
       type: 'error',

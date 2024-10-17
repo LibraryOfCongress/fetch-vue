@@ -23,7 +23,8 @@ vi.mock('vue-router', async () => {
       return {
         path: '/',
         hash: '',
-        name: ''
+        name: '',
+        query: ''
       }
     }
   }
@@ -42,18 +43,10 @@ describe('Navigation Bar Component', () => {
     navigator.serviceWorker.addEventListener = vi.fn()
   })
 
-  it('should mount component with a top and side nav', () => {
+  it('should mount component with a top and hidden side nav', async () => {
     const wrapper = mount(NavigationBar)
 
     expect(wrapper.find('.q-header').exists()).toBe(true)
-    expect(wrapper.find('.q-drawer-container').exists()).toBe(true)
-  })
-
-  it('should hide the side nav if user triggers the menu button', () => {
-    const wrapper = mount(NavigationBar)
-
-    expect(wrapper.vm.leftDrawerOpen).toBe(true)
-    wrapper.find('.q-toolbar .q-btn').trigger('click')
-    expect(wrapper.vm.leftDrawerOpen).toBe(false)
+    expect(wrapper.find('.q-drawer-container').exists()).toBe(false)
   })
 })

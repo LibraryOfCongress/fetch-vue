@@ -14,10 +14,16 @@
 
         <section>
           <p class="text-bold q-mb-sm">
-            Accession Job Completed Date: {{ formatDateTime(accessionJobDetails.last_transition).date }}
+            Accession Job Completed Date:
+            {{ accessionJobDetails.status == 'Completed' ? formatDateTime(accessionJobDetails.last_transition).date : '' }}
           </p>
           <p class="text-bold">
-            Accession Job User: {{ accessionJobDetails.assigned_user ? accessionJobDetails.assigned_user : 'No Assignee' }}
+            Accession Job User:
+            {{
+              accessionJobDetails.user
+                ? `${accessionJobDetails.user.first_name} ${accessionJobDetails.user.last_name}`
+                : "No Assignee"
+            }}
           </p>
         </section>
 
@@ -25,7 +31,10 @@
 
         <section>
           <p class="text-h5 text-bold q-mb-sm">
-            Total Trays: {{ accessionJobDetails.trays ? accessionJobDetails.trays.length : 0 }}
+            Total Trays:
+            {{
+              accessionJobDetails.trays ? accessionJobDetails.trays.length : 0
+            }}
           </p>
           <p class="text-h5 text-bold q-mb-sm">
             Total Items: {{ renderTotalItems }}
@@ -79,7 +88,7 @@
               >
                 <td>{{ tray.barcode?.value }}</td>
                 <td>{{ tray.size_class?.name }}</td>
-                <td>{{ tray.items ? tray.items.length : 0 }}</td>
+                <td>{{ renderTrayItems(tray) }}</td>
               </tr>
             </tbody>
           </table>
@@ -102,6 +111,13 @@ const mainProps = defineProps({
 
 // Local Data
 const printTemplate = ref(null)
+const renderTotalItems = computed(() => {
+  if (mainProps.accessionJobDetails.trayed) {
+    return mainProps.accessionJobDetails.items.length
+  } else {
+    return mainProps.accessionJobDetails.non_tray_items.length
+  }
+})
 
 // Logic
 const formatDateTime = inject('format-date-time')
@@ -109,14 +125,19 @@ const formatDateTime = inject('format-date-time')
 const printBatchReport = () => {
   printTemplate.value.print()
 }
-const renderTotalItems = computed(() => {
-  if (mainProps.accessionJobDetails.trayed) {
-    //TODO: need to figure out how we want to calculate total items for trayed jobs
-    return 0
-  } else {
-    return mainProps.accessionJobDetails.non_tray_items.length
+const renderTrayItems = (trayData) => {
+  let trayItemsById = []
+  if (
+    mainProps.accessionJobDetails.items.some(
+      (itm) => itm.tray_id == trayData.id
+    )
+  ) {
+    trayItemsById = mainProps.accessionJobDetails.items.filter(
+      (itm) => itm.tray_id == trayData.id
+    )
   }
-})
+  return trayItemsById.length
+}
 
 defineExpose({ printBatchReport })
 </script>

@@ -15,8 +15,8 @@ export const useReportsStore = defineStore('reports-store', {
         if (reportType == 'Item Accession') {
           //REMOVE: Temp solution until reports are figured out
           let itemData = []
-          const res = this.$api.get(inventoryServiceApi.items, { params: paramsObj })
-          const res2 = this.$api.get(inventoryServiceApi.nonTrayItems, { params: paramsObj })
+          const res = this.$api.get(inventoryServiceApi.items, { params: { ...paramsObj, size: 100 } })
+          const res2 = this.$api.get(inventoryServiceApi.nonTrayItems, { params: { ...paramsObj, size: 100 } })
           Promise.all([
             res,
             res2

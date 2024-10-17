@@ -10,12 +10,12 @@
           class="q-mr-xs"
           @click="handleOptionMenu"
         />
-        <label
+        <h1
           id="refileJobId"
           class="info-display-details-label text-h4"
         >
           Refile Job #:
-        </label>
+        </h1>
       </div>
       <p class="info-display-number-box text-h4">
         {{ refileJob.id }}
@@ -43,7 +43,7 @@
             option-type="users"
             option-value="id"
             option-label="first_name"
-            aria-label="user"
+            aria-label="userSelect"
             class="q-pr-xs-sm q-pr-md-none"
           />
         </div>
@@ -190,9 +190,9 @@
       >
         <template #heading-row>
           <div class="col-xs-7 col-sm-5 q-mb-md-sm">
-            <label class="text-h4 text-bold">
+            <h2 class="text-h4 text-bold">
               Items in Job:
-            </label>
+            </h2>
           </div>
         </template>
 

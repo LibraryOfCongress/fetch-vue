@@ -6,9 +6,16 @@
       unelevated
       icon-right="arrow_drop_down"
       :label="searchType"
-      class="search-bar-menu text-body2"
+      aria-label="searchBarMenu"
+      aria-haspopup="menu"
+      :aria-expanded="searchMenuState"
+      class="search-bar-menu text-body2 text-secondary"
     >
-      <q-menu>
+      <q-menu
+        @show="searchMenuState = true"
+        @hide="searchMenuState = false"
+        aria-label="searchMenuList"
+      >
         <q-list>
           <q-item
             v-for="obj in searchTypes"
@@ -34,7 +41,6 @@
       <q-input
         class="search-bar-input"
         dense
-        dark
         borderless
         v-model="searchText"
         :placeholder="renderSearchPlaceholder"
@@ -45,7 +51,7 @@
         <template #append>
           <q-spinner
             v-if="appActionIsLoadingData"
-            color="white"
+            color="secondary"
             size="24px"
           />
           <q-icon
@@ -94,9 +100,9 @@
         dense
         no-caps
         flat
-        color="white"
+        color="secondary"
         icon="search"
-        class="btn-no-wrap text-body2"
+        class="search-bar-action btn-no-wrap text-body2"
         @click="executeExactSearch()"
         aria-label="exactSearchButton"
       />
@@ -104,7 +110,7 @@
         dense
         no-caps
         flat
-        color="white"
+        color="secondary"
         label="Advanced Search"
         class="search-bar-advanced btn-no-wrap text-body2"
         :disabled="!searchType"
@@ -117,7 +123,7 @@
       dense
       no-caps
       flat
-      color="white"
+      color="secondary"
       icon="tune"
       class="search-bar-advanced btn-no-wrap text-body2"
       :disabled="!searchType"
@@ -172,6 +178,7 @@ const { refileJob } = storeToRefs(useRefileStore())
 const { withdrawJob } = storeToRefs(useWithdrawalStore())
 
 // Local Data
+const searchMenuState = ref(false)
 const renderSearchPlaceholder = computed(() => {
   let placeholderText = 'Search'
   if (searchType.value == 'Item' || searchType.value == 'Tray' || searchType.value == 'Shelf') {
@@ -370,7 +377,7 @@ const handlingSearchResultRouting = () => {
   flex-flow: row nowrap;
   width: 100%;
   height: 40px;
-  background-color: rgba(255,255,255, .2);
+  background-color: $color-white;
   border-radius: 3px;
   overflow: hidden;
 
@@ -398,6 +405,14 @@ const handlingSearchResultRouting = () => {
     height: 100%;
     padding: 0 10px;
 
+    :deep(input) {
+      color: $secondary;
+    }
+
+    :deep(i) {
+      color: $secondary;
+    }
+
     @media (max-width: $breakpoint-sm-min) {
       :deep(.q-field__control) {
         height: 100%;
@@ -409,10 +424,14 @@ const handlingSearchResultRouting = () => {
     }
   }
 
+  &-action {
+    border-right: 2px solid $secondary;
+    border-radius: 0;
+  }
+
   &-advanced {
     padding-left: 8px;
     padding-right: 8px;
-    border-left: 2px solid $secondary;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
   }

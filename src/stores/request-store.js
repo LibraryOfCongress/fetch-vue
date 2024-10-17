@@ -84,7 +84,7 @@ export const useRequestStore = defineStore('request-store', {
     },
     async getRequestJobList (paramsObj) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.requests, { params: paramsObj })
+        const res = await this.$api.get(inventoryServiceApi.requests, { params: { ...paramsObj, size: 100 } })
         this.requestJobList = res.data.items
       } catch (error) {
         throw error

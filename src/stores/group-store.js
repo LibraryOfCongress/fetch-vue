@@ -26,7 +26,7 @@ export const useGroupStore = defineStore('group-store', {
     },
     async getPermissionsList () {
       try {
-        const res = await this.$api.get(inventoryServiceApi.permissions)
+        const res = await this.$api.get(inventoryServiceApi.permissions, { params: { size: 100 } })
         this.permissionsList = res.data.items
       } catch (error) {
         throw error
@@ -34,7 +34,7 @@ export const useGroupStore = defineStore('group-store', {
     },
     async getAdminGroupList () {
       try {
-        const res = await this.$api.get(inventoryServiceApi.groups)
+        const res = await this.$api.get(inventoryServiceApi.groups, { params: { size: 100 } })
         this.groupList = res.data.items
       } catch (error) {
         throw error

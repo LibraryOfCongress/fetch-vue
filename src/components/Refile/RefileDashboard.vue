@@ -21,9 +21,9 @@
               class="col-sm-5 col-md-12 q-mb-md-sm"
               :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
             >
-              <label class="text-h4 text-bold">
-                Refile
-              </label>
+              <h1 class="text-h4 text-bold">
+                {{ refileDisplayType == 'refile_job' ? 'Refile Jobs' : 'Refile Queue' }}
+              </h1>
             </div>
 
             <div
@@ -37,9 +37,15 @@
                 color="accent"
                 label="Create"
                 class="text-body1 q-ml-xs-none q-ml-sm-sm"
-                :disabled="false"
+                aria-label="CreateRefileJobMenu"
+                aria-haspopup="menu"
+                :aria-expanded="refileJobMenuState"
               >
-                <q-menu>
+                <q-menu
+                  @show="refileJobMenuState = true"
+                  @hide="refileJobMenuState = false"
+                  aria-label="refileJobMenuList"
+                >
                   <q-list>
                     <q-item
                       v-if="checkUserPermission('can_add_refile_item_to_queue')"
@@ -214,7 +220,7 @@
             option-value="id"
             option-label="name"
             :placeholder="'Select Building'"
-            aria-label="building"
+            aria-label="buildingSelect"
           />
         </div>
 
@@ -302,6 +308,7 @@ const { refileJobList, refileJob } = storeToRefs(useRefileStore())
 const { userData } = storeToRefs(useUserStore())
 
 // Local Data
+const refileJobMenuState = ref(false)
 const refileTableComponent = ref(null)
 const refileTableVisibleColumns = ref([
   'id',

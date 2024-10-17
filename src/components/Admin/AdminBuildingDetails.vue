@@ -16,7 +16,7 @@
             option-value="id"
             option-label="name"
             @update:model-value="handleShelfDataChange('Module')"
-            aria-label="module"
+            aria-label="moduleSelect"
           >
             <template #no-option>
               <q-item>
@@ -44,7 +44,7 @@
             option-value="id"
             option-label="id"
             @update:model-value="handleShelfDataChange('Aisle')"
-            aria-label="aisle"
+            aria-label="aisleSelect"
           >
             <template #no-option>
               <q-item>
@@ -92,7 +92,7 @@
             option-value="id"
             option-label="id"
             @update:model-value="handleShelfDataChange('Ladder')"
-            aria-label="ladder"
+            aria-label="ladderSelect"
           >
             <template #no-option>
               <q-item>
@@ -196,7 +196,7 @@
               option-value="id"
               option-label="name"
               :placeholder="'Select Owner'"
-              aria-label="owner"
+              aria-label="ownerSelect"
             />
           </div>
 
@@ -210,7 +210,7 @@
               option-value="id"
               option-label="name"
               :placeholder="'Select Container Size'"
-              aria-label="containerSize"
+              aria-label="containerSizeSelect"
             />
           </div>
 
@@ -270,7 +270,7 @@
               option-value="id"
               option-label="name"
               :placeholder="'Select Shelf Barcode'"
-              aria-label="shelfBarcode"
+              aria-label="shelfBarcodeSelect"
             />
           </div>
         </q-card-section>

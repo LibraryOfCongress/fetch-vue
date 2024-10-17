@@ -1,12 +1,12 @@
 <template>
   <InfoDisplayLayout class="direct-shelving-job">
     <template #number-box-content>
-      <label
+      <h1
         id="jobNumber"
         class="info-display-details-label text-h4 text-bold"
       >
         Shelf Number:
-      </label>
+      </h1>
       <p class="info-display-number-box text-h4 q-pa-md">
         {{ !directToShelfJob.shelf_barcode.value ? 'Please Scan Shelf' : directToShelfJob.shelf_barcode.value }}
       </p>
@@ -124,9 +124,9 @@
           <div
             class="col-xs-12 col-sm-grow q-mr-auto"
           >
-            <label class="text-h4 text-bold">
+            <h2 class="text-h4 text-bold">
               Containers in Job:
-            </label>
+            </h2>
           </div>
         </template>
 
