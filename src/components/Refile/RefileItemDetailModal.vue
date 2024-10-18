@@ -61,7 +61,7 @@
         </div>
         <div class="col-6">
           <div
-            v-if="refileItem.item"
+            v-if="refileItem.tray"
             class="container-details"
           >
             <label class="text-body1 text-bold">
