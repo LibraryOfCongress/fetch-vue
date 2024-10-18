@@ -809,7 +809,6 @@ const triggerItemScan = async (barcode_value) => {
       }
     }
   } catch (error) {
-    console.log('test', error)
     handleAlert({
       type: 'error',
       text: error,

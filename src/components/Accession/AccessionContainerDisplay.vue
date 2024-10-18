@@ -626,6 +626,11 @@ const triggerItemScan = async (barcode_value) => {
         )
       ) {
         // validation is not needed in trays so we just return
+        handleAlert({
+          type: 'error',
+          text: 'The scanned item was already added to this tray.',
+          autoClose: true
+        })
         return
       } else {
         await addContainerItem()
