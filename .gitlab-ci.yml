@@ -48,13 +48,8 @@ build_mr:
       --dockerfile $CI_PROJECT_DIR/Dockerfile
       --destination $IMAGE_FULL_TAG
   when: manual
-
-# trigger_job:
-#   stage: trigger
-#   trigger:
-#     project: fetch/build
-#   rules:
-#     - if: $CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_TAG
+  rules:
+    - if: '$CI_MERGE_REQUEST_ID'
 
 build_image_test:
   stage: build
@@ -97,12 +92,15 @@ build_image_staging:
       --build-arg VITE_ENV=$STAGING_VITE_ENV
       --dockerfile $CI_PROJECT_DIR/Dockerfile
       --destination $IMAGE_FULL_TAG
+  when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == 'staging'
-    - when: manual
 
 deploy_dev:
   stage: deploy
+  environment:
+    name: develop
+    url: https://dev.fetch.loctest.gov/
   image:
     name: git.loc.gov:4567/fetch/build/terraform:alt
     entrypoint: [""]
@@ -125,6 +123,9 @@ deploy_dev:
 
 deploy_test:
   stage: deploy
+  environment:
+    name: test
+    url: https://test.fetch.loctest.gov/
   image:
     name: git.loc.gov:4567/fetch/build/terraform:alt
     entrypoint: [""]
@@ -147,6 +148,9 @@ deploy_test:
 
 deploy_stage:
   stage: deploy_staging
+  environment:
+    name: staging
+    url: https://staging.fetch.loctest.gov/
   tags:
     - stage
   image:
@@ -166,3 +170,5 @@ deploy_stage:
     - terraform init -backend-config=backend.hcl
     - terraform apply -auto-approve
   when: manual
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "staging"'
