@@ -1,7 +1,10 @@
 stages:
   - build
+  - build_mr
+  - build_staging
   - trigger
   - deploy
+  - deploy_staging
 
 build_image_dev:
   stage: build
@@ -26,7 +29,7 @@ build_image_dev:
     - if: $CI_COMMIT_BRANCH == 'develop'
 
 build_mr:
-  stage: build
+  stage: build_mr
   image:
     name: git.loc.gov:4567/fetch/build/kaniko-project/executor:1.0.0
     entrypoint: [""]
@@ -76,7 +79,7 @@ build_image_test:
     - if: $CI_COMMIT_BRANCH == 'develop'
 
 build_image_staging:
-  stage: build
+  stage: build_staging
   image:
     name: git.loc.gov:4567/fetch/build/kaniko-project/executor:1.0.0
     entrypoint: [""]
@@ -143,7 +146,7 @@ deploy_test:
     - if: $CI_COMMIT_BRANCH == 'develop'
 
 deploy_stage:
-  stage: deploy
+  stage: deploy_staging
   tags:
     - stage
   image:
