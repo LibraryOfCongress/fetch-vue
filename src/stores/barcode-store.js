@@ -8,7 +8,11 @@ export const useBarcodeStore = defineStore('barcode-store', {
     barcodeDetails: {
       id: null,
       type_id: null,
-      value: null
+      type: {
+        name: ''
+      },
+      value: null,
+      withdrawn: false
     }
   }),
   actions: {
@@ -16,21 +20,27 @@ export const useBarcodeStore = defineStore('barcode-store', {
       this.barcodeDetails = {
         id: null,
         type_id: null,
-        value: null
+        type: {
+          name: ''
+        },
+        value: null,
+        withdrawn: false
       }
     },
-    async verifyBarcode (barcode, type, disableBarcodeAdd = false) {
+    async verifyBarcode (barcode, type) {
       try {
         this.resetBarcodeStore()
 
-        // check if the scanned barcode exists in the system
+        // check if the scanned barcode exists in the system and matches the passed in type
         await this.getBarcodeDetails(barcode)
-        if (this.barcodeDetails.id) {
+        if (this.barcodeDetails.id && this.barcodeDetails.type.name == type) {
           return 'barcode_exists'
+        } else {
+          throw `The scanned barcode exists but is not an "${type}" barcode! Please try again.`
         }
       } catch (error) {
-        if (error.response?.status == 404 && !disableBarcodeAdd) {
-          // if the barcode doesnt exist and we are allowing auto barcode adding then add it the barcode to the system
+        if (error.response?.status == 404) {
+          // if the barcode doesnt exist then add the barcode to the system automatically
           await this.postBarcode(barcode, type)
           return 'barcode_added'
         }
