@@ -412,72 +412,28 @@ const shelfTableColumns = ref([
     field: row => row.barcode.value,
     label: 'Barcode',
     align: 'left',
-    sortable: true,
-    order: 1
+    sortable: true
   },
   {
     name: 'owner',
     field: row => row.owner?.name,
     label: 'Owner',
     align: 'left',
-    sortable: true,
-    order: 2
+    sortable: true
   },
   {
     name: 'size_class',
     field: row => row.size_class?.name,
     label: 'Size Class',
     align: 'left',
-    sortable: true,
-    order: 3
+    sortable: true
   },
   {
-    name: 'module',
-    field: row => row.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number,
-    label: 'Module',
+    name: 'location',
+    field: row => getItemLocation(row),
+    label: 'Item Location',
     align: 'left',
-    sortable: true,
-    order: 4
-  },
-  {
-    name: 'aisle',
-    field: row => row.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number,
-    label: 'Aisle',
-    align: 'left',
-    sortable: true,
-    order: 5
-  },
-  {
-    name: 'side',
-    field: row => row.shelf_position?.shelf?.ladder?.side?.side_orientation?.name,
-    label: 'Side',
-    align: 'left',
-    sortable: true,
-    order: 6
-  },
-  {
-    name: 'ladder',
-    field: row => row.shelf_position?.shelf?.ladder?.ladder_number?.number,
-    label: 'Ladder',
-    align: 'left',
-    sortable: true,
-    order: 7
-  },
-  {
-    name: 'shelf',
-    field: row => row.shelf_position?.shelf?.shelf_number?.number,
-    label: 'Shelf',
-    align: 'left',
-    sortable: true,
-    order: 8
-  },
-  {
-    name: 'shelf_position',
-    field: row => row.shelf_position?.shelf_position_number?.number,
-    label: 'Shelf Position',
-    align: 'left',
-    sortable: true,
-    order: 9
+    sortable: true
   },
   {
     name: 'verified',
@@ -485,8 +441,7 @@ const shelfTableColumns = ref([
     label: '',
     align: 'center',
     sortable: false,
-    required: true,
-    order: 10
+    required: true
   }
 ])
 const shelfTableVisibleColumns = ref([
@@ -494,12 +449,7 @@ const shelfTableVisibleColumns = ref([
   'barcode',
   'owner',
   'size_class',
-  'module',
-  'aisle',
-  'side',
-  'ladder',
-  'shelf',
-  'shelf_position',
+  'location',
   'verified'
 ])
 const shelfTableFilters = ref([
@@ -524,6 +474,7 @@ const showCompleteJobModal = ref(false)
 
 // Logic
 const formatDateTime = inject('format-date-time')
+const getItemLocation = inject('get-item-location')
 const handleAlert = inject('handle-alert')
 
 onBeforeMount(() => {
@@ -531,8 +482,8 @@ onBeforeMount(() => {
     shelfTableVisibleColumns.value = [
       'actions',
       'barcode',
-      'shelf',
-      'shelf_position',
+      'size_class',
+      'location',
       'verified'
     ]
   }
@@ -584,17 +535,20 @@ const handleOptionMenu = async (action, rowData) => {
   switch (action.text) {
   case 'Edit Location':
     try {
+      const itemLocationIdList = rowData.shelf_position?.internal_location?.split('-')
       if (!appIsOffline.value) {
         appIsLoadingData.value = true
-        await Promise.all([
-          getBuildingDetails(shelvingJob.value.building_id),
-          getModuleDetails(rowData.shelf_position?.shelf?.ladder?.side?.aisle?.module?.id),
-          getAisleDetails(rowData.shelf_position?.shelf?.ladder?.side?.aisle?.id),
-          getSideDetails(rowData.shelf_position?.shelf?.ladder?.side?.id),
-          getLadderDetails(rowData.shelf_position?.shelf?.ladder?.id),
-          getShelfDetails(rowData.shelf_position?.shelf?.id),
-          getShelfPositionsList(rowData.shelf_position?.shelf?.id, true)
-        ])
+        if (itemLocationIdList) {
+          await Promise.all([
+            getBuildingDetails(shelvingJob.value.building_id),
+            getModuleDetails(itemLocationIdList[1]),
+            getAisleDetails(itemLocationIdList[2]),
+            getSideDetails(itemLocationIdList[3]),
+            getLadderDetails(itemLocationIdList[4]),
+            getShelfDetails(itemLocationIdList[5]),
+            getShelfPositionsList(itemLocationIdList[6], true)
+          ])
+        }
       }
     } catch (error) {
       handleAlert({
@@ -606,12 +560,13 @@ const handleOptionMenu = async (action, rowData) => {
       appIsLoadingData.value = false
       showShelvingLocationModal.value = true
       await nextTick()
+      const itemLocationIdList = rowData.shelf_position?.internal_location?.split('-')
       locationModalComponent.value.locationForm.id = rowData.id
-      locationModalComponent.value.locationForm.module_id = rowData.shelf_position?.shelf?.ladder?.side?.aisle?.module?.id
-      locationModalComponent.value.locationForm.aisle_id = rowData.shelf_position?.shelf?.ladder?.side?.aisle?.id
-      locationModalComponent.value.locationForm.side_id = rowData.shelf_position?.shelf?.ladder?.side?.id
-      locationModalComponent.value.locationForm.ladder_id = rowData.shelf_position?.shelf?.ladder?.id
-      locationModalComponent.value.locationForm.shelf_id = rowData.shelf_position?.shelf?.id
+      locationModalComponent.value.locationForm.module_id = itemLocationIdList[1]
+      locationModalComponent.value.locationForm.aisle_id = itemLocationIdList[2]
+      locationModalComponent.value.locationForm.side_id = itemLocationIdList[3]
+      locationModalComponent.value.locationForm.ladder_id = itemLocationIdList[4]
+      locationModalComponent.value.locationForm.shelf_id = itemLocationIdList[5]
       locationModalComponent.value.locationForm.trayed = rowData.container_type?.type == 'Tray' ? true : false
     }
 

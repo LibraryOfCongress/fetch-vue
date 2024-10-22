@@ -212,9 +212,9 @@ const getItemLocation = inject('get-item-location')
 const renderItemBuilding = (itemData) => {
   let building = ''
   if (itemData.item && itemData.item.tray.shelf_position) {
-    building = itemData.item.tray.shelf_position.shelf.ladder.side.aisle.module?.building.name
+    building = itemData.item.tray.shelf_position.location?.split('-')[0]
   } else if (itemData.non_tray_item && itemData.non_tray_item.shelf_position) {
-    building = itemData.non_tray_item.shelf_position.shelf.ladder.side.aisle.module?.building.name
+    building = itemData.non_tray_item.shelf_position.location?.split('-')[0]
   }
 
   return building

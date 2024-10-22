@@ -73,9 +73,7 @@ export const useShelvingStore = defineStore('shelving-store', {
       },
       shelf_position_id: null,
       shelf_position: {
-        shelf_position_number: {
-          number: null
-        }
+        location: ' - - - - - - '
       },
       scanned_for_shelving: false
     }
@@ -155,9 +153,7 @@ export const useShelvingStore = defineStore('shelving-store', {
         },
         shelf_position_id: null,
         shelf_position: {
-          shelf_position_number: {
-            number: null
-          }
+          location: ' - - - - - - '
         },
         scanned_for_shelving: false
       }

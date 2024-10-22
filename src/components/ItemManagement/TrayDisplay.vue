@@ -128,8 +128,9 @@
           :table-visible-columns="trayItemsTableVisibleColumns"
           :table-data="trayData.items"
           :filter-options="trayItemTableFilters"
+          :enable-table-reorder="false"
           :heading-row-class="'q-mb-lg'"
-          @selected-table-row="$emit('selected-item', $event)"
+          @selected-table-row="emit('selected-item', $event)"
         >
           <template #heading-row>
             <div class="col-auto self-center q-mr-auto">
@@ -159,182 +160,153 @@
   </div>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
+<script setup>
+import { onBeforeMount, ref } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from 'src/components/EssentialTable.vue'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 
-export default defineComponent({
-  name: 'TrayDisplay',
-  props: {
-    trayData: {
-      type: Object,
-      required: true
-    }
+// Props
+defineProps({
+  trayData: {
+    type: Object,
+    required: true
+  }
+})
+
+// Emits
+const emit = defineEmits(['selected-item'])
+
+// Compasables
+const { currentScreenSize } = useCurrentScreenSize()
+
+// Local Data
+const trayItemsTableVisibleColumns = ref([
+  'id',
+  'media_type',
+  'size',
+  'temp_location',
+  'permanent_location',
+  'volume',
+  'arrival_date',
+  'accession_date',
+  'withdraw_date',
+  'container_type'
+])
+const trayItemsTableColumns = ref([
+  {
+    name: 'id',
+    field: 'id',
+    label: 'Barcode',
+    align: 'left',
+    sortable: true
   },
-  emits: ['selected-item'],
-  components: {
-    EssentialTable,
-    BarcodeBox
+  {
+    name: 'media_type',
+    field: 'media_type',
+    label: 'Media Type',
+    align: 'left',
+    sortable: true
   },
-  setup () {
-    const { currentScreenSize } = useCurrentScreenSize()
-    return {
-      currentScreenSize
-    }
+  {
+    name: 'size',
+    field: 'size',
+    label: 'Size Class',
+    align: 'left',
+    sortable: true
   },
-  data () {
-    return {
-      trayItemsTableVisibleColumns: [
-        'id',
-        'media_type',
-        'size',
-        'temp_location',
-        'permanent_location'
-      ],
-      trayItemsTableColumns: [
-        {
-          name: 'id',
-          field: 'id',
-          label: 'Barcode',
-          align: 'left',
-          sortable: true
-        },
-        {
-          name: 'media_type',
-          field: 'media_type',
-          label: 'Media Type',
-          align: 'left',
-          sortable: true
-        },
-        {
-          name: 'size',
-          field: 'size',
-          label: 'Size Class',
-          align: 'left',
-          sortable: true
-        },
-        {
-          name: 'temp_location',
-          field: 'temp_location',
-          label: 'Temporary Location',
-          align: 'left',
-          sortable: true
-        },
-        {
-          name: 'permanent_location',
-          field: 'permanent_location',
-          label: 'Permanent Location',
-          align: 'left',
-          sortable: true
-        },
-        {
-          name: 'subcollection',
-          field: 'subcollection',
-          label: 'Subcollection',
-          align: 'left',
-          sortable: true,
-          required: this.currentScreenSize !== 'xs' ? true : false
-        },
-        {
-          name: 'volume',
-          field: 'volume',
-          label: 'Volume',
-          align: 'left',
-          sortable: true,
-          required: this.currentScreenSize !== 'xs' ? true : false
-        },
-        {
-          name: 'arrival_date',
-          field: 'arrival_date',
-          label: 'Arrival Date',
-          align: 'left',
-          sortable: true,
-          required: this.currentScreenSize !== 'xs' ? true : false
-        },
-        {
-          name: 'accession_date',
-          field: 'accession_date',
-          label: 'Accession Date',
-          align: 'left',
-          sortable: true,
-          required: this.currentScreenSize !== 'xs' ? true : false
-        },
-        {
-          name: 'withdraw_date',
-          field: 'withdraw_date',
-          label: 'Withdrawal Date',
-          align: 'left',
-          sortable: true,
-          required: this.currentScreenSize !== 'xs' ? true : false
-        },
-        {
-          name: 'container_type',
-          field: 'container_type',
-          label: 'Container Type',
-          align: 'left',
-          sortable: true,
-          required: true
-        }
-      ],
-      trayItemTableFilters: [
-        {
-          field: 'media_type',
-          options: [
-            {
-              text: 'Document',
-              value: false
-            },
-            {
-              text: 'Archival Material',
-              value: false
-            }
-          ]
-        },
-        {
-          field: 'size',
-          options: [
-            {
-              text: 'C High',
-              value: false
-            },
-            {
-              text: 'C Low',
-              value: false
-            }
-          ]
-        }
-      ]
-    }
+  {
+    name: 'temp_location',
+    field: 'temp_location',
+    label: 'Temporary Location',
+    align: 'left',
+    sortable: true
   },
-  watch: {
-    currentScreenSize (value) {
-      if (value == 'xs') {
-        this.trayItemsTableVisibleColumns = [
-          'id',
-          'media_type',
-          'permanent_location'
-        ]
-      } else {
-        this.trayItemsTableVisibleColumns = [
-          'id',
-          'media_type',
-          'size',
-          'temp_location',
-          'permanent_location'
-        ]
+  {
+    name: 'permanent_location',
+    field: 'permanent_location',
+    label: 'Permanent Location',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'volume',
+    field: 'volume',
+    label: 'Volume',
+    align: 'left',
+    sortable: true,
+    required: currentScreenSize !== 'xs' ? true : false
+  },
+  {
+    name: 'arrival_date',
+    field: 'arrival_date',
+    label: 'Arrival Date',
+    align: 'left',
+    sortable: true,
+    required: currentScreenSize !== 'xs' ? true : false
+  },
+  {
+    name: 'accession_date',
+    field: 'accession_date',
+    label: 'Accession Date',
+    align: 'left',
+    sortable: true,
+    required: currentScreenSize !== 'xs' ? true : false
+  },
+  {
+    name: 'withdraw_date',
+    field: 'withdraw_date',
+    label: 'Withdrawal Date',
+    align: 'left',
+    sortable: true,
+    required: currentScreenSize !== 'xs' ? true : false
+  },
+  {
+    name: 'container_type',
+    field: 'container_type',
+    label: 'Container Type',
+    align: 'left',
+    sortable: true,
+    required: true
+  }
+])
+const trayItemTableFilters = ref([
+  {
+    field: 'media_type',
+    options: [
+      {
+        text: 'Document',
+        value: false
+      },
+      {
+        text: 'Archival Material',
+        value: false
       }
-    }
+    ]
   },
-  beforeMount () {
-    if (this.currentScreenSize == 'xs') {
-      this.trayItemsTableVisibleColumns = [
-        'id',
-        'media_type',
-        'permanent_location'
-      ]
-    }
+  {
+    field: 'size',
+    options: [
+      {
+        text: 'C High',
+        value: false
+      },
+      {
+        text: 'C Low',
+        value: false
+      }
+    ]
+  }
+])
+
+// Logic
+onBeforeMount(() => {
+  if (currentScreenSize.value == 'xs') {
+    trayItemsTableVisibleColumns.value = [
+      'id',
+      'media_type',
+      'permanent_location'
+    ]
   }
 })
 </script>

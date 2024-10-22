@@ -106,9 +106,9 @@
           :table-columns="nonTrayItemsTableColumns"
           :table-visible-columns="nonTrayItemsTableVisibleColumns"
           :table-data="shelfData.items"
-          :hide-table-rearrange="true"
+          :enable-table-reorder="false"
           :heading-row-class="'q-mb-lg'"
-          @selected-table-row="$emit('selected-item', $event)"
+          @selected-table-row="emit('selected-item', $event)"
         >
           <template #heading-row>
             <div class="col-auto self-center q-mr-auto">
@@ -138,94 +138,101 @@
   </div>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
+<script setup>
+import { ref, onBeforeMount } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from 'src/components/EssentialTable.vue'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 
-export default defineComponent({
-  name: 'NonTrayDisplay',
-  props: {
-    shelfData: {
-      type: Object,
-      required: true
-    }
+// Props
+defineProps({
+  shelfData: {
+    type: Object,
+    required: true
+  }
+})
+
+// Emits
+const emit = defineEmits(['selected-item'])
+
+// Compasables
+const { currentScreenSize } = useCurrentScreenSize()
+
+// Local Data
+const nonTrayItemsTableVisibleColumns = ref([
+  'id',
+  'media_type',
+  'shelf_location',
+  'shelf_position',
+  'accession_date',
+  'subcollection',
+  'container_type'
+])
+const nonTrayItemsTableColumns = ref([
+  {
+    name: 'id',
+    field: 'id',
+    label: 'Barcode',
+    align: 'left',
+    sortable: true
   },
-  emits: ['selected-item'],
-  components: {
-    EssentialTable,
-    BarcodeBox
+  {
+    name: 'media_type',
+    field: 'media_type',
+    label: 'Media Type',
+    align: 'left',
+    sortable: true
   },
-  setup () {
-    const { currentScreenSize } = useCurrentScreenSize()
-    return {
-      currentScreenSize
-    }
+  {
+    name: 'shelf_location',
+    field: 'shelf_location',
+    label: 'Shelf Location',
+    align: 'left',
+    sortable: true
   },
-  data () {
-    return {
-      nonTrayItemsTableVisibleColumns: [
-        'id',
-        'media_type',
-        'shelf_location'
-      ],
-      nonTrayItemsTableColumns: [
-        {
-          name: 'id',
-          field: 'id',
-          label: 'Barcode',
-          align: 'left',
-          sortable: true
-        },
-        {
-          name: 'media_type',
-          field: 'media_type',
-          label: 'Media Type',
-          align: 'left',
-          sortable: true
-        },
-        {
-          name: 'shelf_location',
-          field: 'shelf_location',
-          label: 'Shelf Location',
-          align: 'left',
-          sortable: true
-        },
-        {
-          name: 'shelf_position',
-          field: 'shelf_position',
-          label: 'Shelf Position',
-          align: 'left',
-          sortable: true,
-          required: this.currentScreenSize !== 'xs' ? true : false
-        },
-        {
-          name: 'accession_date',
-          field: 'accession_date',
-          label: 'Accession Date',
-          align: 'left',
-          sortable: true,
-          required: this.currentScreenSize !== 'xs' ? true : false
-        },
-        {
-          name: 'subcollection',
-          field: 'subcollection',
-          label: 'Subcollection',
-          align: 'left',
-          sortable: true,
-          required: this.currentScreenSize !== 'xs' ? true : false
-        },
-        {
-          name: 'container_type',
-          field: 'container_type',
-          label: 'Container Type',
-          align: 'left',
-          sortable: true,
-          required: true
-        }
-      ]
-    }
+  {
+    name: 'shelf_position',
+    field: 'shelf_position',
+    label: 'Shelf Position',
+    align: 'left',
+    sortable: true,
+    required: currentScreenSize !== 'xs' ? true : false
+  },
+  {
+    name: 'accession_date',
+    field: 'accession_date',
+    label: 'Accession Date',
+    align: 'left',
+    sortable: true,
+    required: currentScreenSize !== 'xs' ? true : false
+  },
+  {
+    name: 'subcollection',
+    field: 'subcollection',
+    label: 'Subcollection',
+    align: 'left',
+    sortable: true,
+    required: currentScreenSize !== 'xs' ? true : false
+  },
+  {
+    name: 'container_type',
+    field: 'container_type',
+    label: 'Container Type',
+    align: 'left',
+    sortable: true,
+    required: true
+  }
+])
+
+// Logic
+onBeforeMount(() => {
+  if (currentScreenSize.value == 'xs') {
+    nonTrayItemsTableVisibleColumns.value = [
+      'id',
+      'container_type',
+      'shelf_location',
+      'shelf_position'
+    ]
   }
 })
 </script>

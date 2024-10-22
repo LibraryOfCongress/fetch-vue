@@ -68,7 +68,7 @@
               Module:
             </label>
             <p class="text-body1">
-              {{ refileItem.tray ? refileItem.tray.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number : refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number }}
+              {{ refileItem.tray ? refileItem.tray.shelf_position?.location?.split('-')[1] : refileItem.shelf_position?.location?.split('-')[1] }}
             </p>
           </div>
         </div>
@@ -78,7 +78,7 @@
               Aisle:
             </label>
             <p class="text-body1">
-              {{ refileItem.tray ? refileItem.tray.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number : refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number }}
+              {{ refileItem.tray ? refileItem.tray.shelf_position?.location?.split('-')[2] : refileItem.shelf_position?.location?.split('-')[2] }}
             </p>
           </div>
         </div>
