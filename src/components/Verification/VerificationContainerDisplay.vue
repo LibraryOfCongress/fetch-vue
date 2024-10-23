@@ -932,7 +932,7 @@ const updateContainerItem = async (barcode_value) => {
   } finally {
     // clear out any selected items in the table
     verificationTableComponent.value.clearSelectedData()
-    appActionIsLoadingData.value = true
+    appActionIsLoadingData.value = false
     barcodeEditModal.value.hideModal()
   }
 }
