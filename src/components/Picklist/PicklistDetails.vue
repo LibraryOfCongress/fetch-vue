@@ -242,16 +242,27 @@
   >
     <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-        <q-btn
-          v-if="showConfirmationModal == 'CompleteJob'"
-          no-caps
-          unelevated
-          color="accent"
-          label="Complete"
-          class="text-body1 full-width"
-          :loading="appActionIsLoadingData"
-          @click="completePicklistJob(); hideModal();"
-        />
+        <template v-if="showConfirmationModal == 'CompleteJob'">
+          <q-btn
+            no-caps
+            unelevated
+            color="accent"
+            label="Complete & Print"
+            class="btn-no-wrap text-body1 full-width"
+            :loading="appActionIsLoadingData"
+            @click="completePicklistJob(true); hideModal();"
+          />
+          <q-space class="q-mx-xs" />
+          <q-btn
+            no-caps
+            unelevated
+            color="accent"
+            label="Complete"
+            class="text-body1 full-width"
+            :loading="appActionIsLoadingData"
+            @click="completePicklistJob(false); hideModal();"
+          />
+        </template>
         <q-btn
           v-else
           no-caps
@@ -262,8 +273,12 @@
           :loading="appActionIsLoadingData"
           @click="cancelPicklistJob(); hideModal();"
         />
-        <q-space class="q-mx-xs" />
+        <q-space
+          v-if="currentScreenSize !== 'xs'"
+          class="q-mx-xs"
+        />
         <q-btn
+          v-if="currentScreenSize !== 'xs'"
           outline
           no-caps
           label="Cancel"
@@ -615,7 +630,7 @@ const cancelPicklistJob = async () => {
     deleteDataInIndexDb('picklistStore', 'originalPicklistJob')
   }
 }
-const completePicklistJob = async () => {
+const completePicklistJob = async (printBool) => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
@@ -625,6 +640,9 @@ const completePicklistJob = async () => {
     }
     await patchPicklistJob(payload)
 
+    if (printBool) {
+      batchSheetComponent.value.printBatchReport()
+    }
     handleAlert({
       type: 'success',
       text: 'The Pick List Job has been completed.',
