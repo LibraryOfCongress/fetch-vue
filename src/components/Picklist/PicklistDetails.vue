@@ -5,7 +5,8 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit', hidden: !checkUserPermission('can_assign_and_reassign_picklist_job'), disabled: appIsOffline || editJob || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' },
-            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_picklist_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed' || picklistItems.some(itm => itm.status !== 'Requested')}
+            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_picklist_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed' || picklistItems.some(itm => itm.status !== 'Requested')},
+            { text: 'Print Job' }
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
@@ -272,6 +273,13 @@
       </q-card-section>
     </template>
   </PopupModal>
+
+  <!-- print component: picklist job report -->
+  <PicklistBatchSheet
+    ref="batchSheetComponent"
+    :picklist-job-details="picklistJob"
+    :picklist-job-items="picklistItems"
+  />
 </template>
 
 <script setup>
@@ -292,6 +300,7 @@ import MobileActionBar from '@/components/MobileActionBar.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
+import PicklistBatchSheet from '@/components/Picklist/PicklistBatchSheet.vue'
 
 const router = useRouter()
 
@@ -328,6 +337,7 @@ const {
 } = storeToRefs(usePicklistStore())
 
 // Local Data
+const batchSheetComponent = ref(null)
 const editJob = ref(false)
 const itemTableVisibleColumns = ref([
   'actions',
@@ -478,6 +488,9 @@ const handleOptionMenu = async (action, rowData) => {
   case 'Revert Item to Queue':
     removePicklistItem(rowData.id)
     return
+  case 'Print Job':
+    batchSheetComponent.value.printBatchReport()
+    return
   }
 }
 
@@ -491,7 +504,7 @@ const executePicklistJob = async () => {
     const payload = {
       id: picklistJob.value.id,
       status: 'Running',
-      user_id: picklistJob.value.user_id ? picklistJob.value.user_id : userData.value.id,
+      user_id: picklistJob.value.user_id ? picklistJob.value.user_id : userData.value.user_id,
       run_timestamp: new Date().toISOString()
     }
     await patchPicklistJob(payload)

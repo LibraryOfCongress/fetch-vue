@@ -672,7 +672,7 @@ const submitDirectToShelfJob = async () => {
     const payload = {
       status: 'Created',
       building_id: shelvingJob.value.building_id,
-      user_id: userData.value.id,
+      user_id: userData.value.user_id,
       origin: 'Direct'
     }
     await postDirectShelvingJob(payload)

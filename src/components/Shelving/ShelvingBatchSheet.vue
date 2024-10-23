@@ -14,10 +14,10 @@
 
         <section>
           <p class="text-bold q-mb-sm">
-            Shelving Job Completed Date: {{ formatDateTime(shelvingJobDetails.last_transition).date }}
+            Shelving Job Completed Date: {{ shelvingJobDetails.status == 'Completed' ? formatDateTime(shelvingJobDetails.last_transition).date : '' }}
           </p>
           <p class="text-bold">
-            Shelving Job User: {{ shelvingJobDetails.user ? shelvingJobDetails.user?.first_name : 'No Assignee' }}
+            Shelving Job User: {{ shelvingJobDetails.user ? `${shelvingJobDetails.user.first_name} ${shelvingJobDetails.user.last_name}` : 'No Assignee' }}
           </p>
         </section>
 

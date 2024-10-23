@@ -644,7 +644,7 @@ const completeWithdrawJob = async () => {
     const payload = {
       id: withdrawJob.value.id,
       status: 'Completed',
-      assigned_user_id: withdrawJob.value.assigned_user_id ? withdrawJob.value.assigned_user_id : userData.value.id,
+      assigned_user_id: withdrawJob.value.assigned_user_id ? withdrawJob.value.assigned_user_id : userData.value.user_id,
       run_timestamp: new Date().toISOString()
     }
     await patchWithdrawJob(payload)
