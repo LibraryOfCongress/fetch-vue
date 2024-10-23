@@ -494,7 +494,7 @@ const executeRefileJob = async () => {
     const payload = {
       id: refileJob.value.id,
       status: 'Running',
-      assigned_user_id: refileJob.value.assigned_user_id ? refileJob.value.assigned_user_id : userData.value.id,
+      assigned_user_id: refileJob.value.assigned_user_id ? refileJob.value.assigned_user_id : userData.value.user_id,
       run_timestamp: new Date().toISOString()
     }
     await patchRefileJob(payload)

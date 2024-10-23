@@ -635,7 +635,7 @@ const executeShelvingJob = async () => {
     const payload = {
       id: route.params.jobId,
       status: 'Running',
-      user_id: shelvingJob.value.user_id ? shelvingJob.value.user_id : userData.value.id,
+      user_id: shelvingJob.value.user_id ? shelvingJob.value.user_id : userData.value.user_id,
       run_timestamp: new Date().toISOString()
     }
     await patchShelvingJob(payload)
