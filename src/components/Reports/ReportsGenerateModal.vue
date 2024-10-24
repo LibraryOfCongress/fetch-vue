@@ -339,10 +339,12 @@
                 </label>
                 <SelectInput
                   v-model="reportForm[param.query]"
+                  :multiple="true"
+                  :hide-selected="false"
                   :options="param.options"
                   :option-type="param.optionType"
                   option-value="id"
-                  :option-label="param.optionType == 'users' ? 'first_name' : 'name'"
+                  :option-label="'name'"
                   :placeholder="`Select ${param.label}`"
                   @update:model-value="null"
                   :aria-label="`${param.query}Select`"
@@ -495,14 +497,15 @@ const generateReportModal = () => {
       media_type_id: null,
       size_class_id: null
     }
+
     reportParams.value = [
       {
         query: 'from_dt',
-        label: 'Date (From)'
+        label: 'Created Date (From)'
       },
       {
         query: 'to_dt',
-        label: 'Date (To)'
+        label: 'Created Date (To)'
       },
       {
         query: 'owner_id',

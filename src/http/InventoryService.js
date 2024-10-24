@@ -7,6 +7,7 @@ export default {
   // can be called with the api filter like so
   // this.$api.get(inventoryService.examples, { id: entryId })
   accessionJobs: '/accession-jobs/',
+  accessionJobsSearch: '/accession-jobs/search',
   accessionJobsWorkflow: '/accession-jobs/workflow/',
   aisles: '/aisles/',
   authLegacyLogin: '/auth/legacy/login',
