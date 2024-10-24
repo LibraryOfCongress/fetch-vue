@@ -546,7 +546,7 @@ const handleOptionMenu = async (action, rowData) => {
             getSideDetails(itemLocationIdList[3]),
             getLadderDetails(itemLocationIdList[4]),
             getShelfDetails(itemLocationIdList[5]),
-            getShelfPositionsList(itemLocationIdList[6], true)
+            getShelfPositionsList(itemLocationIdList[5], true)
           ])
         }
       }
@@ -562,11 +562,11 @@ const handleOptionMenu = async (action, rowData) => {
       await nextTick()
       const itemLocationIdList = rowData.shelf_position?.internal_location?.split('-')
       locationModalComponent.value.locationForm.id = rowData.id
-      locationModalComponent.value.locationForm.module_id = itemLocationIdList[1]
-      locationModalComponent.value.locationForm.aisle_id = itemLocationIdList[2]
-      locationModalComponent.value.locationForm.side_id = itemLocationIdList[3]
-      locationModalComponent.value.locationForm.ladder_id = itemLocationIdList[4]
-      locationModalComponent.value.locationForm.shelf_id = itemLocationIdList[5]
+      locationModalComponent.value.locationForm.module_id = parseInt(itemLocationIdList[1])
+      locationModalComponent.value.locationForm.aisle_id = parseInt(itemLocationIdList[2])
+      locationModalComponent.value.locationForm.side_id = parseInt(itemLocationIdList[3])
+      locationModalComponent.value.locationForm.ladder_id = parseInt(itemLocationIdList[4])
+      locationModalComponent.value.locationForm.shelf_id = parseInt(itemLocationIdList[5])
       locationModalComponent.value.locationForm.trayed = rowData.container_type?.type == 'Tray' ? true : false
     }
 
