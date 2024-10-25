@@ -13,6 +13,10 @@ export const useReportsStore = defineStore('reports-store', {
       try {
         // TODO setup endpoints to handle generating a report using the user selected params
         if (reportType == 'Item Accession') {
+          const resMain = this.$api.get(inventoryServiceApi.accessionJobsSearch, { params: { ...paramsObj, size: 100 } })
+          console.log(resMain)
+
+
           //REMOVE: Temp solution until reports are figured out
           let itemData = []
           const res = this.$api.get(inventoryServiceApi.items, { params: { ...paramsObj, size: 100 } })
