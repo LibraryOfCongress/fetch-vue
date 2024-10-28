@@ -35,7 +35,7 @@
                 icon-right="chevron_right"
                 icon-right-size="28px"
                 class="text-h6 text-bold q-px-sm-lg q-pr-xs-sm q-pr-sm-lg"
-                @click="sublink.title == 'Buildings' ? router.push({ name: 'admin-manage-buildings' }) : showLocationManageRouteModal = sublink.title"
+                @click="handleRouting(sublink)"
               />
             </q-expansion-item>
           </template>
@@ -81,6 +81,24 @@ const adminLinkList = computed(() => {
       hidden: !checkUserPermission('can_manage_groups_and_permissions')
     },
     {
+      title: 'List Configurations',
+      sublinks: [
+        // {
+        //   title: 'Add/Edit/Remove Owners',
+        //   hidden: !checkUserPermission('can_manage_owners')
+        // },
+        // {
+        //   title: 'Add/Edit/Remove Media Type',
+        //   hidden: !checkUserPermission('can_manage_media_type')
+        // },
+        {
+          title: 'Add/Edit/Remove Size Class',
+          hidden: !checkUserPermission('can_manage_size_class')
+        }
+      ],
+      hidden: !(checkUserPermission('can_manage_size_class') || checkUserPermission('can_manage_owners') || checkUserPermission('can_manage_media_type'))
+    },
+    {
       title: 'Location Manager',
       sublinks: [
         {
@@ -102,7 +120,18 @@ const adminLinkList = computed(() => {
       hidden: !checkUserPermission('can_manage_locations')
     }
   ]
-  return linkList.filter(l => !l.hidden)
+
+  // filters out all links without sublinks if they are hidden, also filters links with sublinks if they hard hidden
+  return linkList.filter(l => {
+    if (!l.hidden && !l.sublinks) {
+      return l
+    } else if (!l.hidden && l.sublinks) {
+      l.sublinks = l.sublinks.filter(sl => !sl.hidden)
+      return l
+    } else {
+      return
+    }
+  })
 })
 const showLocationManageRouteModal = ref(null)
 
@@ -110,6 +139,26 @@ const showLocationManageRouteModal = ref(null)
 onBeforeMount(() => {
   resetBuildingStore()
 })
+
+const handleRouting = (link) => {
+  switch (link.title) {
+  case 'Buildings':
+    router.push({ name: 'admin-location-manage-buildings' })
+    break
+  // case 'Add/Edit/Remove Owners':
+  //   router.push({ name: '' })
+  //   break
+  // case 'Add/Edit/Remove Media Type':
+  //   router.push({ name: '' })
+  //   break
+  case 'Add/Edit/Remove Size Class':
+    router.push({ name: 'admin-manage-size-class' })
+    break
+  default:
+    showLocationManageRouteModal.value = link.title
+    break
+  }
+}
 </script>
 
 <style lang="scss" scoped>

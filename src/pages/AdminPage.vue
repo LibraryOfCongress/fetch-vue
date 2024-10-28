@@ -14,8 +14,13 @@
     <AdminGroups v-if="route.name == 'admin-groups' && !route.params.groupId" />
     <AdminGroupDetails v-if="route.name == 'admin-groups' && route.params.groupId" />
 
-    <AdminLocationManagerDisplay
+    <AdminListManagerDisplay
       v-if="route.name.includes('admin-manage')"
+      :list-type="route.name.split('admin-manage-').pop()"
+    />
+
+    <AdminLocationManagerDisplay
+      v-if="route.name.includes('admin-location-manage')"
       :location-type="route.name.split('-').pop()"
     />
   </q-page>
@@ -31,6 +36,7 @@ import AdminBuildingDisplay from '@/components/Admin/AdminBuildingDisplay.vue'
 import AdminBuildingDetails from '@/components/Admin/AdminBuildingDetails.vue'
 import AdminGroups from '@/components/Admin/AdminGroups.vue'
 import AdminGroupDetails from '@/components/Admin/AdminGroupDetails.vue'
+import AdminListManagerDisplay from '@/components/Admin/AdminListManagerDisplay.vue'
 import AdminLocationManagerDisplay from '@/components/Admin/AdminLocationManagerDisplay.vue'
 
 const route = useRoute()

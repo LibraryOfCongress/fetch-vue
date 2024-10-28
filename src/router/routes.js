@@ -66,7 +66,7 @@ const routes = [
         }
       },
       {
-        name: 'admin-manage-buildings',
+        name: 'admin-location-manage-buildings',
         path: 'admin/manage/buildings',
         component: () => import('@/pages/AdminPage.vue'),
         meta: {
@@ -75,7 +75,7 @@ const routes = [
         }
       },
       {
-        name: 'admin-manage-modules',
+        name: 'admin-location-manage-modules',
         path: 'admin/manage/:buildingId/modules',
         component: () => import('@/pages/AdminPage.vue'),
         meta: {
@@ -84,7 +84,7 @@ const routes = [
         }
       },
       {
-        name: 'admin-manage-aisles',
+        name: 'admin-location-manage-aisles',
         path: 'admin/manage/:buildingId/:moduleId/aisles',
         component: () => import('@/pages/AdminPage.vue'),
         meta: {
@@ -93,7 +93,7 @@ const routes = [
         }
       },
       {
-        name: 'admin-manage-ladders',
+        name: 'admin-location-manage-ladders',
         path: 'admin/manage/:buildingId/:moduleId/:aisleId/:sideId/ladders',
         component: () => import('@/pages/AdminPage.vue'),
         meta: {
@@ -102,12 +102,21 @@ const routes = [
         }
       },
       {
-        name: 'admin-manage-shelves',
+        name: 'admin-location-manage-shelves',
         path: 'admin/manage/:buildingId/:moduleId/:aisleId/:sideId/:ladderId/shelves',
         component: () => import('@/pages/AdminPage.vue'),
         meta: {
           requiresAuth: true,
           requiresPerm: 'can_manage_locations'
+        }
+      },
+      {
+        name: 'admin-manage-size-class',
+        path: 'admin/manage/size-class',
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: {
+          requiresAuth: true,
+          requiresPerm: 'can_manage_size_class'
         }
       },
       {
