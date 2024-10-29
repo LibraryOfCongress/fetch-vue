@@ -45,7 +45,7 @@
               <MoreOptionsMenu
                 :options="renderTableOptionsMenu"
                 class=""
-                @click="handleOptionMenu(props.row)"
+                @click="handleOptionMenu($event, props.row)"
               />
             </span>
           </template>
@@ -55,13 +55,50 @@
   </div>
 
   <!-- add/editlist property modal -->
-  <!-- <AdminLocationManagerModal
+  <AdminListManagerModal
     v-if="showListInputModal.type !== ''"
-    :location-type="listType"
+    :list-type="listType"
     :action-type="showListInputModal.type"
-    :location-data="showListInputModal.locationData"
-    @hide="showListInputModal.type = ''; showListInputModal.locationData = {}"
-  /> -->
+    :list-data="showListInputModal.listData"
+    @hide="showListInputModal.type = ''; showListInputModal.listData = {}"
+  />
+
+  <!-- confirmation modal -->
+  <PopupModal
+    v-if="showConfirmationModal !== null"
+    ref="confirmationModal"
+    :title="'Confirm Delete'"
+    :text="showConfirmationModal.text"
+    :show-actions="false"
+    @reset="showConfirmationModal = null"
+    aria-label="confirmationModal"
+  >
+    <template #footer-content="{ hideModal }">
+      <q-card-section
+        class="row no-wrap justify-between items-center q-pt-sm"
+      >
+        <q-btn
+          no-caps
+          unelevated
+          color="negative"
+          :label="`Delete ${renderTableTitle}`"
+          class="btn-no-wrap text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="deleteListOption(showConfirmationModal.id)"
+        />
+
+        <q-space class="q-mx-xs" />
+
+        <q-btn
+          outline
+          no-caps
+          label="Cancel"
+          class="text-body1 full-width"
+          @click="hideModal"
+        />
+      </q-card-section>
+    </template>
+  </PopupModal>
 </template>
 
 <script setup>
@@ -72,7 +109,8 @@ import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from 'src/components/EssentialTable.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
-// import AdminLocationManagerModal from '@/components/Admin/AdminLocationManagerModal.vue'
+import AdminListManagerModal from '@/components/Admin/AdminListManagerModal.vue'
+import PopupModal from '@/components/PopupModal.vue'
 
 // Props
 const mainProps = defineProps({
@@ -86,8 +124,14 @@ const mainProps = defineProps({
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { appIsLoadingData } = storeToRefs(useGlobalStore())
-const { getOptions } = useOptionStore()
+const {
+  appIsLoadingData,
+  appActionIsLoadingData
+} = storeToRefs(useGlobalStore())
+const {
+  getOptions,
+  deleteSizeClass
+} = useOptionStore()
 const {
   owners,
   mediaType,
@@ -156,6 +200,8 @@ const showListInputModal = ref({
   listType: mainProps.listType,
   listData: {}
 })
+const confirmationModal = ref(null)
+const showConfirmationModal = ref(null)
 
 
 // Logic
@@ -166,7 +212,7 @@ onBeforeMount(() => {
   generateListTableInfo()
 })
 
-const handleOptionMenu = async (rowData, option) => {
+const handleOptionMenu = async (option, rowData) => {
   // load any options info that will be needed in our modal popup
   // if (mainProps.listType == 'shelves' && (owners.value.length == 0 || sizeClass.value.length == 0)) {
   //   appIsLoadingData.value = true
@@ -178,8 +224,15 @@ const handleOptionMenu = async (rowData, option) => {
   //   appIsLoadingData.value = false
   // }
 
-  showListInputModal.value.listData = rowData
-  showListInputModal.value.type = option
+  if (option.text.includes('Edit')) {
+    showListInputModal.value.listData = rowData
+    showListInputModal.value.type = 'Edit'
+  } else {
+    showConfirmationModal.value = {
+      text: `Are you sure you want to delete '${rowData.name}'.`,
+      id: rowData.id
+    }
+  }
 }
 
 const generateListTableInfo = () => {
@@ -271,6 +324,22 @@ const loadListData = async () => {
     })
   } finally {
     appIsLoadingData.value = false
+  }
+}
+
+const deleteListOption = async (id) => {
+  try {
+    appActionIsLoadingData.value = true
+    await deleteSizeClass(id)
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = false
+    confirmationModal.value.hideModal()
   }
 }
 </script>

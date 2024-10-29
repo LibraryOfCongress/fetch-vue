@@ -38,6 +38,38 @@ export const useOptionStore = defineStore('option-store', {
         throw error
       }
     },
+    async postSizeClass (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.sizeClass, payload)
+
+        this.sizeClass = [
+          ...this.sizeClass,
+          res.data
+        ]
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchSizeClass (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.sizeClass}${payload.id}`, payload)
+
+        // update the specific size class with the response info
+        this.sizeClass[this.sizeClass.findIndex(s => s.id == payload.id)] = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async deleteSizeClass (sizeClassId) {
+      try {
+        await this.$api.delete(`${inventoryServiceApi.sizeClass}${sizeClassId}`)
+
+        // filter out the specific size class
+        this.sizeClass = this.sizeClass.filter(s => s.id !== sizeClassId)
+      } catch (error) {
+        throw error
+      }
+    },
     //TEMP testing page functions
     async getOwnerTierList () {
       try {
