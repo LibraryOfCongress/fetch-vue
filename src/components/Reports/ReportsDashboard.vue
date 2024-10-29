@@ -161,28 +161,28 @@ const generateReportTableFields = () => {
     generatedTableColumns.value = [
       {
         name: 'owner',
-        field: row => row.owner?.name,
+        field: 'owner_name',
         label: 'Owner',
         align: 'left',
         sortable: true
       },
       {
         name: 'media_type',
-        field: row => row.media_type?.name,
+        field: 'media_type_name',
         label: 'Media Type',
         align: 'left',
         sortable: true
       },
       {
         name: 'size_class',
-        field: row => row.size_class?.name,
+        field: 'size_class_name',
         label: 'Size Class',
         align: 'left',
         sortable: true
       },
       {
         name: 'total_count',
-        field: 'total_count',
+        field: 'count',
         label: 'Total Accessioned Count',
         align: 'left',
         sortable: true

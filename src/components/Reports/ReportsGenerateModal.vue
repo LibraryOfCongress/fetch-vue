@@ -491,36 +491,36 @@ const generateReportModal = () => {
   switch (mainProps.reportType) {
   case 'Item Accession':
     reportForm.value = {
-      create_dt_gte: null,
-      create_dt_lte: null,
-      owner_id_in: null,
-      media_type_id_in: null,
-      size_class_id_in: null
+      from_dt: null,
+      to_dt: null,
+      owner_id: null,
+      media_type_id: null,
+      size_class_id: null
     }
 
     reportParams.value = [
       {
-        query: 'create_dt_gte',
+        query: 'from_dt',
         label: 'Created Date (From)'
       },
       {
-        query: 'create_dt_lte',
+        query: 'to_dt',
         label: 'Created Date (To)'
       },
       {
-        query: 'owner_id_in',
+        query: 'owner_id',
         label: 'Owner',
         options: owners,
         optionType: 'owners'
       },
       {
-        query: 'media_type_id_in',
+        query: 'media_type_id',
         label: 'Media Type',
         options: mediaTypes,
         optionType: 'mediaTypes'
       },
       {
-        query: 'size_class_id_in',
+        query: 'size_class_id',
         label: 'Size Class',
         options: sizeClass,
         optionType: 'sizeClass'
@@ -824,8 +824,8 @@ const generateReportModal = () => {
 const generateReport = async () => {
   try {
     appActionIsLoadingData.value = true
-    const queryParams = JSON.parse(JSON.stringify(reportForm.value))
-    // convert any form date values to iso format along with converting arrays of id's to comma seperated strings
+    let queryParams = JSON.parse(JSON.stringify(reportForm.value))
+    // convert any form date values to iso format along with removing any empty query params
     Object.entries(queryParams).forEach(([
       key,
       value
@@ -837,9 +837,8 @@ const generateReport = async () => {
           year
         ] = queryParams[key].split('/')
         queryParams[key] = new Date(year, month - 1, day).toISOString()
-      }
-      if (Array.isArray(value)) {
-        queryParams[key] = value.toString()
+      } else if (!value) {
+        delete queryParams[key]
       }
     })
 
