@@ -146,7 +146,17 @@ const breadcrumbList = computed(() => {
       ]
     }
     break
-  case 'admin-manage-buildings':
+  case 'admin-manage-size-class':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Admin',
+        to: '/admin'
+      },
+      { text: 'Manage Size Class' }
+    ]
+    break
+  case 'admin-location-manage-buildings':
     breadCrumbs = [
       ...breadCrumbs,
       {
@@ -156,7 +166,7 @@ const breadcrumbList = computed(() => {
       { text: 'Manage Buildings' }
     ]
     break
-  case 'admin-manage-modules':
+  case 'admin-location-manage-modules':
     breadCrumbs = [
       ...breadCrumbs,
       {
@@ -166,7 +176,7 @@ const breadcrumbList = computed(() => {
       { text: 'Manage Modules' }
     ]
     break
-  case 'admin-manage-aisles':
+  case 'admin-location-manage-aisles':
     breadCrumbs = [
       ...breadCrumbs,
       {
@@ -176,7 +186,7 @@ const breadcrumbList = computed(() => {
       { text: 'Manage Aisles' }
     ]
     break
-  case 'admin-manage-ladders':
+  case 'admin-location-manage-ladders':
     breadCrumbs = [
       ...breadCrumbs,
       {
@@ -186,7 +196,7 @@ const breadcrumbList = computed(() => {
       { text: 'Manage Ladders' }
     ]
     break
-  case 'admin-manage-shelves':
+  case 'admin-location-manage-shelves':
     breadCrumbs = [
       ...breadCrumbs,
       {
