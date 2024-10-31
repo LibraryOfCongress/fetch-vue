@@ -3,7 +3,7 @@
     <div class="row">
       <div class="col">
         <h1 class="text-h4 text-bold q-mb-xs-sm q-mb-sm-lg">
-          {{ itemData.title }}
+          {{ itemData.item ? itemData.item.title : itemData.non_tray_item.title }}
         </h1>
       </div>
     </div>
@@ -11,7 +11,7 @@
     <div class="row">
       <div class="col-xs-12 col-lg-3 q-pr-xs-none q-pr-lg-md q-pb-xs-md q-pb-lg-none">
         <BarcodeBox
-          :barcode="itemData.id"
+          :barcode="itemData.item ? itemData.item.barcode.value : itemData.non_tray_item.barcode.value"
           class="q-py-xs-sm q-py-sm-md"
         />
       </div>
@@ -23,7 +23,7 @@
                 Media Type
               </label>
               <p class="item-details-text text-highlight outline">
-                {{ itemData.media_type }}
+                {{ itemData.item ? itemData.item.media_type.name : itemData.non_tray_item.media_type.name }}
               </p>
             </div>
 
@@ -32,7 +32,7 @@
                 Size Class
               </label>
               <p class="item-details-text text-highlight outline">
-                {{ itemData.size_class }}
+                {{ itemData.item ? itemData.item.size_class.name : itemData.non_tray_item.size_class.name }}
               </p>
             </div>
 
@@ -41,18 +41,33 @@
                 Volume
               </label>
               <p class="item-details-text outline">
-                {{ itemData.volume }}
+                {{ itemData.item ? itemData.item.volume : itemData.non_tray_item.volume }}
               </p>
             </div>
 
             <div class="item-details">
+              <label class="item-details-label text-h6">
+                Location
+              </label>
+              <p class="item-details-text text-highlight outline q-mr-sm">
+                {{ itemData.item ? itemData.item.status : itemData.non_tray_item.status }}
+              </p>
+              <p class="item-details-text outline q-mr-sm">
+                {{ renderItemBuilding(itemData) }}
+              </p>
+              <p class="item-details-text outline">
+                {{ itemData.item ? getItemLocation(itemData.item.tray) : getItemLocation(itemData.non_tray_item) }}
+              </p>
+            </div>
+
+            <!-- <div class="item-details">
               <label class="item-details-label text-h6">
                 Container Type
               </label>
               <p class="item-details-text outline">
                 {{ itemData.container_type }}
               </p>
-            </div>
+            </div> -->
           </div>
         </div>
         <div
@@ -64,16 +79,7 @@
                 Owner
               </label>
               <p class="item-details-text">
-                {{ itemData.owner }}
-              </p>
-            </div>
-
-            <div class="item-details">
-              <label class="item-details-label text-h6">
-                Subcollection
-              </label>
-              <p class="item-details-text">
-                {{ itemData.subcollection }}
+                {{ itemData.item ? itemData.item.owner.name : itemData.non_tray_item.owner.name }}
               </p>
             </div>
 
@@ -91,7 +97,7 @@
                 Condition
               </label>
               <p class="item-details-text outline">
-                {{ itemData.condition }}
+                {{ itemData.item ? itemData.item.condition : itemData.non_tray_item.condition }}
               </p>
             </div>
           </div>
@@ -103,7 +109,7 @@
                 Accession Date
               </label>
               <p class="item-details-text outline">
-                {{ itemData.accession_date }}
+                {{ formatDateTime(itemData.item ? itemData.item.accession_dt : itemData.non_tray_item.accession_dt).date }}
               </p>
             </div>
 
@@ -112,7 +118,7 @@
                 Withdrawal Date
               </label>
               <p class="item-details-text outline">
-                {{ itemData.withdraw_date }}
+                {{ formatDateTime(itemData.item ? itemData.item.withdrawal_dt : itemData.non_tray_item.withdrawal_dt).date }}
               </p>
             </div>
 
@@ -121,22 +127,8 @@
                 Arrival Date
               </label>
               <p class="item-details-text outline">
-                {{ itemData.arrival_date }}
-              </p>
-            </div>
-
-            <div class="item-details">
-              <label class="item-details-label text-h6">
-                Location
-              </label>
-              <p class="item-details-text text-highlight outline q-mr-sm">
-                {{ itemData.status }}
-              </p>
-              <p class="item-details-text outline q-mr-sm">
-                {{ itemData.building }}
-              </p>
-              <p class="item-details-text outline">
-                {{ itemData.location }}
+                <!-- TODO change this once api returns correct arrival date -->
+                {{ formatDateTime(itemData.item ? itemData.item.accession_dt : itemData.non_tray_item.accession_dt).date }}
               </p>
             </div>
           </div>
@@ -149,36 +141,33 @@
               Media Type:
             </label>
             <p class="item-details-text outline">
-              {{ itemData.media_type }}
+              {{ itemData.item ? itemData.item.media_type.name : itemData.non_tray_item.media_type.name }}
             </p>
           </div>
 
           <div
-            v-if="itemData.size"
             class="item-details"
           >
             <label class="item-details-label">
               Size Class:
             </label>
             <p class="item-details-text outline">
-              {{ itemData.size }}
+              {{ itemData.item ? itemData.item.size_class.name : itemData.non_tray_item.size_class.name }}
             </p>
           </div>
 
           <div
-            v-if="itemData.volume"
             class="item-details"
           >
             <label class="item-details-label">
               Volume:
             </label>
             <p class="item-details-text">
-              {{ itemData.volume }}
+              {{ itemData.item ? itemData.item.volume : itemData.non_tray_item.volume }}
             </p>
           </div>
 
-          <div
-            v-if="itemData.container_type"
+          <!-- <div
             class="item-details"
           >
             <label class="item-details-label">
@@ -187,19 +176,7 @@
             <p class="item-details-text outline">
               {{ itemData.container_type }}
             </p>
-          </div>
-
-          <div
-            v-if="itemData.subcollection"
-            class="item-details"
-          >
-            <label class="item-details-label">
-              Subcollection:
-            </label>
-            <p class="item-details-text">
-              {{ itemData.subcollection }}
-            </p>
-          </div>
+          </div> -->
 
           <div class="item-details">
             <label class="item-details-label">
@@ -211,14 +188,13 @@
           </div>
 
           <div
-            v-if="itemData.condition"
             class="item-details"
           >
             <label class="item-details-label">
               Condition:
             </label>
             <p class="item-details-text text-highlight-negative">
-              {{ itemData.condition }}
+              {{ itemData.item ? itemData.item.condition : itemData.non_tray_item.condition }}
             </p>
           </div>
         </div>
@@ -229,7 +205,7 @@
 
           <div class="item-details">
             <p class="item-details-text outline">
-              {{ itemData.owner }}
+              {{ itemData.item ? itemData.item.owner.name : itemData.non_tray_item.owner.name }}
             </p>
           </div>
         </div>
@@ -243,31 +219,30 @@
               Accession Date:
             </label>
             <p class="item-details-text">
-              {{ itemData.accession_date }}
+              {{ formatDateTime(itemData.item ? itemData.item.accession_dt : itemData.non_tray_item.accession_dt).date }}
             </p>
           </div>
 
           <div
-            v-if="itemData.withdraw_date"
             class="item-details"
           >
             <label class="item-details-label">
               Withdrawal Date:
             </label>
             <p class="item-details-text">
-              {{ itemData.withdraw_date }}
+              {{ formatDateTime(itemData.item ? itemData.item.withdrawal_dt : itemData.non_tray_item.withdrawal_dt).date }}
             </p>
           </div>
 
           <div
-            v-if="itemData.arrival_date"
             class="item-details"
           >
             <label class="item-details-label">
               Arrival Date:
             </label>
             <p class="item-details-text">
-              {{ itemData.arrival_date }}
+              <!-- TODO change this once api returns correct arrival date -->
+              {{ formatDateTime(itemData.item ? itemData.item.accession_dt : itemData.non_tray_item.accession_dt).date }}
             </p>
           </div>
         </div>
@@ -277,14 +252,14 @@
           </h1>
 
           <div class="item-details">
-            <p class="item-details-text text-highlight q-mr-sm">
-              {{ itemData.status }}
+            <p class="item-details-text text-highlight outline q-mr-sm">
+              {{ itemData.item ? itemData.item.status : itemData.non_tray_item.status }}
             </p>
             <p class="item-details-text outline q-mr-sm">
-              {{ itemData.building }}
+              {{ renderItemBuilding(itemData) }}
             </p>
             <p class="item-details-text outline">
-              {{ itemData.location }}
+              {{ itemData.item ? getItemLocation(itemData.item.tray) : getItemLocation(itemData.non_tray_item) }}
             </p>
           </div>
         </div>
@@ -294,8 +269,10 @@
 </template>
 
 <script setup>
+import { inject } from 'vue'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
+
 // Props
 defineProps({
   itemData: {
@@ -315,10 +292,19 @@ const { currentScreenSize } = useCurrentScreenSize()
 // const templateData = ref(null)
 
 // Logic
-// const handleHeaderOffset = inject('handle-offset')
-// const templateFunction = (value) => {
-//   return value
-// }
+const formatDateTime = inject('format-date-time')
+const getItemLocation = inject('get-item-location')
+
+const renderItemBuilding = (itemData) => {
+  let building = ''
+  if (itemData.item && itemData.item.tray.shelf_position) {
+    building = itemData.item.tray.shelf_position.location?.split('-')[0]
+  } else if (itemData.non_tray_item && itemData.non_tray_item.shelf_position) {
+    building = itemData.non_tray_item.shelf_position.location?.split('-')[0]
+  }
+
+  return building
+}
 </script>
 
 <style lang="scss" scoped>

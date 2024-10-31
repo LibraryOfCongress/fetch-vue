@@ -78,7 +78,7 @@
               Module:
             </label>
             <p class="text-body1">
-              {{ refileItem.tray ? refileItem.tray?.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number : refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number }}
+              {{ refileItem.tray ? refileItem.tray?.shelf_position?.location?.split('-')[1] : refileItem.shelf_position?.location?.split('-')[1] }}
             </p>
           </div>
         </div>
@@ -88,7 +88,7 @@
               Aisle:
             </label>
             <p class="text-body1">
-              {{ refileItem.tray ? refileItem.tray?.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number : refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number }}
+              {{ refileItem.tray ? refileItem.tray?.shelf_position?.location?.split('-')[2] : refileItem.shelf_position?.location?.split('-')[2] }}
             </p>
           </div>
         </div>
@@ -98,7 +98,7 @@
               Side:
             </label>
             <p class="text-body1">
-              {{ refileItem.tray ? refileItem.tray?.shelf_position?.shelf?.ladder?.side?.side_orientation?.name : refileItem.shelf_position?.shelf?.ladder?.side?.side_orientation?.name }}
+              {{ refileItem.tray ? refileItem.tray?.shelf_position?.location?.split('-')[3] : refileItem.shelf_position?.location?.split('-')[3] }}
             </p>
           </div>
         </div>
@@ -108,7 +108,7 @@
               Ladder:
             </label>
             <p class="text-body1">
-              {{ refileItem.tray ? refileItem.tray?.shelf_position?.shelf?.ladder?.ladder_number?.number : refileItem.shelf_position?.shelf?.ladder?.ladder_number?.number }}
+              {{ refileItem.tray ? refileItem.tray?.shelf_position?.location?.split('-')[4] : refileItem.shelf_position?.location?.split('-')[4] }}
             </p>
           </div>
         </div>
@@ -118,7 +118,7 @@
               Shelf:
             </label>
             <p class="text-body1">
-              {{ refileItem.tray ? refileItem.tray?.shelf_position?.shelf?.shelf_number?.number : refileItem.shelf_position?.shelf?.shelf_number?.number }}
+              {{ refileItem.tray ? refileItem.tray?.shelf_position?.location?.split('-')[5] : refileItem.shelf_position?.location?.split('-')[5] }}
             </p>
           </div>
         </div>
@@ -128,7 +128,7 @@
               Shelf Position:
             </label>
             <p class="text-body1">
-              {{ refileItem.tray ? refileItem.tray?.shelf_position?.shelf_position_number?.number : refileItem.shelf_position?.shelf_position_number?.number }}
+              {{ refileItem.tray ? refileItem.tray?.shelf_position?.location?.split('-')[6] : refileItem.shelf_position?.location?.split('-')[6] }}
             </p>
           </div>
         </div>

@@ -48,55 +48,162 @@ const trayData = ref({
   withdraw_date: '03/03/2023',
   items: [
     {
-      id: '00924891289',
-      title: 'Some Book by Arthur McAuthor',
-      media_type: 'Document',
-      size: 'C High',
-      temp_location: 'A22L L9 SH12 T2',
-      permanent_location: 'Conveyance',
-      subcollection: 123,
-      volume: 10,
-      arrival_date: '12/31/1999',
-      accession_date: '01/01/2001',
-      withdraw_date: '10/22/2023',
-      container_type: 'Book Tray',
-      dimensions: '11.5" x 8.5".',
-      condition: 'Do Not Send',
-      owner: 'George Clinton'
+      id: 1,
+      item: null,
+      non_tray_item: {
+        'id': 9,
+        'status': 'Requested',
+        'media_type': {
+          'id': 4,
+          'name': 'Newspaper'
+        },
+        'size_class': {
+          'id': 3,
+          'name': 'Record Storage Box',
+          'short_name': 'RS'
+        },
+        'owner': {
+          'id': 5,
+          'name': 'Congressional Research Services'
+        },
+        'accession_dt': '2024-10-11T22:24:14.060000',
+        'withdrawal_dt': null,
+        'barcode': {
+          'id': 'cd4cda6f-deea-4810-8f62-4018652fab10',
+          'value': '12345678888',
+          'withdrawn': false,
+          'type_id': 1,
+          'type': {
+            'id': 1,
+            'name': 'Item'
+          },
+          'create_dt': '2024-10-11T20:27:17.113278',
+          'update_dt': '2024-10-11T20:27:17.113254'
+        },
+        'shelf_position': {
+          'id': 16661,
+          'shelf_id': 2083,
+          'shelf_position_number': {
+            'number': 5
+          },
+          'shelf': {
+            'id': 2083,
+            'shelf_number': {
+              'id': 3,
+              'number': 3
+            },
+            'ladder': {
+              'id': 261,
+              'ladder_number': {
+                'number': 33
+              },
+              'side': {
+                'id': 7,
+                'aisle': {
+                  'id': 3,
+                  'aisle_number': {
+                    'number': 1
+                  },
+                  'module': {
+                    'id': 2,
+                    'module_number': '2',
+                    'building': {
+                      'id': 1,
+                      'name': 'Fort Meade'
+                    }
+                  },
+                  'building': null
+                },
+                'side_orientation': {
+                  'id': 2,
+                  'name': 'Right'
+                }
+              }
+            }
+          },
+          'location': null,
+          'internal_location': null
+        }
+      }
     },
     {
-      id: '00924891290',
-      title: 'Another Book by Arthur McAuthor',
-      media_type: 'Archival Material',
-      size: 'C High',
-      temp_location: 'A22L L9 SH12 T3',
-      permanent_location: 'Conveyance',
-      subcollection: 155,
-      volume: 8,
-      arrival_date: '12/31/1999',
-      accession_date: '01/11/2001',
-      withdraw_date: '10/27/2023',
-      container_type: 'Book Tray',
-      dimensions: '11.5" x 8.5".',
-      condition: 'Do Not Send',
-      owner: 'George Clinton'
-    },
-    {
-      id: '00924891291',
-      title: 'Third Book by Arthur McAuthor',
-      media_type: 'Archival Material',
-      size: 'C Low',
-      temp_location: 'B22L L9 SH12 T4',
-      permanent_location: 'Conveyance',
-      subcollection: 512,
-      volume: 9,
-      arrival_date: '12/31/1999',
-      accession_date: '01/21/2001',
-      withdraw_date: '10/27/2023',
-      container_type: 'Book Tray',
-      dimensions: '11.5" x 8.5".',
-      condition: 'Do Not Send',
-      owner: 'George Clinton'
+      id: 2,
+      item: null,
+      non_tray_item: {
+        'id': 18,
+        'status': 'Requested',
+        'media_type': {
+          'id': 3,
+          'name': 'Casette Disk'
+        },
+        'size_class': {
+          'id': 3,
+          'name': 'Record Storage Box',
+          'short_name': 'RS'
+        },
+        'owner': {
+          'id': 5,
+          'name': 'Congressional Research Services'
+        },
+        'accession_dt': '2024-10-15T20:07:03.649000',
+        'withdrawal_dt': null,
+        'barcode': {
+          'id': '78aa8e33-ce56-449f-9bf3-27093188f12e',
+          'value': '12345000001',
+          'withdrawn': false,
+          'type_id': 1,
+          'type': {
+            'id': 1,
+            'name': 'Item'
+          },
+          'create_dt': '2024-10-15T20:07:03.912095',
+          'update_dt': '2024-10-15T20:07:03.912091'
+        },
+        'shelf_position': {
+          'id': 98,
+          'shelf_id': 13,
+          'shelf_position_number': {
+            'number': 2
+          },
+          'shelf': {
+            'id': 13,
+            'shelf_number': {
+              'id': 5,
+              'number': 5
+            },
+            'ladder': {
+              'id': 2,
+              'ladder_number': {
+                'number': 2
+              },
+              'side': {
+                'id': 1,
+                'aisle': {
+                  'id': 1,
+                  'aisle_number': {
+                    'number': 1
+                  },
+                  'module': {
+                    'id': 1,
+                    'module_number': '1',
+                    'building': {
+                      'id': 1,
+                      'name': 'Fort Meade'
+                    }
+                  },
+                  'building': null
+                },
+                'side_orientation': {
+                  'id': 1,
+                  'name': 'Left'
+                }
+              }
+            }
+          },
+          'location': null,
+          'internal_location': null
+        }
+      }
     }
   ],
   items_out_count: 9,
@@ -112,50 +219,245 @@ const shelfData = ref({
   accession_date: '12/31/1999',
   items: [
     {
-      id: '00924891289',
-      media_type: 'Vinyl Recording',
-      shelf_location: 'Aisle 22L Ladder 19 Position 1',
-      shelf_position: 'P1',
-      accession_date: '01/01/2001',
-      subcollection: 'Divinity Library',
-      container_type: 'Document Carton',
-      dimensions: '11.5" x 8.5".',
-      owner: 'George Clinton'
+      id: 1,
+      item: null,
+      non_tray_item: {
+        'id': 9,
+        'status': 'Requested',
+        'media_type': {
+          'id': 4,
+          'name': 'Newspaper'
+        },
+        'size_class': {
+          'id': 3,
+          'name': 'Record Storage Box',
+          'short_name': 'RS'
+        },
+        'owner': {
+          'id': 5,
+          'name': 'Congressional Research Services'
+        },
+        'accession_dt': '2024-10-11T22:24:14.060000',
+        'withdrawal_dt': null,
+        'barcode': {
+          'id': 'cd4cda6f-deea-4810-8f62-4018652fab10',
+          'value': '12345678888',
+          'withdrawn': false,
+          'type_id': 1,
+          'type': {
+            'id': 1,
+            'name': 'Item'
+          },
+          'create_dt': '2024-10-11T20:27:17.113278',
+          'update_dt': '2024-10-11T20:27:17.113254'
+        },
+        'shelf_position': {
+          'id': 16661,
+          'shelf_id': 2083,
+          'shelf_position_number': {
+            'number': 5
+          },
+          'shelf': {
+            'id': 2083,
+            'shelf_number': {
+              'id': 3,
+              'number': 3
+            },
+            'ladder': {
+              'id': 261,
+              'ladder_number': {
+                'number': 33
+              },
+              'side': {
+                'id': 7,
+                'aisle': {
+                  'id': 3,
+                  'aisle_number': {
+                    'number': 1
+                  },
+                  'module': {
+                    'id': 2,
+                    'module_number': '2',
+                    'building': {
+                      'id': 1,
+                      'name': 'Fort Meade'
+                    }
+                  },
+                  'building': null
+                },
+                'side_orientation': {
+                  'id': 2,
+                  'name': 'Right'
+                }
+              }
+            }
+          },
+          'location': null,
+          'internal_location': null
+        }
+      }
     },
     {
-      id: '00924891290',
-      media_type: 'Vinyl Recording',
-      shelf_location: 'Aisle 22L Ladder 19 Position 2',
-      shelf_position: 'P2',
-      accession_date: '01/11/2001',
-      subcollection: 'Divinity Library',
-      container_type: 'Document Carton',
-      dimensions: '11.5" x 8.5".',
-      owner: 'George Clinton'
+      id: 2,
+      item: null,
+      non_tray_item: {
+        'id': 18,
+        'status': 'Requested',
+        'media_type': {
+          'id': 3,
+          'name': 'Casette Disk'
+        },
+        'size_class': {
+          'id': 3,
+          'name': 'Record Storage Box',
+          'short_name': 'RS'
+        },
+        'owner': {
+          'id': 5,
+          'name': 'Congressional Research Services'
+        },
+        'accession_dt': '2024-10-15T20:07:03.649000',
+        'withdrawal_dt': null,
+        'barcode': {
+          'id': '78aa8e33-ce56-449f-9bf3-27093188f12e',
+          'value': '12345000001',
+          'withdrawn': false,
+          'type_id': 1,
+          'type': {
+            'id': 1,
+            'name': 'Item'
+          },
+          'create_dt': '2024-10-15T20:07:03.912095',
+          'update_dt': '2024-10-15T20:07:03.912091'
+        },
+        'shelf_position': {
+          'id': 98,
+          'shelf_id': 13,
+          'shelf_position_number': {
+            'number': 2
+          },
+          'shelf': {
+            'id': 13,
+            'shelf_number': {
+              'id': 5,
+              'number': 5
+            },
+            'ladder': {
+              'id': 2,
+              'ladder_number': {
+                'number': 2
+              },
+              'side': {
+                'id': 1,
+                'aisle': {
+                  'id': 1,
+                  'aisle_number': {
+                    'number': 1
+                  },
+                  'module': {
+                    'id': 1,
+                    'module_number': '1',
+                    'building': {
+                      'id': 1,
+                      'name': 'Fort Meade'
+                    }
+                  },
+                  'building': null
+                },
+                'side_orientation': {
+                  'id': 1,
+                  'name': 'Left'
+                }
+              }
+            }
+          },
+          'location': null,
+          'internal_location': null
+        }
+      }
     }
   ],
   items_out_count: 9,
   items_delete_count: 2
 })
 const itemData = ref({
-  id: '00924891289',
-  title: 'Some Book by Arthur McAuthor',
-  media_type: 'Document',
-  size_class: 'C High',
-  temp_location: 'A22L L9 SH12 T2',
-  permanent_location: 'Conveyance',
-  subcollection: 123,
-  volume: 10,
-  arrival_date: '12/31/1999',
-  accession_date: '01/01/2001',
-  withdraw_date: '10/22/2023',
-  container_type: 'Book Tray',
-  dimensions: '11.5" x 8.5".',
-  condition: 'Do Not Send',
-  owner: 'George Clinton',
-  status: 'In',
-  building: 'Fort Meade',
-  location: '1-2-L-2-3'
+  id: 1,
+  item: null,
+  non_tray_item: {
+    'id': 9,
+    'status': 'Requested',
+    'media_type': {
+      'id': 4,
+      'name': 'Newspaper'
+    },
+    'size_class': {
+      'id': 3,
+      'name': 'Record Storage Box',
+      'short_name': 'RS'
+    },
+    'owner': {
+      'id': 5,
+      'name': 'Congressional Research Services'
+    },
+    'accession_dt': '2024-10-11T22:24:14.060000',
+    'withdrawal_dt': null,
+    'barcode': {
+      'id': 'cd4cda6f-deea-4810-8f62-4018652fab10',
+      'value': '12345678888',
+      'withdrawn': false,
+      'type_id': 1,
+      'type': {
+        'id': 1,
+        'name': 'Item'
+      },
+      'create_dt': '2024-10-11T20:27:17.113278',
+      'update_dt': '2024-10-11T20:27:17.113254'
+    },
+    'shelf_position': {
+      'id': 16661,
+      'shelf_id': 2083,
+      'shelf_position_number': {
+        'number': 5
+      },
+      'shelf': {
+        'id': 2083,
+        'shelf_number': {
+          'id': 3,
+          'number': 3
+        },
+        'ladder': {
+          'id': 261,
+          'ladder_number': {
+            'number': 33
+          },
+          'side': {
+            'id': 7,
+            'aisle': {
+              'id': 3,
+              'aisle_number': {
+                'number': 1
+              },
+              'module': {
+                'id': 2,
+                'module_number': '2',
+                'building': {
+                  'id': 1,
+                  'name': 'Fort Meade'
+                }
+              },
+              'building': null
+            },
+            'side_orientation': {
+              'id': 2,
+              'name': 'Right'
+            }
+          }
+        }
+      },
+      'location': null,
+      'internal_location': null
+    }
+  }
 })
 const selectedItemData = ref(null)
 
