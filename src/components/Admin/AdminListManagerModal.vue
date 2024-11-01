@@ -70,6 +70,9 @@
                 </label>
                 <SelectInput
                   v-model="inputForm[field.field]"
+                  :multiple="field.allowMultiple"
+                  :use-chips="field.allowMultiple"
+                  :hide-selected="false"
                   :options="field.options"
                   :option-type="field.optionType"
                   option-value="id"
@@ -187,7 +190,7 @@ const generateListModal = () => {
       width: mainProps.listData.width ?? '',
       depth: mainProps.listData.depth ?? '',
       height: mainProps.listData.height ?? '',
-      owner_id: mainProps.listData.owner_id ?? ''
+      owner_id: mainProps.listData.owner_id ?? null
     }
     inputFields.value = [
       {
@@ -220,7 +223,8 @@ const generateListModal = () => {
         label: 'Owner',
         options: owners,
         optionType: 'owners',
-        required: true
+        required: true,
+        allowMultiple: true
       }
     ]
     break
