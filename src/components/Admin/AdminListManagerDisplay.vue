@@ -229,7 +229,7 @@ const handleOptionMenu = async (option, rowData) => {
     showListInputModal.value.type = 'Edit'
   } else {
     showConfirmationModal.value = {
-      text: `Are you sure you want to delete '${rowData.name}'.`,
+      text: `Are you sure you want to delete '${rowData.name}'?`,
       id: rowData.id
     }
   }
@@ -331,6 +331,11 @@ const deleteListOption = async (id) => {
   try {
     appActionIsLoadingData.value = true
     await deleteSizeClass(id)
+    handleAlert({
+      type: 'success',
+      text: `Successfully Deleted The ${renderTableTitle.value}.`,
+      autoClose: true
+    })
   } catch (error) {
     handleAlert({
       type: 'error',
