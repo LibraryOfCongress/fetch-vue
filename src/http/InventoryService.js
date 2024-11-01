@@ -30,6 +30,7 @@ export default {
   picklists: '/pick-lists/',
   refileJobs: '/refile-jobs/',
   refileQueue: '/refile-queue/',
+  reportingAccessionItems: '/reporting/accession-items',
   requests: '/requests/',
   requestsLocations: '/requests/locations',
   requestsPriorities: '/requests/priorities',

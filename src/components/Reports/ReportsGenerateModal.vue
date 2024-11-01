@@ -265,7 +265,7 @@
           >
             <!-- date range inputs -->
             <div
-              v-if="param.query == 'from_dt' || param.query == 'to_dt'"
+              v-if="param.query.includes('_dt') || param.query.includes('_dt')"
               class="col-6 q-mb-md"
             >
               <div class="form-group q-pr-xs">
@@ -308,7 +308,7 @@
             </div>
             <!-- text inputs -->
             <div
-              v-else-if="param.query == 'job_id' || param.query == 'workflow_id'"
+              v-else-if="param.query.includes('job_id') || param.query.includes('workflow_id')"
               class="col-12 q-mb-md"
             >
               <div class="form-group">
@@ -339,10 +339,12 @@
                 </label>
                 <SelectInput
                   v-model="reportForm[param.query]"
+                  :multiple="true"
+                  :hide-selected="false"
                   :options="param.options"
                   :option-type="param.optionType"
                   option-value="id"
-                  :option-label="param.optionType == 'users' ? 'first_name' : 'name'"
+                  :option-label="'name'"
                   :placeholder="`Select ${param.label}`"
                   @update:model-value="null"
                   :aria-label="`${param.query}Select`"
@@ -495,14 +497,15 @@ const generateReportModal = () => {
       media_type_id: null,
       size_class_id: null
     }
+
     reportParams.value = [
       {
         query: 'from_dt',
-        label: 'Date (From)'
+        label: 'Created Date (From)'
       },
       {
         query: 'to_dt',
-        label: 'Date (To)'
+        label: 'Created Date (To)'
       },
       {
         query: 'owner_id',
@@ -821,24 +824,25 @@ const generateReportModal = () => {
 const generateReport = async () => {
   try {
     appActionIsLoadingData.value = true
-    // convert any form date values to iso format
-    if (Object.entries(reportForm.value).some(([
+    let queryParams = JSON.parse(JSON.stringify(reportForm.value))
+    // convert any form date values to iso format along with removing any empty query params
+    Object.entries(queryParams).forEach(([
       key,
       value
-    ]) => key.includes('_dt') && value)) {
-      Object.keys(reportForm.value).forEach(key => {
-        if (key.includes('_dt')) {
-          const [
-            month,
-            day,
-            year
-          ] = reportForm.value[key].split('/')
-          reportForm.value[key] = new Date(year, month - 1, day).toISOString()
-        }
-      })
-    }
+    ]) => {
+      if (key.includes('_dt') && value) {
+        const [
+          month,
+          day,
+          year
+        ] = queryParams[key].split('/')
+        queryParams[key] = new Date(year, month - 1, day).toISOString()
+      } else if (!value) {
+        delete queryParams[key]
+      }
+    })
 
-    await getReport(reportForm.value, mainProps.reportType)
+    await getReport(queryParams, mainProps.reportType)
 
     emit('submit')
   } catch (error) {

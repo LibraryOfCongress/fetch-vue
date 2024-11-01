@@ -29,10 +29,10 @@
                 v-for="(data, i) in reportDetails.data"
                 :key="i"
               >
-                <td>{{ data.owner.name }}</td>
-                <td>{{ data.media_type.name }}</td>
-                <td>{{ data.size_class.name }}</td>
-                <td>{{ data.total_count }}</td>
+                <td>{{ data.owner_name }}</td>
+                <td>{{ data.media_type_name }}</td>
+                <td>{{ data.size_class_name }}</td>
+                <td>{{ data.count }}</td>
               </tr>
             </tbody>
           </table>
