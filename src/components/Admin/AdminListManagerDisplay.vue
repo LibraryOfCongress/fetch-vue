@@ -285,8 +285,8 @@ const generateListTableInfo = () => {
       },
       {
         name: 'owner',
-        field: row => row.owner?.name,
-        label: 'Owner',
+        field: row => row.owner?.name, //TODO need to figure out how to render multiple owner names here
+        label: 'Owner(s)',
         align: 'left',
         sortable: true
       }
