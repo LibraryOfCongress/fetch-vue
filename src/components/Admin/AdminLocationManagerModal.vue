@@ -73,10 +73,10 @@
                   :options="field.options"
                   :option-type="field.optionType"
                   option-value="id"
-                  :option-label="field.field == 'container_type_id' ? 'type' : 'name'"
+                  :option-label="field.field == 'container_type_id' || field.field == 'shelf_type_id' ? 'type' : 'name'"
                   :placeholder="`Select ${field.label}`"
                   :disabled="field.disabled"
-                  @update:model-value="null"
+                  @update:model-value="handleLocationFormChange(field.label)"
                   :aria-label="`${field.field}Select`"
                 />
               </div>
@@ -158,6 +158,7 @@ const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   owners,
   sizeClass,
+  shelfTypes,
   containerTypes
 } = storeToRefs(useOptionStore())
 const {
@@ -186,6 +187,16 @@ const isLocationFormValid = computed(() => {
   const optionalFields = locationFields.value.flatMap(f => !f.required ? f.field : [] )
   return !Object.keys(locationForm.value).every(key => optionalFields.includes(key) || locationForm.value[key] !== null && locationForm.value[key] !== '')
 })
+const disableShelfType = computed(() => {
+  return !locationForm.value.size_class_id ? true : false
+})
+const filteredShelfTypes =  computed(() => {
+  let shelfTypesBySizeClass = []
+  if (shelfTypes.value.length > 0) {
+    shelfTypesBySizeClass = shelfTypes.value.filter(st => st.size_class_id == locationForm.value.size_class_id)
+  }
+  return shelfTypesBySizeClass
+})
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -193,6 +204,17 @@ const handleAlert = inject('handle-alert')
 onBeforeMount(() => {
   generateLocationModal()
 })
+
+const handleLocationFormChange = async (labelType) => {
+  // reset the form depending on the edited form field type
+  switch (labelType) {
+  case 'Container Size':
+    if (locationForm.value.shelf_type_id) {
+      locationForm.value.shelf_type_id = null
+    }
+    return
+  }
+}
 
 const generateLocationModal = () => {
   // creates the modal fields needed based on the locationType
@@ -205,7 +227,7 @@ const generateLocationModal = () => {
       {
         field: 'name',
         label: 'Building Name',
-        required: mainProps.actionType == 'Add'
+        required: true
       }
     ]
     break
@@ -218,7 +240,7 @@ const generateLocationModal = () => {
       {
         field: 'module_number',
         label: 'Module Number',
-        required: mainProps.actionType == 'Add'
+        required: true
       }
     ]
     break
@@ -232,7 +254,7 @@ const generateLocationModal = () => {
       {
         field: 'aisle_number',
         label: 'Aisle Number',
-        required: mainProps.actionType == 'Add',
+        required: true,
         disabled: mainProps.actionType == 'Edit'
       },
       {
@@ -251,7 +273,7 @@ const generateLocationModal = () => {
       {
         field: 'ladder_number',
         label: 'Ladder Number',
-        required: mainProps.actionType == 'Add',
+        required: true,
         disabled: mainProps.actionType == 'Edit'
       },
       {
@@ -264,12 +286,12 @@ const generateLocationModal = () => {
     locationForm.value = {
       ladder_id: route.params.ladderId,
       owner_id: mainProps.locationData.owner?.id ?? null,
-      size_class_id: mainProps.locationData.size_class?.id ?? null,
+      size_class_id: mainProps.locationData.shelf_type?.size_class_id ?? null,
+      shelf_type_id: mainProps.locationData.shelf_type?.id ?? null,
       container_type_id: mainProps.locationData.container_type?.id ?? null,
       width: mainProps.locationData.width ?? '',
       depth: mainProps.locationData.depth ?? '',
       height: mainProps.locationData.height ?? '',
-      capacity: mainProps.locationData.capacity ?? '',
       barcode_value: mainProps.locationData.barcode?.value ?? '',
       sort_priority: mainProps.locationData.sort_priority ?? null,
       shelf_number: mainProps.locationData.shelf_number?.number ?? ''
@@ -280,57 +302,60 @@ const generateLocationModal = () => {
         label: 'Owner',
         options: owners,
         optionType: 'owners',
-        required: mainProps.actionType == 'Add'
+        required: true
       },
       {
         field: 'size_class_id',
         label: 'Container Size',
         options: sizeClass,
         optionType: 'sizeClass',
-        required: mainProps.actionType == 'Add'
+        required: true
+      },
+      {
+        field: 'shelf_type_id',
+        label: 'Shelf Type',
+        options: filteredShelfTypes,
+        optionType: 'shelfTypes',
+        required: true,
+        disabled: disableShelfType
       },
       {
         field: 'container_type_id',
         label: 'Container Type',
         options: containerTypes,
         optionType: 'containerTypes',
-        required: mainProps.actionType == 'Add'
+        required: true
       },
       {
         field: 'barcode_value',
         label: 'Shelf Barcode',
         disabled: mainProps.actionType == 'Edit',
-        required: mainProps.actionType == 'Add'
+        required: true
       },
       {
         field: 'shelf_number',
         label: 'Shelf Number',
         disabled: mainProps.actionType == 'Edit',
-        required: mainProps.actionType == 'Add'
+        required: true
       },
       {
         field: 'sort_priority',
         label: 'Shelf Priority'
       },
       {
-        field: 'capacity',
-        label: 'Max Capacity',
-        required: mainProps.actionType == 'Add'
-      },
-      {
         field: 'width',
         label: 'Width (in)',
-        required: mainProps.actionType == 'Add'
+        required: true
       },
       {
         field: 'depth',
         label: 'Depth (in)',
-        required: mainProps.actionType == 'Add'
+        required: true
       },
       {
         field: 'height',
         label: 'Height (in)',
-        required: mainProps.actionType == 'Add'
+        required: true
       }
     ]
     break

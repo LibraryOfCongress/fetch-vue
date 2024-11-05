@@ -35,6 +35,7 @@ export default {
   requestsLocations: '/requests/locations',
   requestsPriorities: '/requests/priorities',
   requestsTypes: '/requests/types',
+  shelfTypes: '/shelf-types/',
   shelves: '/shelves/',
   shelvesBarcode: '/shelves/barcode/',
   shelvesPositions: '/shelves/positions/',

@@ -117,7 +117,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount, inject } from 'vue'
+import { ref, computed, onBeforeMount, inject, toRaw } from 'vue'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { storeToRefs } from 'pinia'
@@ -156,7 +156,8 @@ const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { owners } = storeToRefs(useOptionStore())
 const {
   postSizeClass,
-  patchSizeClass
+  patchSizeClass,
+  deleteSizeClassOwners
 } = useOptionStore()
 
 // Local Data
@@ -168,6 +169,7 @@ const titleCaseListType = computed(() => {
 const listModal = ref(null)
 const inputFields = ref(null)
 const inputForm = ref({})
+const inputFormOriginal = ref({})
 const isInputFormValid = computed(() => {
   const optionalFields = inputFields.value.flatMap(f => !f.required ? f.field : [] )
   return !Object.keys(inputForm.value).every(key => optionalFields.includes(key) || inputForm.value[key] !== null && inputForm.value[key] !== '')
@@ -185,13 +187,17 @@ const generateListModal = () => {
   switch (mainProps.listType) {
   case 'size-class':
     inputForm.value = {
+      assigned: mainProps.listData.assigned ?? false,
       name: mainProps.listData.name ?? '',
       short_name: mainProps.listData.short_name ?? '',
       width: mainProps.listData.width ?? '',
       depth: mainProps.listData.depth ?? '',
       height: mainProps.listData.height ?? '',
-      owner_id: mainProps.listData.owner_id ?? null
+      owner_ids: mainProps.listData.owners ? mainProps.listData.owners.map(o => o.id) : null
     }
+    // create a copy of our input form
+    inputFormOriginal.value = { ...toRaw(inputForm.value) }
+
     inputFields.value = [
       {
         field: 'name',
@@ -219,11 +225,11 @@ const generateListModal = () => {
         required: true
       },
       {
-        field: 'owner_id',
-        label: 'Owner',
+        field: 'owner_ids',
+        label: 'Owner(s)',
         options: owners,
         optionType: 'owners',
-        required: true,
+        required: false,
         allowMultiple: true
       }
     ]
@@ -272,9 +278,17 @@ const updateListType = async () => {
       ...inputForm.value
     }
     switch (mainProps.listType) {
-    case 'size-class':
+    case 'size-class': {
+      //check if we removed owner selections and send updates to api
+      let removedOwners = []
+      removedOwners = inputFormOriginal.value.owner_ids.filter(oid => !inputForm.value.owner_ids.includes(oid))
+      if (removedOwners.length > 0) {
+        await deleteSizeClassOwners(payload.id, { owner_ids: removedOwners })
+      }
+
       await patchSizeClass(payload)
       break
+    }
     default:
       break
     }

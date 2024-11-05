@@ -136,11 +136,13 @@ watch(() => mainProps.options, (updatedOptions) => {
 })
 
 const updateModelValue = (value) => {
-  if (mainProps.optionType == 'users') {
-    // this is a one off just for user options since majority of our select options typically use a single param except users which have 2 params to display (first_name and last_name)
-    const userDisplayValue = renderLabel(localOptions.value.find(opt => opt.id == value))
-    selectInputComponent.value.updateInputValue(userDisplayValue, true)
-  }
+  //TODO remove if we dont need to auto populate the user filter text input on select
+  // if (mainProps.optionType == 'users') {
+  //   // this is a one off just for user options since majority of our select options typically use a single param except users which have 2 params to display (first_name and last_name)
+  //   console.log('test update', value, localOptions.value.find(opt => opt.id == value))
+  //   const userDisplayValue = renderLabel(localOptions.value.find(opt => opt.id == value))
+  //   selectInputComponent.value.updateInputValue(userDisplayValue, true)
+  // }
 
   emit('update:modelValue', value)
 }
