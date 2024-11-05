@@ -501,11 +501,11 @@ const generateReportModal = () => {
     reportParams.value = [
       {
         query: 'from_dt',
-        label: 'Created Date (From)'
+        label: 'Accession Date (From)'
       },
       {
         query: 'to_dt',
-        label: 'Created Date (To)'
+        label: 'Accession Date (To)'
       },
       {
         query: 'owner_id',
@@ -836,7 +836,13 @@ const generateReport = async () => {
           day,
           year
         ] = queryParams[key].split('/')
-        queryParams[key] = new Date(year, month - 1, day).toISOString()
+        if (key.includes('from')) {
+          // sets from dates to begging of day
+          queryParams[key] = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0)).toISOString()
+        }  else {
+          // sets to date to end of date
+          queryParams[key] = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999)).toISOString()
+        }
       } else if (!value) {
         delete queryParams[key]
       }
