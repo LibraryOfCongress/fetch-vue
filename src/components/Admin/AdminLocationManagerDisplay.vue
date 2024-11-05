@@ -113,10 +113,6 @@ const {
   ladderDetails
 } = storeToRefs(useBuildingStore())
 const { getOptions } = useOptionStore()
-const {
-  owners,
-  sizeClass
-} = storeToRefs(useOptionStore())
 
 // Local Data
 const locationData = computed(() => {
@@ -230,11 +226,12 @@ onBeforeMount(() => {
 
 const handleOptionMenu = async (rowData) => {
   // load any options info that will be needed in our modal popup
-  if (mainProps.locationType == 'shelves' && (owners.value.length == 0 || sizeClass.value.length == 0)) {
+  if (mainProps.locationType == 'shelves') {
     appIsLoadingData.value = true
     await Promise.all([
       getOptions('owners'),
       getOptions('sizeClass'),
+      getOptions('shelfTypes'),
       getOptions('containerTypes')
     ])
     appIsLoadingData.value = false
@@ -459,15 +456,15 @@ const generateLocationTableInfo = () => {
       },
       {
         name: 'size_class',
-        field: row => row.size_class?.name,
+        field: row => row.shelf_type?.size_class?.name,
         label: 'Size Class',
         align: 'left',
         sortable: true
       },
       {
-        name: 'max_capacity',
-        field: 'capacity',
-        label: 'Max Capacity',
+        name: 'shelf_type',
+        field: row => row.shelf_type?.type,
+        label: 'Shelf Type',
         align: 'left',
         sortable: true
       },
@@ -507,7 +504,7 @@ const generateLocationTableInfo = () => {
       'shelf_height',
       'shelf_depth',
       'size_class',
-      'max_capacity',
+      'shelf_type',
       'container_type',
       'owner',
       'shelf_barcode',

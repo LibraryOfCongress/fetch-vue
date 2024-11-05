@@ -38,14 +38,30 @@
             </div>
           </template>
 
-          <template #table-td="{ colName, props }">
+          <template #table-td="{ colName, props, value }">
             <span
               v-if="colName == 'actions'"
             >
               <MoreOptionsMenu
-                :options="renderTableOptionsMenu"
+                :options="generateTableOptionsMenu(props.row)"
                 class=""
                 @click="handleOptionMenu($event, props.row)"
+              />
+            </span>
+            <span
+              v-if="listType == 'size-class' && colName == 'owner'"
+              class=""
+            >
+              {{ renderSizeClassOwners(value, props.row.showMoreOwners) }}
+              <q-btn
+                v-if="value.length > 4"
+                dense
+                flat
+                no-caps
+                color="accent"
+                :label="props.row.showMoreOwners ? 'Show Less' : 'Show More'"
+                class="btn-no-wrap text-body2 q-ml-sm-sm"
+                @click="props.row.showMoreOwners = !props.row.showMoreOwners"
               />
             </span>
           </template>
@@ -181,20 +197,6 @@ const renderTableAction = computed(() => {
   }
   return actionText
 })
-const renderTableOptionsMenu = computed(() => {
-  let options = []
-  if (mainProps.listType == 'owners') {
-    options = [{ text: 'Edit Owner' }]
-  } else if (mainProps.listType == 'media-type') {
-    options = [{ text: 'Edit Media Type' }]
-  } else {
-    options = [
-      { text: 'Edit Size Class' },
-      { text: 'Delete Size Class', optionClass: 'text-negative', disabled: false } // TODO need to figure out how we can disable deleting of a size class if it is in use
-    ]
-  }
-  return options
-})
 const showListInputModal = ref({
   type: '',
   listType: mainProps.listType,
@@ -212,17 +214,32 @@ onBeforeMount(() => {
   generateListTableInfo()
 })
 
+const renderSizeClassOwners = (rowOwnerArray, showFullList = false) => {
+  let ownerList = []
+  if (rowOwnerArray) {
+    ownerList = rowOwnerArray.map(o => o.name)
+  }
+
+  // if we have more than 4 owners display the first 4 and a + # more label
+  // if less than 4 just show all 4
+  if (ownerList.length > 4 && !showFullList) {
+    return `${ownerList.splice(0, 4).join(', ')} + ${rowOwnerArray.length - 4} more`
+  } else if (ownerList.length > 4 && showFullList) {
+    return ownerList.join(', ')
+  } else if (ownerList.length <= 4) {
+    return ownerList.join(', ')
+  } else {
+    return ''
+  }
+}
+
 const handleOptionMenu = async (option, rowData) => {
   // load any options info that will be needed in our modal popup
-  // if (mainProps.listType == 'shelves' && (owners.value.length == 0 || sizeClass.value.length == 0)) {
-  //   appIsLoadingData.value = true
-  //   await Promise.all([
-  //     getOptions('owners'),
-  //     getOptions('sizeClass'),
-  //     getOptions('containerTypes')
-  //   ])
-  //   appIsLoadingData.value = false
-  // }
+  if (mainProps.listType == 'size-class') {
+    appIsLoadingData.value = true
+    await Promise.all([getOptions('owners')])
+    appIsLoadingData.value = false
+  }
 
   if (option.text.includes('Edit')) {
     showListInputModal.value.listData = rowData
@@ -233,6 +250,21 @@ const handleOptionMenu = async (option, rowData) => {
       id: rowData.id
     }
   }
+}
+
+const generateTableOptionsMenu = (rowData) => {
+  let options = []
+  if (mainProps.listType == 'owners') {
+    options = [{ text: 'Edit Owner' }]
+  } else if (mainProps.listType == 'media-type') {
+    options = [{ text: 'Edit Media Type' }]
+  } else {
+    options = [
+      { text: 'Edit Size Class' },
+      { text: 'Delete Size Class', optionClass: 'text-negative', disabled: rowData.assigned }
+    ]
+  }
+  return options
 }
 
 const generateListTableInfo = () => {
@@ -265,27 +297,27 @@ const generateListTableInfo = () => {
       {
         name: 'width',
         field: 'width',
-        label: 'Width',
+        label: 'Width (in)',
         align: 'left',
         sortable: true
       },
       {
         name: 'depth',
         field: 'depth',
-        label: 'Depth',
+        label: 'Depth (in)',
         align: 'left',
         sortable: true
       },
       {
         name: 'height',
         field: 'height',
-        label: 'Height',
+        label: 'Height (in)',
         align: 'left',
         sortable: true
       },
       {
         name: 'owner',
-        field: row => row.owner?.name, //TODO need to figure out how to render multiple owner names here
+        field: 'owners',
         label: 'Owner(s)',
         align: 'left',
         sortable: true

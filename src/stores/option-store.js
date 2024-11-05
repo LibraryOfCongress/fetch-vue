@@ -15,6 +15,7 @@ export const useOptionStore = defineStore('option-store', {
       }
     ],
     sizeClass: [],
+    shelfTypes: [],
     mediaTypes: [],
     owners: [],
     ownerTierOptions: [],
@@ -66,6 +67,16 @@ export const useOptionStore = defineStore('option-store', {
 
         // filter out the specific size class
         this.sizeClass = this.sizeClass.filter(s => s.id !== sizeClassId)
+      } catch (error) {
+        throw error
+      }
+    },
+    async deleteSizeClassOwners (sizeClassId, payload) {
+      try {
+        const res = await this.$api.delete(`${inventoryServiceApi.sizeClass}${sizeClassId}/remove_owner`, { data: payload })
+
+        // update the specific size class with the response info
+        this.sizeClass[this.sizeClass.findIndex(s => s.id == sizeClassId)] = res.data
       } catch (error) {
         throw error
       }
