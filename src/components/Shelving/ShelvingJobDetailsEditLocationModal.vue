@@ -197,6 +197,14 @@ import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 
 const route = useRoute()
 
+// Props
+const mainProps = defineProps({
+  shelvingItem: {
+    type: Object,
+    required: true
+  }
+})
+
 // Emits
 const emit = defineEmits(['hide'])
 
@@ -281,7 +289,7 @@ const handleLocationFormChange = async (valueType) => {
     locationForm.value.shelf_position_id = null
     return
   case 'Ladder':
-    await getLadderDetails(locationForm.value.ladder_id)
+    await getLadderDetails(locationForm.value.ladder_id, { owner_id: mainProps.shelvingItem.owner.id, size_class_id: mainProps.shelvingItem.size_class.id })
     locationForm.value.shelf_id = null
     locationForm.value.shelf_position_id = null
     return

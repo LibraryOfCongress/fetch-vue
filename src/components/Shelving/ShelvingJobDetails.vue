@@ -544,7 +544,7 @@ const handleOptionMenu = async (action, rowData) => {
             getModuleDetails(itemLocationIdList[1]),
             getAisleDetails(itemLocationIdList[2]),
             getSideDetails(itemLocationIdList[3]),
-            getLadderDetails(itemLocationIdList[4]),
+            getLadderDetails(itemLocationIdList[4], { owner_id: rowData.owner.id, size_class_id: rowData.size_class.id }), //filters the shelves returned from ladder by owner and size class
             getShelfDetails(itemLocationIdList[5]),
             getShelfPositionsList(itemLocationIdList[5], true)
           ])
@@ -561,6 +561,8 @@ const handleOptionMenu = async (action, rowData) => {
       showShelvingLocationModal.value = true
       await nextTick()
       const itemLocationIdList = rowData.shelf_position?.internal_location?.split('-')
+      locationModalComponent.value.mainProps.shelvingItem = rowData
+      //TODO possibly remove all of this since we provide the row data via a component prop
       locationModalComponent.value.locationForm.id = rowData.id
       locationModalComponent.value.locationForm.module_id = parseInt(itemLocationIdList[1])
       locationModalComponent.value.locationForm.aisle_id = parseInt(itemLocationIdList[2])
