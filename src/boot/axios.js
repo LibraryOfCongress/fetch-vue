@@ -25,11 +25,12 @@ export default boot(({ app }) => {
 
   // axios interceptor to handle token/security authorization being added to our requests
   api.interceptors.request.use((config) => {
-    // check if we have a user in localstorage and if that user has an auth based token
+    // check if we have a user in localstorage and if that user has an auth based token in session storage
     const userAuth = JSON.parse(localStorage.getItem('user'))
-    if (userAuth && userAuth.token) {
-    // if there is an access token in our stored user we attach that to our requests
-      config.headers.Authorization = 'Bearer ' + userAuth.token
+    const userToken = JSON.parse(sessionStorage.getItem('token'))
+    if (userAuth && userToken) {
+    // if there is an access token we attach that to our requests
+      config.headers.Authorization = 'Bearer ' + userToken
     }
     return config
   })
