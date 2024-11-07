@@ -106,7 +106,7 @@
                   <q-item-section>
                     <q-item-label class="text-body1">
                       <span>Shelf #: {{ opt.shelf_number.number }}</span>
-                      <span class="text-secondary"> - {{ `${opt.depth}in X ${opt.width}in X ${opt.height}in` }} (max capacity: {{ opt.shelf_type.max_capacity }})</span>
+                      <span class="text-secondary"> - {{ `${opt.depth}in X ${opt.width}in X ${opt.height}in` }} (available capacity: {{ opt.available_space }})</span>
                     </q-item-label>
                   </q-item-section>
                 </q-item>
