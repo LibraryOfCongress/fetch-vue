@@ -181,7 +181,7 @@
 </template>
 
 <script setup>
-import { ref, inject, computed, watch } from 'vue'
+import { ref, inject, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
@@ -196,6 +196,20 @@ import BarcodeBox from '@/components/BarcodeBox.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 
 const route = useRoute()
+
+// Props
+const mainProps = defineProps({
+  shelvingItem: {
+    type: Object,
+    default: () => {
+      return {
+        id: null,
+        owner_id: null,
+        size_class_id: null
+      }
+    }
+  }
+})
 
 // Emits
 const emit = defineEmits(['hide'])
@@ -214,6 +228,10 @@ const {
   getShelfPositionsList
 } = useBuildingStore()
 const {
+  aisleDetails,
+  sideDetails,
+  ladderDetails,
+  shelfDetails,
   renderBuildingModules,
   renderBuildingOrModuleAisles,
   renderAisleSides,
@@ -249,6 +267,20 @@ const isLocationFormValid = computed(() => {
 // Logic
 const handleAlert = inject('handle-alert')
 
+onMounted(() => {
+  // set the form data if shelvingItem is passed in
+  if (mainProps.shelvingItem.id) {
+    const itemLocationIdList = mainProps.shelvingItem.shelf_position?.internal_location?.split('-')
+    locationForm.value.id = mainProps.shelvingItem.id
+    locationForm.value.module_id = parseInt(itemLocationIdList[1])
+    locationForm.value.aisle_id = parseInt(itemLocationIdList[2])
+    locationForm.value.side_id = parseInt(itemLocationIdList[3])
+    locationForm.value.ladder_id = parseInt(itemLocationIdList[4])
+    locationForm.value.shelf_id = parseInt(itemLocationIdList[5])
+    locationForm.value.trayed = mainProps.shelvingItem.container_type?.type == 'Tray' ? true : false
+  }
+})
+
 watch(compiledBarCode, (barcode) => {
   if (barcode !== '' && appIsOffline.value) {
     locationForm.value.shelf_barcode = barcode
@@ -257,7 +289,7 @@ watch(compiledBarCode, (barcode) => {
 })
 
 const handleLocationFormChange = async (valueType) => {
-  // reset the form depending on the edited form field type
+  // reset the form depending on the edited form field type and clear any related building state as needed
   switch (valueType) {
   case 'Module':
     await getModuleDetails(locationForm.value.module_id)
@@ -266,6 +298,13 @@ const handleLocationFormChange = async (valueType) => {
     locationForm.value.ladder_id = null
     locationForm.value.shelf_id = null
     locationForm.value.shelf_position_id = null
+
+    // clear state for aisle options downward since user needs to select an aisle next to populate the rest of the data
+    aisleDetails.value = {}
+    sideDetails.value = {}
+    ladderDetails.value = {}
+    shelfDetails.value = {}
+    shelfPositions.value = []
     return
   case 'Aisle':
     await getAisleDetails(locationForm.value.aisle_id)
@@ -273,17 +312,32 @@ const handleLocationFormChange = async (valueType) => {
     locationForm.value.ladder_id = null
     locationForm.value.shelf_id = null
     locationForm.value.shelf_position_id = null
+
+    // clear state for sidem ladder, shelf details and shelf positions
+    sideDetails.value = {}
+    ladderDetails.value = {}
+    shelfDetails.value = {}
+    shelfPositions.value = []
     return
   case 'Side':
     await getSideDetails(locationForm.value.side_id)
     locationForm.value.ladder_id = null
     locationForm.value.shelf_id = null
     locationForm.value.shelf_position_id = null
+
+    // clear state for ladder, shelf details and shelf positions
+    ladderDetails.value = {}
+    shelfDetails.value = {}
+    shelfPositions.value = []
     return
   case 'Ladder':
-    await getLadderDetails(locationForm.value.ladder_id)
+    await getLadderDetails(locationForm.value.ladder_id, { owner_id: mainProps.shelvingItem.owner.id, size_class_id: mainProps.shelvingItem.size_class.id })
     locationForm.value.shelf_id = null
     locationForm.value.shelf_position_id = null
+
+    // clear state for shelf details and shelf positions
+    shelfDetails.value = {}
+    shelfPositions.value = []
     return
   case 'Shelf':
     await getShelfPositionsList(locationForm.value.shelf_id, true)
