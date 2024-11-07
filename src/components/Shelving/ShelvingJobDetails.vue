@@ -239,7 +239,8 @@
   <ShelvingJobDetailsEditLocationModal
     v-if="showShelvingLocationModal"
     ref="locationModalComponent"
-    @hide="showShelvingLocationModal = false"
+    :shelving-item="selectedShelvingItem"
+    @hide="showShelvingLocationModal = false; selectedShelvingItem = null;"
   />
 
   <!-- scan container note -->
@@ -330,7 +331,7 @@
 </template>
 
 <script setup>
-import { ref, inject, onBeforeMount, toRaw, nextTick, watch, onMounted } from 'vue'
+import { ref, inject, onBeforeMount, toRaw, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
@@ -398,6 +399,7 @@ const { users } = storeToRefs(useOptionStore())
 const batchSheetComponent = ref(null)
 const locationModalComponent = ref(null)
 const editJob = ref(false)
+const selectedShelvingItem = ref(null)
 const shelfTableColumns = ref([
   {
     name: 'actions',
@@ -550,6 +552,9 @@ const handleOptionMenu = async (action, rowData) => {
           ])
         }
       }
+
+      // set the passed in rowData as the selected shelvingItem
+      selectedShelvingItem.value = rowData
     } catch (error) {
       handleAlert({
         type: 'error',
@@ -559,17 +564,6 @@ const handleOptionMenu = async (action, rowData) => {
     } finally {
       appIsLoadingData.value = false
       showShelvingLocationModal.value = true
-      await nextTick()
-      const itemLocationIdList = rowData.shelf_position?.internal_location?.split('-')
-      locationModalComponent.value.mainProps.shelvingItem = rowData
-      //TODO possibly remove all of this since we provide the row data via a component prop
-      locationModalComponent.value.locationForm.id = rowData.id
-      locationModalComponent.value.locationForm.module_id = parseInt(itemLocationIdList[1])
-      locationModalComponent.value.locationForm.aisle_id = parseInt(itemLocationIdList[2])
-      locationModalComponent.value.locationForm.side_id = parseInt(itemLocationIdList[3])
-      locationModalComponent.value.locationForm.ladder_id = parseInt(itemLocationIdList[4])
-      locationModalComponent.value.locationForm.shelf_id = parseInt(itemLocationIdList[5])
-      locationModalComponent.value.locationForm.trayed = rowData.container_type?.type == 'Tray' ? true : false
     }
 
     return
