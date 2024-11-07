@@ -15,22 +15,31 @@ export const useUserStore = defineStore('user-store', {
   actions: {
     resetUserStore () {
       localStorage.removeItem('user')
+      sessionStorage.removeItem('token')
       this.$reset()
     },
     async patchLogin (payload, type) {
       try {
+        let userToken
         if (type == 'Internal') {
           const res = await this.$api.post(inventoryServiceApi.authLegacyLogin, payload)
           this.userData = jwtDecode(res.data.detail)
+
           // assign token for internal login since there is no longer a route query token redirect
-          this.userData.token = res.data.detail
+          userToken = res.data.detail
         } else {
-          // sso login will pass the direct user data as the payload from a decoded jwt
-          this.userData = payload
+          // sso login will pass the direct user data as the payload from a decoded jwt + the token itself
+          this.userData = { ...payload }
+          userToken = payload.token
+
+          // remove token from the userData since we store that seperately in session storage
+          delete this.userData.token
         }
 
         // set user credentials in local storage
         localStorage.setItem('user', JSON.stringify(this.userData))
+        // set user token in session storate
+        sessionStorage.setItem('token', JSON.stringify(userToken))
 
         await this.getUserPermissions()
       } catch (error) {
