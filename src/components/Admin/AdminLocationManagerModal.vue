@@ -442,6 +442,10 @@ const updateLocationType = async () => {
       await patchLadder(payload)
       break
     case 'shelves':
+      // convert empty payload value for sort priority to be null since backend expects int values only
+      if (payload.sort_priority == '') {
+        payload.sort_priority = null
+      }
       await patchShelve(payload)
       break
     default:
