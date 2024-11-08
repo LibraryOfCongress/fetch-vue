@@ -68,7 +68,7 @@
               Module:
             </label>
             <p class="text-body1">
-              {{ refileItem.tray ? refileItem.tray.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number : refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number }}
+              {{ refileItem.tray ? refileItem.tray.shelf_position?.location?.split('-')[1] : refileItem.shelf_position?.location?.split('-')[1] }}
             </p>
           </div>
         </div>
@@ -78,7 +78,7 @@
               Aisle:
             </label>
             <p class="text-body1">
-              {{ refileItem.tray ? refileItem.tray.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number : refileItem.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number }}
+              {{ refileItem.tray ? refileItem.tray.shelf_position?.location?.split('-')[2] : refileItem.shelf_position?.location?.split('-')[2] }}
             </p>
           </div>
         </div>
@@ -128,7 +128,8 @@ const { compiledBarCode } = useBarcodeScanHandler()
 
 // Store Data
 const { appIsLoadingData } = storeToRefs(useGlobalStore())
-const { verifyBarcode } = useBarcodeStore()
+const { getBarcodeDetails } = useBarcodeStore()
+const { barcodeDetails } = storeToRefs(useBarcodeStore())
 const { postRefileQueueItem, resetRefileItem } = useRefileStore()
 const { refileItem } = storeToRefs(useRefileStore())
 
@@ -159,7 +160,17 @@ const addItemToQueue = async (barcode_value) => {
   try {
     appIsLoadingData.value = true
     // check if the scanned item barcode is in the system first
-    await verifyBarcode(barcode_value, 'Item', true)
+    await getBarcodeDetails(barcode_value)
+
+    // next check if scanned barcode is an item type barcode
+    if (barcodeDetails.value.id && barcodeDetails.value.type.name !== 'Item') {
+      handleAlert({
+        type: 'error',
+        text: 'The scanned barcode is not an "Item Barcode"! Please try again.',
+        autoClose: true
+      })
+      return
+    }
 
     const payload = {
       barcode_value

@@ -438,9 +438,9 @@ export const useBuildingStore = defineStore('building-store', {
         throw error
       }
     },
-    async getLadderDetails (id) {
+    async getLadderDetails (id, qParams) {
       try {
-        const res = await this.$api.get(`${inventoryServiceApi.ladders}${id}`)
+        const res = await this.$api.get(`${inventoryServiceApi.ladders}${id}`, { params: { ...qParams } })
         this.ladderDetails = res.data
       } catch (error) {
         throw error

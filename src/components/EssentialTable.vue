@@ -198,7 +198,7 @@
               <span
                 :tabindex="props.col.label ? 0 : -1"
                 class="flex no-wrap items-center"
-                :aria-label="`${props.col.label}TableColumnSortAscendDescend`"
+                :aria-label="`${props.col.label.replaceAll('#', 'Number')}TableColumnSortAscendDescend`"
                 @keydown.enter="props.sort(props.col.name)"
                 @click="props.sort(props.col.name)"
               >

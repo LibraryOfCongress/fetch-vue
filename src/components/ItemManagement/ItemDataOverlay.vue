@@ -4,6 +4,7 @@
     :position="'right'"
     full-height
     :class="$style.overlay"
+    @hide="emit('close')"
     aria-label="informationalOverlay"
   >
     <q-card class="item-content">
@@ -22,16 +23,15 @@
 
       <q-card-section>
         <BarcodeBox
-          :barcode="itemData.id"
+          :barcode="itemData.item ? itemData.item.barcode.value : itemData.non_tray_item.barcode.value"
         />
       </q-card-section>
 
       <q-card-section class="column q-pt-xs-none q-pt-sm-md">
         <h1
-          v-if="itemData.title"
           class="text-h4 q-mb-xs-sm q-mb-sm-md"
         >
-          {{ itemData.title }}
+          {{ itemData.item ? itemData.item.title : itemData.non_tray_item.title }}
         </h1>
 
         <div class="item-details">
@@ -39,7 +39,7 @@
             Barcode:
           </label>
           <p class="item-details-text">
-            {{ itemData.id }}
+            {{ itemData.item ? itemData.item.barcode.value : itemData.non_tray_item.barcode.value }}
           </p>
         </div>
 
@@ -48,7 +48,7 @@
             Media Type:
           </label>
           <p class="item-details-text outline">
-            {{ itemData.media_type }}
+            {{ itemData.item ? itemData.item.media_type.name : itemData.non_tray_item.media_type.name }}
           </p>
         </div>
 
@@ -60,7 +60,7 @@
             Size Class:
           </label>
           <p class="item-details-text outline">
-            {{ itemData.size }}
+            {{ itemData.item ? itemData.item.size_class.name : itemData.non_tray_item.size_class.name }}
           </p>
         </div>
 
@@ -72,31 +72,7 @@
             Volume:
           </label>
           <p class="item-details-text">
-            {{ itemData.volume }}
-          </p>
-        </div>
-
-        <div
-          v-if="itemData.container_type"
-          class="item-details"
-        >
-          <label class="item-details-label">
-            Container Type:
-          </label>
-          <p class="item-details-text outline">
-            {{ itemData.container_type }}
-          </p>
-        </div>
-
-        <div
-          v-if="itemData.subcollection"
-          class="item-details"
-        >
-          <label class="item-details-label">
-            Subcollection:
-          </label>
-          <p class="item-details-text">
-            {{ itemData.subcollection }}
+            {{ itemData.item ? itemData.item.volume : itemData.non_tray_item.volume }}
           </p>
         </div>
 
@@ -105,6 +81,7 @@
             Dimensions:
           </label>
           <p class="item-details-text">
+            <!-- TODO change this once api returns correct dimensions -->
             {{ itemData.dimensions }}
           </p>
         </div>
@@ -117,7 +94,7 @@
             Condition:
           </label>
           <p class="item-details-text text-highlight-negative">
-            {{ itemData.condition }}
+            {{ itemData.item ? itemData.item.condition : itemData.non_tray_item.condition }}
           </p>
         </div>
       </q-card-section>
@@ -129,7 +106,7 @@
 
         <div class="item-details">
           <p class="item-details-text outline">
-            {{ itemData.owner }}
+            {{ itemData.item ? itemData.item.owner.name : itemData.non_tray_item.owner.name }}
           </p>
         </div>
       </q-card-section>
@@ -144,7 +121,7 @@
             Accession Date:
           </label>
           <p class="item-details-text">
-            {{ itemData.accession_date }}
+            {{ formatDateTime(itemData.item ? itemData.item.accession_dt : itemData.non_tray_item.accession_dt).date }}
           </p>
         </div>
 
@@ -156,7 +133,7 @@
             Withdrawal Date:
           </label>
           <p class="item-details-text">
-            {{ itemData.withdraw_date }}
+            {{ formatDateTime(itemData.item ? itemData.item.withdrawal_dt : itemData.non_tray_item.withdrawal_dt).date }}
           </p>
         </div>
 
@@ -168,13 +145,13 @@
             Arrival Date:
           </label>
           <p class="item-details-text">
-            {{ itemData.arrival_date }}
+            <!-- TODO change this once api returns correct arrival date -->
+            {{ formatDateTime(itemData.item ? itemData.item.accession_dt : itemData.non_tray_item.accession_dt).date }}
           </p>
         </div>
       </q-card-section>
 
       <q-card-section
-        v-if="itemData.temp_location"
         class="column q-pt-none"
       >
         <h1 class="text-h4 q-mb-xs-sm q-mb-sm-md">
@@ -186,28 +163,10 @@
             In
           </p>
           <p class="item-details-text outline q-mr-sm">
-            {{ facility }}
+            {{ renderItemBuilding(itemData) }}
           </p>
           <p class="item-details-text outline">
-            {{ itemData.temp_location }}
-          </p>
-        </div>
-      </q-card-section>
-
-      <q-card-section
-        v-if="itemData.shelf_position"
-        class="column q-pt-none"
-      >
-        <h1 class="text-h4 q-mb-xs-sm q-mb-sm-md">
-          Shelf Position
-        </h1>
-
-        <div class="item-details">
-          <p class="item-details-text text-highlight-warning q-mr-sm">
-            Requested
-          </p>
-          <p class="item-details-text outline">
-            {{ itemData.shelf_location }}
+            {{ itemData.item ? getItemLocation(itemData.item.tray) : getItemLocation(itemData.non_tray_item) }}
           </p>
         </div>
       </q-card-section>
@@ -227,49 +186,42 @@
   </q-dialog>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
+<script setup>
+import { ref, inject } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 
-export default defineComponent({
-  name: 'ItemDataOverlay',
-  props: {
-    itemData: {
-      type: Object,
-      required: true
-    },
-    facility: {
-      type: String,
-      required: true
-    }
-  },
-  components: {
-    BarcodeBox
-  },
-  emits: ['close'],
-  setup () {
-    const { currentScreenSize } = useCurrentScreenSize()
-    return {
-      currentScreenSize
-    }
-  },
-  data () {
-    return {
-      showItemOverlay: true
-    }
-  },
-  watch: {
-    showItemOverlay () {
-      if (this.showItemOverlay == false) {
-        setTimeout(() => {
-          // we wait for the vue transition for v-close-popup then fire off the close emit to parent
-          this.$emit('close')
-        }, 200)
-      }
-    }
+// Props
+defineProps({
+  itemData: {
+    type: Object,
+    required: true
   }
 })
+
+// Emits
+const emit = defineEmits(['close'])
+
+// Compasables
+const { currentScreenSize } = useCurrentScreenSize()
+
+// Local Data
+const showItemOverlay = ref(true)
+
+// Logic
+const formatDateTime = inject('format-date-time')
+const getItemLocation = inject('get-item-location')
+
+const renderItemBuilding = (itemData) => {
+  let building = ''
+  if (itemData.item && itemData.item.tray.shelf_position) {
+    building = itemData.item.tray.shelf_position.location?.split('-')[0]
+  } else if (itemData.non_tray_item && itemData.non_tray_item.shelf_position) {
+    building = itemData.non_tray_item.shelf_position.location?.split('-')[0]
+  }
+
+  return building
+}
 </script>
 
 <style lang="scss" scoped>
@@ -308,6 +260,7 @@ export default defineComponent({
 
 <style lang="scss" module>
 .overlay {
+  z-index: 6000 !important;
   :global(.q-dialog__inner) {
     padding: 0;
   }

@@ -320,7 +320,7 @@ const handleLocationRouting = () => {
   switch (mainProps.locationTitle) {
   case 'Modules':
     router.push({
-      name: 'admin-manage-modules',
+      name: 'admin-location-manage-modules',
       params: {
         buildingId: locationRoutingForm.value.building_id
       }
@@ -328,7 +328,7 @@ const handleLocationRouting = () => {
     break
   case 'Aisles':
     router.push({
-      name: 'admin-manage-aisles',
+      name: 'admin-location-manage-aisles',
       params: {
         buildingId: locationRoutingForm.value.building_id,
         moduleId: locationRoutingForm.value.module_id
@@ -337,7 +337,7 @@ const handleLocationRouting = () => {
     break
   case 'Ladders':
     router.push({
-      name: 'admin-manage-ladders',
+      name: 'admin-location-manage-ladders',
       params: {
         buildingId: locationRoutingForm.value.building_id,
         moduleId: locationRoutingForm.value.module_id,
@@ -348,7 +348,7 @@ const handleLocationRouting = () => {
     break
   case 'Shelves':
     router.push({
-      name: 'admin-manage-shelves',
+      name: 'admin-location-manage-shelves',
       params: {
         buildingId: locationRoutingForm.value.building_id,
         moduleId: locationRoutingForm.value.module_id,

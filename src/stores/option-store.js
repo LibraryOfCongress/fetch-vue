@@ -15,6 +15,7 @@ export const useOptionStore = defineStore('option-store', {
       }
     ],
     sizeClass: [],
+    shelfTypes: [],
     mediaTypes: [],
     owners: [],
     ownerTierOptions: [],
@@ -34,6 +35,48 @@ export const useOptionStore = defineStore('option-store', {
         const res = await this.$api.get(inventoryServiceApi[optionType], { params: { size: 100 } })
 
         this[optionType] = res.data.items
+      } catch (error) {
+        throw error
+      }
+    },
+    async postSizeClass (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.sizeClass, payload)
+
+        this.sizeClass = [
+          ...this.sizeClass,
+          res.data
+        ]
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchSizeClass (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.sizeClass}${payload.id}`, payload)
+
+        // update the specific size class with the response info
+        this.sizeClass[this.sizeClass.findIndex(s => s.id == payload.id)] = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async deleteSizeClass (sizeClassId) {
+      try {
+        await this.$api.delete(`${inventoryServiceApi.sizeClass}${sizeClassId}`)
+
+        // filter out the specific size class
+        this.sizeClass = this.sizeClass.filter(s => s.id !== sizeClassId)
+      } catch (error) {
+        throw error
+      }
+    },
+    async deleteSizeClassOwners (sizeClassId, payload) {
+      try {
+        const res = await this.$api.delete(`${inventoryServiceApi.sizeClass}${sizeClassId}/remove_owner`, { data: payload })
+
+        // update the specific size class with the response info
+        this.sizeClass[this.sizeClass.findIndex(s => s.id == sizeClassId)] = res.data
       } catch (error) {
         throw error
       }

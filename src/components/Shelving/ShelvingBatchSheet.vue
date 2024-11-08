@@ -14,10 +14,10 @@
 
         <section>
           <p class="text-bold q-mb-sm">
-            Shelving Job Completed Date: {{ formatDateTime(shelvingJobDetails.last_transition).date }}
+            Shelving Job Completed Date: {{ shelvingJobDetails.status == 'Completed' ? formatDateTime(shelvingJobDetails.last_transition).date : '' }}
           </p>
           <p class="text-bold">
-            Shelving Job User: {{ shelvingJobDetails.user ? shelvingJobDetails.user?.first_name : 'No Assignee' }}
+            Shelving Job User: {{ shelvingJobDetails.user ? `${shelvingJobDetails.user.first_name} ${shelvingJobDetails.user.last_name}` : 'No Assignee' }}
           </p>
         </section>
 
@@ -61,24 +61,24 @@
                 :key="containers.id"
               >
                 <td>{{ containers.barcode?.value }}</td>
-                <td>{{ containers.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number }}</td>
-                <td>{{ containers.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number }}</td>
-                <td>{{ containers.shelf_position?.shelf?.ladder?.side?.side_orientation?.name }}</td>
-                <td>{{ containers.shelf_position?.shelf?.ladder?.ladder_number?.number }}</td>
-                <td>{{ containers.shelf_position?.shelf?.barcode?.value }}</td>
-                <td>{{ containers.shelf_position?.shelf_position_number?.number }}</td>
+                <td>{{ containers.shelf_position?.location?.split('-')[1] }}</td>
+                <td>{{ containers.shelf_position?.location?.split('-')[2] }}</td>
+                <td>{{ containers.shelf_position?.location?.split('-')[3] }}</td>
+                <td>{{ containers.shelf_position?.location?.split('-')[4] }}</td>
+                <td>{{ containers.shelf_position?.location?.split('-')[5] }}</td>
+                <td>{{ containers.shelf_position?.location?.split('-')[6] }}</td>
               </tr>
               <tr
                 v-for="containers in shelvingJobDetails.non_tray_items"
                 :key="containers.id"
               >
                 <td>{{ containers.barcode?.value }}</td>
-                <td>{{ containers.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number }}</td>
-                <td>{{ containers.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number }}</td>
-                <td>{{ containers.shelf_position?.shelf?.ladder?.side?.side_orientation?.name }}</td>
-                <td>{{ containers.shelf_position?.shelf?.ladder?.ladder_number?.number }}</td>
-                <td>{{ containers.shelf_position?.shelf?.barcode?.value }}</td>
-                <td>{{ containers.shelf_position?.shelf_position_number?.number }}</td>
+                <td>{{ containers.shelf_position?.location?.split('-')[1] }}</td>
+                <td>{{ containers.shelf_position?.location?.split('-')[2] }}</td>
+                <td>{{ containers.shelf_position?.location?.split('-')[3] }}</td>
+                <td>{{ containers.shelf_position?.location?.split('-')[4] }}</td>
+                <td>{{ containers.shelf_position?.location?.split('-')[5] }}</td>
+                <td>{{ containers.shelf_position?.location?.split('-')[6] }}</td>
               </tr>
             </tbody>
           </table>

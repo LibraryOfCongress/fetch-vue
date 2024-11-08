@@ -287,44 +287,9 @@ const shelfTableColumns = ref([
     sortable: true
   },
   {
-    name: 'module',
-    field: row => row.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number,
-    label: 'Module',
-    align: 'left',
-    sortable: true
-  },
-  {
-    name: 'aisle',
-    field: row => row.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number,
-    label: 'Aisle',
-    align: 'left',
-    sortable: true
-  },
-  {
-    name: 'side',
-    field: row => row.shelf_position?.shelf?.ladder?.side?.side_orientation?.name,
-    label: 'Side',
-    align: 'left',
-    sortable: true
-  },
-  {
-    name: 'ladder',
-    field: row => row.shelf_position?.shelf?.ladder?.ladder_number?.number,
-    label: 'Ladder',
-    align: 'left',
-    sortable: true
-  },
-  {
-    name: 'shelf',
-    field: row => !appIsOffline.value ? row.shelf_position?.shelf?.shelf_number?.number : row.shelf_position?.shelf?.barcode?.value,
-    label: 'Shelf',
-    align: 'left',
-    sortable: true
-  },
-  {
-    name: 'shelf_position',
-    field: row => row.shelf_position?.shelf_position_number?.number,
-    label: 'Shelf Position',
+    name: 'location',
+    field: row => getItemLocation(row),
+    label: 'Item Location',
     align: 'left',
     sortable: true
   },
@@ -341,26 +306,22 @@ const shelfTableVisibleColumns = ref([
   'barcode',
   'owner',
   'size_class',
-  'module',
-  'aisle',
-  'side',
-  'ladder',
-  'shelf',
-  'shelf_position',
+  'location',
   'verified'
 ])
 const showScanContainerModal = ref(false)
 
 // Logic
 const formatDateTime = inject('format-date-time')
+const getItemLocation = inject('get-item-location')
 const handleAlert = inject('handle-alert')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
     shelfTableVisibleColumns.value = [
       'barcode',
-      'shelf',
-      'shelf_position',
+      'size_class',
+      'location',
       'verified'
     ]
   }
@@ -453,14 +414,7 @@ const assignContainerLocation = async () => {
             value: shelvingJobContainer.value.barcode.value
           },
           shelf_position: {
-            shelf: {
-              barcode: {
-                value: directToShelfJob.value.shelf_barcode.value
-              }
-            },
-            shelf_position_number: {
-              number: shelvingJobContainer.value.shelf_position_number
-            }
+            location: ` - - - - -${directToShelfJob.value.shelf_barcode.value}-${shelvingJobContainer.value.shelf_position_number}`
           },
           scanned_for_shelving: true
         }

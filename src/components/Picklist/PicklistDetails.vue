@@ -5,7 +5,8 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit', hidden: !checkUserPermission('can_assign_and_reassign_picklist_job'), disabled: appIsOffline || editJob || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' },
-            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_picklist_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed' || picklistItems.some(itm => itm.status !== 'Requested')}
+            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_picklist_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed' || picklistItems.some(itm => itm.status !== 'Requested')},
+            { text: 'Print Job' }
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
@@ -241,16 +242,27 @@
   >
     <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-        <q-btn
-          v-if="showConfirmationModal == 'CompleteJob'"
-          no-caps
-          unelevated
-          color="accent"
-          label="Complete"
-          class="text-body1 full-width"
-          :loading="appActionIsLoadingData"
-          @click="completePicklistJob(); hideModal();"
-        />
+        <template v-if="showConfirmationModal == 'CompleteJob'">
+          <q-btn
+            no-caps
+            unelevated
+            color="accent"
+            label="Complete & Print"
+            class="btn-no-wrap text-body1 full-width"
+            :loading="appActionIsLoadingData"
+            @click="completePicklistJob(true); hideModal();"
+          />
+          <q-space class="q-mx-xs" />
+          <q-btn
+            no-caps
+            unelevated
+            color="accent"
+            label="Complete"
+            class="text-body1 full-width"
+            :loading="appActionIsLoadingData"
+            @click="completePicklistJob(false); hideModal();"
+          />
+        </template>
         <q-btn
           v-else
           no-caps
@@ -261,8 +273,12 @@
           :loading="appActionIsLoadingData"
           @click="cancelPicklistJob(); hideModal();"
         />
-        <q-space class="q-mx-xs" />
+        <q-space
+          v-if="currentScreenSize !== 'xs'"
+          class="q-mx-xs"
+        />
         <q-btn
+          v-if="currentScreenSize !== 'xs'"
           outline
           no-caps
           label="Cancel"
@@ -272,6 +288,13 @@
       </q-card-section>
     </template>
   </PopupModal>
+
+  <!-- print component: picklist job report -->
+  <PicklistBatchSheet
+    ref="batchSheetComponent"
+    :picklist-job-details="picklistJob"
+    :picklist-job-items="picklistItems"
+  />
 </template>
 
 <script setup>
@@ -292,6 +315,7 @@ import MobileActionBar from '@/components/MobileActionBar.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
+import PicklistBatchSheet from '@/components/Picklist/PicklistBatchSheet.vue'
 
 const router = useRouter()
 
@@ -328,6 +352,7 @@ const {
 } = storeToRefs(usePicklistStore())
 
 // Local Data
+const batchSheetComponent = ref(null)
 const editJob = ref(false)
 const itemTableVisibleColumns = ref([
   'actions',
@@ -478,6 +503,9 @@ const handleOptionMenu = async (action, rowData) => {
   case 'Revert Item to Queue':
     removePicklistItem(rowData.id)
     return
+  case 'Print Job':
+    batchSheetComponent.value.printBatchReport()
+    return
   }
 }
 
@@ -491,7 +519,7 @@ const executePicklistJob = async () => {
     const payload = {
       id: picklistJob.value.id,
       status: 'Running',
-      user_id: picklistJob.value.user_id ? picklistJob.value.user_id : userData.value.id,
+      user_id: picklistJob.value.user_id ? picklistJob.value.user_id : userData.value.user_id,
       run_timestamp: new Date().toISOString()
     }
     await patchPicklistJob(payload)
@@ -602,7 +630,7 @@ const cancelPicklistJob = async () => {
     deleteDataInIndexDb('picklistStore', 'originalPicklistJob')
   }
 }
-const completePicklistJob = async () => {
+const completePicklistJob = async (printBool) => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
@@ -612,6 +640,9 @@ const completePicklistJob = async () => {
     }
     await patchPicklistJob(payload)
 
+    if (printBool) {
+      batchSheetComponent.value.printBatchReport()
+    }
     handleAlert({
       type: 'success',
       text: 'The Pick List Job has been completed.',

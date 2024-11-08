@@ -59,7 +59,7 @@
               Module:
             </label>
             <p class="text-body1">
-              {{ shelvingJobContainer.shelf_position?.shelf?.ladder?.side?.aisle?.module?.module_number }}
+              {{ containerLocationDisplayValues[1] }}
             </p>
           </div>
         </div>
@@ -69,7 +69,7 @@
               Aisle:
             </label>
             <p class="text-body1">
-              {{ shelvingJobContainer.shelf_position?.shelf?.ladder?.side?.aisle?.aisle_number?.number }}
+              {{ containerLocationDisplayValues[2] }}
             </p>
           </div>
         </div>
@@ -79,7 +79,7 @@
               Side:
             </label>
             <p class="text-body1">
-              {{ shelvingJobContainer.shelf_position?.shelf?.ladder?.side?.side_orientation?.name }}
+              {{ containerLocationDisplayValues[3] }}
             </p>
           </div>
         </div>
@@ -89,7 +89,7 @@
               Ladder:
             </label>
             <p class="text-body1">
-              {{ shelvingJobContainer.shelf_position?.shelf?.ladder?.ladder_number?.number }}
+              {{ containerLocationDisplayValues[4] }}
             </p>
           </div>
         </div>
@@ -99,7 +99,7 @@
               Shelf:
             </label>
             <p class="text-body1">
-              {{ shelvingJobContainer.shelf_position?.shelf?.shelf_number?.number }}
+              {{ containerLocationDisplayValues[5] }}
             </p>
           </div>
         </div>
@@ -109,7 +109,7 @@
               Shelf Position:
             </label>
             <p class="text-body1">
-              {{ shelvingJobContainer.shelf_position?.shelf_position_number?.number }}
+              {{ containerLocationDisplayValues[6] }}
             </p>
           </div>
         </div>
@@ -186,7 +186,7 @@
 </template>
 
 <script setup>
-import { ref, inject, watch } from 'vue'
+import { ref, inject, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
@@ -214,6 +214,13 @@ const { shelvingJobContainer, shelvingJob } = storeToRefs(useShelvingStore())
 // Local Data
 const selectNewLocation = ref(false)
 const manualShelfPosition = ref('')
+const containerLocationDisplayValues = computed(() => {
+  let itemLocationValueList = []
+  if (shelvingJobContainer.value.shelf_position.location) {
+    itemLocationValueList = shelvingJobContainer.value.shelf_position.location.split('-')
+  }
+  return itemLocationValueList
+})
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -246,7 +253,7 @@ const updateContainerLocation = async () => {
       job_id: route.params.jobId,
       container_id: shelvingJobContainer.value.id,
       trayed: shelvingJobContainer.value.container_type.type == 'Tray' ? true : false,
-      shelf_position_number: manualShelfPosition.value !== '' ? manualShelfPosition.value : shelvingJobContainer.value.shelf_position.shelf_position_number.number,
+      shelf_position_number: manualShelfPosition.value !== '' ? manualShelfPosition.value : containerLocationDisplayValues.value[6],
       shelf_barcode_value: shelvingJobContainer.value.shelf_position.shelf.barcode.value,
       scanned_for_shelving: true
     }
@@ -254,7 +261,9 @@ const updateContainerLocation = async () => {
 
     // when offline we need to directly update the shelving status and shelving job container as the job level
     if (appIsOffline.value) {
-      shelvingJobContainer.value.shelf_position.shelf_position_number.number = payload.shelf_position_number
+      let updatedLocationString = shelvingJobContainer.value.shelf_position.location.split('-')
+      updatedLocationString[6] = payload.shelf_position_number
+      shelvingJobContainer.value.shelf_position.location = updatedLocationString.join('-')
       if (payload.trayed) {
         shelvingJob.value.trays[shelvingJob.value.trays.findIndex(container => container.id == payload.container_id)] = { ...shelvingJobContainer.value, scanned_for_shelving: payload.scanned_for_shelving }
       } else {
