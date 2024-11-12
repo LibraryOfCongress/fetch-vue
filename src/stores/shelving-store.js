@@ -79,6 +79,28 @@ export const useShelvingStore = defineStore('shelving-store', {
         }
       },
       scanned_for_shelving: false
+    },
+    moveShelfJob: {
+      type: '',
+      shelf_barcode: {
+        value: ''
+      },
+      tray_barcode: {
+        value: ''
+      },
+      user: {
+        first_name: '',
+        last_name: ''
+      },
+      user_id: null,
+      owner: {
+        name: ''
+      },
+      size_class: {
+        name: ''
+      },
+      move_dt: '',
+      containers: []
     }
   }),
   getters: {

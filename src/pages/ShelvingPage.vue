@@ -1,7 +1,7 @@
 <template>
   <q-page
     :style-fn="handlePageOffset"
-    :padding="!route.params.jobId"
+    :padding="!route.params.jobId && !route.params.type"
     class="shelving"
   >
     <LoadingOverlay />
@@ -9,6 +9,7 @@
     <ShelvingDashboard v-if="route.name == 'shelving' && !route.params.jobId" />
     <ShelvingJobDetails v-else-if="route.name == 'shelving' && route.params.jobId" />
     <ShelvingJobDirectToShelf v-else-if="!appIsLoadingData && route.name == 'shelving-dts' && route.params.jobId" />
+    <ShelvingMove v-else-if="route.name == 'shelving-move' && route.params.type" />
   </q-page>
 </template>
 
@@ -22,6 +23,7 @@ import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import ShelvingDashboard from '@/components/Shelving/ShelvingDashboard.vue'
 import ShelvingJobDetails from '@/components/Shelving/ShelvingJobDetails.vue'
 import ShelvingJobDirectToShelf from '@/components/Shelving/ShelvingJobDirectToShelf.vue'
+import ShelvingMove from '@/components/Shelving/ShelvingMove.vue'
 
 const route = useRoute()
 

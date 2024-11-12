@@ -29,12 +29,84 @@
               <q-btn
                 no-caps
                 unelevated
+                icon-right="arrow_drop_down"
                 color="accent"
                 label="Create Shelving Job"
-                class="btn-no-wrap text-body1 q-ml-xs-none q-ml-sm-sm"
+                class="text-body1 q-ml-xs-none q-ml-sm-sm"
                 :disabled="appIsOffline"
-                @click="showShelvingJobModal = !showShelvingJobModal"
-              />
+                aria-label="createShelvingJobMenu"
+                aria-haspopup="menu"
+                :aria-expanded="shelvingJobMenuState"
+              >
+                <q-menu
+                  @show="shelvingJobMenuState = true"
+                  @hide="shelvingJobMenuState = false"
+                  aria-label="requestJobMenuList"
+                >
+                  <q-list>
+                    <q-item
+                      v-if="checkUserPermission('can_create_and_execute_direct_shelving_job')"
+                      clickable
+                      v-close-popup
+                      @click="showShelvingJobModal = 'Direct'"
+                      role="menuitem"
+                    >
+                      <q-item-section>
+                        <q-item-label>
+                          <span>
+                            Direct To Shelf
+                          </span>
+                        </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                    <q-item
+                      v-if="checkUserPermission('can_create_and_execute_shelving_job')"
+                      clickable
+                      v-close-popup
+                      @click="showShelvingJobModal = 'Verification'"
+                      role="menuitem"
+                    >
+                      <q-item-section>
+                        <q-item-label>
+                          <span>
+                            From Verification Job
+                          </span>
+                        </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                    <q-item
+                      v-if="checkUserPermission('can_move_trays_and_items_shelving_locations')"
+                      clickable
+                      v-close-popup
+                      @click="submitShelvingMove('tray-item')"
+                      role="menuitem"
+                    >
+                      <q-item-section>
+                        <q-item-label>
+                          <span>
+                            Move Tray Item
+                          </span>
+                        </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                    <q-item
+                      v-if="checkUserPermission('can_move_trays_and_items_shelving_locations')"
+                      clickable
+                      v-close-popup
+                      @click="submitShelvingMove('tray-non-tray')"
+                      role="menuitem"
+                    >
+                      <q-item-section>
+                        <q-item-label>
+                          <span class="text-no-wrap">
+                            Move Tray / Non-Tray
+                          </span>
+                        </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
             </div>
           </template>
 
@@ -75,26 +147,10 @@
       <template #header-content="{ hideModal }">
         <q-card-section class="row items-center q-pb-none">
           <h2
-            v-if="shelvingJob.type == null"
             class="text-h6 text-bold"
           >
-            Create Shelving Job
+            {{ showShelvingJobModal == 'Direct' ? 'Create Direct Shelving Job' : 'Create Shelving Job' }}
           </h2>
-          <template v-else>
-            <q-btn
-              icon="chevron_left"
-              name="back"
-              no-caps
-              flat
-              dense
-              class="text-body1"
-              @click="shelvingJob.type = null"
-              aria-label="backIcon"
-            />
-            <h2 class="text-h6 text-bold q-ml-xs">
-              Create Shelving Job
-            </h2>
-          </template>
 
           <q-btn
             icon="close"
@@ -108,32 +164,7 @@
         </q-card-section>
       </template>
       <template #main-content>
-        <q-card-section
-          v-if="shelvingJob.type == null"
-          class="column no-wrap items-center"
-        >
-          <q-btn
-            outline
-            no-caps
-            padding="14px md"
-            label="Direct To Shelve"
-            class="full-width text-body1 q-mb-md"
-            :disabled="appIsOffline || !checkUserPermission('can_create_and_execute_direct_shelving_job')"
-            @click="shelvingJob.type = 'Direct'"
-          />
-
-          <q-btn
-            outline
-            no-caps
-            padding="14px md"
-            label="From Verification Job"
-            class="full-width text-body1"
-            :disabled="appIsOffline || !checkUserPermission('can_create_and_execute_shelving_job')"
-            @click="shelvingJob.type = 'Verification'"
-          />
-        </q-card-section>
-
-        <q-card-section v-else-if="shelvingJob.type == 'Verification'">
+        <q-card-section v-if="showShelvingJobModal == 'Verification'">
           <div class="row q-mb-md">
             <div class="col-xs-12 col-sm-8 flex items-center">
               <p :class="currentScreenSize !== 'xs' ? 'text-h6' : 'text-body1 q-mb-xs'">
@@ -301,7 +332,7 @@
             </div>
           </div>
         </q-card-section>
-        <q-card-section v-else-if="shelvingJob.type == 'Direct'">
+        <q-card-section v-else-if="showShelvingJobModal == 'Direct'">
           <div class="row">
             <div class="col-12 q-mb-sm">
               <h3 class="text-h6 text-bold">
@@ -333,11 +364,10 @@
 
       <template #footer-content="{ hideModal }">
         <q-card-section
-          v-if="shelvingJob.type !== null"
           class="row no-wrap justify-between items-center q-pt-sm"
         >
           <q-btn
-            v-if="shelvingJob.type == 'Direct'"
+            v-if="showShelvingJobModal == 'Direct'"
             no-caps
             unelevated
             color="accent"
@@ -515,7 +545,8 @@ const shelfTableFilters =  ref([
     ]
   }
 ])
-const showShelvingJobModal = ref(false)
+const shelvingJobMenuState = ref(false)
+const showShelvingJobModal = ref(null)
 const isCreateShelvingjobFormValid = computed(() => {
   if (shelvingJob.value.type == 'Verification' && (shelvingJob.value.verification_jobs.length == 0 || !shelvingJob.value.building_id)) {
     return false
@@ -547,7 +578,7 @@ onBeforeMount(() => {
 const resetCreateShelfJobModal = () => {
   resetShelvingJob()
   resetBuildingStore()
-  showShelvingJobModal.value = false
+  showShelvingJobModal.value = null
 }
 const handleShelvingJobFormChange = async (valueType) => {
   // reset the form depending on the edited form field type
@@ -698,6 +729,14 @@ const submitDirectToShelfJob = async () => {
     appIsLoadingData.value = false
     createShelvingJobModal.value.hideModal()
   }
+}
+const submitShelvingMove = async (moveType) => {
+  router.push({
+    name: 'shelving-move',
+    params: {
+      type: moveType
+    }
+  })
 }
 
 const loadVerificationJobs = async () => {

@@ -215,6 +215,15 @@ const routes = [
         }
       },
       {
+        name: 'shelving-move',
+        path: 'shelving/move/:type',
+        component: () => import('@/pages/ShelvingPage.vue'),
+        meta: {
+          requiresAuth: true,
+          requiresPerm: 'can_access_shelving'
+        }
+      },
+      {
         name: 'test',
         path: '/test',
         component: () => import('@/pages/TestPage.vue')
