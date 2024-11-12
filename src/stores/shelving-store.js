@@ -172,7 +172,7 @@ export const useShelvingStore = defineStore('shelving-store', {
             ...this.directToShelfJob,
             shelf_barcode: res.data.barcode,
             owner: res.data.owner,
-            size_class: res.data.size_class
+            size_class: res.data.shelf_type.size_class
           }
         }
       } catch (error) {
