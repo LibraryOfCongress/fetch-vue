@@ -373,9 +373,8 @@
             color="accent"
             label="Submit"
             class="text-body1 full-width"
-            :loading="appActionIsLoadingData"
             :disabled="!isCreateShelvingjobFormValid"
-            @click="submitDirectToShelfJob()"
+            @click="submitDirectToShelfJob(); hideModal();"
           />
           <q-btn
             v-else
@@ -384,9 +383,8 @@
             color="accent"
             label="Submit"
             class="text-body1 full-width"
-            :loading="appActionIsLoadingData"
             :disabled="!isCreateShelvingjobFormValid"
-            @click="submitShelvingJob()"
+            @click="submitShelvingJob(); hideModal();"
           />
 
           <q-space class="q-mx-xs" />
@@ -430,7 +428,6 @@ const { checkUserPermission } = usePermissionHandler()
 // Store Data
 const {
   appIsLoadingData,
-  appActionIsLoadingData,
   appIsOffline
 } = storeToRefs(useGlobalStore())
 const { userData } = storeToRefs(useUserStore())
@@ -658,7 +655,7 @@ const loadShelvingJob = async (jobId, type) => {
 }
 const submitShelvingJob = async () => {
   try {
-    appActionIsLoadingData.value = true
+    appIsLoadingData.value = true
     const params = {
       module_id: shelvingJob.value.module_id,
       aisle_id: shelvingJob.value.aisle_id,
@@ -693,7 +690,7 @@ const submitShelvingJob = async () => {
       autoClose: true
     })
   } finally {
-    appActionIsLoadingData.value = false
+    appIsLoadingData.value = false
     createShelvingJobModal.value.hideModal()
   }
 }
