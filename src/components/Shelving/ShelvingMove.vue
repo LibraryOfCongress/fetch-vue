@@ -80,7 +80,7 @@
             class="btn-no-wrap text-body1 q-mr-sm"
             :disabled="appIsOffline || appPendingSync || moveShelfJob.containers.length == 0 || !checkUserPermission('can_move_trays_and_items_shelving_locations')"
             :loading="appActionIsLoadingData"
-            @click="completeMoveShelfLocations()"
+            @click="route.params.type == 'tray-non-tray' ? completeMoveShelfLocations() : completeMoveTrayItem()"
           />
           <q-btn
             v-if="!moveShelfJob.shelf_barcode && !moveShelfJob.tray_barcode"
@@ -110,7 +110,7 @@
         button-one-label="Complete Transfer"
         :button-one-outline="false"
         :button-one-disabled="appIsOffline || appPendingSync || moveShelfJob.containers.length == 0 || !checkUserPermission('can_move_trays_and_items_shelving_locations')"
-        @button-one-click="completeMoveShelfLocations()"
+        @button-one-click="route.params.type == 'tray-non-tray' ? completeMoveShelfLocations() : completeMoveTrayItem()"
         button-two-color="negative"
         :button-two-label="!moveShelfJob.shelf_barcode && !moveShelfJob.tray_barcode? 'Cancel Transfer' : moveShelfJob.shelf_barcode ? 'Scan New Shelf' : 'Scan New Tray'"
         :button-two-outline="false"
@@ -540,8 +540,15 @@ const triggerTrayScan = async (barcode_value) => {
     // if user is online send a get request to get the scanned trays data
     if (!appIsOffline.value) {
       appIsLoadingData.value = true
-      // TODO setup endpoint to load tray by barcode
-      // await getShelfByBarcode(barcode_value)
+      const res = await getShelvingTrayContainerDetails(barcode_value)
+      moveShelfJob.value = {
+        ...moveShelfJob.value,
+        ...res.data,
+        tray_barcode: res.data.barcode.value,
+        owner: res.data.owner,
+        size_class: res.data.size_class,
+        user: userData.value
+      }
     } else {
       // else if offline assign the tray barcode directly to the job
       moveShelfJob.value.tray_barcode = barcode_value
@@ -570,10 +577,14 @@ const triggerContainerScan = async (barcode_value) => {
 
     // if online verify the scanned container exists and its the correct type and get the scanned containers data
     if (!appIsOffline.value) {
-      await verifyBarcode(barcode_value, [
-        'Item',
-        'Tray'
-      ])
+      if (route.params.type == 'tray-non-tray') {
+        await verifyBarcode(barcode_value, [
+          'Item',
+          'Tray'
+        ])
+      } else {
+        await verifyBarcode(barcode_value, 'Item')
+      }
 
       // assign the scanned tray or non tray to our scannedContainer data
       let res
@@ -583,7 +594,7 @@ const triggerContainerScan = async (barcode_value) => {
       } else if (barcodeDetails.value.type.name == 'Item'  && route.params.type == 'tray-non-tray') {
         res = await getShelvingNonTrayItemDetails(barcode_value)
         scannedContainer.value = res.data
-      } else if (barcodeDetails.value.type.name == 'Tray') {
+      } else if (barcodeDetails.value.type.name == 'Tray' && route.params.type == 'tray-non-tray') {
         res = await getShelvingTrayContainerDetails(barcode_value)
         scannedContainer.value = res.data
       }
@@ -594,7 +605,7 @@ const triggerContainerScan = async (barcode_value) => {
 
     // depending on move type either add the transfer item or verify if needed
     if (route.params.type == 'tray-item') {
-      verifyTransferTrayItem()
+      verifyAndAddTransferTrayItem()
     } else if (route.params.type == 'tray-non-tray') {
       showScanContainerModal.value = true
       verifyTransferContainerShelfLocation()
@@ -674,47 +685,32 @@ const addTransferContainerShelfLocation = () => {
   addDataToIndexDb('shelvingStore', 'moveShelfJob', JSON.parse(JSON.stringify(moveShelfJob.value)))
   scanContainerModal.value.hideModal()
 }
-const verifyTransferTrayItem = async () => {
-  try {
-    appActionIsLoadingData.value = true
-
-    const payload = {
-      container_barcode_value: scannedContainer.value.barcode.value,
-      tray_barcode_value: moveShelfJob.value.tray_barcode,
-      scanned_for_transfer: true
-    }
-    console.log('checking if tray item can be transferred...', payload)
-    // TODO using existing endpoints check if the scanned tray item is allowed to be transferred to the tray container
-    // await postDirectShelvingJobContainer(payload)
-
-    // if offline allow transfer directly to the moveShelfJob containers
-    if (appIsOffline.value) {
-      moveShelfJob.value.containers = [
-        ...moveShelfJob.value.containers,
-        {
-          barcode: {
-            value: scannedContainer.value.barcode.value
-          },
-          owner: {
-            name: ''
-          },
-          scanned_for_transfer: true
-        }
-      ]
-    }
-
-    // store the current movejob state in indexdb for reference offline whenever job is executed
-    addDataToIndexDb('shelvingStore', 'moveShelfJob', JSON.parse(JSON.stringify(moveShelfJob.value)))
-    clearScannedContainer()
-  } catch (error) {
+const verifyAndAddTransferTrayItem = () => {
+  // if online check that the scanned tray item has been accessioned before
+  if (!appIsOffline.value && !scannedContainer.value.scanned_for_verification) {
     handleAlert({
       type: 'error',
-      text: error,
+      text: 'The scanned item has not been verified. Please try again!',
       autoClose: true
     })
-  } finally {
-    appActionIsLoadingData.value = false
+    return
   }
+  //TODO? possibly add checks to make sure size class and owners match as well?
+
+  const trayItemPendingTransfer = {
+    barcode: scannedContainer.value.barcode,
+    owner: scannedContainer.value.owner,
+    scanned_for_transfer: true,
+    tray_barcode_value: moveShelfJob.value.tray_barcode
+  }
+
+  // add the new container to the moveShelfJob Containers
+  moveShelfJob.value.containers = [
+    ...moveShelfJob.value.containers,
+    trayItemPendingTransfer
+  ]
+
+  clearScannedContainer()
 }
 const completeMoveShelfLocations = async () => {
   try {
@@ -768,6 +764,47 @@ const completeMoveShelfLocations = async () => {
     handleAlert({
       type: 'success',
       text: 'The Containers have been successfully moved.',
+      autoClose: true
+    })
+
+    // set transffered date
+    moveShelfJob.value.move_dt = new Date()
+    setTimeout(() => {
+      router.push({
+        name: 'shelving',
+        params: {
+          jobId: null
+        }
+      })
+    }, 3000)
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    deleteDataInIndexDb('shelvingStore', 'moveShelfJob')
+    appActionIsLoadingData.value = false
+  }
+}
+const completeMoveTrayItem = async () => {
+  try {
+    appActionIsLoadingData.value = true
+
+    await Promise.all(
+      moveShelfJob.value.containers.map((container) => {
+        const payload = {
+          tray_barcode_value: container.tray_barcode_value,
+          item_barcode_value: container.barcode.value
+        }
+        return postMoveTrayItemLocation(payload)
+      })
+    )
+
+    handleAlert({
+      type: 'success',
+      text: 'The tray items have been successfully moved.',
       autoClose: true
     })
 

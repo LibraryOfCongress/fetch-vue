@@ -354,26 +354,50 @@ export const useShelvingStore = defineStore('shelving-store', {
     },
     async postMoveTrayLocation (payload) {
       try {
+        if (globalStore.appIsOffline) {
+          // this will only occur when user is moving items offline
+          navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.traysMove}${payload.tray_barcode_value}` })
+        }
         // await this.$api.post(`${inventoryServiceApi.traysMove}${payload.tray_barcode_value}`, payload)
         console.log('moving tray', payload)
       } catch (error) {
-        throw error
+        if (globalStore.appIsOffline) {
+          return
+        } else {
+          throw error
+        }
       }
     },
     async postMoveNonTrayLocation (payload) {
       try {
+        if (globalStore.appIsOffline) {
+          // this will only occur when user is moving items offline
+          navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.nonTrayItemsMove}${payload.non_tray_barcode_value}` })
+        }
         // await this.$api.post(`${inventoryServiceApi.nonTrayItemsMove}${payload.non_tray_barcode_value}`, payload)
         console.log('moving non-tray', payload)
       } catch (error) {
-        throw error
+        if (globalStore.appIsOffline) {
+          return
+        } else {
+          throw error
+        }
       }
     },
     async postMoveTrayItemLocation (payload) {
       try {
+        if (globalStore.appIsOffline) {
+          // this will only occur when user is moving items offline
+          navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.itemsMove}${payload.item_barcode_value}` })
+        }
         // await this.$api.post(`${inventoryServiceApi.itemsMove}${payload.item_barcode_value}`, payload)
         console.log('moving tray item', payload)
       } catch (error) {
-        throw error
+        if (globalStore.appIsOffline) {
+          return
+        } else {
+          throw error
+        }
       }
     }
   }
