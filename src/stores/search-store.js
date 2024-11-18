@@ -11,14 +11,35 @@ export const useSearchStore = defineStore('search-store', {
     },
     async getExactSearchResult (searchInput, searchType) {
       try {
-        if (searchType == 'Item' || searchType == 'Tray') {
-          // exact searches for item/tray types will load the item-managment ui by the item/trays barcode value
-          this.searchResults = ['No results found...']
-          console.log('getting search results for item/tray barcode', searchInput, searchType)
+        if (searchType == 'Item') {
+          // exact searches for item/tray items types will load the item-managment ui for the item barcode value
+          const [
+            resTrayItem,
+            resNonTrayItem
+          ] = await Promise.all([
+            this.$api.get(`${inventoryServiceApi.itemsBarcode}${searchInput}`).catch((error) => error.response.status == '404' ? '404' : error),
+            this.$api.get(`${inventoryServiceApi.nonTrayItemsBarcode}${searchInput}`).catch((error) => error.response.status == '404' ? '404' : error)
+          ])
+
+          if (resTrayItem !== '404') {
+            this.searchResults = [`Tray-Item: ${searchInput} - ${resTrayItem.data.status}`]
+            return resTrayItem
+          } else if (resNonTrayItem !== '404') {
+            this.searchResults = [`Non-Tray: ${searchInput} - ${resNonTrayItem.data.status}`]
+            return resNonTrayItem
+          } else {
+            this.searchResults = ['No results found...']
+          }
+        } else if (searchType == 'Tray') {
+          // exact search for shelf type will load the item-managment ui for the tray barcode value
+          const res = await this.$api.get(`${inventoryServiceApi.traysBarcode}${searchInput}`)
+          this.searchResults = [`Tray: ${searchInput}`]
+          return res
         } else if (searchType == 'Shelf') {
-          // exact search for shelf type will load the shelf detail page (need to figure out what that is, is it the admin shelf view?)
-          this.searchResults = ['No results found...']
-          console.log('getting search results for shelf by barcode', searchInput, searchType)
+          // exact search for shelf type will load the item-managment ui for the shelf barcode value
+          const res = await this.$api.get(`${inventoryServiceApi.shelvesBarcode}${searchInput}`)
+          this.searchResults = [`Shelf: ${searchInput}`]
+          return res
         } else {
           // exact searches for job types will load the direct job by job number
           let jobEndpoint = `${searchType.toLowerCase()}Jobs`

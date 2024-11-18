@@ -145,25 +145,6 @@
           <div class="col-12 q-mb-md">
             <div class="form-group">
               <label class="form-group-label">
-                Size Class
-              </label>
-              <SelectInput
-                v-model="searchForm.size_class_id"
-                :options="sizeClass"
-                option-type="sizeClass"
-                option-value="id"
-                option-label="name"
-                :placeholder="`Select Size Class`"
-                :disabled="!searchForm.shelf_id"
-                @update:model-value="null"
-                :aria-label="`sizeClassSelect`"
-              />
-            </div>
-          </div>
-
-          <div class="col-12 q-mb-md">
-            <div class="form-group">
-              <label class="form-group-label">
                 Owner
               </label>
               <SelectInput
@@ -183,11 +164,18 @@
           <div class="col-12 q-mb-md">
             <div class="form-group">
               <label class="form-group-label">
-                Shelf Barcode
+                Size Class
               </label>
-              <TextInput
-                v-model="searchForm.barcode"
-                placeholder="Enter Shelf Barcode"
+              <SelectInput
+                v-model="searchForm.size_class_id"
+                :options="sizeClass"
+                option-type="sizeClass"
+                option-value="id"
+                option-label="name"
+                :placeholder="`Select Size Class`"
+                :disabled="!searchForm.shelf_id"
+                @update:model-value="null"
+                :aria-label="`sizeClassSelect`"
               />
             </div>
           </div>
@@ -203,7 +191,7 @@
           >
             <!-- date range inputs -->
             <div
-              v-if="param.query == 'from_dt' || param.query == 'to_dt'"
+              v-if="param.query.includes('_dt')"
               class="col-6 q-mb-md"
             >
               <div class="form-group q-pr-xs">
@@ -314,7 +302,7 @@
 </template>
 
 <script setup>
-import { ref, inject, onBeforeMount } from 'vue'
+import { ref, inject, onBeforeMount, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -383,6 +371,10 @@ onBeforeMount(() => {
   generateSearchModal()
 })
 
+watch(() => mainProps.searchType, () => {
+  generateSearchModal()
+})
+
 const handleLocationFormChange = async (valueType) => {
   // reset the report form depending on the edited form field type
   switch (valueType) {
@@ -429,17 +421,16 @@ const generateSearchModal = () => {
       owner_id: null,
       status: null,
       size_class_id: null,
-      media_type_id: null,
-      barcode_value: mainProps.searchBarInput
+      media_type_id: null
     }
     searchParams.value = [
       {
         query: 'from_dt',
-        label: 'Date (From)'
+        label: 'Accession Date (From)'
       },
       {
         query: 'to_dt',
-        label: 'Date (To)'
+        label: 'Accession Date Date (To)'
       },
       {
         query: 'owner_id',
@@ -464,10 +455,6 @@ const generateSearchModal = () => {
         label: 'Media Type',
         options: mediaTypes,
         optionType: 'mediaTypes'
-      },
-      {
-        query: 'barcode',
-        label: 'Item Barcode'
       }
     ]
     break
@@ -477,17 +464,16 @@ const generateSearchModal = () => {
       to_dt: null,
       owner_id: null,
       size_class_id: null,
-      media_type_id: null,
-      barcode_value: mainProps.searchBarInput
+      media_type_id: null
     }
     searchParams.value = [
       {
         query: 'from_dt',
-        label: 'Date (From)'
+        label: 'Accession Date Date (From)'
       },
       {
         query: 'to_dt',
-        label: 'Date (To)'
+        label: 'Accession Date Date (To)'
       },
       {
         query: 'owner_id',
@@ -506,10 +492,6 @@ const generateSearchModal = () => {
         label: 'Media Type',
         options: mediaTypes,
         optionType: 'mediaTypes'
-      },
-      {
-        query: 'barcode',
-        label: 'Tray Barcode'
       }
     ]
     break
@@ -522,8 +504,7 @@ const generateSearchModal = () => {
       ladder_id: null,
       shelf_id: null,
       owner_id: null,
-      size_class_id: null,
-      barcode_value: mainProps.searchBarInput
+      size_class_id: null
     }
     break
   default:
@@ -538,11 +519,11 @@ const generateSearchModal = () => {
     searchParams.value = [
       {
         query: 'from_dt',
-        label: 'Date (From)'
+        label: 'Created Date (From)'
       },
       {
         query: 'to_dt',
-        label: 'Date (To)'
+        label: 'Created Date (To)'
       },
       {
         query: 'job_id',
@@ -572,25 +553,32 @@ const generateSearchModal = () => {
 const executeAdvancedSearch = async () => {
   try {
     appActionIsLoadingData.value = true
-    // convert any form date values to iso format
-    if (Object.entries(searchForm.value).some(([
+    let queryParams = JSON.parse(JSON.stringify(searchForm.value))
+    // convert any form date values to iso format along with removing any empty query params
+    Object.entries(queryParams).forEach(([
       key,
       value
-    ]) => key.includes('_dt') && value)) {
-      Object.keys(searchForm.value).forEach(key => {
-        if (key.includes('_dt')) {
-          const [
-            month,
-            day,
-            year
-          ] = searchForm.value[key].split('/')
-          searchForm.value[key] = new Date(year, month - 1, day).toISOString()
+    ]) => {
+      if (key.includes('_dt') && value) {
+        const [
+          month,
+          day,
+          year
+        ] = queryParams[key].split('/')
+        if (key.includes('from')) {
+          // sets from dates to begging of day
+          queryParams[key] = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0)).toISOString()
+        }  else {
+          // sets to date to end of date
+          queryParams[key] = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999)).toISOString()
         }
-      })
-    }
+      } else if (!value) {
+        delete queryParams[key]
+      }
+    })
 
     // TODO need to figure out how advance search will be sent to api
-    await getAdvancedSearchResults(searchForm.value, mainProps.searchType)
+    await getAdvancedSearchResults(queryParams, mainProps.searchType)
 
     router.push({
       name: 'search-results',

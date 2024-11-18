@@ -19,6 +19,7 @@ export default {
   containerTypes: '/container-types/',
   groups: '/groups/',
   items: '/items/',
+  itemsBarcode: '/items/barcode/',
   mediaTypes: '/media-types/',
   modules: '/modules/',
   nonTrayItems: '/non_tray_items/',

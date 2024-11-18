@@ -265,7 +265,7 @@
           >
             <!-- date range inputs -->
             <div
-              v-if="param.query.includes('_dt') || param.query.includes('_dt')"
+              v-if="param.query.includes('_dt')"
               class="col-6 q-mb-md"
             >
               <div class="form-group q-pr-xs">
