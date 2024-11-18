@@ -356,16 +356,9 @@ const moveTableColumns = ref([
     sortable: true
   },
   {
-    name: 'new_shelf',
-    field: 'new_shelf',
-    label: 'Shelf',
-    align: 'left',
-    sortable: true
-  },
-  {
-    name: 'new_shelf_position',
-    field: 'new_shelf_position',
-    label: 'Shelf Position',
+    name: 'location',
+    field: row => getItemLocation(row),
+    label: 'Location',
     align: 'left',
     sortable: true
   },
@@ -382,8 +375,7 @@ const moveTableVisibleColumns = ref([
   'barcode',
   'owner',
   'size_class',
-  'new_shelf',
-  'new_shelf_position',
+  'location',
   'verified'
 ])
 const moveItemTableColumns = ref([
@@ -441,6 +433,7 @@ const renderBarcodeDisplay = computed(() => {
 
 // Logic
 const formatDateTime = inject('format-date-time')
+const getItemLocation = inject('get-item-location')
 const handleAlert = inject('handle-alert')
 
 onBeforeMount(() => {
@@ -448,8 +441,7 @@ onBeforeMount(() => {
     moveTableVisibleColumns.value = [
       'barcode',
       'size_class',
-      'new_shelf',
-      'new_shelf_position',
+      'location',
       'verified'
     ]
   }
@@ -649,7 +641,22 @@ const addTransferContainerShelfLocation = () => {
     new_shelf_position: scannedContainer.value.shelf_position_number,
     scanned_for_transfer: true,
     shelf_barcode_value: moveShelfJob.value.shelf_barcode,
-    container_type: scannedContainer.value.container_type
+    container_type: scannedContainer.value.container_type,
+    shelf_position: moveShelfJob.value.shelf_position ?? { location: ' - - - - - - ' }
+  }
+
+  // if offline allow transfer directly to the moveShelfJob containers
+  if (appIsOffline.value) {
+    // since were offline we dont have access to proper shelf position location so we display barcode and number instead
+    containerPendingTransfer.shelf_position = {
+      location: ` - - - - -${containerPendingTransfer.new_shelf}-${containerPendingTransfer.new_shelf_position}`
+    }
+  } else {
+    // replace the last 2 locations on the scanned container to the new shelf and shelf position
+    let containerLocationStringToArray = containerPendingTransfer.shelf_position.location.split('-')
+    containerLocationStringToArray[5] = containerPendingTransfer.new_shelf
+    containerLocationStringToArray[6] = containerPendingTransfer.new_shelf_position
+    containerPendingTransfer.shelf_position.location = containerLocationStringToArray.join('-')
   }
 
   // add the new container to the moveShelfJob Containers
@@ -657,29 +664,6 @@ const addTransferContainerShelfLocation = () => {
     ...moveShelfJob.value.containers,
     containerPendingTransfer
   ]
-  // if offline allow transfer directly to the moveShelfJob containers
-  // if (appIsOffline.value) {
-  //   moveShelfJob.value.containers = [
-  //     ...moveShelfJob.value.containers,
-  //     {
-  //       ...containerPendingTransfer,
-  //       // since were offline we dont have access to proper shelf position location so we display barcode and number instead
-  //       shelf_position: {
-  //         location: ` - - - - -${moveShelfJob.value.shelf_barcode}-${scannedContainer.value.shelf_position_number}`
-  //       }
-  //     }
-  //   ]
-  // } else {
-  //   // TODO? replace the last character of the shelf position location string to the new user inputted shelf position number
-  //   // const newContainerLocationString = containerPendingTransfer.shelf_position.location.replace(/ $/, scannedContainer.value.shelf_position_number)
-  //   // containerPendingTransfer.shelf_position.location = newContainerLocationString
-
-  //   // add the new container to the moveShelfJob Containers
-  //   moveShelfJob.value.containers = [
-  //     ...moveShelfJob.value.containers,
-  //     containerPendingTransfer
-  //   ]
-  // }
 
   // store the current movejob state in indexdb for reference offline whenever job is executed
   addDataToIndexDb('shelvingStore', 'moveShelfJob', JSON.parse(JSON.stringify(moveShelfJob.value)))
