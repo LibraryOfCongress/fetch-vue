@@ -354,23 +354,41 @@ export const useShelvingStore = defineStore('shelving-store', {
     },
     async postMoveTrayLocation (payload) {
       try {
-        await this.$api.post(`${inventoryServiceApi.traysMove}${payload.tray_barcode_value}`, payload)
+        const res = await this.$api.post(`${inventoryServiceApi.traysMove}${payload.tray_barcode_value}`, payload)
+        return res
       } catch (error) {
-        throw error
+        if (error.response.status == 422) {
+          // return 422 error since these have messages we need to display to the user
+          return error
+        } else {
+          throw error
+        }
       }
     },
     async postMoveNonTrayLocation (payload) {
       try {
-        await this.$api.post(`${inventoryServiceApi.nonTrayItemsMove}${payload.non_tray_barcode_value}`, payload)
+        const res = await this.$api.post(`${inventoryServiceApi.nonTrayItemsMove}${payload.non_tray_barcode_value}`, payload)
+        return res
       } catch (error) {
-        throw error
+        if (error.response.status == 422) {
+          // return 422 error since these have messages we need to display to the user
+          return error
+        } else {
+          throw error
+        }
       }
     },
     async postMoveTrayItemLocation (payload) {
       try {
-        await this.$api.post(`${inventoryServiceApi.itemsMove}${payload.item_barcode_value}`, payload)
+        const res = await this.$api.post(`${inventoryServiceApi.itemsMove}${payload.item_barcode_value}`, payload)
+        return res
       } catch (error) {
-        throw error
+        if (error.response.status == 422) {
+          // return 422 error since these have messages we need to display to the user
+          return error
+        } else {
+          throw error
+        }
       }
     }
   }

@@ -687,7 +687,7 @@ const addTransferContainerShelfLocation = () => {
     scanned_for_transfer: true,
     shelf_barcode_value: moveShelfJob.value.shelf_barcode,
     container_type: scannedContainer.value.container_type,
-    shelf_position: moveShelfJob.value.shelf_position ?? { location: ' - - - - - - ' }
+    shelf_position: moveShelfJob.value.shelf_positions?.find(sp => sp.shelf_position_number.number == scannedContainer.value.shelf_position_number) ?? { location: ' - - - - - - ' }
   }
 
   // if offline allow transfer directly to the moveShelfJob containers
@@ -696,12 +696,6 @@ const addTransferContainerShelfLocation = () => {
     containerPendingTransfer.shelf_position = {
       location: ` - - - - -${containerPendingTransfer.new_shelf}-${containerPendingTransfer.new_shelf_position}`
     }
-  } else {
-    // replace the last 2 locations on the scanned container to the new shelf and shelf position
-    let containerLocationStringToArray = containerPendingTransfer.shelf_position.location.split('-')
-    containerLocationStringToArray[5] = containerPendingTransfer.new_shelf
-    containerLocationStringToArray[6] = containerPendingTransfer.new_shelf_position
-    containerPendingTransfer.shelf_position.location = containerLocationStringToArray.join('-')
   }
 
   // add the new container to the moveShelfJob Containers
@@ -773,7 +767,7 @@ const completeMoveShelfLocations = async () => {
       )
     }
 
-    await Promise.all(
+    const responses = await Promise.all(
       moveShelfJob.value.containers.map((container) => {
         if (container.container_type.type == 'Tray') {
           const payload = {
@@ -800,11 +794,24 @@ const completeMoveShelfLocations = async () => {
       })
     )
 
-    handleAlert({
-      type: 'success',
-      text: 'The Containers have been successfully moved.',
-      autoClose: true
-    })
+    // loop through the responses and display the transfer success/failures and link the move descrepency report if needed
+    for (const res of responses) {
+      if (res.status == 200) {
+        handleAlert({
+          type: 'success',
+          text: `The Container: ${res.data.barcode.value} has been successfully transferred.`,
+          autoClose: false
+        })
+      } else {
+        //TODO change this to return a single error listing the number of errors and link a move discrepencty report when that feature is added.
+        //REMOVE TEMPORARY FIX - since there is no move descrepency report yet we just display error alerts for now
+        handleAlert({
+          type: 'error',
+          text: res,
+          autoClose: false
+        })
+      }
+    }
 
     // set transffered date
     moveShelfJob.value.move_dt = new Date()
@@ -831,7 +838,7 @@ const completeMoveTrayItem = async () => {
   try {
     appActionIsLoadingData.value = true
 
-    await Promise.all(
+    const responses = await Promise.all(
       moveShelfJob.value.containers.map((container) => {
         const payload = {
           tray_barcode_value: container.tray_barcode_value,
@@ -841,11 +848,24 @@ const completeMoveTrayItem = async () => {
       })
     )
 
-    handleAlert({
-      type: 'success',
-      text: 'The tray items have been successfully moved.',
-      autoClose: true
-    })
+    // loop through the responses and display the transfer success/failures and link the move descrepency report if needed
+    for (const res of responses) {
+      if (res.status == 200) {
+        handleAlert({
+          type: 'success',
+          text: `The Tray-Item: ${res.data.barcode.value} has been successfully transferred.`,
+          autoClose: false
+        })
+      } else {
+        //TODO change this to return a single error listing the number of errors and link a move discrepencty report when that feature is added.
+        //REMOVE TEMPORARY FIX - since there is no move descrepency report yet we just display error alerts for now
+        handleAlert({
+          type: 'error',
+          text: res,
+          autoClose: false
+        })
+      }
+    }
 
     // set transffered date
     moveShelfJob.value.move_dt = new Date()
