@@ -141,7 +141,16 @@
           </div>
         </template>
 
-        <template #table-td="{ colName, value }">
+        <template #table-td="{ props, colName, value }">
+          <span
+            v-if="colName == 'actions'"
+          >
+            <MoreOptionsMenu
+              :options="[{ text: 'Remove From Transfer' }]"
+              class=""
+              @click="handleOptionMenu($event, props.row)"
+            />
+          </span>
           <span
             v-if="colName == 'verified'"
             class="text-bold text-nowrap"
@@ -293,6 +302,7 @@ import MobileActionBar from '@/components/MobileActionBar.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 import TextInput from '@/components/TextInput.vue'
+import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -335,6 +345,14 @@ const {
 // Local Data
 const moveTableColumns = ref([
   {
+    name: 'actions',
+    field: 'actions',
+    label: '',
+    align: 'center',
+    sortable: false,
+    required: true
+  },
+  {
     name: 'barcode',
     field: row => row.barcode.value,
     label: 'Barcode',
@@ -372,6 +390,7 @@ const moveTableColumns = ref([
   }
 ])
 const moveTableVisibleColumns = ref([
+  'actions',
   'barcode',
   'owner',
   'size_class',
@@ -380,9 +399,24 @@ const moveTableVisibleColumns = ref([
 ])
 const moveItemTableColumns = ref([
   {
+    name: 'actions',
+    field: 'actions',
+    label: '',
+    align: 'center',
+    sortable: false,
+    required: true
+  },
+  {
     name: 'barcode',
     field: row => row.barcode.value,
     label: 'Item Barcode',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'tray_barcode',
+    field: 'tray_barcode_value',
+    label: 'Tray Barcode',
     align: 'left',
     sortable: true
   },
@@ -403,7 +437,9 @@ const moveItemTableColumns = ref([
   }
 ])
 const moveItemTableVisibleColumns = ref([
+  'actions',
   'barcode',
+  'tray_barcode',
   'owner',
   'verified'
 ])
@@ -439,6 +475,7 @@ const handleAlert = inject('handle-alert')
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
     moveTableVisibleColumns.value = [
+      'actions',
       'barcode',
       'size_class',
       'location',
@@ -466,6 +503,14 @@ onMounted(async () => {
 const neverShowContainerNote = () => {
   showScanContainerNoteModal.value = false
   $q.localStorage.set('hideMoveWorkflowNote', true)
+}
+
+const handleOptionMenu = (action, rowData) => {
+  switch (action.text) {
+  case 'Remove From Transfer':
+    removeTransferContainer(rowData.barcode.value)
+    return
+  }
 }
 
 watch(compiledBarCode, (barcode) => {
@@ -665,7 +710,7 @@ const addTransferContainerShelfLocation = () => {
     containerPendingTransfer
   ]
 
-  // store the current movejob state in indexdb for reference offline whenever job is executed
+  // store the current movejob state in indexdb for reference offline
   addDataToIndexDb('shelvingStore', 'moveShelfJob', JSON.parse(JSON.stringify(moveShelfJob.value)))
   scanContainerModal.value.hideModal()
 }
@@ -695,6 +740,16 @@ const verifyAndAddTransferTrayItem = () => {
   ]
 
   clearScannedContainer()
+
+  // store the current movejob state in indexdb for reference offline
+  addDataToIndexDb('shelvingStore', 'moveShelfJob', JSON.parse(JSON.stringify(moveShelfJob.value)))
+}
+const removeTransferContainer = (barcode_value) => {
+  // find the barcode in the moveJob containers and remove it
+  moveShelfJob.value.containers = moveShelfJob.value.containers.filter(c => c.barcode.value !== barcode_value)
+
+  // store the current movejob state in indexdb for reference offline
+  addDataToIndexDb('shelvingStore', 'moveShelfJob', JSON.parse(JSON.stringify(moveShelfJob.value)))
 }
 const completeMoveShelfLocations = async () => {
   try {
