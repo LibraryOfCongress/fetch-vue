@@ -10,7 +10,7 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
-          @selected-table-row="null"
+          @selected-table-row="handleResultSelection($event)"
         >
           <template #heading-row>
             <div
@@ -43,13 +43,14 @@
 
 <script setup>
 import { onBeforeMount, ref, inject, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter  } from 'vue-router'
 import { useSearchStore } from '@/stores/search-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from '@/components/EssentialTable.vue'
 
 const route = useRoute()
+const router = useRouter()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
@@ -577,6 +578,74 @@ const renderUserName = (userObj) => {
     userName = `${userObj.first_name} ${userObj.last_name}`
   }
   return userName
+}
+
+const handleResultSelection = (rowData) => {
+  console.log(rowData)
+  switch (route.params.searchType) {
+  case 'Item':
+    console.log('routing to item detail page')
+    break
+  case 'Tray':
+    console.log('routing to tray detail page')
+    break
+  case 'Shelf':
+    console.log('routing to shelf detail page')
+    break
+  case 'Accession':
+    router.push({
+      name: 'accession',
+      params: {
+        jobId: rowData.workflow_id
+      }
+    })
+    break
+  case 'Verification':
+    router.push({
+      name: 'verification',
+      params: {
+        jobId: rowData.workflow_id
+      }
+    })
+    break
+  case 'Shelving':
+    router.push({
+      name: 'shelving',
+      params: {
+        jobId: rowData.id
+      }
+    })
+    break
+  case 'Request':
+    //TODO figure out how should we do request routing
+    break
+  case 'Picklist':
+    router.push({
+      name: 'picklist',
+      params: {
+        jobId: rowData.id
+      }
+    })
+    break
+  case 'Refile':
+    router.push({
+      name: 'refile',
+      params: {
+        jobId: rowData.id
+      }
+    })
+    break
+  case 'Withdraw':
+    router.push({
+      name: 'withdrawal',
+      params: {
+        jobId: rowData.id
+      }
+    })
+    break
+  default:
+    break
+  }
 }
 </script>
 <style lang="scss" scoped>
