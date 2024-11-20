@@ -261,8 +261,8 @@
                   v-model="searchForm[param.query]"
                   :options="param.options"
                   :option-type="param.optionType"
-                  option-value="id"
-                  :option-label="param.optionType == 'users' ? 'first_name' : 'name'"
+                  :option-value="param.optionType ? 'id' : ''"
+                  :option-label="!param.optionType ? '' : param.optionType == 'users' ? 'first_name' : 'name'"
                   :placeholder="`Select ${param.label}`"
                   @update:model-value="null"
                   :aria-label="`${param.query}Select`"
@@ -419,7 +419,7 @@ const generateSearchModal = () => {
       from_dt: null,
       to_dt: null,
       owner_id: null,
-      status: null,
+      status: '',
       size_class_id: null,
       media_type_id: null
     }
@@ -441,7 +441,12 @@ const generateSearchModal = () => {
       {
         query: 'status',
         label: 'Status',
-        options: [],
+        options: [
+          'In',
+          'Out',
+          'Requested',
+          'Withdrawn'
+        ],
         optionType: ''
       },
       {
@@ -511,7 +516,6 @@ const generateSearchModal = () => {
     searchForm.value = {
       from_dt: null,
       to_dt: null,
-      job_id: mainProps.searchBarInput,
       status: null,
       create_by: null,
       complete_by: null
@@ -526,12 +530,16 @@ const generateSearchModal = () => {
         label: 'Created Date (To)'
       },
       {
-        query: 'job_id',
-        label: 'Job Number'
-      },
-      {
         query: 'status',
-        label: 'Status'
+        label: 'Status',
+        options: [
+          'Created',
+          'Paused',
+          'Running',
+          'Cancelled',
+          'Completed'
+        ],
+        optionType: ''
       },
       {
         query: 'create_by',
@@ -540,7 +548,7 @@ const generateSearchModal = () => {
         optionType: 'users'
       },
       {
-        query: 'complete_by',
+        query: 'user_id',
         label: 'Completed By',
         options: users,
         optionType: 'users'
@@ -576,8 +584,6 @@ const executeAdvancedSearch = async () => {
         delete queryParams[key]
       }
     })
-
-    // TODO need to figure out how advance search will be sent to api
     await getAdvancedSearchResults(queryParams, mainProps.searchType)
 
     router.push({

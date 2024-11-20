@@ -67,13 +67,23 @@ export const useSearchStore = defineStore('search-store', {
     },
     async getAdvancedSearchResults (paramsObj, searchType) {
       try {
-        // TODO need to figure out how exact search will be sent to api
-        // TODO need to figure out how advance search will be sent to api
-        if (searchType == 'Tray') {
+        if (searchType == 'Item') {
+          const res = await this.$api.get(inventoryServiceApi.items, { params: paramsObj })
+          this.searchResults = res.data.items
+        } else if (searchType == 'Tray') {
           const res = await this.$api.get(inventoryServiceApi.trays, { params: paramsObj })
           this.searchResults = res.data.items
         } else {
-          this.searchResults = []
+          // job related advanced searches
+          let jobEndpoint = `${searchType.toLowerCase()}Jobs`
+          if (searchType == 'Request') {
+            jobEndpoint = 'requests'
+          } else if (searchType == 'Picklist') {
+            jobEndpoint = 'picklists'
+          }
+
+          const res = await this.$api.get(inventoryServiceApi[jobEndpoint], { params: paramsObj })
+          this.searchResults = res.data.items
         }
       } catch (error) {
         throw error
