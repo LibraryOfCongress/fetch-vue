@@ -1,6 +1,7 @@
 <template>
   <q-dialog
-    v-model="showItemOverlay"
+    :model-value="true"
+    :no-route-dismiss="true"
     :position="'right'"
     full-height
     :class="$style.requestOverlay"
@@ -184,7 +185,7 @@
   </q-dialog>
 </template>
 <script setup>
-import { ref, inject } from 'vue'
+import { inject } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 
@@ -203,7 +204,6 @@ const emit = defineEmits(['close'])
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Local Data
-const showItemOverlay = ref(true)
 
 // Logic
 const formatDateTime = inject('format-date-time')

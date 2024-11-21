@@ -240,7 +240,7 @@ const generateSearchTableFields = () => {
       },
       {
         name: 'size_class',
-        field: row => row.size_class?.name,
+        field: row => row.shelf_type?.size_class?.name,
         label: 'Size Class',
         align: 'left',
         sortable: true
@@ -581,7 +581,6 @@ const renderUserName = (userObj) => {
 }
 
 const handleResultSelection = (rowData) => {
-  console.log(rowData)
   switch (route.params.searchType) {
   case 'Item':
     console.log('routing to item detail page')
@@ -617,7 +616,12 @@ const handleResultSelection = (rowData) => {
     })
     break
   case 'Request':
-    //TODO figure out how should we do request routing
+    router.push({
+      name: 'request',
+      params: {
+        jobId: rowData.id
+      }
+    })
     break
   case 'Picklist':
     router.push({

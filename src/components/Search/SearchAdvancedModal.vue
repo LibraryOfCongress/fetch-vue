@@ -33,9 +33,6 @@
             <div class="form-group">
               <label class="form-group-label">
                 Building
-                <span class="text-caption text-negative">
-                  (Required)
-                </span>
               </label>
               <SelectInput
                 v-model="searchForm.building_id"
@@ -348,7 +345,11 @@ const {
   getAisleDetails,
   getSideDetails,
   getLadderDetails,
-  resetBuildingStore
+  resetBuildingStore,
+  resetBuildingChildren,
+  resetModuleChildren,
+  resetAisleChildren,
+  resetSideChildren
 } = useBuildingStore()
 const {
   renderBuildingModules,
@@ -385,6 +386,7 @@ const handleLocationFormChange = async (valueType) => {
     searchForm.value.side_id = null
     searchForm.value.ladder_id = null
     searchForm.value.shelf_id = null
+    resetBuildingChildren()
     return
   case 'Module':
     await getModuleDetails(searchForm.value.module_id)
@@ -392,17 +394,20 @@ const handleLocationFormChange = async (valueType) => {
     searchForm.value.side_id = null
     searchForm.value.ladder_id = null
     searchForm.value.shelf_id = null
+    resetModuleChildren()
     return
   case 'Aisle':
     await getAisleDetails(searchForm.value.aisle_id)
     searchForm.value.side_id = null
     searchForm.value.ladder_id = null
     searchForm.value.shelf_id = null
+    resetAisleChildren()
     return
   case 'Side':
     await getSideDetails(searchForm.value.side_id)
     searchForm.value.ladder_id = null
     searchForm.value.shelf_id = null
+    resetSideChildren()
     return
   case 'Ladder':
     await getLadderDetails(searchForm.value.ladder_id)

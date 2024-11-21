@@ -73,6 +73,9 @@ export const useSearchStore = defineStore('search-store', {
         } else if (searchType == 'Tray') {
           const res = await this.$api.get(inventoryServiceApi.trays, { params: paramsObj })
           this.searchResults = res.data.items
+        } else if (searchType == 'Shelf') {
+          const res = await this.$api.get(inventoryServiceApi.shelves, { params: paramsObj })
+          this.searchResults = res.data.items
         } else {
           // job related advanced searches
           let jobEndpoint = `${searchType.toLowerCase()}Jobs`

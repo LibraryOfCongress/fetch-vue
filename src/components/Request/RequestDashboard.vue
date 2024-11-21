@@ -202,7 +202,7 @@
     <RequestItemOverlay
       v-if="requestJob.id && requestDisplayType == 'request_view'"
       :item-data="requestJob"
-      @close="resetRequestJob()"
+      @close="resetRequestOverlay()"
     />
 
     <!-- Request Creation Modal -->
@@ -303,7 +303,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, inject } from 'vue'
+import { onBeforeMount, ref, inject, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -553,10 +553,6 @@ onBeforeMount(() => {
   resetRequestStore()
   loadRequestJobs()
 
-  if (route.params.jobId) {
-    loadRequestJob(route.params.jobId)
-  }
-
   if (currentScreenSize.value == 'xs') {
     requestTableVisibleColumns.value = [
       'id',
@@ -573,11 +569,16 @@ onBeforeMount(() => {
   }
 })
 
+watch(route, () => {
+  if (route.params.jobId) {
+    loadRequestJob(route.params.jobId)
+  }
+})
+
 const clearTableSelection = () => {
   requestTableComponent.value.clearSelectedData()
   selectedRequestItems.value = []
 }
-
 const resetPickListForm = () => {
   showCreatePickList.value = false
   showAddPickList.value = false
@@ -585,6 +586,15 @@ const resetPickListForm = () => {
   filterRequestsByBuilding.value = null
   addToPickListJob.value = null
   clearTableSelection()
+}
+const resetRequestOverlay = () => {
+  resetRequestJob()
+  router.push({
+    name: 'request',
+    params: {
+      jobId: null
+    }
+  })
 }
 
 const loadRequestJobs = async () => {
@@ -633,7 +643,7 @@ const loadRequestJobsByBuilding = async () => {
 }
 const loadRequestJob = async (id) => {
   try {
-    appIsLoadingData.value = true
+    appIsLoadingData.value = false
 
     if (requestDisplayType.value == 'batch_view') {
       await getRequestBatchJob(id)
@@ -645,6 +655,12 @@ const loadRequestJob = async (id) => {
       })
     } else {
       await getRequestJob(id)
+      router.push({
+        name: 'request',
+        params: {
+          jobId: id
+        }
+      })
     }
   } catch (error) {
     handleAlert({

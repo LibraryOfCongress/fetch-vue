@@ -413,7 +413,11 @@ const {
   getAisleDetails,
   getSideDetails,
   getLadderDetails,
-  resetBuildingStore
+  resetBuildingStore,
+  resetBuildingChildren,
+  resetModuleChildren,
+  resetAisleChildren,
+  resetSideChildren
 } = useBuildingStore()
 const {
   renderBuildingModules,
@@ -558,21 +562,26 @@ const handleShelvingJobFormChange = async (valueType) => {
     shelvingJob.value.aisle_id = null
     shelvingJob.value.side_id = null
     shelvingJob.value.ladder_id = null
+    resetBuildingChildren()
     return
   case 'Module':
     await getModuleDetails(shelvingJob.value.module_id)
     shelvingJob.value.aisle_id = null
     shelvingJob.value.side_id = null
     shelvingJob.value.ladder_id = null
+    // clear state for aisle options downward since user needs to select an aisle next to populate the rest of the data
+    resetModuleChildren()
     return
   case 'Aisle':
     await getAisleDetails(shelvingJob.value.aisle_id)
     shelvingJob.value.side_id = null
     shelvingJob.value.ladder_id = null
+    resetAisleChildren()
     return
   case 'Side':
     await getSideDetails(shelvingJob.value.side_id)
     shelvingJob.value.ladder_id = null
+    resetSideChildren()
     return
   case 'Ladder':
     await getLadderDetails(shelvingJob.value.ladder_id)

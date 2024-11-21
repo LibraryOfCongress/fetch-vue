@@ -236,13 +236,13 @@ const {
   getAisleDetails,
   getSideDetails,
   getLadderDetails,
-  getShelfPositionsList
+  getShelfPositionsList,
+  resetModuleChildren,
+  resetAisleChildren,
+  resetSideChildren,
+  resetLadderChildren
 } = useBuildingStore()
 const {
-  aisleDetails,
-  sideDetails,
-  ladderDetails,
-  shelfDetails,
   renderBuildingModules,
   renderBuildingOrModuleAisles,
   renderAisleSides,
@@ -311,11 +311,7 @@ const handleLocationFormChange = async (valueType) => {
     locationForm.value.shelf_position_id = null
 
     // clear state for aisle options downward since user needs to select an aisle next to populate the rest of the data
-    aisleDetails.value = {}
-    sideDetails.value = {}
-    ladderDetails.value = {}
-    shelfDetails.value = {}
-    shelfPositions.value = []
+    resetModuleChildren()
     return
   case 'Aisle':
     await getAisleDetails(locationForm.value.aisle_id)
@@ -324,11 +320,7 @@ const handleLocationFormChange = async (valueType) => {
     locationForm.value.shelf_id = null
     locationForm.value.shelf_position_id = null
 
-    // clear state for sidem ladder, shelf details and shelf positions
-    sideDetails.value = {}
-    ladderDetails.value = {}
-    shelfDetails.value = {}
-    shelfPositions.value = []
+    resetAisleChildren()
     return
   case 'Side':
     await getSideDetails(locationForm.value.side_id)
@@ -336,19 +328,14 @@ const handleLocationFormChange = async (valueType) => {
     locationForm.value.shelf_id = null
     locationForm.value.shelf_position_id = null
 
-    // clear state for ladder, shelf details and shelf positions
-    ladderDetails.value = {}
-    shelfDetails.value = {}
-    shelfPositions.value = []
+    resetSideChildren()
     return
   case 'Ladder':
     await getLadderDetails(locationForm.value.ladder_id, { owner_id: mainProps.shelvingItem.owner.id, size_class_id: mainProps.shelvingItem.size_class.id })
     locationForm.value.shelf_id = null
     locationForm.value.shelf_position_id = null
 
-    // clear state for shelf details and shelf positions
-    shelfDetails.value = {}
-    shelfPositions.value = []
+    resetLadderChildren()
     return
   case 'Shelf':
     await getShelfPositionsList(locationForm.value.shelf_id, true)
