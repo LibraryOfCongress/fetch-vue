@@ -216,6 +216,7 @@
     <!-- Create/Add To Picklist Modal -->
     <PopupModal
       v-if="showPickListModal"
+      ref="picklistModalComponent"
       :show-actions="false"
       @reset="showPickListModal = null"
       aria-label="picklistJobModal"
@@ -284,7 +285,7 @@
             class="text-body1 full-width text-nowrap"
             :disabled="showPickListModal == 'Create' ? !filterRequestsByBuilding : (!filterRequestsByBuilding || !addToPickListJob)"
             :loading="appActionIsLoadingData"
-            @click="loadRequestJobsByBuilding(); hideModal();"
+            @click="loadRequestJobsByBuilding()"
           />
 
           <q-space class="q-mx-xs" />
@@ -536,6 +537,7 @@ const requestBatchTableFilters =  ref([
   }
 ])
 const requestDisplayType = ref('request_view')
+const picklistModalComponent = ref(null)
 const showCreatePickList = ref(false)
 const showAddPickList = ref(false)
 const showPickListModal = ref(null)
@@ -607,7 +609,7 @@ const loadRequestJobs = async () => {
 }
 const loadRequestJobsByBuilding = async () => {
   try {
-    appIsLoadingData.value = true
+    appActionIsLoadingData.value = true
     // this function only gets called during the creation/add picklist workflow
     if (requestDisplayType.value == 'request_view') {
       await getRequestJobList({ building_id: filterRequestsByBuilding.value, unassociated_pick_list: true })
@@ -628,7 +630,8 @@ const loadRequestJobsByBuilding = async () => {
       autoClose: true
     })
   } finally {
-    appIsLoadingData.value = false
+    appActionIsLoadingData.value = false
+    picklistModalComponent.value.hideModal()
   }
 }
 const loadRequestJob = async (id) => {

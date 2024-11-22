@@ -344,7 +344,7 @@ const handleTrayScan = async (barcode_value) => {
     }
 
     //check if the barcode is in the system otherwise create it
-    await verifyBarcode(barcode_value, 'Tray')
+    await verifyBarcode(barcode_value, 'Tray', true)
 
     // example barcode for tray: 'CH220987'
     // if the scanned tray exists in the accessionJob load the tray details
@@ -484,7 +484,7 @@ const updateTrayContainerBarcode = async () => {
     appActionIsLoadingData.value = true
 
     //check if the barcode is in the system otherwise create it
-    await verifyBarcode(trayBarcodeInput.value, 'Tray')
+    await verifyBarcode(trayBarcodeInput.value, 'Tray', true)
 
     const payload = {
       id: accessionContainer.value.id,

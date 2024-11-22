@@ -608,7 +608,7 @@ const triggerItemScan = async (barcode_value) => {
     appActionIsLoadingData.value = true
     // example barcode for trayed item 'BK123'
     // check if the barcode is in the system otherwise create it or flag it for reaccession if barcode is withdrawn
-    const res = await verifyBarcode(barcode_value, 'Item')
+    const res = await verifyBarcode(barcode_value, 'Item', true)
     if (res == 'barcode_exists' && barcodeDetails.value.withdrawn) {
       showConfirmation.value = {
         type: 'confirmReaccession',
