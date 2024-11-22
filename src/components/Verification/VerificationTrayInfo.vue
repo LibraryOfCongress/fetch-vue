@@ -249,7 +249,7 @@ const handleTrayScan = async (barcode_value) => {
     } else {
       // example barcode for tray: 'CH220987'
       // check if the barcode is in the system otherwise create it
-      await verifyBarcode(barcode_value, 'Tray')
+      await verifyBarcode(barcode_value, 'Tray', true)
 
       // load the tray details
       await getVerificationTray(barcode_value)

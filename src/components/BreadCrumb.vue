@@ -324,6 +324,16 @@ const breadcrumbList = computed(() => {
       { text: `${route.params.jobId}` }
     ]
     break
+  case 'shelving-move':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Shelving',
+        to: '/shelving'
+      },
+      { text: `Move ${route.params.type == 'tray-non-tray' ? 'Tray/Non-Tray' : 'Tray Item'}` }
+    ]
+    break
   case 'verification':
     if (!route.params.jobId) {
       breadCrumbs = [
