@@ -62,9 +62,9 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
         throw error
       }
     },
-    async postWithdrawJob () {
+    async postWithdrawJob (payload) {
       try {
-        const res = await this.$api.post(inventoryServiceApi.withdrawJobs)
+        const res = await this.$api.post(inventoryServiceApi.withdrawJobs, payload)
         this.withdrawJob = res.data
         this.originalWithdrawJob = { ...this.withdrawJob }
       } catch (error) {

@@ -306,6 +306,7 @@
 import { onBeforeMount, ref, inject, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
+import { useUserStore } from '@/stores/user-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useRequestStore } from '@/stores/request-store'
 import { usePicklistStore } from '@/stores/picklist-store'
@@ -341,6 +342,7 @@ const {
 const { requestJobList, requestJob } = storeToRefs(useRequestStore())
 const { postPicklistJob, patchPicklistJobItem } = usePicklistStore()
 const { picklistJob } = storeToRefs(usePicklistStore())
+const { userData } = storeToRefs(useUserStore())
 
 // Local Data
 const requestJobMenuState = ref(false)
@@ -676,7 +678,8 @@ const createPickListJob = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
-      request_ids: selectedRequestItems.value.map(item => item.id)
+      request_ids: selectedRequestItems.value.map(item => item.id),
+      created_by_id: userData.value.user_id
     }
     await postPicklistJob(payload)
 

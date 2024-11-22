@@ -209,6 +209,7 @@
 <script setup>
 import { onBeforeMount, ref, inject, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user-store'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from 'src/stores/option-store'
 import { useAccessionStore } from 'src/stores/accession-store'
@@ -243,6 +244,7 @@ const {
   mediaTypes,
   sizeClass
 } = storeToRefs(useOptionStore())
+const { userData } = storeToRefs(useUserStore())
 
 
 // Local Data
@@ -371,7 +373,8 @@ const submitAccessionJob = async () => {
       media_type_id: accessionJob.value.media_type,
       owner_id: accessionJob.value.owner,
       status: 'Running',
-      trayed: accessionJob.value.trayed
+      trayed: accessionJob.value.trayed,
+      created_by_id: userData.value.user_id
     }
 
     await postAccessionJob(payload)

@@ -277,8 +277,8 @@ const generateSearchTableFields = () => {
         sortable: true
       },
       {
-        name: 'create_by',
-        field: 'create_by',
+        name: 'created_by',
+        field: row => renderUserName(row.created_by),
         label: 'Created By',
         align: 'left',
         sortable: true
@@ -295,7 +295,7 @@ const generateSearchTableFields = () => {
       'create_dt',
       'job_id',
       'status',
-      'create_by',
+      'created_by',
       'user_id'
     ]
     if (currentScreenSize.value == 'xs') {
@@ -331,8 +331,8 @@ const generateSearchTableFields = () => {
         sortable: true
       },
       {
-        name: 'create_by',
-        field: 'create_by',
+        name: 'created_by',
+        field: row => renderUserName(row.created_by),
         label: 'Created By',
         align: 'left',
         sortable: true
@@ -349,7 +349,7 @@ const generateSearchTableFields = () => {
       'create_dt',
       'job_id',
       'status',
-      'create_by',
+      'created_by',
       'user_id'
     ]
     if (currentScreenSize.value == 'xs') {
@@ -431,8 +431,8 @@ const generateSearchTableFields = () => {
         sortable: true
       },
       {
-        name: 'create_by',
-        field: 'create_by',
+        name: 'created_by',
+        field: row => renderUserName(row.created_by),
         label: 'Created By',
         align: 'left',
         sortable: true
@@ -449,7 +449,7 @@ const generateSearchTableFields = () => {
       'create_dt',
       'job_id',
       'status',
-      'create_by',
+      'created_by',
       'assigned_user'
     ]
     if (currentScreenSize.value == 'xs') {
@@ -485,8 +485,8 @@ const generateSearchTableFields = () => {
         sortable: true
       },
       {
-        name: 'create_by',
-        field: 'create_by',
+        name: 'created_by',
+        field: row => renderUserName(row.created_by),
         label: 'Created By',
         align: 'left',
         sortable: true
@@ -503,7 +503,7 @@ const generateSearchTableFields = () => {
       'create_dt',
       'job_id',
       'status',
-      'create_by',
+      'created_by',
       'assigned_user'
     ]
     if (currentScreenSize.value == 'xs') {
@@ -539,8 +539,8 @@ const generateSearchTableFields = () => {
         sortable: true
       },
       {
-        name: 'create_by',
-        field: 'create_by',
+        name: 'created_by',
+        field: row => renderUserName(row.created_by),
         label: 'Created By',
         align: 'left',
         sortable: true
@@ -557,7 +557,7 @@ const generateSearchTableFields = () => {
       'create_dt',
       'job_id',
       'status',
-      'create_by',
+      'created_by',
       'user_id'
     ]
     if (currentScreenSize.value == 'xs') {

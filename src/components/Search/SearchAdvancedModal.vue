@@ -522,8 +522,8 @@ const generateSearchModal = () => {
       from_dt: null,
       to_dt: null,
       status: null,
-      create_by: null,
-      complete_by: null
+      created_by_id: null,
+      user_id: null
     }
     searchParams.value = [
       {
@@ -547,7 +547,7 @@ const generateSearchModal = () => {
         optionType: ''
       },
       {
-        query: 'create_by',
+        query: 'created_by_id',
         label: 'Created By',
         options: users,
         optionType: 'users'

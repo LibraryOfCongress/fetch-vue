@@ -403,7 +403,6 @@ const {
   appActionIsLoadingData,
   appIsOffline
 } = storeToRefs(useGlobalStore())
-const { userData } = storeToRefs(useUserStore())
 const { buildings } = storeToRefs(useOptionStore())
 const { getVerificationJobList } = useVerificationStore()
 const { verificationJobList } = storeToRefs(useVerificationStore())
@@ -439,6 +438,7 @@ const {
   getDirectShelvingJob,
   postDirectShelvingJob
 } = useShelvingStore()
+const { userData } = storeToRefs(useUserStore())
 
 // Local Data
 const createShelvingJobModal = ref(null)
@@ -647,7 +647,8 @@ const submitShelvingJob = async () => {
       status: 'Created',
       building_id: shelvingJob.value.building_id,
       verification_jobs: shelvingJob.value.verification_jobs,
-      origin: 'Verification'
+      origin: 'Verification',
+      created_by_id: userData.value.user_id
     }
     await postShelvingJob(payload, params)
 
