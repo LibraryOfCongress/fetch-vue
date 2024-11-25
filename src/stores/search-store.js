@@ -68,13 +68,13 @@ export const useSearchStore = defineStore('search-store', {
     async getAdvancedSearchResults (paramsObj, searchType) {
       try {
         if (searchType == 'Item') {
-          const res = await this.$api.get(inventoryServiceApi.items, { params: paramsObj })
+          const res = await this.$api.get(inventoryServiceApi.items, { params: { ...paramsObj, size: 100 } })
           this.searchResults = res.data.items
         } else if (searchType == 'Tray') {
-          const res = await this.$api.get(inventoryServiceApi.trays, { params: paramsObj })
+          const res = await this.$api.get(inventoryServiceApi.trays, { params: { ...paramsObj, size: 100 } })
           this.searchResults = res.data.items
         } else if (searchType == 'Shelf') {
-          const res = await this.$api.get(inventoryServiceApi.shelves, { params: paramsObj })
+          const res = await this.$api.get(inventoryServiceApi.shelves, { params: { ...paramsObj, size: 100 } })
           this.searchResults = res.data.items
         } else {
           // job related advanced searches
@@ -85,7 +85,7 @@ export const useSearchStore = defineStore('search-store', {
             jobEndpoint = 'picklists'
           }
 
-          const res = await this.$api.get(inventoryServiceApi[jobEndpoint], { params: paramsObj })
+          const res = await this.$api.get(inventoryServiceApi[jobEndpoint], { params: { ...paramsObj, size: 100 } })
           this.searchResults = res.data.items
         }
       } catch (error) {

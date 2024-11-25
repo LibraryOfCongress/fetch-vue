@@ -605,7 +605,7 @@ const loadRequestJobs = async () => {
   try {
     appIsLoadingData.value = true
     if (requestDisplayType.value == 'request_view') {
-      await getRequestJobList()
+      await getRequestJobList({ queue: true })
     } else {
       await getRequestBatchJobList()
     }

@@ -665,7 +665,7 @@ const verifyTransferContainerShelfLocation = () => {
   if (!scannedContainer.value.shelf_position?.location) {
     clearScannedContainer()
     scannedContainer.value.error = 'Container has not been assigned a shelf position. Please try again!'
-  } else if (scannedContainer.value.size_class?.name !== moveShelfJob.value.size_class.name && scannedContainer.value.owner?.name !== moveShelfJob.value.owner.name) {
+  } else if (scannedContainer.value.size_class?.name !== moveShelfJob.value.size_class.name || scannedContainer.value.owner?.name !== moveShelfJob.value.owner.name) {
     clearScannedContainer()
     scannedContainer.value.error = 'Container does not match owner or size class of the scanned shelf. Please try again!'
   } else if (moveShelfJob.value.available_space == 0) {
@@ -716,6 +716,7 @@ const verifyAndAddTransferTrayItem = () => {
       text: 'The scanned item has not been verified. Please try again!',
       autoClose: true
     })
+    clearScannedContainer()
     return
   }
   //TODO? possibly add checks to make sure size class and owners match as well?
@@ -800,7 +801,7 @@ const completeMoveShelfLocations = async () => {
         handleAlert({
           type: 'success',
           text: `The Container: ${res.data.barcode.value} has been successfully transferred.`,
-          autoClose: false
+          autoClose: true
         })
       } else {
         //TODO change this to return a single error listing the number of errors and link a move discrepencty report when that feature is added.
@@ -854,7 +855,7 @@ const completeMoveTrayItem = async () => {
         handleAlert({
           type: 'success',
           text: `The Tray-Item: ${res.data.barcode.value} has been successfully transferred.`,
-          autoClose: false
+          autoClose: true
         })
       } else {
         //TODO change this to return a single error listing the number of errors and link a move discrepencty report when that feature is added.

@@ -151,7 +151,7 @@
                 option-value="id"
                 option-label="name"
                 :placeholder="`Select Owner`"
-                :disabled="!searchForm.shelf_id"
+                :disabled="!searchForm.building_id"
                 @update:model-value="null"
                 :aria-label="`ownerSelect`"
               />
@@ -170,7 +170,7 @@
                 option-value="id"
                 option-label="name"
                 :placeholder="`Select Size Class`"
-                :disabled="!searchForm.shelf_id"
+                :disabled="!searchForm.building_id"
                 @update:model-value="null"
                 :aria-label="`sizeClassSelect`"
               />
@@ -521,7 +521,6 @@ const generateSearchModal = () => {
     searchForm.value = {
       from_dt: null,
       to_dt: null,
-      status: '',
       requestor_name: ''
     }
     searchParams.value = [
@@ -532,17 +531,6 @@ const generateSearchModal = () => {
       {
         query: 'to_dt',
         label: 'Created Date (To)'
-      },
-      {
-        query: 'status',
-        label: 'Status',
-        options: [
-          'In',
-          'Out',
-          'Requested',
-          'Completed'
-        ],
-        optionType: ''
       },
       {
         query: 'requestor_name',

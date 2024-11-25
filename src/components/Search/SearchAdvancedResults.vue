@@ -86,7 +86,6 @@ const searchResultsTableFilters =  ref([
 
 // Logic
 const formatDateTime = inject('format-date-time')
-const getItemLocation = inject('get-item-location')
 
 onBeforeMount(() => {
   generateSearchTableFields()
@@ -226,7 +225,7 @@ const generateSearchTableFields = () => {
       },
       {
         name: 'shelf_location',
-        field: row => getItemLocation(row),
+        field: 'location',
         label: 'Shelf Location',
         align: 'left',
         sortable: true
@@ -378,13 +377,6 @@ const generateSearchTableFields = () => {
         sortable: true
       },
       {
-        name: 'status',
-        field: row => row.item ? row.item?.status : row.non_tray_item?.status,
-        label: 'Status',
-        align: 'left',
-        sortable: true
-      },
-      {
         name: 'requestor_name',
         field: 'requestor_name',
         label: 'Requested By',
@@ -395,14 +387,12 @@ const generateSearchTableFields = () => {
     searchResultsTableVisibleColumns.value = [
       'create_dt',
       'job_id',
-      'status',
       'requestor_name'
     ]
     if (currentScreenSize.value == 'xs') {
       searchResultsTableVisibleColumns.value = [
         'create_dt',
         'job_id',
-        'status',
         'requestor_name'
       ]
     }
