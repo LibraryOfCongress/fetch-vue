@@ -231,7 +231,7 @@
             </div>
             <!-- text inputs -->
             <div
-              v-else-if="param.query == 'barcode' || param.query == 'job_id'"
+              v-else-if="param.query == 'barcode' || param.query == 'job_id' || param.query == 'requestor_name'"
               class="col-12 q-mb-md"
             >
               <div class="form-group">
@@ -517,6 +517,39 @@ const generateSearchModal = () => {
       size_class_id: null
     }
     break
+  case 'Request':
+    searchForm.value = {
+      from_dt: null,
+      to_dt: null,
+      status: '',
+      requestor_name: ''
+    }
+    searchParams.value = [
+      {
+        query: 'from_dt',
+        label: 'Created Date (From)'
+      },
+      {
+        query: 'to_dt',
+        label: 'Created Date (To)'
+      },
+      {
+        query: 'status',
+        label: 'Status',
+        options: [
+          'In',
+          'Out',
+          'Requested',
+          'Completed'
+        ],
+        optionType: ''
+      },
+      {
+        query: 'requestor_name',
+        label: 'Requested By'
+      }
+    ]
+    break
   default:
     searchForm.value = {
       from_dt: null,
@@ -585,6 +618,9 @@ const executeAdvancedSearch = async () => {
           // sets to date to end of date
           queryParams[key] = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999)).toISOString()
         }
+      } else if (key == 'user_id' && value) {
+        //set status to completed by default on all searchs that include the completed by param in the query
+        queryParams.status = 'Completed'
       } else if (!value) {
         delete queryParams[key]
       }

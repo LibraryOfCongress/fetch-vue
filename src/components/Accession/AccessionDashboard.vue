@@ -333,7 +333,7 @@ const startAccessionProcess = () => {
 const loadAccessionJobs = async () => {
   try {
     appIsLoadingData.value = true
-    await getAccessionJobList()
+    await getAccessionJobList({ queue: true })
   } catch (error) {
     handleAlert({
       type: 'error',

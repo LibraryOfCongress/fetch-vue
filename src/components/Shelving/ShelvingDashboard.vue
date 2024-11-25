@@ -620,7 +620,7 @@ const handleShelvingJobFormChange = async (valueType) => {
 const loadShelvingJobs = async () => {
   try {
     appIsLoadingData.value = true
-    await getShelvingJobList({ user_id: checkUserPermission('can_view_all_shelving_jobs') ? null : userData.value.user_id })
+    await getShelvingJobList({ queue: true, user_id: checkUserPermission('can_view_all_shelving_jobs') ? null : userData.value.user_id })
   } catch (error) {
     handleAlert({
       type: 'error',

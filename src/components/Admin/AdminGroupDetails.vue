@@ -69,6 +69,19 @@
         >
           <q-tab-panel name="accession">
             <div
+              v-if="!isStageOrProd"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <q-btn
+                no-caps
+                unelevated
+                color="accent"
+                label="Enable All Accession Permissions"
+                class="btn-no-wrap text-body1"
+                @click="toggleAllPermissions('accession')"
+              />
+            </div>
+            <div
               v-for="permission in permissionsList.filter(p => p.name.includes('accession'))"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
@@ -94,6 +107,19 @@
           </q-tab-panel>
 
           <q-tab-panel name="verification">
+            <div
+              v-if="!isStageOrProd"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <q-btn
+                no-caps
+                unelevated
+                color="accent"
+                label="Enable All Verification Permissions"
+                class="btn-no-wrap text-body1"
+                @click="toggleAllPermissions('verification')"
+              />
+            </div>
             <div
               v-for="permission in permissionsList.filter(p => p.name.includes('verification'))"
               :key="permission.id"
@@ -121,6 +147,19 @@
 
           <q-tab-panel name="shelving">
             <div
+              v-if="!isStageOrProd"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <q-btn
+                no-caps
+                unelevated
+                color="accent"
+                label="Enable All Shelving Permissions"
+                class="btn-no-wrap text-body1"
+                @click="toggleAllPermissions('shelving')"
+              />
+            </div>
+            <div
               v-for="permission in permissionsList.filter(p => p.name.includes('shelving'))"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
@@ -146,6 +185,19 @@
           </q-tab-panel>
 
           <q-tab-panel name="request">
+            <div
+              v-if="!isStageOrProd"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <q-btn
+                no-caps
+                unelevated
+                color="accent"
+                label="Enable All Request Permissions"
+                class="btn-no-wrap text-body1"
+                @click="toggleAllPermissions('request')"
+              />
+            </div>
             <div
               v-for="permission in permissionsList.filter(p => p.name.includes('request'))"
               :key="permission.id"
@@ -173,6 +225,19 @@
 
           <q-tab-panel name="picklist">
             <div
+              v-if="!isStageOrProd"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <q-btn
+                no-caps
+                unelevated
+                color="accent"
+                label="Enable All Picklist Permissions"
+                class="btn-no-wrap text-body1"
+                @click="toggleAllPermissions('picklist')"
+              />
+            </div>
+            <div
               v-for="permission in permissionsList.filter(p => p.name.includes('picklist'))"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
@@ -198,6 +263,19 @@
           </q-tab-panel>
 
           <q-tab-panel name="refile">
+            <div
+              v-if="!isStageOrProd"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <q-btn
+                no-caps
+                unelevated
+                color="accent"
+                label="Enable All Refile Permissions"
+                class="btn-no-wrap text-body1"
+                @click="toggleAllPermissions('refile')"
+              />
+            </div>
             <div
               v-for="permission in permissionsList.filter(p => p.name.includes('refile'))"
               :key="permission.id"
@@ -225,6 +303,19 @@
 
           <q-tab-panel name="withdraw">
             <div
+              v-if="!isStageOrProd"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <q-btn
+                no-caps
+                unelevated
+                color="accent"
+                label="Enable All Withdraw Permissions"
+                class="btn-no-wrap text-body1"
+                @click="toggleAllPermissions('withdraw')"
+              />
+            </div>
+            <div
               v-for="permission in permissionsList.filter(p => p.name.includes('withdraw'))"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
@@ -251,6 +342,19 @@
 
           <q-tab-panel name="reporting">
             <div
+              v-if="!isStageOrProd"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <q-btn
+                no-caps
+                unelevated
+                color="accent"
+                label="Enable All Reports Permissions"
+                class="btn-no-wrap text-body1"
+                @click="toggleAllPermissions('reports'); toggleAllPermissions('search'); toggleAllPermissions('detail');"
+              />
+            </div>
+            <div
               v-for="permission in permissionsList.filter(p => p.name.includes('reports') || p.name.includes('search') || p.name.includes('detail'))"
               :key="permission.id"
               class="row q-mb-xs-md q-mb-lg-lg"
@@ -276,6 +380,19 @@
           </q-tab-panel>
 
           <q-tab-panel name="admin">
+            <div
+              v-if="!isStageOrProd"
+              class="row q-mb-xs-md q-mb-lg-lg"
+            >
+              <q-btn
+                no-caps
+                unelevated
+                color="accent"
+                label="Enable All Admin Permissions"
+                class="btn-no-wrap text-body1"
+                @click="toggleAllPermissions('admin'); toggleAllPermissions('manage');"
+              />
+            </div>
             <div
               v-for="permission in permissionsList.filter(p => p.name.includes('admin') || p.name.includes('manage'))"
               :key="permission.id"
@@ -307,7 +424,7 @@
 </template>
 
 <script setup>
-import { ref, inject, onBeforeMount } from 'vue'
+import { ref, inject, onBeforeMount, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
@@ -334,6 +451,9 @@ const { getUserPermissions } = useUserStore()
 
 // Local Data
 const activeTab = ref('accession')
+const isStageOrProd = computed(() => {
+  return process.env.VITE_ENV == 'production' || process.env.VITE_ENV == 'stage'
+})
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -354,6 +474,17 @@ const renderPermissionName = (permissionName) => {
   // removes all _ characters and replace the first letter in each word with to uppercase (regex)
   // ex: some_permission_here = Some Permission Here
   return permissionName.replaceAll('_', ' ').replace(/(^\w{1})|(\s{1}\w{1})/g, match => match.toUpperCase())
+}
+
+const toggleAllPermissions = (groupName) => {
+  const permissionsByGroup = permissionsList.value.filter(p => p.name.includes(groupName))
+  // add all the permissions by the passed in groupName
+  // ex passing in 'accession' will set all permissions related to accession to be enabled
+  permissionsByGroup.forEach(p => {
+    if (!groupDetails.value.permissions.some(ep => ep.name == p.name)) {
+      addAdminGroupPermission(p.id)
+    }
+  })
 }
 
 const loadAdminGroupPermissions = async () => {

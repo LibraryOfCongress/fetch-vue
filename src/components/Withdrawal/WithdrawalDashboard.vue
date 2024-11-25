@@ -183,7 +183,7 @@ onBeforeMount(() => {
 const loadWithdrawJobs = async () => {
   try {
     appIsLoadingData.value = true
-    await getWithdrawJobList()
+    await getWithdrawJobList({ queue: true })
   } catch (error) {
     handleAlert({
       type: 'error',
