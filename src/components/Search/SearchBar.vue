@@ -354,7 +354,7 @@ const handlingSearchResultRouting = () => {
   case 'Withdraw':
     withdrawJob.value = exactSearchResponseInfo.value
     router.push({
-      name: searchType.value.toLowerCase(),
+      name: 'withdrawal',
       params: {
         jobId: searchText.value
       }
