@@ -33,7 +33,13 @@ export function useAlertPopup () {
     if (alertTimestamp && !forceClear) {
       // clears out any alerts with the passed in timestamp
       setTimeout(() => {
-        alerts.value = alerts.value.filter(alert => alert.timestamp !== alertTimestamp)
+        alerts.value = alerts.value.filter(alert => {
+          if (!alert.autoClose) {
+            return alert
+          } else if (alert.timestamp !== alertTimestamp) {
+            return alert
+          }
+        })
       }, 5000)
     } else if (alertTimestamp && forceClear) {
       alerts.value = alerts.value.filter(alert => alert.timestamp !== alertTimestamp)

@@ -265,7 +265,7 @@
           >
             <!-- date range inputs -->
             <div
-              v-if="param.query.includes('_dt') || param.query.includes('_dt')"
+              v-if="param.query.includes('_dt')"
               class="col-6 q-mb-md"
             >
               <div class="form-group q-pr-xs">
@@ -427,7 +427,11 @@ const {
   getModuleDetails,
   getAisleDetails,
   getSideDetails,
-  getLadderDetails
+  getLadderDetails,
+  resetBuildingChildren,
+  resetModuleChildren,
+  resetAisleChildren,
+  resetSideChildren
 } = useBuildingStore()
 const {
   renderBuildingModules,
@@ -460,6 +464,7 @@ const handleLocationFormChange = async (valueType) => {
     reportForm.value.side_id = null
     reportForm.value.ladder_id = null
     reportForm.value.shelf_id = null
+    resetBuildingChildren()
     return
   case 'Module':
     await getModuleDetails(reportForm.value.module_id)
@@ -467,17 +472,20 @@ const handleLocationFormChange = async (valueType) => {
     reportForm.value.side_id = null
     reportForm.value.ladder_id = null
     reportForm.value.shelf_id = null
+    resetModuleChildren()
     return
   case 'Aisle':
     await getAisleDetails(reportForm.value.aisle_id)
     reportForm.value.side_id = null
     reportForm.value.ladder_id = null
     reportForm.value.shelf_id = null
+    resetAisleChildren()
     return
   case 'Side':
     await getSideDetails(reportForm.value.side_id)
     reportForm.value.ladder_id = null
     reportForm.value.shelf_id = null
+    resetSideChildren()
     return
   case 'Ladder':
     await getLadderDetails(reportForm.value.ladder_id)

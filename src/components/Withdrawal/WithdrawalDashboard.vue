@@ -70,6 +70,7 @@ import { onBeforeMount, ref, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useWithdrawalStore } from '@/stores/withdrawal-store'
+import { useUserStore } from '@/stores/user-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from '@/components/EssentialTable.vue'
@@ -94,6 +95,7 @@ const {
   getWithdrawJob,
   postWithdrawJob
 } = useWithdrawalStore()
+const { userData } = storeToRefs(useUserStore())
 
 // Local Data
 const withdrawTableVisibleColumns = ref([
@@ -181,7 +183,7 @@ onBeforeMount(() => {
 const loadWithdrawJobs = async () => {
   try {
     appIsLoadingData.value = true
-    await getWithdrawJobList()
+    await getWithdrawJobList({ queue: true })
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -216,7 +218,10 @@ const loadWithdrawJob = async (jobId) => {
 const createWithdrawJob = async () => {
   try {
     appIsLoadingData.value = true
-    await postWithdrawJob()
+    const payload = {
+      created_by_id: userData.value.user_id
+    }
+    await postWithdrawJob(payload)
 
     // route the user to the withdrawal job detail page
     router.push({

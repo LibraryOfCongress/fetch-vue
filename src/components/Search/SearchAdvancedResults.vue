@@ -10,7 +10,7 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
-          @selected-table-row="null"
+          @selected-table-row="handleResultSelection($event)"
         >
           <template #heading-row>
             <div
@@ -43,13 +43,14 @@
 
 <script setup>
 import { onBeforeMount, ref, inject, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter  } from 'vue-router'
 import { useSearchStore } from '@/stores/search-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from '@/components/EssentialTable.vue'
 
 const route = useRoute()
+const router = useRouter()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
@@ -62,6 +63,7 @@ const {
 // Local Data
 const searchResultsTableVisibleColumns = ref([])
 const searchResultsTableColumns = ref([])
+// TODO need to figure out how filtering will work
 const searchResultsTableFilters =  ref([
   {
     field: 'status',
@@ -84,7 +86,6 @@ const searchResultsTableFilters =  ref([
 
 // Logic
 const formatDateTime = inject('format-date-time')
-const getItemLocation = inject('get-item-location')
 
 onBeforeMount(() => {
   generateSearchTableFields()
@@ -99,23 +100,9 @@ const generateSearchTableFields = () => {
   case 'Item':
     searchResultsTableColumns.value = [
       {
-        name: 'from_dt',
-        field: 'from_dt',
-        label: 'Date (From)',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'to_dt',
-        field: 'to_dt',
-        label: 'Date (To)',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'owner',
-        field: row => row.owner?.name,
-        label: 'Owner',
+        name: 'accession_dt',
+        field: 'accession_dt',
+        label: 'Accession Date',
         align: 'left',
         sortable: true
       },
@@ -123,6 +110,13 @@ const generateSearchTableFields = () => {
         name: 'status',
         field: 'status',
         label: 'Status',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'owner',
+        field: row => row.owner?.name,
+        label: 'Owner',
         align: 'left',
         sortable: true
       },
@@ -150,9 +144,8 @@ const generateSearchTableFields = () => {
     ]
     searchResultsTableVisibleColumns.value = [
       'accession_dt',
-      'to_dt',
-      'owner',
       'status',
+      'owner',
       'size_class',
       'media_type',
       'barcode'
@@ -160,7 +153,7 @@ const generateSearchTableFields = () => {
     if (currentScreenSize.value == 'xs') {
       searchResultsTableVisibleColumns.value = [
         'accession_dt',
-        'to_dt',
+        'status',
         'size_class',
         'media_type',
         'barcode'
@@ -232,7 +225,7 @@ const generateSearchTableFields = () => {
       },
       {
         name: 'shelf_location',
-        field: row => getItemLocation(row),
+        field: 'location',
         label: 'Shelf Location',
         align: 'left',
         sortable: true
@@ -246,7 +239,7 @@ const generateSearchTableFields = () => {
       },
       {
         name: 'size_class',
-        field: row => row.size_class?.name,
+        field: row => row.shelf_type?.size_class?.name,
         label: 'Size Class',
         align: 'left',
         sortable: true
@@ -262,23 +255,9 @@ const generateSearchTableFields = () => {
   case 'Accession':
     searchResultsTableColumns.value = [
       {
-        name: 'from_dt',
-        field: 'from_dt',
-        label: 'Date (From)',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'to_dt',
-        field: 'to_dt',
-        label: 'Date (To)',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'shelf_location',
-        field: row => getItemLocation(row),
-        label: 'Shelf Location',
+        name: 'create_dt',
+        field: 'create_dt',
+        label: 'Create Date',
         align: 'left',
         sortable: true
       },
@@ -297,57 +276,42 @@ const generateSearchTableFields = () => {
         sortable: true
       },
       {
-        name: 'create_dt',
-        field: 'create_dt',
-        label: 'Date Created',
+        name: 'created_by',
+        field: row => renderUserName(row.created_by),
+        label: 'Created By',
         align: 'left',
         sortable: true
       },
       {
-        name: 'complet_dt',
-        field: 'complet_dt',
-        label: 'Date Completed',
+        name: 'user_id',
+        field: row => renderUserName(row.user),
+        label: 'Completed By',
         align: 'left',
         sortable: true
       }
     ]
     searchResultsTableVisibleColumns.value = [
-      'from_dt',
-      'to_dt',
+      'create_dt',
       'job_id',
       'status',
-      'create_dt',
-      'complete_dt'
+      'created_by',
+      'user_id'
     ]
     if (currentScreenSize.value == 'xs') {
       searchResultsTableVisibleColumns.value = [
-        'from_dt',
-        'to_dt',
+        'create_dt',
         'job_id',
-        'status'
+        'status',
+        'user_id'
       ]
     }
     break
   case 'Verification':
     searchResultsTableColumns.value = [
       {
-        name: 'from_dt',
-        field: 'from_dt',
-        label: 'Date (From)',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'to_dt',
-        field: 'to_dt',
-        label: 'Date (To)',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'shelf_location',
-        field: row => getItemLocation(row),
-        label: 'Shelf Location',
+        name: 'create_dt',
+        field: 'create_dt',
+        label: 'Create Date',
         align: 'left',
         sortable: true
       },
@@ -366,63 +330,85 @@ const generateSearchTableFields = () => {
         sortable: true
       },
       {
-        name: 'create_dt',
-        field: 'create_dt',
-        label: 'Date Created',
+        name: 'created_by',
+        field: row => renderUserName(row.created_by),
+        label: 'Created By',
         align: 'left',
         sortable: true
       },
       {
-        name: 'complet_dt',
-        field: 'complet_dt',
-        label: 'Date Completed',
+        name: 'user_id',
+        field: row => renderUserName(row.user),
+        label: 'Completed By',
         align: 'left',
         sortable: true
       }
     ]
     searchResultsTableVisibleColumns.value = [
-      'from_dt',
-      'to_dt',
+      'create_dt',
       'job_id',
       'status',
-      'create_dt',
-      'complete_dt'
+      'created_by',
+      'user_id'
     ]
     if (currentScreenSize.value == 'xs') {
       searchResultsTableVisibleColumns.value = [
-        'from_dt',
-        'to_dt',
+        'create_dt',
         'job_id',
-        'status'
+        'status',
+        'user_id'
       ]
     }
     break
-  default:
+  case 'Request':
     searchResultsTableColumns.value = [
       {
-        name: 'from_dt',
-        field: 'from_dt',
-        label: 'Date (From)',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'to_dt',
-        field: 'to_dt',
-        label: 'Date (To)',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'shelf_location',
-        field: row => getItemLocation(row),
-        label: 'Shelf Location',
+        name: 'create_dt',
+        field: 'create_dt',
+        label: 'Create Date',
         align: 'left',
         sortable: true
       },
       {
         name: 'job_id',
-        field: 'job_id',
+        field: 'id',
+        label: 'Request ID #',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'requestor_name',
+        field: 'requestor_name',
+        label: 'Requested By',
+        align: 'left',
+        sortable: true
+      }
+    ]
+    searchResultsTableVisibleColumns.value = [
+      'create_dt',
+      'job_id',
+      'requestor_name'
+    ]
+    if (currentScreenSize.value == 'xs') {
+      searchResultsTableVisibleColumns.value = [
+        'create_dt',
+        'job_id',
+        'requestor_name'
+      ]
+    }
+    break
+  case 'Refile':
+    searchResultsTableColumns.value = [
+      {
+        name: 'create_dt',
+        field: 'create_dt',
+        label: 'Create Date',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'job_id',
+        field: 'id',
         label: 'Job Number',
         align: 'left',
         sortable: true
@@ -435,36 +421,223 @@ const generateSearchTableFields = () => {
         sortable: true
       },
       {
-        name: 'create_dt',
-        field: 'create_dt',
-        label: 'Date Created',
+        name: 'created_by',
+        field: row => renderUserName(row.created_by),
+        label: 'Created By',
         align: 'left',
         sortable: true
       },
       {
-        name: 'complet_dt',
-        field: 'complet_dt',
-        label: 'Date Completed',
+        name: 'assigned_user',
+        field: row => renderUserName(row.assigned_user),
+        label: 'Completed By',
         align: 'left',
         sortable: true
       }
     ]
     searchResultsTableVisibleColumns.value = [
-      'from_dt',
-      'to_dt',
+      'create_dt',
       'job_id',
       'status',
-      'create_dt',
-      'complete_dt'
+      'created_by',
+      'assigned_user'
     ]
     if (currentScreenSize.value == 'xs') {
       searchResultsTableVisibleColumns.value = [
-        'from_dt',
-        'to_dt',
+        'create_dt',
         'job_id',
-        'status'
+        'status',
+        'assigned_user'
       ]
     }
+    break
+  case 'Withdraw':
+    searchResultsTableColumns.value = [
+      {
+        name: 'create_dt',
+        field: 'create_dt',
+        label: 'Create Date',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'job_id',
+        field: 'id',
+        label: 'Job Number',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'status',
+        field: 'status',
+        label: 'Status',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'created_by',
+        field: row => renderUserName(row.created_by),
+        label: 'Created By',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'assigned_user',
+        field: row => renderUserName(row.assigned_user),
+        label: 'Completed By',
+        align: 'left',
+        sortable: true
+      }
+    ]
+    searchResultsTableVisibleColumns.value = [
+      'create_dt',
+      'job_id',
+      'status',
+      'created_by',
+      'assigned_user'
+    ]
+    if (currentScreenSize.value == 'xs') {
+      searchResultsTableVisibleColumns.value = [
+        'create_dt',
+        'job_id',
+        'status',
+        'assigned_user'
+      ]
+    }
+    break
+  default:
+    searchResultsTableColumns.value = [
+      {
+        name: 'create_dt',
+        field: 'create_dt',
+        label: 'Create Date',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'job_id',
+        field: 'id',
+        label: 'Job Number',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'status',
+        field: 'status',
+        label: 'Status',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'created_by',
+        field: row => renderUserName(row.created_by),
+        label: 'Created By',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'user_id',
+        field: row => renderUserName(row.user),
+        label: 'Completed By',
+        align: 'left',
+        sortable: true
+      }
+    ]
+    searchResultsTableVisibleColumns.value = [
+      'create_dt',
+      'job_id',
+      'status',
+      'created_by',
+      'user_id'
+    ]
+    if (currentScreenSize.value == 'xs') {
+      searchResultsTableVisibleColumns.value = [
+        'create_dt',
+        'job_id',
+        'status',
+        'user_id'
+      ]
+    }
+    break
+  }
+}
+
+const renderUserName = (userObj) => {
+  let userName = ''
+  if (userObj && userObj.first_name && userObj.last_name) {
+    userName = `${userObj.first_name} ${userObj.last_name}`
+  }
+  return userName
+}
+
+const handleResultSelection = (rowData) => {
+  switch (route.params.searchType) {
+  case 'Item':
+    console.log('routing to item detail page')
+    break
+  case 'Tray':
+    console.log('routing to tray detail page')
+    break
+  case 'Shelf':
+    console.log('routing to shelf detail page')
+    break
+  case 'Accession':
+    router.push({
+      name: 'accession',
+      params: {
+        jobId: rowData.workflow_id
+      }
+    })
+    break
+  case 'Verification':
+    router.push({
+      name: 'verification',
+      params: {
+        jobId: rowData.workflow_id
+      }
+    })
+    break
+  case 'Shelving':
+    router.push({
+      name: 'shelving',
+      params: {
+        jobId: rowData.id
+      }
+    })
+    break
+  case 'Request':
+    router.push({
+      name: 'request',
+      params: {
+        jobId: rowData.id
+      }
+    })
+    break
+  case 'Picklist':
+    router.push({
+      name: 'picklist',
+      params: {
+        jobId: rowData.id
+      }
+    })
+    break
+  case 'Refile':
+    router.push({
+      name: 'refile',
+      params: {
+        jobId: rowData.id
+      }
+    })
+    break
+  case 'Withdraw':
+    router.push({
+      name: 'withdrawal',
+      params: {
+        jobId: rowData.id
+      }
+    })
+    break
+  default:
     break
   }
 }

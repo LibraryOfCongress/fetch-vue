@@ -430,7 +430,6 @@ const {
   appIsLoadingData,
   appIsOffline
 } = storeToRefs(useGlobalStore())
-const { userData } = storeToRefs(useUserStore())
 const { buildings } = storeToRefs(useOptionStore())
 const { getVerificationJobList } = useVerificationStore()
 const { verificationJobList } = storeToRefs(useVerificationStore())
@@ -440,7 +439,11 @@ const {
   getAisleDetails,
   getSideDetails,
   getLadderDetails,
-  resetBuildingStore
+  resetBuildingStore,
+  resetBuildingChildren,
+  resetModuleChildren,
+  resetAisleChildren,
+  resetSideChildren
 } = useBuildingStore()
 const {
   renderBuildingModules,
@@ -462,6 +465,7 @@ const {
   getDirectShelvingJob,
   postDirectShelvingJob
 } = useShelvingStore()
+const { userData } = storeToRefs(useUserStore())
 
 // Local Data
 const createShelvingJobModal = ref(null)
@@ -586,21 +590,26 @@ const handleShelvingJobFormChange = async (valueType) => {
     shelvingJob.value.aisle_id = null
     shelvingJob.value.side_id = null
     shelvingJob.value.ladder_id = null
+    resetBuildingChildren()
     return
   case 'Module':
     await getModuleDetails(shelvingJob.value.module_id)
     shelvingJob.value.aisle_id = null
     shelvingJob.value.side_id = null
     shelvingJob.value.ladder_id = null
+    // clear state for aisle options downward since user needs to select an aisle next to populate the rest of the data
+    resetModuleChildren()
     return
   case 'Aisle':
     await getAisleDetails(shelvingJob.value.aisle_id)
     shelvingJob.value.side_id = null
     shelvingJob.value.ladder_id = null
+    resetAisleChildren()
     return
   case 'Side':
     await getSideDetails(shelvingJob.value.side_id)
     shelvingJob.value.ladder_id = null
+    resetSideChildren()
     return
   case 'Ladder':
     await getLadderDetails(shelvingJob.value.ladder_id)
@@ -611,7 +620,7 @@ const handleShelvingJobFormChange = async (valueType) => {
 const loadShelvingJobs = async () => {
   try {
     appIsLoadingData.value = true
-    await getShelvingJobList({ user_id: checkUserPermission('can_view_all_shelving_jobs') ? null : userData.value.user_id })
+    await getShelvingJobList({ queue: true, user_id: checkUserPermission('can_view_all_shelving_jobs') ? null : userData.value.user_id })
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -666,7 +675,8 @@ const submitShelvingJob = async () => {
       status: 'Created',
       building_id: shelvingJob.value.building_id,
       verification_jobs: shelvingJob.value.verification_jobs,
-      origin: 'Verification'
+      origin: 'Verification',
+      created_by_id: userData.value.user_id
     }
     await postShelvingJob(payload, params)
 

@@ -204,7 +204,11 @@ const {
   getModuleDetails,
   getAisleDetails,
   getSideDetails,
-  getLadderDetails
+  getLadderDetails,
+  resetBuildingChildren,
+  resetModuleChildren,
+  resetAisleChildren,
+  resetSideChildren
 } = useBuildingStore()
 const {
   renderBuildingModules,
@@ -294,21 +298,25 @@ const handleLocationFormChange = async (valueType) => {
     locationRoutingForm.value.aisle_id = null
     locationRoutingForm.value.side_id = null
     locationRoutingForm.value.ladder_id = null
+    resetBuildingChildren()
     return
   case 'Module':
     await getModuleDetails(locationRoutingForm.value.module_id)
     locationRoutingForm.value.aisle_id = null
     locationRoutingForm.value.side_id = null
     locationRoutingForm.value.ladder_id = null
+    resetModuleChildren()
     return
   case 'Aisle':
     await getAisleDetails(locationRoutingForm.value.aisle_id)
     locationRoutingForm.value.side_id = null
     locationRoutingForm.value.ladder_id = null
+    resetAisleChildren()
     return
   case 'Side':
     await getSideDetails(locationRoutingForm.value.side_id)
     locationRoutingForm.value.ladder_id = null
+    resetSideChildren()
     return
   case 'Ladder':
     await getLadderDetails(locationRoutingForm.value.ladder_id)

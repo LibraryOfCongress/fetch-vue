@@ -75,6 +75,42 @@ export const useBuildingStore = defineStore('building-store', {
     resetBuildingStore () {
       this.$reset()
     },
+    resetBuildingChildren () {
+      // clears state for module options downward since user will need to select an module next to populate the rest of the data
+      // ex: shelving workflow - edit shelf location uses a dynamic form that loads building locations based on parent selections aisles selection derives from module ect
+      this.moduleDetails = {}
+      this.aisleDetails = {}
+      this.sideDetails = {}
+      this.ladderDetails = {}
+      this.shelfDetails = {}
+      this.shelfPositions = []
+    },
+    resetModuleChildren () {
+      // clears state for aisle options downward since user will need to select an aisle next to populate the rest of the data
+      this.aisleDetails = {}
+      this.sideDetails = {}
+      this.ladderDetails = {}
+      this.shelfDetails = {}
+      this.shelfPositions = []
+    },
+    resetAisleChildren () {
+      // clears state for side options downward since user will need to select an side next to populate the rest of the data
+      this.sideDetails = {}
+      this.ladderDetails = {}
+      this.shelfDetails = {}
+      this.shelfPositions = []
+    },
+    resetSideChildren () {
+      // clears state for ladder options downward since user will need to select an ladder next to populate the rest of the data
+      this.ladderDetails = {}
+      this.shelfDetails = {}
+      this.shelfPositions = []
+    },
+    resetLadderChildren () {
+      // clears state for shelf options downward since user will need to select an shelf next to populate the rest of the data
+      this.shelfDetails = {}
+      this.shelfPositions = []
+    },
     async getBuildingsList () {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.buildings}`, { params: { size: 100 } })

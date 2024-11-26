@@ -6,7 +6,7 @@
           :table-columns="verificationTableColumns"
           :table-visible-columns="verificationTableVisibleColumns"
           :filter-options="verificationTableFilters"
-          :table-data="verificationJobList.filter(job => job.status !== 'Completed')"
+          :table-data="verificationJobList"
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
@@ -136,7 +136,7 @@ onBeforeMount(() => {
 const loadVerificationJobs = async () => {
   try {
     appIsLoadingData.value = true
-    await getVerificationJobList()
+    await getVerificationJobList({ queue: true })
   } catch (error) {
     handleAlert({
       type: 'error',
