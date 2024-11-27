@@ -27,22 +27,29 @@ export const useBarcodeStore = defineStore('barcode-store', {
         withdrawn: false
       }
     },
-    async verifyBarcode (barcode, type) {
+    async verifyBarcode (barcode, type, autoAddBarcode = false) {
       try {
         this.resetBarcodeStore()
+        let validationTypes = []
+        if (typeof type === 'string') {
+          validationTypes.push(type)
+        } else {
+          validationTypes = [...type]
+        }
 
         // check if the scanned barcode exists in the system and matches the passed in type
         await this.getBarcodeDetails(barcode)
-        if (this.barcodeDetails.id && this.barcodeDetails.type.name == type) {
+        if (this.barcodeDetails.id && validationTypes.includes(this.barcodeDetails.type.name)) {
           return 'barcode_exists'
         } else {
-          throw `The scanned barcode exists but is not an "${type}" barcode! Please try again.`
+          throw `The scanned barcode exists but is not an "${validationTypes.length == 1 ? validationTypes.toString() : validationTypes.join('/')}" barcode! Please try again.`
         }
       } catch (error) {
-        if (error.response?.status == 404) {
-          // if the barcode doesnt exist then add the barcode to the system automatically
+        if (error.response?.status == 404 && autoAddBarcode == true) {
+          // if the barcode doesnt exist then add the barcode to the system automatically if boolean param is passed
+          // (ex: accession workflow creates barcodes if verify comes back with a 404)
           await this.postBarcode(barcode, type)
-          return 'barcode_added'
+          return
         }
         throw error
       }
@@ -51,6 +58,7 @@ export const useBarcodeStore = defineStore('barcode-store', {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.barcodesValue}${barcode}`)
         this.barcodeDetails = res.data
+        return res
       } catch (error) {
         throw error
       }

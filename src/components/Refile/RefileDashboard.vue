@@ -513,7 +513,7 @@ const loadRefileJobs = async () => {
   try {
     appIsLoadingData.value = true
     if (refileDisplayType.value == 'refile_job') {
-      await getRefileJobList({ user_id: checkUserPermission('can_view_all_refile_jobs') ? null : userData.value.user_id })
+      await getRefileJobList({ queue: true, user_id: checkUserPermission('can_view_all_refile_jobs') ? null : userData.value.user_id })
     } else {
       await getRefileQueueList()
     }
@@ -575,7 +575,8 @@ const createRefileJob = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
-      barcode_values: selectedRefileItems.value.map(item => item.barcode_value)
+      barcode_values: selectedRefileItems.value.map(item => item.barcode_value),
+      created_by_id: userData.value.user_id
     }
     await postRefileJob(payload)
 

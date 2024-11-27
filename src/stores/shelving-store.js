@@ -79,6 +79,24 @@ export const useShelvingStore = defineStore('shelving-store', {
         }
       },
       scanned_for_shelving: false
+    },
+    moveShelfJob: {
+      shelf_barcode: '',
+      tray_barcode: '',
+      user: {
+        first_name: '',
+        last_name: ''
+      },
+      user_id: null,
+      owner: {
+        name: ''
+      },
+      size_class: {
+        name: ''
+      },
+      move_dt: '',
+      available_space: null,
+      containers: []
     }
   }),
   getters: {
@@ -175,6 +193,7 @@ export const useShelvingStore = defineStore('shelving-store', {
             size_class: res.data.shelf_type.size_class
           }
         }
+        return res
       } catch (error) {
         throw error
       }
@@ -304,6 +323,69 @@ export const useShelvingStore = defineStore('shelving-store', {
       } catch (error) {
         if (globalStore.appIsOffline) {
           return
+        } else {
+          throw error
+        }
+      }
+    },
+    async getShelvingTrayContainerDetails (barcode_value) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.traysBarcode}${barcode_value}`)
+        return res
+      } catch (error) {
+        throw error
+      }
+    },
+    async getShelvingTrayItemDetails (barcode_value) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.itemsBarcode}${barcode_value}`)
+        return res
+      } catch (error) {
+        throw error
+      }
+    },
+    async getShelvingNonTrayItemDetails (barcode_value) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.nonTrayItemsBarcode}${barcode_value}`)
+        return res
+      } catch (error) {
+        throw error
+      }
+    },
+    async postMoveTrayLocation (payload) {
+      try {
+        const res = await this.$api.post(`${inventoryServiceApi.traysMove}${payload.tray_barcode_value}`, payload)
+        return res
+      } catch (error) {
+        if (error.response.status == 422) {
+          // return 422 error since these have messages we need to display to the user
+          return error
+        } else {
+          throw error
+        }
+      }
+    },
+    async postMoveNonTrayLocation (payload) {
+      try {
+        const res = await this.$api.post(`${inventoryServiceApi.nonTrayItemsMove}${payload.non_tray_barcode_value}`, payload)
+        return res
+      } catch (error) {
+        if (error.response.status == 422) {
+          // return 422 error since these have messages we need to display to the user
+          return error
+        } else {
+          throw error
+        }
+      }
+    },
+    async postMoveTrayItemLocation (payload) {
+      try {
+        const res = await this.$api.post(`${inventoryServiceApi.itemsMove}${payload.item_barcode_value}`, payload)
+        return res
+      } catch (error) {
+        if (error.response.status == 422) {
+          // return 422 error since these have messages we need to display to the user
+          return error
         } else {
           throw error
         }

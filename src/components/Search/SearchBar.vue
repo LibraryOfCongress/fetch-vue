@@ -148,6 +148,7 @@ import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { useGlobalStore } from '@/stores/global-store'
 import { useSearchStore } from '@/stores/search-store'
+import { useItemManagementStore } from '@/stores/item-management-store'
 import { useAccessionStore } from '@/stores/accession-store'
 import { useVerificationStore } from '@/stores/verification-store'
 import { useShelvingStore } from '@/stores/shelving-store'
@@ -169,6 +170,11 @@ const { checkUserPermission } = usePermissionHandler()
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { getExactSearchResult } = useSearchStore()
 const { searchResults } = storeToRefs(useSearchStore())
+const {
+  itemDetails,
+  trayDetails,
+  shelfDetails
+} = storeToRefs(useItemManagementStore())
 const { accessionJob } = storeToRefs(useAccessionStore())
 const { verificationJob } = storeToRefs(useVerificationStore())
 const { shelvingJob } = storeToRefs(useShelvingStore())
@@ -259,6 +265,7 @@ const setSearchType = () => {
 
 const executeExactSearch = async () => {
   try {
+    exactSearchResponseInfo.value = null
     appActionIsLoadingData.value = true
     const res = await getExactSearchResult(searchText.value, searchType.value)
     if (res) {
@@ -276,30 +283,19 @@ const executeExactSearch = async () => {
   }
 }
 const handlingSearchResultRouting = () => {
-  // loads the exact search result route depending on search type
+  // load the exact search result route depending on search type and assign info to matching job store if needed
   switch (searchType.value) {
   case 'Item':
+    itemDetails.value = exactSearchResponseInfo.value
+    // TODO setup routing to item-management pages once they are built out
     break
   case 'Tray':
+    trayDetails.value = exactSearchResponseInfo.value
+    // TODO setup routing to item-management pages once they are built out
     break
   case 'Shelf':
-    break
-  default:
-    router.push({
-      name: searchType.value.toLowerCase(),
-      params: {
-        jobId: searchText.value
-      }
-    })
-    break
-  }
-  // set the result info in the matching job store
-  switch (searchType.value) {
-  case 'Item':
-    break
-  case 'Tray':
-    break
-  case 'Shelf':
+    shelfDetails.value = exactSearchResponseInfo.value
+    // TODO setup routing to item-management pages once they are built out
     break
   case 'Accession':
     accessionJob.value = exactSearchResponseInfo.value
@@ -358,7 +354,7 @@ const handlingSearchResultRouting = () => {
   case 'Withdraw':
     withdrawJob.value = exactSearchResponseInfo.value
     router.push({
-      name: searchType.value.toLowerCase(),
+      name: 'withdrawal',
       params: {
         jobId: searchText.value
       }

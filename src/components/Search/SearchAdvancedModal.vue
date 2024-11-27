@@ -33,9 +33,6 @@
             <div class="form-group">
               <label class="form-group-label">
                 Building
-                <span class="text-caption text-negative">
-                  (Required)
-                </span>
               </label>
               <SelectInput
                 v-model="searchForm.building_id"
@@ -145,25 +142,6 @@
           <div class="col-12 q-mb-md">
             <div class="form-group">
               <label class="form-group-label">
-                Size Class
-              </label>
-              <SelectInput
-                v-model="searchForm.size_class_id"
-                :options="sizeClass"
-                option-type="sizeClass"
-                option-value="id"
-                option-label="name"
-                :placeholder="`Select Size Class`"
-                :disabled="!searchForm.shelf_id"
-                @update:model-value="null"
-                :aria-label="`sizeClassSelect`"
-              />
-            </div>
-          </div>
-
-          <div class="col-12 q-mb-md">
-            <div class="form-group">
-              <label class="form-group-label">
                 Owner
               </label>
               <SelectInput
@@ -173,7 +151,7 @@
                 option-value="id"
                 option-label="name"
                 :placeholder="`Select Owner`"
-                :disabled="!searchForm.shelf_id"
+                :disabled="!searchForm.building_id"
                 @update:model-value="null"
                 :aria-label="`ownerSelect`"
               />
@@ -183,11 +161,18 @@
           <div class="col-12 q-mb-md">
             <div class="form-group">
               <label class="form-group-label">
-                Shelf Barcode
+                Size Class
               </label>
-              <TextInput
-                v-model="searchForm.barcode"
-                placeholder="Enter Shelf Barcode"
+              <SelectInput
+                v-model="searchForm.size_class_id"
+                :options="sizeClass"
+                option-type="sizeClass"
+                option-value="id"
+                option-label="name"
+                :placeholder="`Select Size Class`"
+                :disabled="!searchForm.building_id"
+                @update:model-value="null"
+                :aria-label="`sizeClassSelect`"
               />
             </div>
           </div>
@@ -203,7 +188,7 @@
           >
             <!-- date range inputs -->
             <div
-              v-if="param.query == 'from_dt' || param.query == 'to_dt'"
+              v-if="param.query.includes('_dt')"
               class="col-6 q-mb-md"
             >
               <div class="form-group q-pr-xs">
@@ -246,7 +231,7 @@
             </div>
             <!-- text inputs -->
             <div
-              v-else-if="param.query == 'barcode' || param.query == 'job_id'"
+              v-else-if="param.query == 'barcode' || param.query == 'job_id' || param.query == 'requestor_name'"
               class="col-12 q-mb-md"
             >
               <div class="form-group">
@@ -273,8 +258,8 @@
                   v-model="searchForm[param.query]"
                   :options="param.options"
                   :option-type="param.optionType"
-                  option-value="id"
-                  :option-label="param.optionType == 'users' ? 'first_name' : 'name'"
+                  :option-value="param.optionType ? 'id' : ''"
+                  :option-label="!param.optionType ? '' : param.optionType == 'users' ? 'first_name' : 'name'"
                   :placeholder="`Select ${param.label}`"
                   @update:model-value="null"
                   :aria-label="`${param.query}Select`"
@@ -314,7 +299,7 @@
 </template>
 
 <script setup>
-import { ref, inject, onBeforeMount } from 'vue'
+import { ref, inject, onBeforeMount, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -360,7 +345,11 @@ const {
   getAisleDetails,
   getSideDetails,
   getLadderDetails,
-  resetBuildingStore
+  resetBuildingStore,
+  resetBuildingChildren,
+  resetModuleChildren,
+  resetAisleChildren,
+  resetSideChildren
 } = useBuildingStore()
 const {
   renderBuildingModules,
@@ -383,6 +372,10 @@ onBeforeMount(() => {
   generateSearchModal()
 })
 
+watch(() => mainProps.searchType, () => {
+  generateSearchModal()
+})
+
 const handleLocationFormChange = async (valueType) => {
   // reset the report form depending on the edited form field type
   switch (valueType) {
@@ -393,6 +386,7 @@ const handleLocationFormChange = async (valueType) => {
     searchForm.value.side_id = null
     searchForm.value.ladder_id = null
     searchForm.value.shelf_id = null
+    resetBuildingChildren()
     return
   case 'Module':
     await getModuleDetails(searchForm.value.module_id)
@@ -400,17 +394,20 @@ const handleLocationFormChange = async (valueType) => {
     searchForm.value.side_id = null
     searchForm.value.ladder_id = null
     searchForm.value.shelf_id = null
+    resetModuleChildren()
     return
   case 'Aisle':
     await getAisleDetails(searchForm.value.aisle_id)
     searchForm.value.side_id = null
     searchForm.value.ladder_id = null
     searchForm.value.shelf_id = null
+    resetAisleChildren()
     return
   case 'Side':
     await getSideDetails(searchForm.value.side_id)
     searchForm.value.ladder_id = null
     searchForm.value.shelf_id = null
+    resetSideChildren()
     return
   case 'Ladder':
     await getLadderDetails(searchForm.value.ladder_id)
@@ -427,19 +424,18 @@ const generateSearchModal = () => {
       from_dt: null,
       to_dt: null,
       owner_id: null,
-      status: null,
+      status: '',
       size_class_id: null,
-      media_type_id: null,
-      barcode_value: mainProps.searchBarInput
+      media_type_id: null
     }
     searchParams.value = [
       {
         query: 'from_dt',
-        label: 'Date (From)'
+        label: 'Accession Date (From)'
       },
       {
         query: 'to_dt',
-        label: 'Date (To)'
+        label: 'Accession Date Date (To)'
       },
       {
         query: 'owner_id',
@@ -450,7 +446,12 @@ const generateSearchModal = () => {
       {
         query: 'status',
         label: 'Status',
-        options: [],
+        options: [
+          'In',
+          'Out',
+          'Requested',
+          'Withdrawn'
+        ],
         optionType: ''
       },
       {
@@ -464,10 +465,6 @@ const generateSearchModal = () => {
         label: 'Media Type',
         options: mediaTypes,
         optionType: 'mediaTypes'
-      },
-      {
-        query: 'barcode',
-        label: 'Item Barcode'
       }
     ]
     break
@@ -477,17 +474,16 @@ const generateSearchModal = () => {
       to_dt: null,
       owner_id: null,
       size_class_id: null,
-      media_type_id: null,
-      barcode_value: mainProps.searchBarInput
+      media_type_id: null
     }
     searchParams.value = [
       {
         query: 'from_dt',
-        label: 'Date (From)'
+        label: 'Accession Date Date (From)'
       },
       {
         query: 'to_dt',
-        label: 'Date (To)'
+        label: 'Accession Date Date (To)'
       },
       {
         query: 'owner_id',
@@ -506,10 +502,6 @@ const generateSearchModal = () => {
         label: 'Media Type',
         options: mediaTypes,
         optionType: 'mediaTypes'
-      },
-      {
-        query: 'barcode',
-        label: 'Tray Barcode'
       }
     ]
     break
@@ -522,44 +514,67 @@ const generateSearchModal = () => {
       ladder_id: null,
       shelf_id: null,
       owner_id: null,
-      size_class_id: null,
-      barcode_value: mainProps.searchBarInput
+      size_class_id: null
     }
+    break
+  case 'Request':
+    searchForm.value = {
+      from_dt: null,
+      to_dt: null,
+      requestor_name: ''
+    }
+    searchParams.value = [
+      {
+        query: 'from_dt',
+        label: 'Created Date (From)'
+      },
+      {
+        query: 'to_dt',
+        label: 'Created Date (To)'
+      },
+      {
+        query: 'requestor_name',
+        label: 'Requested By'
+      }
+    ]
     break
   default:
     searchForm.value = {
       from_dt: null,
       to_dt: null,
-      job_id: mainProps.searchBarInput,
       status: null,
-      create_by: null,
-      complete_by: null
+      created_by_id: null,
+      user_id: null
     }
     searchParams.value = [
       {
         query: 'from_dt',
-        label: 'Date (From)'
+        label: 'Created Date (From)'
       },
       {
         query: 'to_dt',
-        label: 'Date (To)'
-      },
-      {
-        query: 'job_id',
-        label: 'Job Number'
+        label: 'Created Date (To)'
       },
       {
         query: 'status',
-        label: 'Status'
+        label: 'Status',
+        options: [
+          'Created',
+          'Paused',
+          'Running',
+          'Cancelled',
+          'Completed'
+        ],
+        optionType: ''
       },
       {
-        query: 'create_by',
+        query: 'created_by_id',
         label: 'Created By',
         options: users,
         optionType: 'users'
       },
       {
-        query: 'complete_by',
+        query: 'user_id',
         label: 'Completed By',
         options: users,
         optionType: 'users'
@@ -572,25 +587,33 @@ const generateSearchModal = () => {
 const executeAdvancedSearch = async () => {
   try {
     appActionIsLoadingData.value = true
-    // convert any form date values to iso format
-    if (Object.entries(searchForm.value).some(([
+    let queryParams = JSON.parse(JSON.stringify(searchForm.value))
+    // convert any form date values to iso format along with removing any empty query params
+    Object.entries(queryParams).forEach(([
       key,
       value
-    ]) => key.includes('_dt') && value)) {
-      Object.keys(searchForm.value).forEach(key => {
-        if (key.includes('_dt')) {
-          const [
-            month,
-            day,
-            year
-          ] = searchForm.value[key].split('/')
-          searchForm.value[key] = new Date(year, month - 1, day).toISOString()
+    ]) => {
+      if (key.includes('_dt') && value) {
+        const [
+          month,
+          day,
+          year
+        ] = queryParams[key].split('/')
+        if (key.includes('from')) {
+          // sets from dates to begging of day
+          queryParams[key] = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0)).toISOString()
+        }  else {
+          // sets to date to end of date
+          queryParams[key] = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999)).toISOString()
         }
-      })
-    }
-
-    // TODO need to figure out how advance search will be sent to api
-    await getAdvancedSearchResults(searchForm.value, mainProps.searchType)
+      } else if (key == 'user_id' && value) {
+        //set status to completed by default on all searchs that include the completed by param in the query
+        queryParams.status = 'Completed'
+      } else if (!value) {
+        delete queryParams[key]
+      }
+    })
+    await getAdvancedSearchResults(queryParams, mainProps.searchType)
 
     router.push({
       name: 'search-results',

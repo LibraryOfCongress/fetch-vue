@@ -22,15 +22,19 @@ import RequestBatchJobDetails from '@/components/Request/RequestBatchJobDetails.
 const route = useRoute()
 
 // Store Data
-const { getRequestBatchJob } = useRequestStore()
+const { getRequestBatchJob, getRequestJob } = useRequestStore()
 
 // Logic
 const handlePageOffset = inject('handle-page-offset')
 
 onBeforeMount( async () => {
-  // if there is an id in the url we need to load that request job (batch requests only)
+  // if there is an id in the url we need to load that request job
   if (route.name == 'request-batch') {
     await getRequestBatchJob(route.params.jobId)
+  }
+
+  if (route.name == 'request' && route.params.jobId) {
+    await getRequestJob(route.params.jobId)
   }
 })
 </script>

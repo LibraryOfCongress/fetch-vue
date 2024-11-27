@@ -180,7 +180,7 @@ onBeforeMount(() => {
 const loadPicklistJobs = async () => {
   try {
     appIsLoadingData.value = true
-    await getPicklistJobList({ user_id: checkUserPermission('can_view_all_picklist_jobs') ? null : userData.value.user_id })
+    await getPicklistJobList({ queue: true, user_id: checkUserPermission('can_view_all_picklist_jobs') ? null : userData.value.user_id })
   } catch (error) {
     handleAlert({
       type: 'error',
