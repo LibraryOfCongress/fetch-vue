@@ -48,15 +48,6 @@ const routes = [
         }
       },
       {
-        name: 'admin-building-view',
-        path: 'admin/buildings/:buildingId?',
-        component: () => import('@/pages/AdminPage.vue'),
-        meta: {
-          requiresAuth: true,
-          requiresPerm: 'can_manage_locations'
-        }
-      },
-      {
         name: 'admin-groups',
         path: 'admin/groups/:groupId?',
         component: () => import('@/pages/AdminPage.vue'),
