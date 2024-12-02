@@ -265,11 +265,11 @@
             <SelectInput
               v-model="addToPickListJob"
               :options="picklists"
-              option-type="picklists"
               option-value="id"
               option-label="id"
               :placeholder="'Select Pick List Job'"
               aria-label="picklistJobSelect"
+              @focus="loadPicklistJobs"
             />
           </div>
         </q-card-section>
@@ -331,6 +331,7 @@ const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { getOptions } = useOptionStore()
 const { buildings, picklists } = storeToRefs(useOptionStore())
 const {
   resetRequestJob,
@@ -675,6 +676,17 @@ const loadRequestJob = async (id) => {
     })
   } finally {
     appIsLoadingData.value = false
+  }
+}
+const loadPicklistJobs = async () => {
+  try {
+    await getOptions('picklists', { queue: true })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
   }
 }
 const createPickListJob = async () => {

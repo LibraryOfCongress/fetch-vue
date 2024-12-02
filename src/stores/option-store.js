@@ -30,20 +30,9 @@ export const useOptionStore = defineStore('option-store', {
     resetOptionStore () {
       this.$reset()
     },
-    async getOptions (optionType) {
-      // temp fix for picklist option param
-      let res = null
+    async getOptions (optionType, qParams) {
       try {
-        if (optionType == 'picklists') {
-          res = await this.$api.get(inventoryServiceApi[optionType], { params: {
-            size: 100,
-            queue: true
-          } })
-        } else {
-          res = await this.$api.get(inventoryServiceApi[optionType], { params: { size: 100 } })
-        }
-        // const res = await this.$api.get(inventoryServiceApi[optionType], { params: { size: 100 } })
-
+        const res = await this.$api.get(inventoryServiceApi[optionType], { params: { ...qParams, size: 100 } })
         this[optionType] = res.data.items
       } catch (error) {
         throw error
