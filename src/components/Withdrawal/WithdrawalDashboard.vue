@@ -102,8 +102,7 @@ const withdrawTableVisibleColumns = ref([
   'id',
   'item_count',
   'status',
-  'create_dt',
-  'last_transition'
+  'create_dt'
 ])
 const withdrawTableColumns = ref([
   {
@@ -133,13 +132,6 @@ const withdrawTableColumns = ref([
     label: 'Date Created',
     align: 'left',
     sortable: true
-  },
-  {
-    name: 'last_transition',
-    field: row => row.status == 'Completed' ? row.last_transition : '',
-    label: 'Completed Date',
-    align: 'left',
-    sortable: true
   }
 ])
 const withdrawTableFilters =  ref([
@@ -152,10 +144,6 @@ const withdrawTableFilters =  ref([
       },
       {
         text: 'Paused',
-        value: false
-      },
-      {
-        text: 'Completed',
         value: false
       }
     ]
@@ -174,8 +162,7 @@ onBeforeMount(() => {
     withdrawTableVisibleColumns.value = [
       'id',
       'item_count',
-      'create_dt',
-      'last_transition'
+      'create_dt'
     ]
   }
 })
