@@ -520,8 +520,8 @@ const shelfTableColumns = ref([
   },
   {
     name: 'complete_dt',
-    field: row => row.status == 'Completed' ? row.last_transition : '',
-    label: 'Completed Date',
+    field: 'last_transition',
+    label: 'Last Updated',
     align: 'left',
     sortable: true,
     order: 5
@@ -537,10 +537,6 @@ const shelfTableFilters =  ref([
       },
       {
         text: 'Paused',
-        value: false
-      },
-      {
-        text: 'Completed',
         value: false
       }
     ]
