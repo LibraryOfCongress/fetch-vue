@@ -111,6 +111,15 @@ const routes = [
         }
       },
       {
+        name: 'admin-manage-media-types',
+        path: 'admin/manage/media-types',
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: {
+          requiresAuth: true,
+          requiresPerm: 'can_manage_media_type'
+        }
+      },
+      {
         name: 'admin-manage-size-class',
         path: 'admin/manage/size-class',
         component: () => import('@/pages/AdminPage.vue'),
