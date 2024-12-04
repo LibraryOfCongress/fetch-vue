@@ -229,7 +229,6 @@ const generateListModal = () => {
   switch (mainProps.listType) {
   case 'size-class':
     inputForm.value = {
-      assigned: mainProps.listData.assigned ?? false,
       name: mainProps.listData.name ?? '',
       short_name: mainProps.listData.short_name ?? '',
       width: mainProps.listData.width ?? '',
@@ -294,7 +293,6 @@ const generateListModal = () => {
   case 'shelf-type': {
     const matchingShelfTypes = shelfTypes.value.filter(s => s.type == mainProps.listData.type)
     inputForm.value = {
-      assigned: mainProps.listData.assigned ?? false,
       type: mainProps.listData.type ?? '',
       size_class_ids: matchingShelfTypes.map(s => s.size_class_id) ?? [],
       size_classes: matchingShelfTypes.map(s => ({ ...s.size_class, max_capacity: s.max_capacity, shelf_type_id: s.id })) ?? []

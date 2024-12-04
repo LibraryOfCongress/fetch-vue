@@ -281,7 +281,7 @@ const handleOptionMenu = async (option, rowData) => {
   }
 }
 
-const generateTableOptionsMenu = (rowData) => {
+const generateTableOptionsMenu = () => {
   let options = []
   if (mainProps.listType == 'owners') {
     options = [{ text: 'Edit Owner' }]
@@ -293,12 +293,12 @@ const generateTableOptionsMenu = (rowData) => {
   } else if (mainProps.listType == 'shelf-type') {
     options = [
       { text: 'Edit Shelf Type' },
-      { text: 'Delete Shelf Type', optionClass: 'text-negative', disabled: rowData.assigned }
+      { text: 'Delete Shelf Type', optionClass: 'text-negative' }
     ]
   } else {
     options = [
       { text: 'Edit Size Class' },
-      { text: 'Delete Size Class', optionClass: 'text-negative', disabled: rowData.assigned }
+      { text: 'Delete Size Class', optionClass: 'text-negative' }
     ]
   }
   return options
