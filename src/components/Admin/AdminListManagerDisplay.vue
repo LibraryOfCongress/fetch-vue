@@ -146,11 +146,12 @@ const {
 } = storeToRefs(useGlobalStore())
 const {
   getOptions,
-  deleteSizeClass
+  deleteSizeClass,
+  deleteMediaType
 } = useOptionStore()
 const {
   owners,
-  mediaType,
+  mediaTypes,
   sizeClass
 } = storeToRefs(useOptionStore())
 
@@ -161,8 +162,8 @@ const listData = computed(() => {
   case 'owners':
     tableData = owners.value
     break
-  case 'media-type':
-    tableData = mediaType.value
+  case 'media-types':
+    tableData = mediaTypes.value
     break
   case 'size-class':
     tableData = sizeClass.value
@@ -179,7 +180,7 @@ const renderTableTitle = computed(() => {
   let title = ''
   if (mainProps.listType == 'owners') {
     title = 'Owners'
-  } else if (mainProps.listType == 'media-type') {
+  } else if (mainProps.listType == 'media-types') {
     title = 'Media Type'
   } else {
     title = 'Size Class'
@@ -190,7 +191,7 @@ const renderTableAction = computed(() => {
   let actionText = ''
   if (mainProps.listType == 'owners') {
     actionText = 'Add Owner'
-  } else if (mainProps.listType == 'media-type') {
+  } else if (mainProps.listType == 'media-types') {
     actionText = 'Add Media Type'
   } else {
     actionText = 'Add Size Class'
@@ -239,6 +240,10 @@ const handleOptionMenu = async (option, rowData) => {
     appIsLoadingData.value = true
     await Promise.all([getOptions('owners')])
     appIsLoadingData.value = false
+  } else if (mainProps.listType == 'media-types') {
+    appIsLoadingData.value = true
+    await Promise.all([getOptions('media-types')])
+    appIsLoadingData.value = false
   }
 
   if (option.text.includes('Edit')) {
@@ -256,8 +261,11 @@ const generateTableOptionsMenu = (rowData) => {
   let options = []
   if (mainProps.listType == 'owners') {
     options = [{ text: 'Edit Owner' }]
-  } else if (mainProps.listType == 'media-type') {
-    options = [{ text: 'Edit Media Type' }]
+  } else if (mainProps.listType == 'media-types') {
+    options = [
+      { text: 'Edit Media Type' },
+      { text: 'Delete Media Type', optionClass: 'text-negative', disabled: rowData.assigned }
+    ]
   } else {
     options = [
       { text: 'Edit Size Class' },
@@ -333,6 +341,29 @@ const generateListTableInfo = () => {
       'owner'
     ]
     break
+  case 'media-types':
+    listTableColumns.value = [
+      {
+        name: 'actions',
+        field: 'actions',
+        label: '',
+        align: 'center',
+        sortable: false,
+        required: true
+      },
+      {
+        name: 'name',
+        field: 'name',
+        label: 'Name',
+        align: 'left',
+        sortable: true
+      }
+    ]
+    listTableVisibleColumns.value = [
+      'actions',
+      'name'
+    ]
+    break
   default:
     break
   }
@@ -343,8 +374,8 @@ const loadListData = async () => {
     appIsLoadingData.value = true
     if (mainProps.listType == 'owners') {
       await getOptions('owners')
-    } else if (mainProps.listType == 'media-type') {
-      await getOptions('mediaType')
+    } else if (mainProps.listType == 'media-types') {
+      await getOptions('mediaTypes')
     } else {
       await getOptions('sizeClass')
     }
@@ -362,7 +393,11 @@ const loadListData = async () => {
 const deleteListOption = async (id) => {
   try {
     appActionIsLoadingData.value = true
-    await deleteSizeClass(id)
+    if (mainProps.listType == 'size-class') {
+      await deleteSizeClass(id)
+    } else if (mainProps.listType == 'media-types') {
+      await deleteMediaType(id)
+    }
     handleAlert({
       type: 'success',
       text: `Successfully Deleted The ${renderTableTitle.value}.`,

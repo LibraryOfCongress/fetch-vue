@@ -87,10 +87,10 @@ const adminLinkList = computed(() => {
         //   title: 'Add/Edit/Remove Owners',
         //   hidden: !checkUserPermission('can_manage_owners')
         // },
-        // {
-        //   title: 'Add/Edit/Remove Media Type',
-        //   hidden: !checkUserPermission('can_manage_media_type')
-        // },
+        {
+          title: 'Add/Edit/Remove Media Type',
+          hidden: !checkUserPermission('can_manage_media_type')
+        },
         {
           title: 'Add/Edit/Remove Size Class',
           hidden: !checkUserPermission('can_manage_size_class')
@@ -148,9 +148,9 @@ const handleRouting = (link) => {
   // case 'Add/Edit/Remove Owners':
   //   router.push({ name: '' })
   //   break
-  // case 'Add/Edit/Remove Media Type':
-  //   router.push({ name: '' })
-  //   break
+  case 'Add/Edit/Remove Media Type':
+    router.push({ name: 'admin-manage-media-types' })
+    break
   case 'Add/Edit/Remove Size Class':
     router.push({ name: 'admin-manage-size-class' })
     break

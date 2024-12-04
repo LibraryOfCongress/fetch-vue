@@ -49,6 +49,38 @@ export const useOptionStore = defineStore('option-store', {
         throw error
       }
     },
+    async postMediaType (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.mediaTypes, payload)
+
+        this.mediaTypes = [
+          ...this.mediaTypes,
+          res.data
+        ]
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchMediaType (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.mediaTypes}${payload.id}`, payload)
+
+        // update the specific media type with the response info
+        this.mediaTypes[this.mediaTypes.findIndex(mt => mt.id == payload.id)] = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async deleteMediaType (mediaTypeId) {
+      try {
+        await this.$api.delete(`${inventoryServiceApi.mediaTypes}${mediaTypeId}`)
+
+        // filter out the specific media type
+        this.mediaTypes = this.mediaTypes.filter(mt => mt.id !== mediaTypeId)
+      } catch (error) {
+        throw error
+      }
+    },
     async postSizeClass (payload) {
       try {
         const res = await this.$api.post(inventoryServiceApi.sizeClass, payload)

@@ -157,7 +157,9 @@ const { owners } = storeToRefs(useOptionStore())
 const {
   postSizeClass,
   patchSizeClass,
-  deleteSizeClassOwners
+  deleteSizeClassOwners,
+  postMediaType,
+  patchMediaType
 } = useOptionStore()
 
 // Local Data
@@ -234,6 +236,21 @@ const generateListModal = () => {
       }
     ]
     break
+  case 'media-types':
+    inputForm.value = {
+      name: mainProps.listData.name ?? ''
+    }
+    // create a copy of our input form
+    inputFormOriginal.value = { ...toRaw(inputForm.value) }
+
+    inputFields.value = [
+      {
+        field: 'name',
+        label: 'Name',
+        required: true
+      }
+    ]
+    break
   default:
     break
   }
@@ -247,6 +264,9 @@ const addNewListType = async () => {
     switch (mainProps.listType) {
     case 'size-class':
       await postSizeClass(payload)
+      break
+    case 'media-types':
+      await postMediaType(payload)
       break
     default:
       break
@@ -289,6 +309,9 @@ const updateListType = async () => {
       await patchSizeClass(payload)
       break
     }
+    case 'media-types':
+      await patchMediaType(payload)
+      break
     default:
       break
     }
