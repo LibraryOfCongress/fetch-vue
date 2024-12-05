@@ -146,7 +146,7 @@ const breadcrumbList = computed(() => {
       ]
     }
     break
-  case 'admin-manage-media-types':
+  case 'admin-manage-media-type':
     breadCrumbs = [
       ...breadCrumbs,
       {

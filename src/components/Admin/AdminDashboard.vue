@@ -153,7 +153,7 @@ const handleRouting = (link) => {
   //   router.push({ name: '' })
   //   break
   case 'Add/Edit/Remove Media Type':
-    router.push({ name: 'admin-manage-media-types' })
+    router.push({ name: 'admin-manage-media-type' })
     break
   case 'Add/Edit/Remove Size Class':
     router.push({ name: 'admin-manage-size-class' })

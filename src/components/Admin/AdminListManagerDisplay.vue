@@ -164,7 +164,7 @@ const listData = computed(() => {
   case 'owners':
     tableData = owners.value
     break
-  case 'media-types':
+  case 'media-type':
     tableData = mediaTypes.value
     break
   case 'size-class':
@@ -196,7 +196,7 @@ const renderTableTitle = computed(() => {
   let title = ''
   if (mainProps.listType == 'owners') {
     title = 'Owners'
-  } else if (mainProps.listType == 'media-types') {
+  } else if (mainProps.listType == 'media-type') {
     title = 'Media Type'
   } else if (mainProps.listType == 'shelf-type') {
     title = 'Shelf Type'
@@ -209,7 +209,7 @@ const renderTableAction = computed(() => {
   let actionText = ''
   if (mainProps.listType == 'owners') {
     actionText = 'Add Owner'
-  } else if (mainProps.listType == 'media-types') {
+  } else if (mainProps.listType == 'media-type') {
     actionText = 'Add Media Type'
   } else if (mainProps.listType == 'shelf-type') {
     actionText = 'Add Shelf Type'
@@ -260,7 +260,7 @@ const handleOptionMenu = async (option, rowData) => {
     appIsLoadingData.value = true
     await Promise.all([getOptions('owners')])
     appIsLoadingData.value = false
-  } else if (mainProps.listType == 'media-types') {
+  } else if (mainProps.listType == 'media-type') {
     appIsLoadingData.value = true
     await Promise.all([getOptions('media-types')])
     appIsLoadingData.value = false
@@ -370,7 +370,7 @@ const generateListTableInfo = () => {
       'owner'
     ]
     break
-  case 'media-types':
+  case 'media-type':
     listTableColumns.value = [
       {
         name: 'actions',
@@ -426,7 +426,7 @@ const loadListData = async () => {
     appIsLoadingData.value = true
     if (mainProps.listType == 'owners') {
       await getOptions('owners')
-    } else if (mainProps.listType == 'media-types') {
+    } else if (mainProps.listType == 'media-type') {
       await getOptions('mediaTypes')
     } else if (mainProps.listType == 'shelf-type') {
       await getOptions('shelfTypes')
