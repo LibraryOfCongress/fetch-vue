@@ -193,9 +193,7 @@ const {
   patchMediaType,
   postShelfType,
   patchShelfType,
-  deleteShelfType,
-  postMediaType,
-  patchMediaType
+  deleteShelfType
 } = useOptionStore()
 
 // Local Data

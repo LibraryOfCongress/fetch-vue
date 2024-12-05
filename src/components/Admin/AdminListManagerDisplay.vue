@@ -452,7 +452,7 @@ const deleteListOption = async (id) => {
       await deleteSizeClass(id)
       break
     }
-    case 'media-types': 
+    case 'media-type':
       await deleteMediaType(id)
       break
     case 'shelf-type': {
