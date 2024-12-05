@@ -189,6 +189,8 @@ const {
   postSizeClass,
   patchSizeClass,
   deleteSizeClassOwners,
+  postMediaType,
+  patchMediaType,
   postShelfType,
   patchShelfType,
   deleteShelfType,

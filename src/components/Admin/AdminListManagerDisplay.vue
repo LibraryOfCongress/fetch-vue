@@ -285,10 +285,10 @@ const generateTableOptionsMenu = () => {
   let options = []
   if (mainProps.listType == 'owners') {
     options = [{ text: 'Edit Owner' }]
-  } else if (mainProps.listType == 'media-types') {
+  } else if (mainProps.listType == 'media-type') {
     options = [
       { text: 'Edit Media Type' },
-      { text: 'Delete Media Type', optionClass: 'text-negative', disabled: rowData.assigned }
+      { text: 'Delete Media Type', optionClass: 'text-negative' }
     ]
   } else if (mainProps.listType == 'shelf-type') {
     options = [
