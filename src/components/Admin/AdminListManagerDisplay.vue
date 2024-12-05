@@ -162,7 +162,7 @@ const listData = computed(() => {
   case 'owners':
     tableData = owners.value
     break
-  case 'media-types':
+  case 'media-type':
     tableData = mediaTypes.value
     break
   case 'size-class':
@@ -180,7 +180,7 @@ const renderTableTitle = computed(() => {
   let title = ''
   if (mainProps.listType == 'owners') {
     title = 'Owners'
-  } else if (mainProps.listType == 'media-types') {
+  } else if (mainProps.listType == 'media-type') {
     title = 'Media Type'
   } else {
     title = 'Size Class'
@@ -191,7 +191,7 @@ const renderTableAction = computed(() => {
   let actionText = ''
   if (mainProps.listType == 'owners') {
     actionText = 'Add Owner'
-  } else if (mainProps.listType == 'media-types') {
+  } else if (mainProps.listType == 'media-type') {
     actionText = 'Add Media Type'
   } else {
     actionText = 'Add Size Class'
@@ -240,7 +240,7 @@ const handleOptionMenu = async (option, rowData) => {
     appIsLoadingData.value = true
     await Promise.all([getOptions('owners')])
     appIsLoadingData.value = false
-  } else if (mainProps.listType == 'media-types') {
+  } else if (mainProps.listType == 'media-type') {
     appIsLoadingData.value = true
     await Promise.all([getOptions('media-types')])
     appIsLoadingData.value = false
@@ -261,7 +261,7 @@ const generateTableOptionsMenu = (rowData) => {
   let options = []
   if (mainProps.listType == 'owners') {
     options = [{ text: 'Edit Owner' }]
-  } else if (mainProps.listType == 'media-types') {
+  } else if (mainProps.listType == 'media-type') {
     options = [
       { text: 'Edit Media Type' },
       { text: 'Delete Media Type', optionClass: 'text-negative', disabled: rowData.assigned }
@@ -341,7 +341,7 @@ const generateListTableInfo = () => {
       'owner'
     ]
     break
-  case 'media-types':
+  case 'media-type':
     listTableColumns.value = [
       {
         name: 'actions',
@@ -374,7 +374,7 @@ const loadListData = async () => {
     appIsLoadingData.value = true
     if (mainProps.listType == 'owners') {
       await getOptions('owners')
-    } else if (mainProps.listType == 'media-types') {
+    } else if (mainProps.listType == 'media-type') {
       await getOptions('mediaTypes')
     } else {
       await getOptions('sizeClass')
@@ -395,7 +395,7 @@ const deleteListOption = async (id) => {
     appActionIsLoadingData.value = true
     if (mainProps.listType == 'size-class') {
       await deleteSizeClass(id)
-    } else if (mainProps.listType == 'media-types') {
+    } else if (mainProps.listType == 'media-type') {
       await deleteMediaType(id)
     }
     handleAlert({

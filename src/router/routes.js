@@ -111,8 +111,8 @@ const routes = [
         }
       },
       {
-        name: 'admin-manage-media-types',
-        path: 'admin/manage/media-types',
+        name: 'admin-manage-media-type',
+        path: 'admin/manage/media-type',
         component: () => import('@/pages/AdminPage.vue'),
         meta: {
           requiresAuth: true,
