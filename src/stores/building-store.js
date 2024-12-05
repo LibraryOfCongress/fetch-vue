@@ -543,6 +543,23 @@ export const useBuildingStore = defineStore('building-store', {
       } catch (error) {
         throw error
       }
+    },
+    async postBulkLocation (payload) {
+      try {
+        // create a formData Object and assign the file to the formData to be passed to api as 'multipart/form-data' content
+        let formData = new FormData()
+        Object.entries(payload).forEach(entry => {
+          const [
+            key,
+            value
+          ] = entry
+          formData.append(key, JSON.stringify(value))
+        })
+        console.log('uploading ladders/shelves', payload, formData)
+        // const res = await this.$api.post(`${inventoryServiceApi.batchUpload}request`, formData)
+      } catch (error) {
+        throw error
+      }
     }
   }
 })

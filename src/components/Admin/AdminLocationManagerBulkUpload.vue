@@ -162,6 +162,7 @@ const emit = defineEmits(['hide'])
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { buildings } = storeToRefs(useOptionStore())
 const {
+  postBulkLocation,
   getBuildingDetails,
   getModuleDetails,
   getAisleDetails,
@@ -255,18 +256,17 @@ const submitBulkUploadLocationForm = async () => {
   // TODO: Setup endpoints needed to send the different building properties to the location hierarchy and the file
   try {
     appActionIsLoadingData.value = true
-    console.log('uploading building/fields using file', bulkUploadLocationFile.value, bulkUploadLocationForm.value)
+    const payload = {
+      file: bulkUploadLocationFile.value[0].file,
+      ...bulkUploadLocationForm.value
+    }
+    await postBulkLocation(payload)
 
-    // mock api request success (remove once api setup)
-    await new Promise(resolve => setTimeout(() => {
-      handleAlert({
-        type: 'success',
-        text: 'Bulk Upload Successfully Processed.',
-        autoClose: true
-      })
-      resetBulkUploadLocationForm()
-      resolve()
-    }, 2000))
+    handleAlert({
+      type: 'success',
+      text: 'Successfully Uploaded New Locations!',
+      autoClose: true
+    })
   } catch (err) {
     handleAlert({
       type: 'error',
