@@ -236,7 +236,7 @@ const generateListModal = () => {
       }
     ]
     break
-  case 'media-types':
+  case 'media-type':
     inputForm.value = {
       name: mainProps.listData.name ?? ''
     }
@@ -265,7 +265,7 @@ const addNewListType = async () => {
     case 'size-class':
       await postSizeClass(payload)
       break
-    case 'media-types':
+    case 'media-type':
       await postMediaType(payload)
       break
     default:
@@ -309,7 +309,7 @@ const updateListType = async () => {
       await patchSizeClass(payload)
       break
     }
-    case 'media-types':
+    case 'media-type':
       await patchMediaType(payload)
       break
     default:
