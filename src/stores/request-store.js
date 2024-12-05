@@ -102,7 +102,7 @@ export const useRequestStore = defineStore('request-store', {
       try {
         await this.$api.post(inventoryServiceApi.requests, payload)
         // refresh the requestJobList using request view filter since this endpoint only triggers from the request view tab
-        await this.getRequestJobList()
+        await this.getRequestJobList({ queue: true })
       } catch (error) {
         throw error
       }
