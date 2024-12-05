@@ -79,12 +79,39 @@
                   :option-label="field.field == 'container_type_id' ? 'type' : 'name'"
                   :placeholder="`Select ${field.label}`"
                   :disabled="field.disabled"
-                  @update:model-value="null"
+                  @update:model-value="listType == 'shelf-type' ? updateShelfTypeSizeClass($event) : null"
                   :aria-label="`${field.field}Select`"
                 />
               </div>
             </div>
           </template>
+
+          <!-- custom shelf type max capacity inputs -->
+          <q-expansion-item
+            v-if="inputForm.size_classes && inputForm.size_classes.length > 0"
+            class="col-12 q-mb-md"
+            header-class="text-body1 q-px-xs-none q-px-sm-sm underline"
+            label="Max Capacity"
+          >
+            <template
+              v-for="sc in inputForm.size_classes"
+              :key="sc.id"
+            >
+              <div class="row items-center q-my-md">
+                <label class="col-grow">
+                  {{ sc.name }}
+                </label>
+                <div class="col-4">
+                  <TextInput
+                    v-model="sc.max_capacity"
+                    placeholder="Enter Capacity"
+                    :aria-label="`shelf_type_max_capacity_input`"
+                    type="number"
+                  />
+                </div>
+              </div>
+            </template>
+          </q-expansion-item>
         </div>
       </q-card-section>
     </template>
@@ -153,13 +180,20 @@ const emit = defineEmits([
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
-const { owners } = storeToRefs(useOptionStore())
+const {
+  owners,
+  sizeClass,
+  shelfTypes
+} = storeToRefs(useOptionStore())
 const {
   postSizeClass,
   patchSizeClass,
   deleteSizeClassOwners,
   postMediaType,
-  patchMediaType
+  patchMediaType,
+  postShelfType,
+  patchShelfType,
+  deleteShelfType
 } = useOptionStore()
 
 // Local Data
@@ -174,7 +208,13 @@ const inputForm = ref({})
 const inputFormOriginal = ref({})
 const isInputFormValid = computed(() => {
   const optionalFields = inputFields.value.flatMap(f => !f.required ? f.field : [] )
-  return !Object.keys(inputForm.value).every(key => optionalFields.includes(key) || inputForm.value[key] !== null && inputForm.value[key] !== '')
+  // filter out excess form data if its not included in the fields since we only care about defined fields
+  const mainForm = Object.fromEntries(inputFields.value.flatMap(f => f.field).map(mainField => [
+    mainField,
+    inputForm.value[mainField]
+  ]))
+  // check the main form fields and see if the required fields have proper values
+  return !Object.keys(mainForm).every(key => optionalFields.includes(key) || mainForm[key] !== null && mainForm[key] !== '' && mainForm[key].length !== 0)
 })
 
 // Logic
@@ -189,7 +229,6 @@ const generateListModal = () => {
   switch (mainProps.listType) {
   case 'size-class':
     inputForm.value = {
-      assigned: mainProps.listData.assigned ?? false,
       name: mainProps.listData.name ?? '',
       short_name: mainProps.listData.short_name ?? '',
       width: mainProps.listData.width ?? '',
@@ -251,6 +290,33 @@ const generateListModal = () => {
       }
     ]
     break
+  case 'shelf-type': {
+    const matchingShelfTypes = shelfTypes.value.filter(s => s.type == mainProps.listData.type)
+    inputForm.value = {
+      type: mainProps.listData.type ?? '',
+      size_class_ids: matchingShelfTypes.map(s => s.size_class_id) ?? [],
+      size_classes: matchingShelfTypes.map(s => ({ ...s.size_class, max_capacity: s.max_capacity, shelf_type_id: s.id })) ?? []
+    }
+    // create a copy of our input form
+    inputFormOriginal.value = { ...toRaw(inputForm.value) }
+
+    inputFields.value = [
+      {
+        field: 'type',
+        label: 'Shelf Type Name',
+        required: true
+      },
+      {
+        field: 'size_class_ids',
+        label: 'Size Class',
+        options: sizeClass,
+        optionType: 'sizeClass',
+        required: true,
+        allowMultiple: true
+      }
+    ]
+    break
+  }
   default:
     break
   }
@@ -267,6 +333,16 @@ const addNewListType = async () => {
       break
     case 'media-type':
       await postMediaType(payload)
+      break
+    case 'shelf-type':
+      // generate an individual shelf type for each size class selection
+      await Promise.all(inputForm.value.size_classes.map(sizeClassObj => {
+        return postShelfType({
+          type: payload.type,
+          size_class_id: sizeClassObj.id,
+          max_capacity: sizeClassObj.max_capacity
+        })
+      }))
       break
     default:
       break
@@ -312,6 +388,41 @@ const updateListType = async () => {
     case 'media-type':
       await patchMediaType(payload)
       break
+    case 'shelf-type': {
+      //check if we removed size class selections and send updates delete the corressponding shelf type from the api
+      let removedSizeClasses = []
+      removedSizeClasses = inputFormOriginal.value.size_classes.filter(oSizeClass => !inputForm.value.size_class_ids.includes(oSizeClass.id))
+      if (removedSizeClasses.length > 0) {
+        await Promise.all(removedSizeClasses.map(sizeClassObj => {
+          return deleteShelfType(sizeClassObj.shelf_type_id)
+        }))
+      }
+
+      //check if we added new size class selections and create the corressponding shelf type
+      let newSizeClasses = []
+      newSizeClasses = inputForm.value.size_classes.filter(curSizeClass => !inputFormOriginal.value.size_class_ids.includes(curSizeClass.id))
+      if (newSizeClasses.length > 0) {
+        await Promise.all(newSizeClasses.map(sizeClassObj => {
+          return postShelfType({
+            type: payload.type,
+            size_class_id: sizeClassObj.id,
+            max_capacity: sizeClassObj.max_capacity
+          })
+        }))
+      }
+
+      // generate an individual shelf type update for every current shelf type by size class
+      let currentSizeClasses = inputForm.value.size_classes.filter(curSizeClass => inputFormOriginal.value.size_class_ids.includes(curSizeClass.id))
+      await Promise.all(currentSizeClasses.map(sizeClassObj => {
+        return patchShelfType({
+          id: sizeClassObj.shelf_type_id,
+          type: payload.type,
+          size_class_id: sizeClassObj.id,
+          max_capacity: sizeClassObj.max_capacity
+        })
+      }))
+      break
+    }
     default:
       break
     }
@@ -330,6 +441,34 @@ const updateListType = async () => {
   } finally {
     appActionIsLoadingData.value = false
     listModal.value.hideModal()
+  }
+}
+
+const updateShelfTypeSizeClass = (sizeClassIdArr) => {
+  // custom function for shelf types only
+  // when creating/updating a shelf type we need to map the corresponding added/removed user size class input to our input form
+  const selectedSizeClasses = sizeClassIdArr.map(id => {
+    return { ...sizeClass.value.find(s => s.id == id), max_capacity: 1 }
+  })
+
+  // if there are already existing size_classes that match any of the selectedSizeClasses we need to ignore updating them
+  if (inputForm.value.size_classes.length > 0) {
+    const removedSizeClasses = inputForm.value.size_classes.filter(sizeClassObj => !sizeClassIdArr.includes(sizeClassObj.id))
+    const newSizeClasses = selectedSizeClasses.filter(sizeClassObj => !inputForm.value.size_classes.flatMap(s => s.id).includes(sizeClassObj.id))
+
+    // remove the deleted sizeClasses
+    if (removedSizeClasses) {
+      inputForm.value.size_classes = inputForm.value.size_classes.filter(sizeClassObj => !removedSizeClasses.flatMap(s => s.id).includes(sizeClassObj.id))
+    }
+    // add the new sizeClasses
+    if (newSizeClasses) {
+      inputForm.value.size_classes = [
+        ...inputForm.value.size_classes,
+        ...newSizeClasses
+      ]
+    }
+  } else {
+    inputForm.value.size_classes = selectedSizeClasses
   }
 }
 </script>

@@ -129,6 +129,15 @@ const routes = [
         }
       },
       {
+        name: 'admin-manage-shelf-type',
+        path: 'admin/manage/shelf-type',
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: {
+          requiresAuth: true,
+          requiresPerm: 'can_manage_locations'
+        }
+      },
+      {
         name: 'item-management-items',
         path: 'item-management/items',
         component: () => import('@/pages/ItemManagementPage.vue'),

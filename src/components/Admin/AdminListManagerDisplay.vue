@@ -147,12 +147,14 @@ const {
 const {
   getOptions,
   deleteSizeClass,
-  deleteMediaType
+  deleteMediaType,
+  deleteShelfType
 } = useOptionStore()
 const {
   owners,
   mediaTypes,
-  sizeClass
+  sizeClass,
+  shelfTypes
 } = storeToRefs(useOptionStore())
 
 // Local Data
@@ -168,6 +170,20 @@ const listData = computed(() => {
   case 'size-class':
     tableData = sizeClass.value
     break
+  case 'shelf-type': {
+    // remove any duplicate shelf types by type name
+    // ex: [{ id: 1, type: 'Full' }, { id: 2, type: 'Short' }, { id: 3, type: 'Full' }] returns [{ id: 1, type: 'Full' }, { id: 2, type: 'Short' }]
+    const uniqueShelfTypes = shelfTypes.value.reduce ((initArr, current) => {
+      const matchingShelfType = initArr.find(st => st.type === current.type)
+      if (!matchingShelfType) {
+        return initArr.concat([current])
+      } else {
+        return initArr
+      }
+    }, [])
+    tableData = uniqueShelfTypes
+    break
+  }
   default:
     break
   }
@@ -182,6 +198,8 @@ const renderTableTitle = computed(() => {
     title = 'Owners'
   } else if (mainProps.listType == 'media-type') {
     title = 'Media Type'
+  } else if (mainProps.listType == 'shelf-type') {
+    title = 'Shelf Type'
   } else {
     title = 'Size Class'
   }
@@ -193,6 +211,8 @@ const renderTableAction = computed(() => {
     actionText = 'Add Owner'
   } else if (mainProps.listType == 'media-type') {
     actionText = 'Add Media Type'
+  } else if (mainProps.listType == 'shelf-type') {
+    actionText = 'Add Shelf Type'
   } else {
     actionText = 'Add Size Class'
   }
@@ -244,6 +264,10 @@ const handleOptionMenu = async (option, rowData) => {
     appIsLoadingData.value = true
     await Promise.all([getOptions('media-types')])
     appIsLoadingData.value = false
+  } else if (mainProps.listType == 'shelf-type') {
+    appIsLoadingData.value = true
+    await Promise.all([getOptions('sizeClass')])
+    appIsLoadingData.value = false
   }
 
   if (option.text.includes('Edit')) {
@@ -251,25 +275,30 @@ const handleOptionMenu = async (option, rowData) => {
     showListInputModal.value.type = 'Edit'
   } else {
     showConfirmationModal.value = {
-      text: `Are you sure you want to delete '${rowData.name}'?`,
+      text: `Are you sure you want to delete '${rowData.name || rowData.type}'?`,
       id: rowData.id
     }
   }
 }
 
-const generateTableOptionsMenu = (rowData) => {
+const generateTableOptionsMenu = () => {
   let options = []
   if (mainProps.listType == 'owners') {
     options = [{ text: 'Edit Owner' }]
   } else if (mainProps.listType == 'media-type') {
     options = [
       { text: 'Edit Media Type' },
-      { text: 'Delete Media Type', optionClass: 'text-negative', disabled: rowData.assigned }
+      { text: 'Delete Media Type', optionClass: 'text-negative' }
+    ]
+  } else if (mainProps.listType == 'shelf-type') {
+    options = [
+      { text: 'Edit Shelf Type' },
+      { text: 'Delete Shelf Type', optionClass: 'text-negative' }
     ]
   } else {
     options = [
       { text: 'Edit Size Class' },
-      { text: 'Delete Size Class', optionClass: 'text-negative', disabled: rowData.assigned }
+      { text: 'Delete Size Class', optionClass: 'text-negative' }
     ]
   }
   return options
@@ -364,6 +393,29 @@ const generateListTableInfo = () => {
       'name'
     ]
     break
+  case 'shelf-type':
+    listTableColumns.value = [
+      {
+        name: 'actions',
+        field: 'actions',
+        label: '',
+        align: 'center',
+        sortable: false,
+        required: true
+      },
+      {
+        name: 'shelf_type',
+        field: 'type',
+        label: 'Shelf Type',
+        align: 'left',
+        sortable: true
+      }
+    ]
+    listTableVisibleColumns.value = [
+      'actions',
+      'shelf_type'
+    ]
+    break
   default:
     break
   }
@@ -376,6 +428,8 @@ const loadListData = async () => {
       await getOptions('owners')
     } else if (mainProps.listType == 'media-type') {
       await getOptions('mediaTypes')
+    } else if (mainProps.listType == 'shelf-type') {
+      await getOptions('shelfTypes')
     } else {
       await getOptions('sizeClass')
     }
@@ -393,11 +447,25 @@ const loadListData = async () => {
 const deleteListOption = async (id) => {
   try {
     appActionIsLoadingData.value = true
-    if (mainProps.listType == 'size-class') {
+    switch (mainProps.listType) {
+    case 'size-class': {
       await deleteSizeClass(id)
-    } else if (mainProps.listType == 'media-type') {
-      await deleteMediaType(id)
+      break
     }
+    case 'media-type':
+      await deleteMediaType(id)
+      break
+    case 'shelf-type': {
+      const matchingShelfTypesById = shelfTypes.value.filter(s => s.type == shelfTypes.value.find(s => s.id == id).type)
+      await Promise.all(matchingShelfTypesById.map(shelfType => {
+        return deleteShelfType(shelfType.id)
+      }))
+      break
+    }
+    default:
+      break
+    }
+
     handleAlert({
       type: 'success',
       text: `Successfully Deleted The ${renderTableTitle.value}.`,

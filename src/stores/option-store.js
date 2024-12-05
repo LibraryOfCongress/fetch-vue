@@ -123,6 +123,38 @@ export const useOptionStore = defineStore('option-store', {
         throw error
       }
     },
+    async postShelfType (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.shelfTypes, payload)
+
+        this.shelfTypes = [
+          ...this.shelfTypes,
+          res.data
+        ]
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchShelfType (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.shelfTypes}${payload.id}`, payload)
+
+        // update the specific shelf type with the response info
+        this.shelfTypes[this.shelfTypes.findIndex(s => s.id == payload.id)] = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async deleteShelfType (shelfTypeId) {
+      try {
+        await this.$api.delete(`${inventoryServiceApi.shelfTypes}${shelfTypeId}`)
+
+        // filter out the specific shelf type
+        this.shelfTypes = this.shelfTypes.filter(s => s.id !== shelfTypeId)
+      } catch (error) {
+        throw error
+      }
+    },
     //TEMP testing page functions
     async getOwnerTierList () {
       try {
