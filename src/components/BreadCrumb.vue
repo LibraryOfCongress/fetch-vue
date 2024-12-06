@@ -156,6 +156,16 @@ const breadcrumbList = computed(() => {
       { text: 'Manage Media Types' }
     ]
     break
+  case 'admin-manage-owners':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Admin',
+        to: '/admin'
+      },
+      { text: 'Manage Owners' }
+    ]
+    break
   case 'admin-manage-size-class':
     breadCrumbs = [
       ...breadCrumbs,

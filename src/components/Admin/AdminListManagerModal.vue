@@ -72,14 +72,14 @@
                   v-model="inputForm[field.field]"
                   :multiple="field.allowMultiple"
                   :use-chips="field.allowMultiple"
-                  :hide-selected="false"
+                  :hide-selected="!field.allowMultiple"
                   :options="field.options"
                   :option-type="field.optionType"
                   option-value="id"
                   :option-label="field.field == 'container_type_id' ? 'type' : 'name'"
                   :placeholder="`Select ${field.label}`"
                   :disabled="field.disabled"
-                  @update:model-value="listType == 'shelf-type' ? updateShelfTypeSizeClass($event) : null"
+                  @update:model-value="listType == 'shelf-type' ? updateShelfTypeSizeClass($event) : handleInputFormChange(field.field)"
                   :aria-label="`${field.field}Select`"
                 />
               </div>
@@ -183,12 +183,17 @@ const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   owners,
   sizeClass,
-  shelfTypes
+  shelfTypes,
+  ownersTiers,
+  parentOwnerOptions
 } = storeToRefs(useOptionStore())
 const {
+  getParentOwnerOptions,
   postSizeClass,
   patchSizeClass,
   deleteSizeClassOwners,
+  postOwner,
+  patchOwner,
   postMediaType,
   patchMediaType,
   postShelfType,
@@ -215,6 +220,19 @@ const isInputFormValid = computed(() => {
   ]))
   // check the main form fields and see if the required fields have proper values
   return !Object.keys(mainForm).every(key => optionalFields.includes(key) || mainForm[key] !== null && mainForm[key] !== '' && mainForm[key].length !== 0)
+})
+const disableParentOwnerInput = computed(() => {
+  // Owner tier of 1 does not have a parent owner. Disable parent owner if no tier selected or if tier 1 is selected
+  if (!inputForm.value.owner_tier_id) {
+    return true
+  } else {
+    return ownersTiers.value.find(
+      (ot) => ot.id === inputForm.value.owner_tier_id
+    )?.level === 1
+  }
+})
+const parentOwnerRequired = computed(() => {
+  return !disableParentOwnerInput.value
 })
 
 // Logic
@@ -290,6 +308,38 @@ const generateListModal = () => {
       }
     ]
     break
+  case 'owners':
+    inputForm.value = {
+      owner_tier_id: mainProps.listData.owner_tier_id ?? '',
+      parent_owner_id: mainProps.listData.parent_owner_id ?? '',
+      name: mainProps.listData.name ?? ''
+    }
+    // create a copy of our input form
+    inputFormOriginal.value = { ...toRaw(inputForm.value) }
+
+    inputFields.value = [
+      {
+        field: 'owner_tier_id',
+        label: 'Owner Tier',
+        options: ownersTiers,
+        optionType: 'ownersTiers',
+        required: true
+      },
+      {
+        field: 'parent_owner_id',
+        label: 'Parent Owner',
+        options: parentOwnerOptions,
+        required: parentOwnerRequired,
+        disabled: disableParentOwnerInput
+      },
+      {
+        field: 'name',
+        label: 'Owner Name',
+        required: true
+      }
+    ]
+
+    break
   case 'shelf-type': {
     const matchingShelfTypes = shelfTypes.value.filter(s => s.type == mainProps.listData.type)
     inputForm.value = {
@@ -343,6 +393,9 @@ const addNewListType = async () => {
           max_capacity: sizeClassObj.max_capacity
         })
       }))
+      break
+    case 'owners':
+      await postOwner(payload)
       break
     default:
       break
@@ -423,6 +476,10 @@ const updateListType = async () => {
       }))
       break
     }
+    case 'owners': {
+      await patchOwner(payload)
+      break
+    }
     default:
       break
     }
@@ -469,6 +526,23 @@ const updateShelfTypeSizeClass = (sizeClassIdArr) => {
     }
   } else {
     inputForm.value.size_classes = selectedSizeClasses
+  }
+}
+
+const handleInputFormChange = async (field) => {
+  switch (mainProps.listType) {
+  case 'owners':
+    if (field === 'owner_tier_id') {
+      // Get the parent owners for the currently selected tier
+      inputForm.value.parent_owner_id = null
+      let currentTier = ownersTiers.value.find( (ot) => ot.id == inputForm.value.owner_tier_id)
+      if (currentTier?.level > 1) {
+        await getParentOwnerOptions({ owner_tier_id: ownersTiers.value.find( (ot) => ot.level === currentTier.level - 1)?.id })
+      }
+    }
+    break
+  default:
+    return
   }
 }
 </script>

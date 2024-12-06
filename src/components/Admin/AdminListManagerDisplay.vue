@@ -146,15 +146,18 @@ const {
 } = storeToRefs(useGlobalStore())
 const {
   getOptions,
+  getParentOwnerOptions,
   deleteSizeClass,
   deleteMediaType,
+  deleteOwner,
   deleteShelfType
 } = useOptionStore()
 const {
   owners,
   mediaTypes,
   sizeClass,
-  shelfTypes
+  shelfTypes,
+  ownersTiers
 } = storeToRefs(useOptionStore())
 
 // Local Data
@@ -268,6 +271,17 @@ const handleOptionMenu = async (option, rowData) => {
     appIsLoadingData.value = true
     await Promise.all([getOptions('sizeClass')])
     appIsLoadingData.value = false
+  } else if (mainProps.listType == 'owners') {
+    appIsLoadingData.value = true
+    await Promise.all([getOptions('ownersTiers')])
+    // Retrieve filtered list of parent owner options based on the selected owner tier
+    let currentTier = ownersTiers.value.find( (ot) => ot.id == rowData.owner_tier_id)
+    if (currentTier?.level > 1) {
+      await Promise.all([getParentOwnerOptions({ owner_tier_id: ownersTiers.value.find( (ot) => ot.level === currentTier.level - 1)?.id })])
+    } else {
+      rowData.parent_owner_id = null
+    }
+    appIsLoadingData.value = false
   }
 
   if (option.text.includes('Edit')) {
@@ -284,7 +298,10 @@ const handleOptionMenu = async (option, rowData) => {
 const generateTableOptionsMenu = () => {
   let options = []
   if (mainProps.listType == 'owners') {
-    options = [{ text: 'Edit Owner' }]
+    options = [
+      { text: 'Edit Owner' },
+      { text: 'Delete Owner', optionClass: 'text-negative' }
+    ]
   } else if (mainProps.listType == 'media-type') {
     options = [
       { text: 'Edit Media Type' },
@@ -416,6 +433,45 @@ const generateListTableInfo = () => {
       'shelf_type'
     ]
     break
+  case 'owners':
+    listTableColumns.value = [
+      {
+        name: 'actions',
+        field: 'actions',
+        label: '',
+        align: 'center',
+        sortable: false,
+        required: true
+      },
+      {
+        name: 'name',
+        field: 'name',
+        label: 'Owner Name',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'parent_owner',
+        field: row => row.parent_owner?.name,
+        label: 'Parent Owner',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'owner_tier_id',
+        field: 'owner_tier_id',
+        label: 'Owner Tier',
+        align: 'left',
+        sortable: true
+      }
+    ]
+    listTableVisibleColumns.value = [
+      'actions',
+      'name',
+      'parent_owner',
+      'owner_tier_id'
+    ]
+    break
   default:
     break
   }
@@ -454,6 +510,9 @@ const deleteListOption = async (id) => {
     }
     case 'media-type':
       await deleteMediaType(id)
+      break
+    case 'owners':
+      await deleteOwner(id)
       break
     case 'shelf-type': {
       const matchingShelfTypesById = shelfTypes.value.filter(s => s.type == shelfTypes.value.find(s => s.id == id).type)
