@@ -18,7 +18,9 @@ export const useOptionStore = defineStore('option-store', {
     shelfTypes: [],
     mediaTypes: [],
     owners: [],
+    ownersTiers: [],
     ownerTierOptions: [],
+    parentOwnerOptions: [],
     picklists: [],
     refileJobs: [],
     requestsLocations: [],
@@ -30,21 +32,51 @@ export const useOptionStore = defineStore('option-store', {
     resetOptionStore () {
       this.$reset()
     },
-    async getOptions (optionType) {
-      // temp fix for picklist option param
-      let res = null
+    async getOptions (optionType, qParams) {
       try {
-        if (optionType == 'picklists') {
-          res = await this.$api.get(inventoryServiceApi[optionType], { params: {
-            size: 100,
-            queue: true
-          } })
-        } else {
-          res = await this.$api.get(inventoryServiceApi[optionType], { params: { size: 100 } })
-        }
-        // const res = await this.$api.get(inventoryServiceApi[optionType], { params: { size: 100 } })
+        const res = await this.$api.get(inventoryServiceApi[optionType], { params: { ...qParams, size: 100 } })
 
         this[optionType] = res.data.items
+      } catch (error) {
+        throw error
+      }
+    },
+    async getParentOwnerOptions (qParams) {
+      try {
+        const res = await this.$api.get(inventoryServiceApi.owners, { params: { ...qParams, size: 100 } })
+        this['parentOwnerOptions'] = res.data.items
+      } catch (error) {
+        throw error
+      }
+    },
+    async postOwner (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.owners, payload)
+
+        this.owners = [
+          ...this.owners,
+          res.data
+        ]
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchOwner (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.owners}${payload.id}`, payload)
+
+        // update the specific size class with the response info
+        this.owners[this.owners.findIndex(o => o.id == payload.id)] = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async deleteOwner (ownerId) {
+      try {
+        await this.$api.delete(`${inventoryServiceApi.owners}${ownerId}`)
+
+        // filter out the specific owner
+        this.owners = this.owners.filter(o => o.id !== ownerId)
       } catch (error) {
         throw error
       }

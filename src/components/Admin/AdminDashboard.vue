@@ -83,10 +83,10 @@ const adminLinkList = computed(() => {
     {
       title: 'List Configurations',
       sublinks: [
-        // {
-        //   title: 'Add/Edit/Remove Owners',
-        //   hidden: !checkUserPermission('can_manage_owners')
-        // },
+        {
+          title: 'Add/Edit/Remove Owners',
+          hidden: !checkUserPermission('can_manage_owners')
+        },
         {
           title: 'Add/Edit/Remove Media Type',
           hidden: !checkUserPermission('can_manage_media_type')
@@ -149,9 +149,9 @@ const handleRouting = (link) => {
   case 'Buildings':
     router.push({ name: 'admin-location-manage-buildings' })
     break
-  // case 'Add/Edit/Remove Owners':
-  //   router.push({ name: '' })
-  //   break
+  case 'Add/Edit/Remove Owners':
+    router.push({ name: 'admin-manage-owners' })
+    break
   case 'Add/Edit/Remove Media Type':
     router.push({ name: 'admin-manage-media-type' })
     break

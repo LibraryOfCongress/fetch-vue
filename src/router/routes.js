@@ -102,6 +102,15 @@ const routes = [
         }
       },
       {
+        name: 'admin-manage-owners',
+        path: 'admin/manage/owners',
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: {
+          requiresAuth: true,
+          requiresPerm: 'can_manage_owners'
+        }
+      },
+      {
         name: 'admin-location-manage-shelves',
         path: 'admin/manage/:buildingId/:moduleId/:aisleId/:sideId/:ladderId/shelves',
         component: () => import('@/pages/AdminPage.vue'),
