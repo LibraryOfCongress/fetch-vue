@@ -308,7 +308,7 @@ const generateListModal = () => {
       }
     ]
     break
-  case 'owners':
+  case 'owner':
     inputForm.value = {
       owner_tier_id: mainProps.listData.owner_tier_id ?? '',
       parent_owner_id: mainProps.listData.parent_owner_id ?? '',
@@ -394,7 +394,7 @@ const addNewListType = async () => {
         })
       }))
       break
-    case 'owners':
+    case 'owner':
       await postOwner(payload)
       break
     default:
@@ -476,7 +476,7 @@ const updateListType = async () => {
       }))
       break
     }
-    case 'owners': {
+    case 'owner': {
       await patchOwner(payload)
       break
     }
@@ -531,7 +531,7 @@ const updateShelfTypeSizeClass = (sizeClassIdArr) => {
 
 const handleInputFormChange = async (field) => {
   switch (mainProps.listType) {
-  case 'owners':
+  case 'owner':
     if (field === 'owner_tier_id') {
       // Get the parent owners for the currently selected tier
       inputForm.value.parent_owner_id = null

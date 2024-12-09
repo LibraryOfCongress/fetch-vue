@@ -164,7 +164,7 @@ const {
 const listData = computed(() => {
   let tableData = []
   switch (mainProps.listType) {
-  case 'owners':
+  case 'owner':
     tableData = owners.value
     break
   case 'media-type':
@@ -197,8 +197,8 @@ const listTableColumns = ref([])
 const listTableFilters =  ref([])
 const renderTableTitle = computed(() => {
   let title = ''
-  if (mainProps.listType == 'owners') {
-    title = 'Owners'
+  if (mainProps.listType == 'owner') {
+    title = 'Owner'
   } else if (mainProps.listType == 'media-type') {
     title = 'Media Type'
   } else if (mainProps.listType == 'shelf-type') {
@@ -210,7 +210,7 @@ const renderTableTitle = computed(() => {
 })
 const renderTableAction = computed(() => {
   let actionText = ''
-  if (mainProps.listType == 'owners') {
+  if (mainProps.listType == 'owner') {
     actionText = 'Add Owner'
   } else if (mainProps.listType == 'media-type') {
     actionText = 'Add Media Type'
@@ -271,7 +271,7 @@ const handleOptionMenu = async (option, rowData) => {
     appIsLoadingData.value = true
     await Promise.all([getOptions('sizeClass')])
     appIsLoadingData.value = false
-  } else if (mainProps.listType == 'owners') {
+  } else if (mainProps.listType == 'owner') {
     appIsLoadingData.value = true
     await Promise.all([getOptions('ownersTiers')])
     // Retrieve filtered list of parent owner options based on the selected owner tier
@@ -297,7 +297,7 @@ const handleOptionMenu = async (option, rowData) => {
 
 const generateTableOptionsMenu = () => {
   let options = []
-  if (mainProps.listType == 'owners') {
+  if (mainProps.listType == 'owner') {
     options = [
       { text: 'Edit Owner' },
       { text: 'Delete Owner', optionClass: 'text-negative' }
@@ -433,7 +433,7 @@ const generateListTableInfo = () => {
       'shelf_type'
     ]
     break
-  case 'owners':
+  case 'owner':
     listTableColumns.value = [
       {
         name: 'actions',
@@ -480,7 +480,7 @@ const generateListTableInfo = () => {
 const loadListData = async () => {
   try {
     appIsLoadingData.value = true
-    if (mainProps.listType == 'owners') {
+    if (mainProps.listType == 'owner') {
       await getOptions('owners')
     } else if (mainProps.listType == 'media-type') {
       await getOptions('mediaTypes')
@@ -511,7 +511,7 @@ const deleteListOption = async (id) => {
     case 'media-type':
       await deleteMediaType(id)
       break
-    case 'owners':
+    case 'owner':
       await deleteOwner(id)
       break
     case 'shelf-type': {
