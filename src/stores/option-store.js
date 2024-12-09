@@ -190,7 +190,7 @@ export const useOptionStore = defineStore('option-store', {
     //TEMP testing page functions
     async getOwnerTierList () {
       try {
-        const res = await this.$api.get(inventoryServiceApi.ownersTiers)
+        const res = await this.$api.get(`${inventoryServiceApi.ownersTiers}${1}`)
         this.ownerTierOptions = res.data.items
       } catch (error) {
         throw error
