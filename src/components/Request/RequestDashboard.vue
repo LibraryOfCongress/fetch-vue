@@ -146,7 +146,7 @@
                   outline
                   label="Cancel"
                   class="btn-no-wrap text-body1 q-ml-xs full-height"
-                  @click="resetPickListForm(); getRequestJobList();"
+                  @click="resetPickListForm(); getRequestJobList({ queue: true });"
                 />
               </div>
             </div>
@@ -161,7 +161,7 @@
               :button-two-color="'black'"
               :button-two-label="'Cancel'"
               :button-two-outline="true"
-              @button-two-click="resetPickListForm(); getRequestJobList();"
+              @button-two-click="resetPickListForm(); getRequestJobList({ queue: true });"
             />
           </template>
 
