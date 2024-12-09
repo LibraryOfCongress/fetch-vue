@@ -150,7 +150,7 @@ const handleRouting = (link) => {
     router.push({ name: 'admin-location-manage-buildings' })
     break
   case 'Add/Edit/Remove Owners':
-    router.push({ name: 'admin-manage-owners' })
+    router.push({ name: 'admin-manage-owner' })
     break
   case 'Add/Edit/Remove Media Type':
     router.push({ name: 'admin-manage-media-type' })

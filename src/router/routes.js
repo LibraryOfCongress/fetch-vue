@@ -102,8 +102,8 @@ const routes = [
         }
       },
       {
-        name: 'admin-manage-owners',
-        path: 'admin/manage/owners',
+        name: 'admin-manage-owner',
+        path: 'admin/manage/owner',
         component: () => import('@/pages/AdminPage.vue'),
         meta: {
           requiresAuth: true,
