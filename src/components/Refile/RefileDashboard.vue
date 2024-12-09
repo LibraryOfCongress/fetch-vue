@@ -186,6 +186,7 @@
   <!-- Create/Add To Refile Modal -->
   <PopupModal
     v-if="showRefileJobModal"
+    ref="refileJobModalComponent"
     :show-actions="false"
     @reset="showRefileJobModal = null"
     aria-label="refileJobModal"
@@ -253,7 +254,7 @@
           label="Submit"
           class="text-body1 full-width text-nowrap"
           :disabled="showRefileJobModal == 'Create' ? !filterRefileByBuilding : (!filterRefileByBuilding || !addToRefileJob)"
-          @click="loadRefileQueueByBuilding(); hideModal();"
+          @click="loadRefileQueueByBuilding()"
         />
 
         <q-space class="q-mx-xs" />
@@ -308,6 +309,7 @@ const { refileJobList, refileJob } = storeToRefs(useRefileStore())
 const { userData } = storeToRefs(useUserStore())
 
 // Local Data
+const refileJobModalComponent = ref(null)
 const refileJobMenuState = ref(false)
 const refileTableComponent = ref(null)
 const refileTableVisibleColumns = ref([
@@ -531,7 +533,7 @@ const loadRefileQueueByBuilding = async () => {
   // this function only gets called during the creation/add refile job process
   try {
     refileDisplayType.value = 'refile_queue'
-    appIsLoadingData.value = true
+    appActionIsLoadingData.value = true
     await getRefileQueueList({ building_id: filterRefileByBuilding.value })
 
     // display next step in refile job creation
@@ -547,7 +549,9 @@ const loadRefileQueueByBuilding = async () => {
       autoClose: true
     })
   } finally {
-    appIsLoadingData.value = false
+    appActionIsLoadingData.value = false
+    refileJobModalComponent.value.hideModal()
+
   }
 }
 const loadRefileJob = async (id) => {
