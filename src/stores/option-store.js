@@ -159,14 +159,12 @@ export const useOptionStore = defineStore('option-store', {
         this.shelfTypes = this.shelfTypes.filter(s => s.id !== shelfTypeId)
         return res
       } catch (error) {
-        // TODO return error response for specific error status and throw the rest
-        return error
-        // if (error.response.status == 422) {
-        //   // return 422 error since these have messages we need to display to the user
-        //   return error
-        // } else {
-        //   throw error
-        // }
+        if (error.response.status == 405) {
+          // return 405 error since these have messages we need to display to the user
+          return error
+        } else {
+          throw error
+        }
       }
     },
     //TEMP testing page functions
