@@ -3,6 +3,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useOptionStore = defineStore('option-store', {
   state: () => ({
+    optionsTotal: 0,
     buildings: [],
     containerTypes: [
       {
@@ -26,6 +27,7 @@ export const useOptionStore = defineStore('option-store', {
     requestsLocations: [],
     requestsPriorities: [],
     requestsTypes: [],
+    shelves: [],
     users: []
   }),
   actions: {
@@ -34,9 +36,19 @@ export const useOptionStore = defineStore('option-store', {
     },
     async getOptions (optionType, qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi[optionType], { params: { ...qParams, size: 100 } })
+        const res = await this.$api.get(inventoryServiceApi[optionType], { params: { ...qParams, size: 50 } })
+        if (qParams && qParams.page && qParams.page > 1) {
+          // combine option results while getting rid of duplicates for paginationated results
+          this[optionType] = [
+            ...this[optionType],
+            ...res.data.items
+          ]
+        } else {
+          this[optionType] = res.data.items
+        }
 
-        this[optionType] = res.data.items
+        // set the total number of rendered options which is used for pagination limits
+        this.optionsTotal = res.data.total
       } catch (error) {
         throw error
       }

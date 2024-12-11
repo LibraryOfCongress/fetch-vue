@@ -61,134 +61,172 @@
     <div class="row">
       <div class="col-12">
         <h1 class="text-h4 text-primary q-mb-md">
-          Alert Examples
+          Shelf List Pagination
         </h1>
 
         <div class="row no-wrap items-center q-mt-md">
+          <div class="col-4">
+            <SelectInput
+              v-model="shelfInput"
+              :options="shelves"
+              option-type="shelves"
+              option-value="id"
+              option-label="id"
+              :placeholder="'Select Shelve'"
+              aria-label="shelfSelect"
+            />
+          </div>
+        </div>
+
+        <div class="row no-wrap items-center q-mt-md">
+          <div class="col-4">
+            <SelectInput
+              v-model="ownerInput"
+              :options="owners"
+              option-type="owners"
+              option-value="id"
+              option-label="name"
+              :placeholder="'Select Owner'"
+              aria-label="ownerSelect"
+            />
+          </div>
+        </div>
+      </div>
+
+      <q-space class="divider q-my-xs-lg q-my-sm-xl" />
+
+      <div class="row">
+        <div class="col-12">
+          <h1 class="text-h4 text-primary q-mb-md">
+            Alert Examples
+          </h1>
+
+          <div class="row no-wrap items-center q-mt-md">
+            <q-btn
+              no-caps
+              outline
+              color="negative"
+              label="Show Generic Alert"
+              class="text-body1 q-mr-sm"
+              @click="generateTestAlert(1)"
+            />
+
+            <q-btn
+              unelevated
+              no-caps
+              color="negative"
+              label="Show Persistent Alert"
+              class="text-body1"
+              @click="generateTestAlert(2)"
+            />
+          </div>
+        </div>
+      </div>
+
+      <q-space class="divider q-my-xs-lg q-my-sm-xl" />
+
+      <div class="row">
+        <div class="col-12">
+          <h1 class="text-h4 text-primary q-mb-md">
+            File System Access Api Examples
+          </h1>
+        </div>
+
+        <div class="col-12 q-mb-sm">
+          <textarea
+            name="text-contents"
+            id="text-contents"
+            cols="30"
+            rows="4"
+            placeholder="Select a file to read it contents here or add some text and save a new text file to your system..."
+            v-model="fileContent"
+          />
+        </div>
+
+        <div class="col-12">
           <q-btn
             no-caps
-            outline
-            color="negative"
-            label="Show Generic Alert"
+            unelevated
+            color="primary"
+            label="Select & Read Text File"
             class="text-body1 q-mr-sm"
-            @click="generateTestAlert(1)"
+            @click="selectTextFile()"
+          />
+
+          <q-btn
+            no-caps
+            unelevated
+            color="primary"
+            label="Save To Selected Text File"
+            class="text-body1 q-mr-sm"
+            :disabled="fileReference == null"
+            @click="saveChangesToText"
+          />
+
+          <q-btn
+            no-caps
+            unelevated
+            color="primary"
+            label="Save New Text File"
+            class="text-body1 q-mr-sm"
+            :disabled="fileContent == null || fileContent == ''"
+            @click="saveTextFileToDevice"
           />
 
           <q-btn
             unelevated
             no-caps
             color="negative"
-            label="Show Persistent Alert"
+            label="Reset Content"
             class="text-body1"
-            @click="generateTestAlert(2)"
+            :disabled="fileContent == null || fileContent == ''"
+            @click="fileContent = null; fileReference = null;"
           />
         </div>
       </div>
+
+      <!-- owner tier create modal -->
+      <PopupModal
+        v-if="showOwnerTierCreation"
+        title="Create A New Owner Tier"
+        @reset="reset"
+        aria-label="newOwnerTierModal"
+      >
+        <template #main-content>
+          <q-card-section
+            class="column no-wrap items-center"
+          >
+            <TextInput
+              v-model="newOwnerTier"
+              :placeholder="'Enter Owner Tier Name'"
+            />
+          </q-card-section>
+        </template>
+
+        <template #footer-content="{ hideModal }">
+          <q-card-section class="row no-wrap justify-between items-center">
+            <q-btn
+              no-caps
+              unelevated
+              color="accent"
+              label="Confirm"
+              class="text-body1 full-width"
+              @click="createNewOwnerTier(); hideModal();"
+            />
+
+            <q-space class="q-mx-xs" />
+
+            <q-btn
+              outline
+              no-caps
+              label="Cancel"
+              class="text-body1 full-width"
+              @click="hideModal"
+            />
+          </q-card-section>
+        </template>
+      </PopupModal>
     </div>
-
-    <q-space class="divider q-my-xs-lg q-my-sm-xl" />
-
-    <div class="row">
-      <div class="col-12">
-        <h1 class="text-h4 text-primary q-mb-md">
-          File System Access Api Examples
-        </h1>
-      </div>
-
-      <div class="col-12 q-mb-sm">
-        <textarea
-          name="text-contents"
-          id="text-contents"
-          cols="30"
-          rows="4"
-          placeholder="Select a file to read it contents here or add some text and save a new text file to your system..."
-          v-model="fileContent"
-        />
-      </div>
-
-      <div class="col-12">
-        <q-btn
-          no-caps
-          unelevated
-          color="primary"
-          label="Select & Read Text File"
-          class="text-body1 q-mr-sm"
-          @click="selectTextFile()"
-        />
-
-        <q-btn
-          no-caps
-          unelevated
-          color="primary"
-          label="Save To Selected Text File"
-          class="text-body1 q-mr-sm"
-          :disabled="fileReference == null"
-          @click="saveChangesToText"
-        />
-
-        <q-btn
-          no-caps
-          unelevated
-          color="primary"
-          label="Save New Text File"
-          class="text-body1 q-mr-sm"
-          :disabled="fileContent == null || fileContent == ''"
-          @click="saveTextFileToDevice"
-        />
-
-        <q-btn
-          unelevated
-          no-caps
-          color="negative"
-          label="Reset Content"
-          class="text-body1"
-          :disabled="fileContent == null || fileContent == ''"
-          @click="fileContent = null; fileReference = null;"
-        />
-      </div>
-    </div>
-
-    <!-- owner tier create modal -->
-    <PopupModal
-      v-if="showOwnerTierCreation"
-      title="Create A New Owner Tier"
-      @reset="reset"
-      aria-label="newOwnerTierModal"
-    >
-      <template #main-content>
-        <q-card-section
-          class="column no-wrap items-center"
-        >
-          <TextInput
-            v-model="newOwnerTier"
-            :placeholder="'Enter Owner Tier Name'"
-          />
-        </q-card-section>
-      </template>
-
-      <template #footer-content="{ hideModal }">
-        <q-card-section class="row no-wrap justify-between items-center">
-          <q-btn
-            no-caps
-            unelevated
-            color="accent"
-            label="Confirm"
-            class="text-body1 full-width"
-            @click="createNewOwnerTier(); hideModal();"
-          />
-
-          <q-space class="q-mx-xs" />
-
-          <q-btn
-            outline
-            no-caps
-            label="Cancel"
-            class="text-body1 full-width"
-            @click="hideModal"
-          />
-        </q-card-section>
-      </template>
-    </PopupModal>
   </q-page>
 </template>
 
@@ -201,6 +239,7 @@ import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
 import { useFileSystemAccessHandler } from '@/composables/useFileSystemAccessHandler.js'
 import PopupModal from '@/components/PopupModal.vue'
 import TextInput from '@/components/TextInput.vue'
+import SelectInput from '@/components/SelectInput.vue'
 
 // Composables
 const { indexDb, getDataInIndexDb, addDataToIndexDb } = useIndexDbHandler()
@@ -208,13 +247,15 @@ const { fileReference, fileContent, selectTextFile, saveAsTextFile, updateTextFi
 
 // Store Data
 const { getOwnerTierList, postOwnerTier } = useOptionStore()
-const { ownerTierOptions } = storeToRefs(useOptionStore())
+const { ownerTierOptions, shelves, owners } = storeToRefs(useOptionStore())
 const { appIsOffline } = storeToRefs(useGlobalStore())
 
 // Local Data
 const loadingData = ref(true)
 const showOwnerTierCreation = ref(false)
 const newOwnerTier = ref('')
+const shelfInput = ref(null)
+const ownerInput = ref(null)
 
 // Logic
 const handlePageOffset = inject('handle-page-offset')
