@@ -173,18 +173,30 @@ export const useOptionStore = defineStore('option-store', {
 
         // update the specific shelf type with the response info
         this.shelfTypes[this.shelfTypes.findIndex(s => s.id == payload.id)] = res.data
+        return res
       } catch (error) {
-        throw error
+        if (error.response.status == 405) {
+          // return 405 error since these have messages we need to display to the user
+          return error
+        } else {
+          throw error
+        }
       }
     },
     async deleteShelfType (shelfTypeId) {
       try {
-        await this.$api.delete(`${inventoryServiceApi.shelfTypes}${shelfTypeId}`)
+        const res = await this.$api.delete(`${inventoryServiceApi.shelfTypes}${shelfTypeId}`)
 
         // filter out the specific shelf type
         this.shelfTypes = this.shelfTypes.filter(s => s.id !== shelfTypeId)
+        return res
       } catch (error) {
-        throw error
+        if (error.response.status == 405) {
+          // return 405 error since these have messages we need to display to the user
+          return error
+        } else {
+          throw error
+        }
       }
     },
     //TEMP testing page functions

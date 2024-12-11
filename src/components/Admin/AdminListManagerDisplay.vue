@@ -516,20 +516,39 @@ const deleteListOption = async (id) => {
       break
     case 'shelf-type': {
       const matchingShelfTypesById = shelfTypes.value.filter(s => s.type == shelfTypes.value.find(s => s.id == id).type)
-      await Promise.all(matchingShelfTypesById.map(shelfType => {
-        return deleteShelfType(shelfType.id)
+      let deletedShelfTypes = []
+      await Promise.all(matchingShelfTypesById.map(async shelfType => {
+        const res = await deleteShelfType(shelfType.id)
+        if (res.status == 200) {
+          deletedShelfTypes.push(shelfType)
+        } else {
+          handleAlert({
+            type: 'error',
+            text: `"${shelfType.type} - ${shelfType.size_class.name}" is in use and cannot be deleted.`,
+            autoClose: false
+          })
+        }
       }))
+
+      // display and alert for the successfully deleted shelfTypes
+      if (deletedShelfTypes.length == matchingShelfTypesById.length) {
+        handleAlert({
+          type: 'success',
+          text: `"${deletedShelfTypes[0].type}" has been successfully deleted.`,
+          autoClose: true
+        })
+      } else if (deletedShelfTypes.length > 0) {
+        handleAlert({
+          type: 'success',
+          text: `${deletedShelfTypes.length} size classes have been successfully deleted from "${deletedShelfTypes[0].type}".`,
+          autoClose: true
+        })
+      }
       break
     }
     default:
       break
     }
-
-    handleAlert({
-      type: 'success',
-      text: `Successfully Deleted The ${renderTableTitle.value}.`,
-      autoClose: true
-    })
   } catch (error) {
     handleAlert({
       type: 'error',
