@@ -44,7 +44,7 @@ export const useRefileStore = defineStore('refile-store', {
     },
     async getRefileJobList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.refileJobs, { params: { ...qParams, size: 100 } })
+        const res = await this.$api.get(inventoryServiceApi.refileJobs, { params: { size: this.apiPageSizeDefault, ...qParams } })
         this.refileJobList = res.data.items
       } catch (error) {
         throw error
@@ -52,7 +52,7 @@ export const useRefileStore = defineStore('refile-store', {
     },
     async getRefileQueueList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.refileQueue, { params: { ...qParams, size: 100 } })
+        const res = await this.$api.get(inventoryServiceApi.refileQueue, { params: { size: this.apiPageSizeDefault, ...qParams } })
         this.refileJobList = res.data.items
       } catch (error) {
         throw error

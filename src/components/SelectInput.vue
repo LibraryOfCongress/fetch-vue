@@ -134,8 +134,8 @@ const selectInputFilterValue = ref('')
 const localOptions = ref(mainProps.options)
 const optionsLoading = ref(false)
 const lastOptionsPage = computed(() => {
-  // divide total local options by pageSize default (100) to get our last page value
-  return Math.ceil(optionsTotal.value / 100)
+  // divide total local options by apiPageSizeDefault to get our last page value
+  return Math.ceil(optionsTotal.value / 50)
 })
 const nextOptionsPage = ref(2)
 
@@ -190,7 +190,7 @@ const loadMoreOptions = async ({ to, ref }) => {
   // only load more options if were at the bottom of the list, not on the last page and not trying to filter search
   if (!optionsLoading.value && to === lastIndex && nextOptionsPage.value < lastOptionsPage.value && selectInputFilterValue.value == '') {
     optionsLoading.value = true
-    await getOptions(mainProps.optionType, { page: nextOptionsPage.value })
+    await getOptions(mainProps.optionType, { page: nextOptionsPage.value }, true)
 
     nextOptionsPage.value++
     // calls and internal qSelect function that handles refreshing the list with the updating options at the last index position

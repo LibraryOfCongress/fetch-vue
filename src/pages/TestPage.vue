@@ -61,7 +61,7 @@
     <div class="row">
       <div class="col-12">
         <h1 class="text-h4 text-primary q-mb-md">
-          Shelf List Pagination
+          Pagination Example
         </h1>
 
         <div class="row no-wrap items-center q-mt-md">
@@ -89,6 +89,32 @@
               :placeholder="'Select Owner'"
               aria-label="ownerSelect"
             />
+          </div>
+        </div>
+
+        <div class="row no-wrap items-center q-mt-lg">
+          <div class="col-grow q-mb-xs-md q-mb-sm-none">
+            <EssentialTable
+              :table-columns="shelfTableColumns"
+              :table-data="shelves"
+              :enable-table-reorder="false"
+              :hide-table-rearrange="true"
+              :enable-pagination="true"
+              :pagination-total="optionsTotal"
+              :pagination-loading="tableLoading"
+              @update-pagination="loadShelves($event)"
+            >
+              <template #heading-row>
+                <div
+                  class="col-sm-5 col-md-12 col-lg-auto"
+                  :class="'self-center'"
+                >
+                  <h1 class="text-h4 text-bold q-mb-lg">
+                    Shelves List
+                  </h1>
+                </div>
+              </template>
+            </EssentialTable>
           </div>
         </div>
       </div>
@@ -240,28 +266,47 @@ import { useFileSystemAccessHandler } from '@/composables/useFileSystemAccessHan
 import PopupModal from '@/components/PopupModal.vue'
 import TextInput from '@/components/TextInput.vue'
 import SelectInput from '@/components/SelectInput.vue'
+import EssentialTable from '@/components/EssentialTable.vue'
 
 // Composables
 const { indexDb, getDataInIndexDb, addDataToIndexDb } = useIndexDbHandler()
 const { fileReference, fileContent, selectTextFile, saveAsTextFile, updateTextFile } = useFileSystemAccessHandler()
 
 // Store Data
-const { getOwnerTierList, postOwnerTier } = useOptionStore()
-const { ownerTierOptions, shelves, owners } = storeToRefs(useOptionStore())
+const { getOwnerTierList, postOwnerTier, getOptions } = useOptionStore()
+const { ownerTierOptions, shelves, owners, optionsTotal } = storeToRefs(useOptionStore())
 const { appIsOffline } = storeToRefs(useGlobalStore())
 
 // Local Data
 const loadingData = ref(true)
+const tableLoading = ref(false)
 const showOwnerTierCreation = ref(false)
 const newOwnerTier = ref('')
 const shelfInput = ref(null)
 const ownerInput = ref(null)
+const shelfTableColumns = ref([
+  {
+    name: 'id',
+    field: 'id',
+    label: 'Shelf Number',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'location',
+    field: 'location',
+    label: 'Shelf Location',
+    align: 'left',
+    sortable: true
+  }
+])
 
 // Logic
 const handlePageOffset = inject('handle-page-offset')
 
 onMounted(async () => {
   await getOwnerTierList()
+  await loadShelves()
   loadingData.value = false
 
   // when user comes back online we listen for the stored owner api calls to sync and update the ownerTiers
@@ -336,6 +381,21 @@ const saveOwnerTierList = async () => {
       text: err,
       autoClose: true
     })
+  }
+}
+
+const loadShelves = async (qParams) => {
+  try {
+    tableLoading.value = true
+    await getOptions('shelves', { ...qParams })
+  } catch (err) {
+    handleAlert({
+      type: 'error',
+      text: err,
+      autoClose: true
+    })
+  } finally {
+    tableLoading.value = false
   }
 }
 
