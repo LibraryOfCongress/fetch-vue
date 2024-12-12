@@ -4,6 +4,11 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 export const useBuildingStore = defineStore('building-store', {
   state: () => ({
     buildings: [],
+    modules: [], //TODO setup endpoint to get list of modules filtered by building id
+    aisles: [], //TODO setup endpoint to get list of aisles filtered by building id, module id
+    sides: [], //TODO setup endpoint to get list of sides filtered by building id, module id, aisle id
+    ladders: [], //TODO setup endpoint to get list of ladders filtered by building id, module id, aisle id, side id
+    shelves: [], //TODO setup endpoint to get list of shelves filtered by building id, module id, aisle id, side id, ladder id
     buildingDetails: {},
     moduleDetails: {},
     aisleDetails: {},
