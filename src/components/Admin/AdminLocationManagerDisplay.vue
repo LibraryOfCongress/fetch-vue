@@ -518,6 +518,8 @@ const generateLocationTableInfo = () => {
 
 const loadLocationData = async () => {
   try {
+    // TODO update each case to load the locations list info while passing in the route params needed for the location to be filtered down
+    // ex: shelves should be getShelves(building_id, module_id, aisle_id, side_id, ladder_id) instead of loading by parent
     appIsLoadingData.value = true
     switch (mainProps.locationType) {
     case 'buildings':
