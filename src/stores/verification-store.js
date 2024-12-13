@@ -3,6 +3,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useVerificationStore = defineStore('verification-store', {
   state: () => ({
+    verificationJobListTotal: 0,
     verificationJobList: [],
     verificationJob: {
       id: null,
@@ -72,8 +73,11 @@ export const useVerificationStore = defineStore('verification-store', {
     },
     async getVerificationJobList (paramsObj) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.verificationJobs, { params: { ...paramsObj, size: 100 } })
+        const res = await this.$api.get(inventoryServiceApi.verificationJobs, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
         this.verificationJobList = res.data.items
+
+        // keep track of response total for pagination
+        this.verificationJobListTotal = res.data.total
         return res
       } catch (error) {
         throw error

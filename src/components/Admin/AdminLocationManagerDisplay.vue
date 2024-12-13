@@ -11,6 +11,10 @@
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
           :heading-rearrange-class="'q-mr-xs-auto q-mr-sm-none q-ml-sm-auto'"
+          :enable-pagination="mainProps.locationType == 'buildings' ? true : false"
+          :pagination-total="locationDataTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadLocationData($event)"
         >
           <template #heading-row>
             <div
@@ -65,6 +69,7 @@
     :action-type="showLocationModal.type"
     :location-data="showLocationModal.locationData"
     @hide="showLocationModal.type = ''; showLocationModal.locationData = {}"
+    @new-location-added="locationDataTotal++"
   />
 </template>
 
@@ -110,11 +115,13 @@ const {
   moduleDetails,
   aisleDetails,
   sideDetails,
-  ladderDetails
+  ladderDetails,
+  buildingsTotal
 } = storeToRefs(useBuildingStore())
 const { getOptions } = useOptionStore()
 
 // Local Data
+const locationDataTotal = ref(0)
 const locationData = computed(() => {
   let tableData = []
   switch (mainProps.locationType) {
@@ -516,15 +523,18 @@ const generateLocationTableInfo = () => {
   }
 }
 
-const loadLocationData = async () => {
+const loadLocationData = async (qParams) => {
   try {
     appIsLoadingData.value = true
     switch (mainProps.locationType) {
-    case 'buildings':
-      if (buildings.value.length == 0) {
-        await getBuildingsList()
-      }
+    case 'buildings': {
+      await getBuildingsList(qParams)
+
+      // set the location total for pagination tracking
+      // TODO need to update other building fields to render their lists data instead of rendering from the parent
+      locationDataTotal.value = buildingsTotal.value
       break
+    }
     case 'modules':
       if (!buildingDetails.value.id) {
         await getBuildingDetails(route.params.buildingId)

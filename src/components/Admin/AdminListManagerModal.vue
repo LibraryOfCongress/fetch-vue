@@ -173,7 +173,8 @@ const mainProps = defineProps({
 // Emits
 const emit = defineEmits([
   'hide',
-  'submit'
+  'submit',
+  'newListOptionAdded'
 ])
 
 // Composables
@@ -414,6 +415,8 @@ const addNewListType = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
+    // emit to parent that we added a new list option
+    emit('newListOptionAdded')
     listModal.value.hideModal()
   }
 }

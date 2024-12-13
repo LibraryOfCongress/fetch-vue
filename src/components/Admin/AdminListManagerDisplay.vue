@@ -11,6 +11,10 @@
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
           :heading-rearrange-class="'q-mr-xs-auto q-mr-sm-none q-ml-sm-auto'"
+          :enable-pagination="mainProps.listType == 'shelf-type' ? false: true"
+          :pagination-total="listDataTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadListData($event)"
         >
           <template #heading-row>
             <div
@@ -77,6 +81,7 @@
     :action-type="showListInputModal.type"
     :list-data="showListInputModal.listData"
     @hide="showListInputModal.type = ''; showListInputModal.listData = {}"
+    @new-list-option-added="listDataTotal++"
   />
 
   <!-- confirmation modal -->
@@ -153,6 +158,7 @@ const {
   deleteShelfType
 } = useOptionStore()
 const {
+  optionsTotal,
   owners,
   mediaTypes,
   sizeClass,
@@ -161,6 +167,7 @@ const {
 } = storeToRefs(useOptionStore())
 
 // Local Data
+const listDataTotal = ref(0)
 const listData = computed(() => {
   let tableData = []
   switch (mainProps.listType) {
@@ -477,18 +484,21 @@ const generateListTableInfo = () => {
   }
 }
 
-const loadListData = async () => {
+const loadListData = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    if (mainProps.listType == 'owner') {
-      await getOptions('owners')
+    if (mainProps.listType == 'owners') {
+      await getOptions('owners', qParams)
     } else if (mainProps.listType == 'media-type') {
-      await getOptions('mediaTypes')
+      await getOptions('mediaTypes', qParams)
     } else if (mainProps.listType == 'shelf-type') {
-      await getOptions('shelfTypes')
+      await getOptions('shelfTypes', qParams)
     } else {
-      await getOptions('sizeClass')
+      await getOptions('sizeClass', qParams)
     }
+
+    // set the listData total based on the loaded list options from store
+    listDataTotal.value = optionsTotal.value
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -549,6 +559,15 @@ const deleteListOption = async (id) => {
     default:
       break
     }
+
+    handleAlert({
+      type: 'success',
+      text: `Successfully Deleted The ${renderTableTitle.value}.`,
+      autoClose: true
+    })
+
+    // update listDataTotal for pagination
+    listDataTotal.value = listDataTotal.value == 0 ? 0 : listDataTotal.value - 1
   } catch (error) {
     handleAlert({
       type: 'error',

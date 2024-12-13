@@ -3,6 +3,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useOptionStore = defineStore('option-store', {
   state: () => ({
+    optionsTotal: 0,
     buildings: [],
     containerTypes: [
       {
@@ -26,24 +27,38 @@ export const useOptionStore = defineStore('option-store', {
     requestsLocations: [],
     requestsPriorities: [],
     requestsTypes: [],
+    shelves: [],
     users: []
   }),
   actions: {
     resetOptionStore () {
       this.$reset()
     },
-    async getOptions (optionType, qParams) {
+    async getOptions (optionType, qParams, combineOptions = false) {
       try {
-        const res = await this.$api.get(inventoryServiceApi[optionType], { params: { ...qParams, size: 100 } })
+        const res = await this.$api.get(inventoryServiceApi[optionType], { params: { size: this.apiPageSizeDefault, ...qParams } })
+        if (combineOptions) {
+          // combineOptions is only mainly used when we need to add to our list of options ex: paginated selects on scroll need to add to options
+          // merge the results with current options and get rid of duplicates
+          this[optionType] = [
+            ...new Set([
+              ...this[optionType],
+              ...res.data.items
+            ])
+          ]
+        } else {
+          this[optionType] = res.data.items
+        }
 
-        this[optionType] = res.data.items
+        // set the total number of rendered options which is used for pagination limits
+        this.optionsTotal = res.data.total
       } catch (error) {
         throw error
       }
     },
     async getParentOwnerOptions (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.owners, { params: { ...qParams, size: 100 } })
+        const res = await this.$api.get(inventoryServiceApi.owners, { params: { size: this.apiPageSizeDefault, ...qParams } })
         this['parentOwnerOptions'] = res.data.items
       } catch (error) {
         throw error

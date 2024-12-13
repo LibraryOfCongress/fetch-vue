@@ -3,6 +3,8 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useSearchStore = defineStore('search-store', {
   state: () => ({
+    advanceSearchHistory: null,
+    searchResultsTotal: 0,
     searchResults: []
   }),
   actions: {
@@ -68,13 +70,13 @@ export const useSearchStore = defineStore('search-store', {
     async getAdvancedSearchResults (paramsObj, searchType) {
       try {
         if (searchType == 'Item') {
-          const res = await this.$api.get(inventoryServiceApi.items, { params: { ...paramsObj, size: 100 } })
+          const res = await this.$api.get(inventoryServiceApi.items, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
           this.searchResults = res.data.items
         } else if (searchType == 'Tray') {
-          const res = await this.$api.get(inventoryServiceApi.trays, { params: { ...paramsObj, size: 100 } })
+          const res = await this.$api.get(inventoryServiceApi.trays, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
           this.searchResults = res.data.items
         } else if (searchType == 'Shelf') {
-          const res = await this.$api.get(inventoryServiceApi.shelves, { params: { ...paramsObj, size: 100 } })
+          const res = await this.$api.get(inventoryServiceApi.shelves, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
           this.searchResults = res.data.items
         } else {
           // job related advanced searches
@@ -85,8 +87,12 @@ export const useSearchStore = defineStore('search-store', {
             jobEndpoint = 'picklists'
           }
 
-          const res = await this.$api.get(inventoryServiceApi[jobEndpoint], { params: { ...paramsObj, size: 100 } })
+          const res = await this.$api.get(inventoryServiceApi[jobEndpoint], { params: { size: this.apiPageSizeDefault, ...paramsObj } })
           this.searchResults = res.data.items
+
+          // store the advance search history and total for pagination
+          this.searchResultsTotal = res.data.total
+          this.advanceSearchHistory = paramsObj
         }
       } catch (error) {
         throw error

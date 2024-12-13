@@ -3,6 +3,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useReportsStore = defineStore('reports-store', {
   state: () => ({
+    reportDataTotal: 0,
     reportData: []
   }),
   actions: {
@@ -12,7 +13,7 @@ export const useReportsStore = defineStore('reports-store', {
     async getReport (paramsObj, reportType) {
       try {
         if (reportType == 'Item Accession') {
-          const res = await this.$api.get(inventoryServiceApi.reportingAccessionItems, { params: { ...paramsObj, size: 100 },
+          const res = await this.$api.get(inventoryServiceApi.reportingAccessionItems, { params: { size: this.apiPageSizeDefault, ...paramsObj },
             paramsSerializer: function handleQuery (query) {
               // this will process param arrays as multiple entries in get request query params
               // ex: owner_id: [1,2] => owner_id=1&owner_id=2
@@ -24,11 +25,13 @@ export const useReportsStore = defineStore('reports-store', {
           })
           this.reportData = res.data.items
 
+          // keep track of response total for pagination
+          this.reportDataTotal = res.data.total
 
           //REMOVE: Temp solution until reports are figured out
           // let itemData = []
-          // const res = this.$api.get(inventoryServiceApi.items, { params: { ...paramsObj, size: 100 } })
-          // const res2 = this.$api.get(inventoryServiceApi.nonTrayItems, { params: { ...paramsObj, size: 100 } })
+          // const res = this.$api.get(inventoryServiceApi.items, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
+          // const res2 = this.$api.get(inventoryServiceApi.nonTrayItems, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
           // Promise.all([
           //   res,
           //   res2

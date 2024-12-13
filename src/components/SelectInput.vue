@@ -21,6 +21,8 @@
     :display-value="multiple ? renderMultiSelectDisplayValues() : undefined"
     :placeholder="placeholder"
     :disable="disabled"
+    :loading="optionsLoading"
+    @virtual-scroll="loadMoreOptions"
   >
     <template #no-option>
       <slot name="no-option">
@@ -67,7 +69,8 @@
 </template>
 
 <script setup>
-import { ref, watch, inject } from 'vue'
+import { ref, watch, inject, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useOptionStore } from 'src/stores/option-store'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 
@@ -123,10 +126,18 @@ const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const { getOptions } = useOptionStore()
+const { optionsTotal } = storeToRefs(useOptionStore())
 
 // Local Data
 const selectInputComponent = ref(null)
+const selectInputFilterValue = ref('')
 const localOptions = ref(mainProps.options)
+const optionsLoading = ref(false)
+const lastOptionsPage = computed(() => {
+  // divide total local options by apiPageSizeDefault to get our last page value
+  return Math.ceil(optionsTotal.value / 50)
+})
+const nextOptionsPage = ref(2)
 
 // Logic
 const getNestedKeyPath = inject('get-nested-key-path')
@@ -147,9 +158,9 @@ const updateModelValue = (value) => {
   emit('update:modelValue', value)
 }
 const filterOptions = async (val, update) => {
-  // if there is an optionType then we need to get a list of options from the api based on the optionType passed in
+  // if there is an optionType then we need to get a the intial list of options from the api based on the optionType passed in
   // the passed in optionType should match an http endpoint
-  if (mainProps.optionType !== '') {
+  if (mainProps.optionType !== '' && localOptions.value.length == 0) {
     await getOptions(mainProps.optionType)
   }
 
@@ -169,7 +180,23 @@ const filterOptions = async (val, update) => {
         localOptions.value = mainProps.options.filter(opt => opt.toString().toLowerCase().indexOf(val.toLowerCase()) > -1)
       }
     }
+
+    // set the user inputed filter value in state
+    selectInputFilterValue.value = val
   })
+}
+const loadMoreOptions = async ({ to, ref }) => {
+  const lastIndex = localOptions.value.length - 1
+  // only load more options if were at the bottom of the list, not on the last page and not trying to filter search
+  if (!optionsLoading.value && to === lastIndex && nextOptionsPage.value < lastOptionsPage.value && selectInputFilterValue.value == '') {
+    optionsLoading.value = true
+    await getOptions(mainProps.optionType, { page: nextOptionsPage.value }, true)
+
+    nextOptionsPage.value++
+    // calls and internal qSelect function that handles refreshing the list with the updating options at the last index position
+    ref.refresh()
+    optionsLoading.value = false
+  }
 }
 const renderLabel = (opt) => {
   if (mainProps.optionType == 'users') {

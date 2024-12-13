@@ -14,7 +14,7 @@
           v-model="reportType"
           :options="reportOptions"
           :placeholder="'Select Report'"
-          @update:model-value="showReportModal = true"
+          @update:model-value="reportFormHistory = null; showReportModal = true;"
           aria-label="reportSelect"
         />
       </div>
@@ -32,7 +32,7 @@
     </div>
 
     <div
-      v-if="generatedTableColumns.length > 0"
+      v-show="generatedTableColumns.length > 0"
       class="row q-mb-xs-xl q-mb-sm-none"
     >
       <div class="col-grow q-mb-xs-md q-mb-sm-none">
@@ -44,6 +44,10 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="reportDataTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="regenerateReport($event)"
           @selected-table-row="null"
         >
           <template #heading-row>
@@ -79,7 +83,9 @@
     <ReportsGenerateModal
       v-if="showReportModal"
       :report-type="reportType"
+      :report-history="reportFormHistory"
       @hide="showReportModal = false; reportType = lastReportType;"
+      @update="reportFormHistory = $event"
       @submit="generateReportTableFields();"
     />
   </div>
@@ -98,6 +104,7 @@
 import { ref, inject } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useReportsStore } from '@/stores/reports-store'
+import { useGlobalStore } from '@/stores/global-store'
 import { storeToRefs } from 'pinia'
 import EssentialTable from '@/components/EssentialTable.vue'
 import SelectInput from '@/components/SelectInput.vue'
@@ -108,7 +115,9 @@ import ReportPrintTemplate from '@/components/Reports/ReportPrintTemplate.vue'
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { reportData } = storeToRefs(useReportsStore())
+const { reportData, reportDataTotal } = storeToRefs(useReportsStore())
+const { getReport } = useReportsStore()
+const { appIsLoadingData } = storeToRefs(useGlobalStore())
 
 // Local Data
 const generatedTableVisibleColumns = ref([])
@@ -133,6 +142,7 @@ const generatedTableFilters =  ref([
   }
 ])
 const showReportModal = ref(false)
+const reportFormHistory= ref(null)
 const reportType = ref(null)
 const lastReportType = ref(null)
 const reportOptions =  ref([
@@ -151,6 +161,7 @@ const reportOptions =  ref([
 const reportPrintTemplate = ref(null)
 
 // Logic
+const handleAlert = inject('handle-alert')
 const getItemLocation = inject('get-item-location')
 
 const generateReportTableFields = () => {
@@ -660,6 +671,44 @@ const generateReportTableFields = () => {
   }
 }
 
+const regenerateReport = async (qParams) => {
+  try {
+    appIsLoadingData.value = true
+    let queryParamsForm = JSON.parse(JSON.stringify(reportFormHistory.value))
+    // convert any form date values to iso format along with removing any empty query params
+    Object.entries(queryParamsForm).forEach(([
+      key,
+      value
+    ]) => {
+      if (key.includes('_dt') && value) {
+        const [
+          month,
+          day,
+          year
+        ] = queryParamsForm[key].split('/')
+        if (key.includes('from')) {
+          // sets from dates to begging of day
+          queryParamsForm[key] = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0)).toISOString()
+        }  else {
+          // sets to date to end of date
+          queryParamsForm[key] = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999)).toISOString()
+        }
+      } else if (!value) {
+        delete queryParamsForm[key]
+      }
+    })
+
+    await getReport({ ...qParams, ...queryParamsForm }, reportType.value)
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
+  }
+}
 </script>
 <style lang="scss" scoped>
 </style>
