@@ -40,7 +40,6 @@
           class="text-body1 q-mr-sm"
           color="primary"
           label="Create New Owner Tier"
-          :disabled="loadingData"
           @click="showOwnerTierCreation = !showOwnerTierCreation"
         />
 
@@ -50,7 +49,6 @@
           class="text-body1"
           color="primary"
           label="Save Owner Tier List For Offline Use"
-          :disabled="loadingData"
           @click="saveOwnerTierList"
         />
       </div>

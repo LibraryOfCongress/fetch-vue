@@ -171,7 +171,7 @@ const listDataTotal = ref(0)
 const listData = computed(() => {
   let tableData = []
   switch (mainProps.listType) {
-  case 'owners':
+  case 'owner':
     tableData = owners.value
     break
   case 'media-type':
@@ -204,8 +204,8 @@ const listTableColumns = ref([])
 const listTableFilters =  ref([])
 const renderTableTitle = computed(() => {
   let title = ''
-  if (mainProps.listType == 'owners') {
-    title = 'Owners'
+  if (mainProps.listType == 'owner') {
+    title = 'Owner'
   } else if (mainProps.listType == 'media-type') {
     title = 'Media Type'
   } else if (mainProps.listType == 'shelf-type') {
@@ -217,7 +217,7 @@ const renderTableTitle = computed(() => {
 })
 const renderTableAction = computed(() => {
   let actionText = ''
-  if (mainProps.listType == 'owners') {
+  if (mainProps.listType == 'owner') {
     actionText = 'Add Owner'
   } else if (mainProps.listType == 'media-type') {
     actionText = 'Add Media Type'
@@ -278,7 +278,7 @@ const handleOptionMenu = async (option, rowData) => {
     appIsLoadingData.value = true
     await Promise.all([getOptions('sizeClass')])
     appIsLoadingData.value = false
-  } else if (mainProps.listType == 'owners') {
+  } else if (mainProps.listType == 'owner') {
     appIsLoadingData.value = true
     await Promise.all([getOptions('ownersTiers')])
     // Retrieve filtered list of parent owner options based on the selected owner tier
@@ -304,7 +304,7 @@ const handleOptionMenu = async (option, rowData) => {
 
 const generateTableOptionsMenu = () => {
   let options = []
-  if (mainProps.listType == 'owners') {
+  if (mainProps.listType == 'owner') {
     options = [
       { text: 'Edit Owner' },
       { text: 'Delete Owner', optionClass: 'text-negative' }
@@ -440,7 +440,7 @@ const generateListTableInfo = () => {
       'shelf_type'
     ]
     break
-  case 'owners':
+  case 'owner':
     listTableColumns.value = [
       {
         name: 'actions',
@@ -521,14 +521,39 @@ const deleteListOption = async (id) => {
     case 'media-type':
       await deleteMediaType(id)
       break
-    case 'owners':
+    case 'owner':
       await deleteOwner(id)
       break
     case 'shelf-type': {
       const matchingShelfTypesById = shelfTypes.value.filter(s => s.type == shelfTypes.value.find(s => s.id == id).type)
-      await Promise.all(matchingShelfTypesById.map(shelfType => {
-        return deleteShelfType(shelfType.id)
+      let deletedShelfTypes = []
+      await Promise.all(matchingShelfTypesById.map(async shelfType => {
+        const res = await deleteShelfType(shelfType.id)
+        if (res.status == 200) {
+          deletedShelfTypes.push(shelfType)
+        } else {
+          handleAlert({
+            type: 'error',
+            text: `"${shelfType.type} - ${shelfType.size_class.name}" is in use and cannot be deleted.`,
+            autoClose: false
+          })
+        }
       }))
+
+      // display and alert for the successfully deleted shelfTypes
+      if (deletedShelfTypes.length == matchingShelfTypesById.length) {
+        handleAlert({
+          type: 'success',
+          text: `"${deletedShelfTypes[0].type}" has been successfully deleted.`,
+          autoClose: true
+        })
+      } else if (deletedShelfTypes.length > 0) {
+        handleAlert({
+          type: 'success',
+          text: `${deletedShelfTypes.length} size classes have been successfully deleted from "${deletedShelfTypes[0].type}".`,
+          autoClose: true
+        })
+      }
       break
     }
     default:

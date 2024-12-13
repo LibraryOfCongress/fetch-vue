@@ -156,7 +156,7 @@ const breadcrumbList = computed(() => {
       { text: 'Manage Media Types' }
     ]
     break
-  case 'admin-manage-owners':
+  case 'admin-manage-owner':
     breadCrumbs = [
       ...breadCrumbs,
       {

@@ -309,7 +309,7 @@ const generateListModal = () => {
       }
     ]
     break
-  case 'owners':
+  case 'owner':
     inputForm.value = {
       owner_tier_id: mainProps.listData.owner_tier_id ?? '',
       parent_owner_id: mainProps.listData.parent_owner_id ?? '',
@@ -395,7 +395,7 @@ const addNewListType = async () => {
         })
       }))
       break
-    case 'owners':
+    case 'owner':
       await postOwner(payload)
       break
     default:
@@ -404,7 +404,7 @@ const addNewListType = async () => {
 
     handleAlert({
       type: 'success',
-      text: `Successfully Added A New ${titleCaseListType.value}`,
+      text: `Successfully added a new ${titleCaseListType.value}.`,
       autoClose: true
     })
   } catch (error) {
@@ -449,8 +449,15 @@ const updateListType = async () => {
       let removedSizeClasses = []
       removedSizeClasses = inputFormOriginal.value.size_classes.filter(oSizeClass => !inputForm.value.size_class_ids.includes(oSizeClass.id))
       if (removedSizeClasses.length > 0) {
-        await Promise.all(removedSizeClasses.map(sizeClassObj => {
-          return deleteShelfType(sizeClassObj.shelf_type_id)
+        await Promise.all(removedSizeClasses.map(async sizeClassObj => {
+          const res = await deleteShelfType(sizeClassObj.shelf_type_id)
+          if (res.status !== 200) {
+            handleAlert({
+              type: 'error',
+              text: `The shelf type: "${payload.type} - ${sizeClassObj.name}" is in use and cannot be deleted.`,
+              autoClose: false
+            })
+          }
         }))
       }
 
@@ -469,17 +476,25 @@ const updateListType = async () => {
 
       // generate an individual shelf type update for every current shelf type by size class
       let currentSizeClasses = inputForm.value.size_classes.filter(curSizeClass => inputFormOriginal.value.size_class_ids.includes(curSizeClass.id))
-      await Promise.all(currentSizeClasses.map(sizeClassObj => {
-        return patchShelfType({
+      await Promise.all(currentSizeClasses.map(async sizeClassObj => {
+        const res = await patchShelfType({
           id: sizeClassObj.shelf_type_id,
           type: payload.type,
           size_class_id: sizeClassObj.id,
           max_capacity: sizeClassObj.max_capacity
         })
+        if (res.status !== 200) {
+          console.log(res)
+          handleAlert({
+            type: 'error',
+            text: `"${payload.type} - ${sizeClassObj.name}" - ${res.response.data.detail}`,
+            autoClose: false
+          })
+        }
       }))
       break
     }
-    case 'owners': {
+    case 'owner': {
       await patchOwner(payload)
       break
     }
@@ -489,7 +504,7 @@ const updateListType = async () => {
 
     handleAlert({
       type: 'success',
-      text: `Successfully Updated The ${titleCaseListType.value}`,
+      text: `Successfully updated the ${titleCaseListType.value}.`,
       autoClose: true
     })
   } catch (error) {
@@ -534,7 +549,7 @@ const updateShelfTypeSizeClass = (sizeClassIdArr) => {
 
 const handleInputFormChange = async (field) => {
   switch (mainProps.listType) {
-  case 'owners':
+  case 'owner':
     if (field === 'owner_tier_id') {
       // Get the parent owners for the currently selected tier
       inputForm.value.parent_owner_id = null
