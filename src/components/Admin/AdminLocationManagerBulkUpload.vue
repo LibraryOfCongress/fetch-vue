@@ -267,12 +267,22 @@ const submitBulkUploadLocationForm = async () => {
       text: 'Successfully Uploaded New Locations!',
       autoClose: true
     })
-  } catch (err) {
-    handleAlert({
-      type: 'error',
-      text: err,
-      autoClose: true
-    })
+  } catch (error) {
+    if (error.response?.data) {
+      error.response.data.forEach(err => {
+        handleAlert({
+          type: 'error',
+          text: `Bulk Location upload failed: ${JSON.stringify(err)}`,
+          autoClose: true
+        })
+      })
+    } else {
+      handleAlert({
+        type: 'error',
+        text: error,
+        autoClose: true
+      })
+    }
   } finally {
     appActionIsLoadingData.value = false
     bulkUploadLocationModal.value.hideModal()
