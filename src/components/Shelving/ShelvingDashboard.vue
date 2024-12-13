@@ -10,6 +10,10 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="shelvingJobListTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadShelvingJobs($event)"
           @selected-table-row="loadShelvingJob($event.id, $event.origin)"
         >
           <template #heading-row>
@@ -432,7 +436,7 @@ const {
 } = storeToRefs(useGlobalStore())
 const { buildings } = storeToRefs(useOptionStore())
 const { getVerificationJobList } = useVerificationStore()
-const { verificationJobList } = storeToRefs(useVerificationStore())
+const { verificationJobList, shelvingJobListTotal } = storeToRefs(useVerificationStore())
 const {
   getBuildingDetails,
   getModuleDetails,
@@ -613,10 +617,10 @@ const handleShelvingJobFormChange = async (valueType) => {
   }
 }
 
-const loadShelvingJobs = async () => {
+const loadShelvingJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    await getShelvingJobList({ queue: true, user_id: checkUserPermission('can_view_all_shelving_jobs') ? null : userData.value.user_id })
+    await getShelvingJobList({ ...qParams, queue: true, user_id: checkUserPermission('can_view_all_shelving_jobs') ? null : userData.value.user_id })
   } catch (error) {
     handleAlert({
       type: 'error',

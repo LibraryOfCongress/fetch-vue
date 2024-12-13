@@ -5,6 +5,7 @@ const globalStore = useGlobalStore()
 
 export const usePicklistStore = defineStore('picklist-store', {
   state: () => ({
+    picklistJobListTotal: 0,
     picklistJobList: [],
     picklistJob: {
       id: null,
@@ -44,6 +45,9 @@ export const usePicklistStore = defineStore('picklist-store', {
       try {
         const res = await this.$api.get(inventoryServiceApi.picklists, { params: { size: this.apiPageSizeDefault, ...qParams } })
         this.picklistJobList = res.data.items
+
+        // keep track of response total for pagination
+        this.picklistJobListTotal = res.data.total
       } catch (error) {
         throw error
       }

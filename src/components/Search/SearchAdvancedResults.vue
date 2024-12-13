@@ -10,6 +10,10 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="searchResultsTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="paginateAdvancedSearch($event)"
           @selected-table-row="handleResultSelection($event)"
         >
           <template #heading-row>
@@ -45,6 +49,7 @@
 import { onBeforeMount, ref, inject, watch } from 'vue'
 import { useRoute, useRouter  } from 'vue-router'
 import { useSearchStore } from '@/stores/search-store'
+import { useGlobalStore } from '@/stores/global-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from '@/components/EssentialTable.vue'
@@ -57,8 +62,12 @@ const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const {
-  searchResults
+  searchResults,
+  searchResultsTotal,
+  advanceSearchHistory
 } = storeToRefs(useSearchStore())
+const { getAdvancedSearchResults } = useSearchStore()
+const { appIsLoadingData } = storeToRefs(useGlobalStore())
 
 // Local Data
 const searchResultsTableVisibleColumns = ref([])
@@ -86,6 +95,7 @@ const searchResultsTableFilters =  ref([
 
 // Logic
 const formatDateTime = inject('format-date-time')
+const handleAlert = inject('handle-alert')
 
 onBeforeMount(() => {
   generateSearchTableFields()
@@ -639,6 +649,21 @@ const handleResultSelection = (rowData) => {
     break
   default:
     break
+  }
+}
+
+const paginateAdvancedSearch = async (qParams) => {
+  try {
+    appIsLoadingData.value = true
+    await getAdvancedSearchResults({ ...advanceSearchHistory.value, ...qParams }, route.params.searchType)
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 </script>

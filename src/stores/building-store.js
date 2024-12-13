@@ -3,6 +3,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useBuildingStore = defineStore('building-store', {
   state: () => ({
+    buildingsTotal: 0,
     buildings: [],
     buildingDetails: {},
     moduleDetails: {},
@@ -111,10 +112,13 @@ export const useBuildingStore = defineStore('building-store', {
       this.shelfDetails = {}
       this.shelfPositions = []
     },
-    async getBuildingsList () {
+    async getBuildingsList (qParams) {
       try {
-        const res = await this.$api.get(`${inventoryServiceApi.buildings}`, { params: { size: this.apiPageSizeDefault } })
+        const res = await this.$api.get(`${inventoryServiceApi.buildings}`, { params: { size: this.apiPageSizeDefault, ...qParams } })
         this.buildings = res.data.items
+
+        // keep track of response total for pagination
+        this.buildingsTotal = res.data.total
       } catch (error) {
         return error
       }

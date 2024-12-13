@@ -420,7 +420,9 @@ watch(() => mainProps.tableData, (updatedTableData) => {
 
 // watch the paginated related props for changes and update our local paginationConfig
 watch(() => mainProps.paginationTotal, (updatedTotal) => {
-  paginationConfig.value.rowsNumber = updatedTotal
+  if (mainProps.enablePagination) {
+    paginationConfig.value.rowsNumber = updatedTotal
+  }
 },
 { deep: true })
 
@@ -466,7 +468,6 @@ const filterTableData = () => {
 
 const onTableRequest = (props) => {
   if (mainProps.enablePagination) {
-    console.log('requesting table pagnination effect', props)
     const { page, sortBy, rowsPerPage, descending } = props.pagination
 
     // update local pagination object

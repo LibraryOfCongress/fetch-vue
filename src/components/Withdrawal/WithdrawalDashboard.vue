@@ -10,6 +10,10 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="withdrawJobListTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadWithdrawJobs($event)"
           @selected-table-row="loadWithdrawJob($event.id)"
         >
           <template #heading-row>
@@ -87,6 +91,7 @@ const {
 } = storeToRefs(useGlobalStore())
 const {
   withdrawJobList,
+  withdrawJobListTotal,
   withdrawJob
 } = storeToRefs(useWithdrawalStore())
 const {
@@ -167,10 +172,10 @@ onBeforeMount(() => {
   }
 })
 
-const loadWithdrawJobs = async () => {
+const loadWithdrawJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    await getWithdrawJobList({ queue: true })
+    await getWithdrawJobList({ ...qParams, queue: true })
   } catch (error) {
     handleAlert({
       type: 'error',

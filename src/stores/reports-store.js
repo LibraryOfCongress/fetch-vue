@@ -3,6 +3,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useReportsStore = defineStore('reports-store', {
   state: () => ({
+    reportDataTotal: 0,
     reportData: []
   }),
   actions: {
@@ -24,6 +25,8 @@ export const useReportsStore = defineStore('reports-store', {
           })
           this.reportData = res.data.items
 
+          // keep track of response total for pagination
+          this.reportDataTotal = res.data.total
 
           //REMOVE: Temp solution until reports are figured out
           // let itemData = []

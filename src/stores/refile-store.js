@@ -5,6 +5,7 @@ const globalStore = useGlobalStore()
 
 export const useRefileStore = defineStore('refile-store', {
   state: () => ({
+    refileJobListTotal: 0,
     refileJobList: [],
     refileJob: {
       id: null,
@@ -46,6 +47,9 @@ export const useRefileStore = defineStore('refile-store', {
       try {
         const res = await this.$api.get(inventoryServiceApi.refileJobs, { params: { size: this.apiPageSizeDefault, ...qParams } })
         this.refileJobList = res.data.items
+
+        // keep track of response total for pagination
+        this.refileJobListTotal = res.data.total
       } catch (error) {
         throw error
       }
@@ -54,6 +58,9 @@ export const useRefileStore = defineStore('refile-store', {
       try {
         const res = await this.$api.get(inventoryServiceApi.refileQueue, { params: { size: this.apiPageSizeDefault, ...qParams } })
         this.refileJobList = res.data.items
+
+        // keep track of response total for pagination
+        this.refileJobListTotal = res.data.total
       } catch (error) {
         throw error
       }

@@ -3,6 +3,8 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useSearchStore = defineStore('search-store', {
   state: () => ({
+    advanceSearchHistory: null,
+    searchResultsTotal: 0,
     searchResults: []
   }),
   actions: {
@@ -87,6 +89,10 @@ export const useSearchStore = defineStore('search-store', {
 
           const res = await this.$api.get(inventoryServiceApi[jobEndpoint], { params: { size: this.apiPageSizeDefault, ...paramsObj } })
           this.searchResults = res.data.items
+
+          // store the advance search history and total for pagination
+          this.searchResultsTotal = res.data.total
+          this.advanceSearchHistory = paramsObj
         }
       } catch (error) {
         throw error

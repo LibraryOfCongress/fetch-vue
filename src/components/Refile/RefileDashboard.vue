@@ -13,6 +13,10 @@
           :enable-selection="showCreateRefileJob || showAddRefileJob"
           :heading-row-class="'q-mb-xs-md q-mb-md-xl'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="refileJobListTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadRefileJobs($event)"
           @selected-table-row="refileDisplayType == 'refile_job' ? loadRefileJob($event.id) : null"
           @selected-data="selectedRefileItems = $event"
         >
@@ -106,7 +110,7 @@
                   {label: 'Refile Job', value: 'refile_job'},
                   {label: 'Refile Queue', value: 'refile_queue'}
                 ]"
-                @update:model-value="loadRefileJobs"
+                @update:model-value="loadRefileJobs()"
                 class="text-no-wrap"
               />
             </div>
@@ -305,7 +309,11 @@ const {
   postRefileJob,
   postRefileJobItem
 } = useRefileStore()
-const { refileJobList, refileJob } = storeToRefs(useRefileStore())
+const {
+  refileJobList,
+  refileJobListTotal,
+  refileJob
+} = storeToRefs(useRefileStore())
 const { userData } = storeToRefs(useUserStore())
 
 // Local Data
@@ -511,13 +519,13 @@ const resetRefileJobForm = () => {
   clearTableSelection()
 }
 
-const loadRefileJobs = async () => {
+const loadRefileJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
     if (refileDisplayType.value == 'refile_job') {
-      await getRefileJobList({ queue: true, user_id: checkUserPermission('can_view_all_refile_jobs') ? null : userData.value.user_id })
+      await getRefileJobList({ ...qParams, queue: true, user_id: checkUserPermission('can_view_all_refile_jobs') ? null : userData.value.user_id })
     } else {
-      await getRefileQueueList()
+      await getRefileQueueList({ ...qParams })
     }
   } catch (error) {
     handleAlert({
