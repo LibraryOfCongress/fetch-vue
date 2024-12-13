@@ -477,7 +477,7 @@ const onTableRequest = (props) => {
     paginationConfig.value.descending = descending
 
     // emit to parent to get next set of paged data with refrenced query params
-    emit('update-pagination', { size: rowsPerPage, page, sort_by: sortBy, direction: descending ? 'desc' : 'asc' })
+    emit('update-pagination', { size: rowsPerPage, page, sort_by: sortBy, sort_order: descending ? 'desc' : 'asc' })
   }
 }
 
