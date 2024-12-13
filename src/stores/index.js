@@ -11,6 +11,7 @@ export default store(() => {
   // allows us to call this.$api in store files similar to our globally defined $api for vue files
   pinia.use(({ store }) => {
     store.$api = api
+    store.apiPageSizeDefault = 50
   })
 
   return pinia

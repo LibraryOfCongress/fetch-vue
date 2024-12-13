@@ -10,6 +10,10 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="verificationJobListTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadVerificationJobs($event)"
           @selected-table-row="loadVerificationJob($event.workflow_id)"
         >
           <template #heading-row>
@@ -65,7 +69,7 @@ const {
   getVerificationJobList,
   getVerificationJob
 } = useVerificationStore()
-const { verificationJobList } = storeToRefs(useVerificationStore())
+const { verificationJobList, verificationJobListTotal } = storeToRefs(useVerificationStore())
 
 
 // Local Data
@@ -133,10 +137,10 @@ onBeforeMount(() => {
   }
 })
 
-const loadVerificationJobs = async () => {
+const loadVerificationJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    await getVerificationJobList({ queue: true })
+    await getVerificationJobList({ ...qParams, queue: true })
   } catch (error) {
     handleAlert({
       type: 'error',

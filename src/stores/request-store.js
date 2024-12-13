@@ -3,6 +3,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useRequestStore = defineStore('request-store', {
   state: () => ({
+    requestJobListTotal: 0,
     requestJobList: [],
     requestJob: {
       id: null,
@@ -84,8 +85,11 @@ export const useRequestStore = defineStore('request-store', {
     },
     async getRequestJobList (paramsObj) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.requests, { params: { ...paramsObj, size: 100 } })
+        const res = await this.$api.get(inventoryServiceApi.requests, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
         this.requestJobList = res.data.items
+
+        // keep track of response total for pagination
+        this.requestJobListTotal = res.data.total
       } catch (error) {
         throw error
       }
@@ -102,7 +106,7 @@ export const useRequestStore = defineStore('request-store', {
       try {
         await this.$api.post(inventoryServiceApi.requests, payload)
         // refresh the requestJobList using request view filter since this endpoint only triggers from the request view tab
-        await this.getRequestJobList()
+        await this.getRequestJobList({ queue: true })
       } catch (error) {
         throw error
       }
@@ -115,10 +119,13 @@ export const useRequestStore = defineStore('request-store', {
         throw error
       }
     },
-    async getRequestBatchJobList () {
+    async getRequestBatchJobList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.batchUpload, { params: { batch_upload_type: 'request' } })
-        this.requestJobList = res.data.items.filter(f => f.status !== 'Failed')
+        const res = await this.$api.get(inventoryServiceApi.batchUpload, { params: { ...qParams, batch_upload_type: 'request' } })
+        this.requestJobList = res.data.items
+
+        // keep track of response total for pagination
+        this.requestJobListTotal = res.data.total
       } catch (error) {
         throw error
       }

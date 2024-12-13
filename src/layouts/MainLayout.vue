@@ -132,7 +132,11 @@ const neverShowAppInstallBanner = () => {
 const checkForServiceWorkerUpdates = () => {
   navigator.serviceWorker.getRegistrations().then(async (registrations) => {
     for (let registration of registrations) {
-      // update the service workers and get latest content
+      // update the service workers and get latest content and refresh all indexDb instances
+      const dbs = await window.indexedDB.databases()
+      dbs.forEach(db => {
+        window.indexedDB.deleteDatabase(db.name)
+      })
       await registration.update()
     }
   })

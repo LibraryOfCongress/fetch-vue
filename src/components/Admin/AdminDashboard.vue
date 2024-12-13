@@ -85,17 +85,21 @@ const adminLinkList = computed(() => {
     {
       title: 'List Configurations',
       sublinks: [
-        // {
-        //   title: 'Add/Edit/Remove Owners',
-        //   hidden: !checkUserPermission('can_manage_owners')
-        // },
-        // {
-        //   title: 'Add/Edit/Remove Media Type',
-        //   hidden: !checkUserPermission('can_manage_media_type')
-        // },
+        {
+          title: 'Add/Edit/Remove Owners',
+          hidden: !checkUserPermission('can_manage_owners')
+        },
+        {
+          title: 'Add/Edit/Remove Media Type',
+          hidden: !checkUserPermission('can_manage_media_type')
+        },
         {
           title: 'Add/Edit/Remove Size Class',
           hidden: !checkUserPermission('can_manage_size_class')
+        },
+        {
+          title: 'Add/Edit/Remove Shelf Type',
+          hidden: !checkUserPermission('can_manage_locations')
         }
       ],
       hidden: !(checkUserPermission('can_manage_size_class') || checkUserPermission('can_manage_owners') || checkUserPermission('can_manage_media_type'))
@@ -154,14 +158,17 @@ const handleRouting = (link) => {
   case 'Bulk Upload Ladders/Shelves':
     showBulkUploadLocationModal.value = true
     break
-  // case 'Add/Edit/Remove Owners':
-  //   router.push({ name: '' })
-  //   break
-  // case 'Add/Edit/Remove Media Type':
-  //   router.push({ name: '' })
-  //   break
+  case 'Add/Edit/Remove Owners':
+    router.push({ name: 'admin-manage-owner' })
+    break
+  case 'Add/Edit/Remove Media Type':
+    router.push({ name: 'admin-manage-media-type' })
+    break
   case 'Add/Edit/Remove Size Class':
     router.push({ name: 'admin-manage-size-class' })
+    break
+  case 'Add/Edit/Remove Shelf Type':
+    router.push({ name: 'admin-manage-shelf-type' })
     break
   default:
     showLocationManageRouteModal.value = link.title

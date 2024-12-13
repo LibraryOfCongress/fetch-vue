@@ -93,6 +93,15 @@ const routes = [
         }
       },
       {
+        name: 'admin-manage-owner',
+        path: 'admin/manage/owner',
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: {
+          requiresAuth: true,
+          requiresPerm: 'can_manage_owners'
+        }
+      },
+      {
         name: 'admin-location-manage-shelves',
         path: 'admin/manage/:buildingId/:moduleId/:aisleId/:sideId/:ladderId/shelves',
         component: () => import('@/pages/AdminPage.vue'),
@@ -102,12 +111,30 @@ const routes = [
         }
       },
       {
+        name: 'admin-manage-media-type',
+        path: 'admin/manage/media-type',
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: {
+          requiresAuth: true,
+          requiresPerm: 'can_manage_media_type'
+        }
+      },
+      {
         name: 'admin-manage-size-class',
         path: 'admin/manage/size-class',
         component: () => import('@/pages/AdminPage.vue'),
         meta: {
           requiresAuth: true,
           requiresPerm: 'can_manage_size_class'
+        }
+      },
+      {
+        name: 'admin-manage-shelf-type',
+        path: 'admin/manage/shelf-type',
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: {
+          requiresAuth: true,
+          requiresPerm: 'can_manage_locations'
         }
       },
       {

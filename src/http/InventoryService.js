@@ -29,7 +29,7 @@ export default {
   nonTrayItemsMove: '/non_tray_items/move/',
   ladders: '/ladders/',
   owners: '/owners/',
-  ownersTiers: '/owners/tiers/',
+  ownersTiers: '/owners/tiers',
   permissions: '/permissions/',
   picklists: '/pick-lists/',
   refileJobs: '/refile-jobs/',

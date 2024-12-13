@@ -12,6 +12,10 @@
           :enable-selection="showCreatePickList || showAddPickList"
           :heading-row-class="'q-mb-xs-md q-mb-md-xl'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="requestJobListTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadRequestJobs($event)"
           @selected-table-row="loadRequestJob($event.id)"
           @selected-data="selectedRequestItems = $event"
         >
@@ -341,7 +345,11 @@ const {
   getRequestBatchJobList,
   getRequestBatchJob
 } = useRequestStore()
-const { requestJobList, requestJob } = storeToRefs(useRequestStore())
+const {
+  requestJobList,
+  requestJobListTotal,
+  requestJob
+} = storeToRefs(useRequestStore())
 const { postPicklistJob, patchPicklistJobItem } = usePicklistStore()
 const { picklistJob } = storeToRefs(usePicklistStore())
 const { userData } = storeToRefs(useUserStore())
@@ -602,13 +610,13 @@ const resetRequestOverlay = () => {
   })
 }
 
-const loadRequestJobs = async () => {
+const loadRequestJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
     if (requestDisplayType.value == 'request_view') {
-      await getRequestJobList({ queue: true })
+      await getRequestJobList({ ...qParams, queue: true })
     } else {
-      await getRequestBatchJobList()
+      await getRequestBatchJobList({ ...qParams })
     }
   } catch (error) {
     handleAlert({

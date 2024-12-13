@@ -11,6 +11,10 @@
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
           :heading-rearrange-class="'q-mr-xs-auto q-mr-sm-none q-ml-sm-auto'"
+          :enable-pagination="mainProps.listType == 'shelf-type' ? false: true"
+          :pagination-total="listDataTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadListData($event)"
         >
           <template #heading-row>
             <div
@@ -77,6 +81,7 @@
     :action-type="showListInputModal.type"
     :list-data="showListInputModal.listData"
     @hide="showListInputModal.type = ''; showListInputModal.listData = {}"
+    @new-list-option-added="listDataTotal++"
   />
 
   <!-- confirmation modal -->
@@ -146,27 +151,49 @@ const {
 } = storeToRefs(useGlobalStore())
 const {
   getOptions,
-  deleteSizeClass
+  getParentOwnerOptions,
+  deleteSizeClass,
+  deleteMediaType,
+  deleteOwner,
+  deleteShelfType
 } = useOptionStore()
 const {
+  optionsTotal,
   owners,
-  mediaType,
-  sizeClass
+  mediaTypes,
+  sizeClass,
+  shelfTypes,
+  ownersTiers
 } = storeToRefs(useOptionStore())
 
 // Local Data
+const listDataTotal = ref(0)
 const listData = computed(() => {
   let tableData = []
   switch (mainProps.listType) {
-  case 'owners':
+  case 'owner':
     tableData = owners.value
     break
   case 'media-type':
-    tableData = mediaType.value
+    tableData = mediaTypes.value
     break
   case 'size-class':
     tableData = sizeClass.value
     break
+  case 'shelf-type': {
+    // remove any duplicate shelf types by type name
+    // ex: [{ id: 1, type: 'Full' }, { id: 2, type: 'Short' }, { id: 3, type: 'Full' }] returns [{ id: 1, type: 'Full' }, { id: 2, type: 'Short' }]
+    const uniqueShelfTypes = shelfTypes.value.reduce ((initArr, current) => {
+      const matchingShelfType = initArr.find(st => st.type === current.type)
+      if (!matchingShelfType) {
+        return initArr.concat([current])
+      } else {
+        return initArr
+      }
+    }, [])
+    tableData = uniqueShelfTypes
+    break
+  }
   default:
     break
   }
@@ -177,10 +204,12 @@ const listTableColumns = ref([])
 const listTableFilters =  ref([])
 const renderTableTitle = computed(() => {
   let title = ''
-  if (mainProps.listType == 'owners') {
-    title = 'Owners'
+  if (mainProps.listType == 'owner') {
+    title = 'Owner'
   } else if (mainProps.listType == 'media-type') {
     title = 'Media Type'
+  } else if (mainProps.listType == 'shelf-type') {
+    title = 'Shelf Type'
   } else {
     title = 'Size Class'
   }
@@ -188,10 +217,12 @@ const renderTableTitle = computed(() => {
 })
 const renderTableAction = computed(() => {
   let actionText = ''
-  if (mainProps.listType == 'owners') {
+  if (mainProps.listType == 'owner') {
     actionText = 'Add Owner'
   } else if (mainProps.listType == 'media-type') {
     actionText = 'Add Media Type'
+  } else if (mainProps.listType == 'shelf-type') {
+    actionText = 'Add Shelf Type'
   } else {
     actionText = 'Add Size Class'
   }
@@ -239,6 +270,25 @@ const handleOptionMenu = async (option, rowData) => {
     appIsLoadingData.value = true
     await Promise.all([getOptions('owners')])
     appIsLoadingData.value = false
+  } else if (mainProps.listType == 'media-type') {
+    appIsLoadingData.value = true
+    await Promise.all([getOptions('media-types')])
+    appIsLoadingData.value = false
+  } else if (mainProps.listType == 'shelf-type') {
+    appIsLoadingData.value = true
+    await Promise.all([getOptions('sizeClass')])
+    appIsLoadingData.value = false
+  } else if (mainProps.listType == 'owner') {
+    appIsLoadingData.value = true
+    await Promise.all([getOptions('ownersTiers')])
+    // Retrieve filtered list of parent owner options based on the selected owner tier
+    let currentTier = ownersTiers.value.find( (ot) => ot.id == rowData.owner_tier_id)
+    if (currentTier?.level > 1) {
+      await Promise.all([getParentOwnerOptions({ owner_tier_id: ownersTiers.value.find( (ot) => ot.level === currentTier.level - 1)?.id })])
+    } else {
+      rowData.parent_owner_id = null
+    }
+    appIsLoadingData.value = false
   }
 
   if (option.text.includes('Edit')) {
@@ -246,22 +296,33 @@ const handleOptionMenu = async (option, rowData) => {
     showListInputModal.value.type = 'Edit'
   } else {
     showConfirmationModal.value = {
-      text: `Are you sure you want to delete '${rowData.name}'?`,
+      text: `Are you sure you want to delete '${rowData.name || rowData.type}'?`,
       id: rowData.id
     }
   }
 }
 
-const generateTableOptionsMenu = (rowData) => {
+const generateTableOptionsMenu = () => {
   let options = []
-  if (mainProps.listType == 'owners') {
-    options = [{ text: 'Edit Owner' }]
+  if (mainProps.listType == 'owner') {
+    options = [
+      { text: 'Edit Owner' },
+      { text: 'Delete Owner', optionClass: 'text-negative' }
+    ]
   } else if (mainProps.listType == 'media-type') {
-    options = [{ text: 'Edit Media Type' }]
+    options = [
+      { text: 'Edit Media Type' },
+      { text: 'Delete Media Type', optionClass: 'text-negative' }
+    ]
+  } else if (mainProps.listType == 'shelf-type') {
+    options = [
+      { text: 'Edit Shelf Type' },
+      { text: 'Delete Shelf Type', optionClass: 'text-negative' }
+    ]
   } else {
     options = [
       { text: 'Edit Size Class' },
-      { text: 'Delete Size Class', optionClass: 'text-negative', disabled: rowData.assigned }
+      { text: 'Delete Size Class', optionClass: 'text-negative' }
     ]
   }
   return options
@@ -333,21 +394,111 @@ const generateListTableInfo = () => {
       'owner'
     ]
     break
+  case 'media-type':
+    listTableColumns.value = [
+      {
+        name: 'actions',
+        field: 'actions',
+        label: '',
+        align: 'center',
+        sortable: false,
+        required: true
+      },
+      {
+        name: 'name',
+        field: 'name',
+        label: 'Name',
+        align: 'left',
+        sortable: true
+      }
+    ]
+    listTableVisibleColumns.value = [
+      'actions',
+      'name'
+    ]
+    break
+  case 'shelf-type':
+    listTableColumns.value = [
+      {
+        name: 'actions',
+        field: 'actions',
+        label: '',
+        align: 'center',
+        sortable: false,
+        required: true
+      },
+      {
+        name: 'shelf_type',
+        field: 'type',
+        label: 'Shelf Type',
+        align: 'left',
+        sortable: true
+      }
+    ]
+    listTableVisibleColumns.value = [
+      'actions',
+      'shelf_type'
+    ]
+    break
+  case 'owner':
+    listTableColumns.value = [
+      {
+        name: 'actions',
+        field: 'actions',
+        label: '',
+        align: 'center',
+        sortable: false,
+        required: true
+      },
+      {
+        name: 'name',
+        field: 'name',
+        label: 'Owner Name',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'parent_owner',
+        field: row => row.parent_owner?.name,
+        label: 'Parent Owner',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'owner_tier_id',
+        field: 'owner_tier_id',
+        label: 'Owner Tier',
+        align: 'left',
+        sortable: true
+      }
+    ]
+    listTableVisibleColumns.value = [
+      'actions',
+      'name',
+      'parent_owner',
+      'owner_tier_id'
+    ]
+    break
   default:
     break
   }
 }
 
-const loadListData = async () => {
+const loadListData = async (qParams) => {
   try {
     appIsLoadingData.value = true
     if (mainProps.listType == 'owners') {
-      await getOptions('owners')
+      await getOptions('owners', qParams)
     } else if (mainProps.listType == 'media-type') {
-      await getOptions('mediaType')
+      await getOptions('mediaTypes', qParams)
+    } else if (mainProps.listType == 'shelf-type') {
+      await getOptions('shelfTypes', qParams)
     } else {
-      await getOptions('sizeClass')
+      await getOptions('sizeClass', qParams)
     }
+
+    // set the listData total based on the loaded list options from store
+    listDataTotal.value = optionsTotal.value
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -362,12 +513,61 @@ const loadListData = async () => {
 const deleteListOption = async (id) => {
   try {
     appActionIsLoadingData.value = true
-    await deleteSizeClass(id)
+    switch (mainProps.listType) {
+    case 'size-class': {
+      await deleteSizeClass(id)
+      break
+    }
+    case 'media-type':
+      await deleteMediaType(id)
+      break
+    case 'owner':
+      await deleteOwner(id)
+      break
+    case 'shelf-type': {
+      const matchingShelfTypesById = shelfTypes.value.filter(s => s.type == shelfTypes.value.find(s => s.id == id).type)
+      let deletedShelfTypes = []
+      await Promise.all(matchingShelfTypesById.map(async shelfType => {
+        const res = await deleteShelfType(shelfType.id)
+        if (res.status == 200) {
+          deletedShelfTypes.push(shelfType)
+        } else {
+          handleAlert({
+            type: 'error',
+            text: `"${shelfType.type} - ${shelfType.size_class.name}" is in use and cannot be deleted.`,
+            autoClose: false
+          })
+        }
+      }))
+
+      // display and alert for the successfully deleted shelfTypes
+      if (deletedShelfTypes.length == matchingShelfTypesById.length) {
+        handleAlert({
+          type: 'success',
+          text: `"${deletedShelfTypes[0].type}" has been successfully deleted.`,
+          autoClose: true
+        })
+      } else if (deletedShelfTypes.length > 0) {
+        handleAlert({
+          type: 'success',
+          text: `${deletedShelfTypes.length} size classes have been successfully deleted from "${deletedShelfTypes[0].type}".`,
+          autoClose: true
+        })
+      }
+      break
+    }
+    default:
+      break
+    }
+
     handleAlert({
       type: 'success',
       text: `Successfully Deleted The ${renderTableTitle.value}.`,
       autoClose: true
     })
+
+    // update listDataTotal for pagination
+    listDataTotal.value = listDataTotal.value == 0 ? 0 : listDataTotal.value - 1
   } catch (error) {
     handleAlert({
       type: 'error',

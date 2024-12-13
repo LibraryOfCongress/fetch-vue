@@ -3,6 +3,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useBuildingStore = defineStore('building-store', {
   state: () => ({
+    buildingsTotal: 0,
     buildings: [],
     modules: [], //TODO setup endpoint to get list of modules filtered by building id
     aisles: [], //TODO setup endpoint to get list of aisles filtered by building id, module id
@@ -116,131 +117,13 @@ export const useBuildingStore = defineStore('building-store', {
       this.shelfDetails = {}
       this.shelfPositions = []
     },
-    async getBuildingsList () {
+    async getBuildingsList (qParams) {
       try {
-        const res = await this.$api.get(`${inventoryServiceApi.buildings}`, { params: { size: 100 } })
+        const res = await this.$api.get(`${inventoryServiceApi.buildings}`, { params: { size: this.apiPageSizeDefault, ...qParams } })
         this.buildings = res.data.items
-        // this.buildings = [
-        //   {
-        //     id: 1,
-        //     name: 'Cabin Branch',
-        //     modules: [
-        //       {
-        //         id: 10,
-        //         name: 'module 1',
-        //         aisles: [
-        //           {
-        //             id: 1,
-        //             ladders: 12
-        //           },
-        //           {
-        //             id: 2,
-        //             ladders: 13
-        //           },
-        //           {
-        //             id: 3,
-        //             ladders: 14
-        //           },
-        //           {
-        //             id: 4,
-        //             ladders: 15
-        //           }
-        //         ]
-        //       },
-        //       {
-        //         id: 11,
-        //         name: 'module 2',
-        //         aisles: [
-        //           {
-        //             id: 1,
-        //             ladders: 12
-        //           },
-        //           {
-        //             id: 2,
-        //             ladders: 13
-        //           },
-        //           {
-        //             id: 3,
-        //             ladders: 14
-        //           },
-        //           {
-        //             id: 4,
-        //             ladders: 15
-        //           }
-        //         ]
-        //       },
-        //       {
-        //         id: 12,
-        //         name: 'module 3',
-        //         aisles: [
-        //           {
-        //             id: 1,
-        //             ladders: 12
-        //           },
-        //           {
-        //             id: 2,
-        //             ladders: 13
-        //           },
-        //           {
-        //             id: 3,
-        //             ladders: 14
-        //           },
-        //           {
-        //             id: 4,
-        //             ladders: 15
-        //           }
-        //         ]
-        //       },
-        //       {
-        //         id: 13,
-        //         name: 'module 4',
-        //         aisles: [
-        //           {
-        //             id: 1,
-        //             ladders: 12
-        //           },
-        //           {
-        //             id: 2,
-        //             ladders: 13
-        //           },
-        //           {
-        //             id: 3,
-        //             ladders: 14
-        //           },
-        //           {
-        //             id: 4,
-        //             ladders: 15
-        //           }
-        //         ]
-        //       }
-        //     ],
-        //     available_shelves: 120
-        //   },
-        //   {
-        //     id: 2,
-        //     name: 'Fort Meade',
-        //     modules: [],
-        //     aisles: [
-        //       {
-        //         id: 1,
-        //         ladders: 12
-        //       },
-        //       {
-        //         id: 2,
-        //         ladders: 13
-        //       },
-        //       {
-        //         id: 3,
-        //         ladders: 14
-        //       },
-        //       {
-        //         id: 4,
-        //         ladders: 15
-        //       }
-        //     ],
-        //     available_shelves: 60
-        //   }
-        // ]
+
+        // keep track of response total for pagination
+        this.buildingsTotal = res.data.total
       } catch (error) {
         return error
       }
@@ -543,7 +426,7 @@ export const useBuildingStore = defineStore('building-store', {
     },
     async getShelfPositionsList (shelf_id, available = false) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.shelvesPositions, { params: { shelf_id, empty: available, size: 100 } })
+        const res = await this.$api.get(inventoryServiceApi.shelvesPositions, { params: { shelf_id, empty: available, size: this.apiPageSizeDefault } })
         this.shelfPositions = res.data.items
       } catch (error) {
         throw error

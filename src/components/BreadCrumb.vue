@@ -121,6 +121,26 @@ const breadcrumbList = computed(() => {
       ]
     }
     break
+  case 'admin-manage-media-type':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Admin',
+        to: '/admin'
+      },
+      { text: 'Manage Media Types' }
+    ]
+    break
+  case 'admin-manage-owner':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Admin',
+        to: '/admin'
+      },
+      { text: 'Manage Owners' }
+    ]
+    break
   case 'admin-manage-size-class':
     breadCrumbs = [
       ...breadCrumbs,
@@ -129,6 +149,16 @@ const breadcrumbList = computed(() => {
         to: '/admin'
       },
       { text: 'Manage Size Class' }
+    ]
+    break
+  case 'admin-manage-shelf-type':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Admin',
+        to: '/admin'
+      },
+      { text: 'Manage Shelf Type' }
     ]
     break
   case 'admin-location-manage-buildings':
