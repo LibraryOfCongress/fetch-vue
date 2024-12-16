@@ -164,7 +164,7 @@
       <q-card-section class="row q-pb-sm">
         <div class="col-12">
           <BarcodeBox
-            :barcode="shelvingJobContainer.barcode.value"
+            :barcode="renderItemBarcodeDisplay(shelvingJobContainer)"
             :min-height="'5rem'"
           />
         </div>
@@ -267,7 +267,7 @@ const {
 const shelfTableColumns = ref([
   {
     name: 'barcode',
-    field: row => row.barcode.value,
+    field: row => renderItemBarcodeDisplay(row),
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -315,6 +315,7 @@ const showScanContainerModal = ref(false)
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
 const handleAlert = inject('handle-alert')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {

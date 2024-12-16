@@ -309,6 +309,7 @@ const trayBarcodeInput = ref('')
 
 // Logic
 const handleAlert = inject('handle-alert')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 const handleOptionMenu = (option) => {
   if (option.text == 'Edit') {
@@ -373,7 +374,7 @@ const handleTrayScan = async (barcode_value) => {
         name: 'accession-container',
         params: {
           jobId: accessionJob.value.workflow_id,
-          containerId: accessionContainer.value.barcode.value
+          containerId: renderItemBarcodeDisplay(accessionContainer.value)
         }
       })
     }

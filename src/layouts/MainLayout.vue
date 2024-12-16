@@ -234,6 +234,11 @@ const audioAlert = () => {
   oscillatorNode.stop(beep.currentTime + 250 * 0.001)
 }
 provide('audio-alert', audioAlert)
+provide('render-item-barcode-display', renderItemBarcodeDisplay)
+const renderItemBarcodeDisplay = (itemData) => {
+  // check if item data object contains barcode.value, or withdrawn_barcode.value field
+  return itemData.withdrawn_barcode.value ?? itemData.barcode.value
+}
 </script>
 
 <style lang="scss" scoped>

@@ -35,7 +35,7 @@
         <div class="col-12">
           <BarcodeBox
             v-if="refileJob.status !== 'Running' || refileItem.status !== 'Out'"
-            :barcode="refileItem.barcode.value"
+            :barcode="renderItemBarcodeDisplay(refileItem)"
             :min-height="'5rem'"
           />
           <BarcodeBox
@@ -186,6 +186,7 @@ const {
 
 // Logic
 const handleAlert = inject('handle-alert')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 watch(compiledBarCode, (barcode) => {
   if (barcode !== '' && refileJob.value.status == 'Running' && refileItem.value.tray) {
