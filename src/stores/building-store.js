@@ -443,9 +443,8 @@ export const useBuildingStore = defineStore('building-store', {
           ] = entry
           formData.append(key, value)
         })
-        console.log('uploading ladders/shelves', payload, formData)
         const res = await this.$api.post(`${inventoryServiceApi.batchUploadLocationManagement}`, formData)
-        console.log(res)
+        return res
       } catch (error) {
         throw error
       }

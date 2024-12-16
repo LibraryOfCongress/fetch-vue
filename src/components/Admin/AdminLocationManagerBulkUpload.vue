@@ -204,7 +204,6 @@ const bulkUploadLocationForm = ref({
   side_id: null
 })
 const isBulkUploadLocationValid = computed(() => {
-  console.log(bulkUploadLocationFile.value)
   // validate that all needed fields are filled out in the bulk upload form
   if (bulkUploadLocationFile.value.length > 0 && Object.values(bulkUploadLocationForm.value).every(val => val !== null)) {
     return true
