@@ -239,11 +239,11 @@
           <SelectInput
             v-model="addToRefileJob"
             :options="refileJobs"
-            option-type="refileJobs"
             option-value="id"
             option-label="id"
             :placeholder="'Select Refile Job'"
             aria-label="refileJobSelect"
+            @focus="getRefileJobList({ queue: true })"
           />
         </div>
       </q-card-section>

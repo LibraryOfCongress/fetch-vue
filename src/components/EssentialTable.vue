@@ -388,6 +388,10 @@ const paginationConfig = ref({
 
 // Logic
 onMounted(() => {
+  // if pagination is enabled and a pagination total is passed in we add the rowsNumber param to our pagination config as needed for server side rendering
+  if (mainProps.enablePagination && mainProps.paginationTotal !== 0) {
+    paginationConfig.value.rowsNumber = mainProps.paginationTotal
+  }
   // if no tableVisibleColumns prop is passed map the tableColumns so all columns are always visible
   if (mainProps.tableVisibleColumns.length == 0) {
     localTableVisibleColumns.value = mainProps.tableColumns.map(col => col.name)
@@ -419,9 +423,9 @@ watch(() => mainProps.tableData, (updatedTableData) => {
 { deep: true })
 
 // watch the paginated related props for changes and update our local paginationConfig
-watch(() => mainProps.paginationTotal, (updatedTotal) => {
+watch(() => mainProps.paginationTotal, () => {
   if (mainProps.enablePagination) {
-    paginationConfig.value.rowsNumber = updatedTotal
+    paginationConfig.value.rowsNumber = mainProps.paginationTotal
   }
 },
 { deep: true })
@@ -467,6 +471,7 @@ const filterTableData = () => {
 }
 
 const onTableRequest = (props) => {
+  console.log('paginate table', props)
   if (mainProps.enablePagination) {
     const { page, sortBy, rowsPerPage, descending } = props.pagination
 
