@@ -7,13 +7,13 @@
 
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
-
-
-const { configure } = require('quasar/wrappers');
+const defineEnv = require('./env/envparser')()
+const { configure } = require('quasar/wrappers')
 const path = require('path')
+// const fs = require('fs')
 
 
-module.exports = configure(function (/* ctx */) {
+module.exports = configure(function (ctx) {
   return {
     eslint: {
       // include: [],
@@ -28,7 +28,11 @@ module.exports = configure(function (/* ctx */) {
     // app boot file (/src/boot) (this is your main.js)
     // --> boot files are generated into a "main.js" file
     // https://v2.quasar.dev/quasar-cli/boot-files
-    boot: ['axios',],
+    boot: [
+      'axios',
+      'htmlToPaper',
+      'vueJsonExcel'
+    ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
     css: ['app.scss'],
@@ -45,17 +49,24 @@ module.exports = configure(function (/* ctx */) {
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
       'roboto-font', // optional, you are not bound to it
       'material-icons', // optional, you are not bound to it
+      'mdi-v7'
     ],
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
       open: true, // opens browser window automatically
-      port: 8080
+      port: ctx.mode.spa ? 3000 : 8000,
+      https: ctx.mode.spa ? false : true
+      // https: ctx.mode.spa ? false : {
+      //   key: fs.readFileSync('./.cert/key.pem'),
+      //   cert: fs.readFileSync('./.cert/cert.pem')
+      // }
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
     framework: {
       config: {},
+      cssAddon: true,
       iconSet: 'material-icons', // Quasar icon set
       lang: 'en-US', // Quasar language pack
 
@@ -67,7 +78,11 @@ module.exports = configure(function (/* ctx */) {
       // directives: [],
 
       // Quasar plugins
-      plugins: []
+      plugins: [
+        'LocalStorage',
+        'SessionStorage',
+        'Notify'
+      ]
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
@@ -78,7 +93,7 @@ module.exports = configure(function (/* ctx */) {
           'edge88',
           'firefox78',
           'chrome87',
-          'safari13.1' 
+          'safari13.1'
         ],
         node: 'node16'
       },
@@ -87,11 +102,11 @@ module.exports = configure(function (/* ctx */) {
       },
       vueRouterMode: 'history', // available values: 'hash', 'history'
       vueOptionsAPI: true,
-      publicPath: '/',
+      publicPath: process.env.VITE_BASE_URL,
+      env: defineEnv
       // vueDevtools,
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
       // analyze: true,
-      // env: {},
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,
@@ -106,16 +121,20 @@ module.exports = configure(function (/* ctx */) {
 
     // https://v2.quasar.dev/quasar-cli/developing-pwa/configuring-pwa
     pwa: {
-      workboxMode: 'generateSW', // or 'injectManifest'
+      workboxMode: 'injectManifest', // or 'generateSW'
       injectPwaMetaTags: true,
       swFilename: 'sw.js',
       manifestFilename: 'manifest.json',
       useCredentialsForManifestTag: false,
-      // useFilenameHashes: true,
-      // extendGenerateSWOptions (cfg) {}
+      useFilenameHashes: false
       // extendInjectManifestOptions (cfg) {},
       // extendManifestJson (json) {}
       // extendPWACustomSWConf (esbuildConf) {}
+    },
+    sourceFiles: {
+      pwaRegisterServiceWorker: 'src-pwa/register-service-worker',
+      pwaServiceWorker: 'src-pwa/custom-service-worker', // only used if workboxMode is injectManifest
+      pwaManifestFile: 'src-pwa/manifest.json'
     }
   }
-});
+})

@@ -1,4 +1,5 @@
 import { store } from 'quasar/wrappers'
+import { api } from 'boot/axios'
 import { createPinia } from 'pinia'
 
 export default store(() => {
@@ -6,6 +7,11 @@ export default store(() => {
 
   // You can add Pinia plugins here
   // pinia.use(SomePiniaPlugin)
+
+  // allows us to call this.$api in store files similar to our globally defined $api for vue files
+  pinia.use(({ store }) => {
+    store.$api = api
+  })
 
   return pinia
 })
