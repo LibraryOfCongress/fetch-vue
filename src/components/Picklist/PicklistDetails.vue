@@ -709,7 +709,7 @@ const updatePicklistItem = async (barcode_value) => {
     await patchPicklistJobItemScanned(payload)
 
     // update the item directly in the picklist job and set it to retrieved
-    pickListItemToUpdate.status = 'Out'
+    pickListItemToUpdate.item ? pickListItemToUpdate.item.status = 'Out' : pickListItemToUpdate.non_tray_item.status = 'Out'
     originalPicklistJob.value = { ...toRaw(picklistJob.value) }
 
     // store the current picklist job data in indexdb for reference offline whenever job is executed

@@ -487,7 +487,7 @@ const generateListTableInfo = () => {
 const loadListData = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    if (mainProps.listType == 'owners') {
+    if (mainProps.listType == 'owner') {
       await getOptions('owners', qParams)
     } else if (mainProps.listType == 'media-type') {
       await getOptions('mediaTypes', qParams)
