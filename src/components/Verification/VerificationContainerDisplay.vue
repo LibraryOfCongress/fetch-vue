@@ -683,7 +683,7 @@ const verificationTableComponent = ref(null)
 const verificationTableColumns = ref([
   {
     name: 'barcode_value',
-    field: (row) => row.barcode.value,
+    field: (row) => renderItemBarcodeDisplay(row),
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -717,6 +717,7 @@ const renderIsEditMode = computed(() => {
 // Logic
 const handleAlert = inject('handle-alert')
 const audioAlert = inject('audio-alert')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 watch(route, () => {
   if (!route.params.containerId) {
@@ -803,7 +804,7 @@ const triggerItemScan = async (barcode_value) => {
           name: 'verification-container',
           params: {
             jobId: verificationJob.value.workflow_id,
-            containerId: verificationContainer.value.barcode.value
+            containerId: renderItemBarcodeDisplay(verificationContainer.value)
           }
         })
       }
