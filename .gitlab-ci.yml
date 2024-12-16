@@ -1,0 +1,175 @@
+stages:
+  - build
+  - build_mr
+  - build_staging
+  - trigger
+  - deploy
+  - deploy_staging
+
+build_image_dev:
+  stage: build
+  image:
+    name: git.loc.gov:4567/fetch/build/kaniko-project/executor:1.0.0
+    entrypoint: [""]
+  variables:
+    IMAGE_FULL_TAG: $CI_REGISTRY_IMAGE:latest
+  script:
+    - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
+    - cp -v images/web.dev.Containerfile Dockerfile
+    - echo $DEVELOP_VITE_ENV > env/.env
+    - echo $DEVELOP_VITE_INV_SERVCE_API >> env/.env
+    - echo $DEVELOP_VITE_API_BASE_URI >> env/.env
+    - cat -A env/.env
+    - /kaniko/executor
+      --context $CI_PROJECT_DIR
+      --build-arg DEVELOP_VITE_ENV=$DEVELOP_VITE_ENV
+      --dockerfile $CI_PROJECT_DIR/Dockerfile
+      --destination $IMAGE_FULL_TAG
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'develop'
+
+build_mr:
+  stage: build_mr
+  image:
+    name: git.loc.gov:4567/fetch/build/kaniko-project/executor:1.0.0
+    entrypoint: [""]
+  variables:
+    IMAGE_FULL_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  script:
+    - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
+    - cp -v images/web.dev.Containerfile Dockerfile
+    - echo $DEVELOP_VITE_ENV > env/.env
+    - echo $DEVELOP_VITE_INV_SERVCE_API >> env/.env
+    - echo $DEVELOP_VITE_API_BASE_URI >> env/.env
+    - cat -A env/.env
+    - /kaniko/executor
+      --context $CI_PROJECT_DIR
+      --build-arg VITE_ENV=$DEVELOP_VITE_ENV
+      --dockerfile $CI_PROJECT_DIR/Dockerfile
+      --destination $IMAGE_FULL_TAG
+  rules:
+    - if: '$CI_MERGE_REQUEST_ID'
+      when: manual
+
+
+build_image_test:
+  stage: build
+  image:
+    name: git.loc.gov:4567/fetch/build/kaniko-project/executor:1.0.0
+    entrypoint: [""]
+  variables:
+    IMAGE_FULL_TAG: $CI_REGISTRY_IMAGE/test:latest
+  script:
+    - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
+    - cp -v images/web.test.Containerfile Dockerfile
+    - echo $TEST_VITE_ENV > env/.env
+    - echo $TEST_VITE_INV_SERVCE_API >> env/.env
+    - echo $TEST_VITE_API_BASE_URI >> env/.env
+    - cat -A env/.env
+    - /kaniko/executor
+      --context $CI_PROJECT_DIR
+      --build-arg VITE_ENV=$TEST_VITE_ENV
+      --dockerfile $CI_PROJECT_DIR/Dockerfile
+      --destination $IMAGE_FULL_TAG
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'develop'
+
+build_image_staging:
+  stage: build_staging
+  image:
+    name: git.loc.gov:4567/fetch/build/kaniko-project/executor:1.0.0
+    entrypoint: [""]
+  variables:
+    IMAGE_FULL_TAG: $CI_REGISTRY_IMAGE/stage:latest
+  script:
+    - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
+    - cp -v images/web.stage.Containerfile Dockerfile
+    - echo $STAGING_VITE_ENV > env/.env
+    - echo $STAGING_VITE_INV_SERVCE_API >> env/.env
+    - echo $STAGING_VITE_API_BASE_URI >> env/.env
+    - cat -A env/.env
+    - /kaniko/executor
+      --context $CI_PROJECT_DIR
+      --build-arg VITE_ENV=$STAGING_VITE_ENV
+      --dockerfile $CI_PROJECT_DIR/Dockerfile
+      --destination $IMAGE_FULL_TAG
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'staging'
+
+deploy_dev:
+  stage: deploy
+  environment:
+    name: develop
+    url: https://dev.fetch.loctest.gov/
+  image:
+    name: git.loc.gov:4567/fetch/build/terraform:alt
+    entrypoint: [""]
+  script:
+    - export TF_VAR_vault_deployer_password=$VAULT_DEPLOYER_PASSWORD_DEV
+    - export TF_VAR_vault_addr=$VAULT_ADDR_DEV
+    - export TF_VAR_app_name="vue"
+    - export TF_VAR_image='git.loc.gov:4567/fetch/vue:latest'
+    - export TF_VAR_timestamp=$CI_COMMIT_TIMESTAMP
+    - terraform --version
+    - cd terraform
+    - kubectl config use-context fetch/build:fetch -v=6
+    - cp -v $KUBECONFIG kubeconfig
+    - export TF_STATE_NAME=develop
+    - envsubst < backend.hcl.tmpl > backend.hcl
+    - terraform init -backend-config=backend.hcl
+    - terraform apply -auto-approve
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'develop'
+
+deploy_test:
+  stage: deploy
+  environment:
+    name: test
+    url: https://test.fetch.loctest.gov/
+  image:
+    name: git.loc.gov:4567/fetch/build/terraform:alt
+    entrypoint: [""]
+  script:
+    - export TF_VAR_vault_deployer_password=$VAULT_DEPLOYER_PASSWORD_TEST
+    - export TF_VAR_vault_addr=$VAULT_ADDR_TEST
+    - export TF_VAR_app_name="vue"
+    - export TF_VAR_image='git.loc.gov:4567/fetch/vue/test:latest'
+    - export TF_VAR_timestamp=$CI_COMMIT_TIMESTAMP
+    - terraform --version
+    - cd terraform
+    - kubectl config use-context fetch/build:fetch-test -v=6
+    - cp -v $KUBECONFIG kubeconfig
+    - export TF_STATE_NAME=test
+    - envsubst < backend.hcl.tmpl > backend.hcl
+    - terraform init -backend-config=backend.hcl
+    - terraform apply -auto-approve
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'develop'
+
+deploy_stage:
+  stage: deploy_staging
+  environment:
+    name: staging
+    url: https://staging.fetch.loctest.gov/
+  tags:
+    - stage
+  image:
+    name: git.loc.gov:4567/fetch/build/terraform:alt
+    entrypoint: [""]
+  script:
+    - export TF_VAR_vault_deployer_password=$VAULT_DEPLOYER_PASSWORD_STAGE
+    - export TF_VAR_vault_addr=$VAULT_ADDR_STAGE
+    - export TF_VAR_app_name="vue"
+    - export TF_VAR_image='git.loc.gov:4567/fetch/vue/stage:latest'
+    - export TF_VAR_timestamp=$CI_COMMIT_TIMESTAMP
+    - terraform --version
+    - cd terraform
+    - cp -v $FETCH_DEPLOYER_K8S_CONFIG_STAGE kubeconfig
+    - export TF_STATE_NAME=stage
+    - envsubst < backend.hcl.tmpl > backend.hcl
+    - terraform init -backend-config=backend.hcl
+    - terraform apply -auto-approve
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "staging"'
+      when: manual

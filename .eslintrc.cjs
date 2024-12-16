@@ -5,7 +5,7 @@ module.exports = {
   root: true,
 
   parserOptions: {
-    ecmaVersion: 2021, // Allows for the parsing of modern ECMAScript features
+    ecmaVersion: 2021 // Allows for the parsing of modern ECMAScript features
   },
 
   env: {
@@ -21,11 +21,11 @@ module.exports = {
     // but leave only one uncommented!
     // See https://eslint.vuejs.org/rules/#available-rules
     // 'plugin:vue/vue3-essential', // Priority A: Essential (Error Prevention)
-    'plugin:vue/vue3-strongly-recommended', // Priority B: Strongly Recommended (Improving Readability)
+    'plugin:vue/vue3-strongly-recommended' // Priority B: Strongly Recommended (Improving Readability)
     // 'plugin:vue/vue3-recommended', // Priority C: Recommended (Minimizing Arbitrary Choices and Cognitive Overhead)
   ],
 
-  plugins: ['vue',],
+  plugins: ['vue'],
 
   globals: {
     __statics: 'readonly',
@@ -38,59 +38,80 @@ module.exports = {
     chrome: 'readonly'
   },
 
+  overrides: [
+    {
+      files: [
+        '**/__tests__/*.{j,t}s?(x)',
+        '**/test/vitest/**/*.test.{j,t}s?(x)'
+      ],
+      env: {
+        jest: true
+      }
+    }
+  ],
+
   // custom rules here
+  ignorePatterns: [
+    '!.*',
+    'dist',
+    'node_modules'
+  ],
   rules: {
-    'indent': [
+    indent: [
       'error',
       2,
-      { 'offsetTernaryExpressions': true }
+      { offsetTernaryExpressions: true }
     ],
     'prefer-promise-reject-errors': 'off',
     // allow debugger during development only
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'no-console': process.env.NODE_ENV === 'production' ? 'off' : 'off',
+    'no-useless-catch': 'off',
     'vue/no-unused-vars': 'error',
     'vue/no-mutating-props': 'off',
+    'vue/no-v-for-template-key': 'off',
+    'vue/no-v-for-template-key-on-child': 'off',
     'vue/first-attribute-linebreak': [
       'error',
       {
-        'singleline': 'ignore',
-        'multiline': 'below'
+        singleline: 'ignore',
+        multiline: 'below'
       }
     ],
     'vue/multiline-html-element-content-newline': [
       'error',
       {
-        'ignoreWhenEmpty': true,
-        'allowEmptyLines': true
+        ignoreWhenEmpty: true,
+        allowEmptyLines: true
       }
     ],
     'vue/max-attributes-per-line': [
       'error',
       {
-        'singleline': {
-          'max': 1
+        singleline: {
+          max: 1
         },
-        'multiline': {
-          'max': 1
+        multiline: {
+          max: 1
         }
       }
     ],
     'vue/html-closing-bracket-newline': [
       'error',
       {
-        'singleline': 'never',
-        'multiline': 'always'
+        singleline: 'never',
+        multiline: 'always'
       }
     ],
     'vue/html-indent': [
       'error',
       2,
       {
-        'attribute': 1,
-        'baseIndent': 1,
-        'closeBracket': 0,
-        'alignAttributesVertically': true,
-        'ignores': []
+        attribute: 1,
+        baseIndent: 1,
+        closeBracket: 0,
+        alignAttributesVertically: true,
+        ignores: []
       }
     ],
     'vue/html-self-closing': [
@@ -118,24 +139,49 @@ module.exports = {
       'shorthand'
     ],
     'vue/no-spaces-around-equal-signs-in-attribute': ['error'],
+    'semi': [
+      'error',
+      'never'
+    ],
+    'no-var': 'error',
+    'no-trailing-spaces': 'error',
+    'no-return-assign': 'error',
     'comma-spacing': 'error',
+    'comma-dangle': [
+      'error',
+      'never'
+    ],
+    'object-shorthand': 'error',
+    'space-before-function-paren': 'error',
+    'keyword-spacing': 'error',
+    'brace-style': 'error',
+    'object-curly-spacing': [
+      'error',
+      'always'
+    ],
     'curly': 'error',
+    'no-dupe-args': 'error',
+    'no-unreachable': 'error',
     'handle-callback-err': 'off',
     'array-callback-return': 'off',
+    'array-bracket-spacing': [
+      'error',
+      'never'
+    ],
     'array-bracket-newline': [
       'error',
       {
-        'multiline': true
+        multiline: true
       }
     ],
     'array-element-newline': [
       'error',
       {
-        'ArrayExpression': 'always',
-        'ArrayPattern': { 'minItems': 1 },
+        ArrayExpression: 'always',
+        ArrayPattern: { minItems: 1 }
       }
     ],
-    'quotes': [
+    quotes: [
       'error',
       'single'
     ]

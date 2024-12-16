@@ -1,13 +1,15 @@
 import { boot } from 'quasar/wrappers'
 import axios from 'axios'
 
-// Be careful when using SSR for cross-request state pollution
-// due to creating a Singleton instance here;
-// If any client changes this (global) instance, it might be a
-// good idea to move this instance creation inside of the
-// "export default () => {}" function below (which runs individually
-// for each client)
-const api = axios.create({ baseURL: 'https://api.example.com' })
+import { useUserStore } from '@/stores/user-store'
+
+const api = axios.create({
+  baseURL: process.env.VITE_INV_SERVCE_API,
+  headers: {
+    Accept: ['application/json'],
+    'Access-Control-Allow-Origin': '*'
+  }
+})
 
 export default boot(({ app }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
@@ -19,6 +21,38 @@ export default boot(({ app }) => {
   app.config.globalProperties.$api = api
   // ^ ^ ^ this will allow you to use this.$api (for Vue Options API form)
   //       so you can easily perform requests against your app's API
+
+
+  // axios interceptor to handle token/security authorization being added to our requests
+  api.interceptors.request.use((config) => {
+    // check if we have a user in localstorage and if that user has an auth based token in session storage
+    const userAuth = JSON.parse(localStorage.getItem('user'))
+    const userToken = JSON.parse(sessionStorage.getItem('token'))
+    if (userAuth && userToken) {
+    // if there is an access token we attach that to our requests
+      config.headers.Authorization = 'Bearer ' + userToken
+    }
+    return config
+  })
+
+  // axios response interceptor to handle specific error responses/codes
+  const userStore = useUserStore()
+  api.interceptors.response.use((response) => {
+    return response
+  }, (error) => {
+    if (!error.response) {
+      error.response = {
+        data: {
+          detail: error.message
+        }
+      }
+    } else if (error.response.status == 401 && userStore.userData.user_id) {
+      // if we get a 401 error then user needs to be logged out
+      userStore.patchLogout()
+    }
+    return Promise.reject(error)
+  })
 })
 
+// exposes our api reference to areas outside of the vue files such as pinia
 export { api }
