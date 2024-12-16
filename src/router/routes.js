@@ -134,7 +134,7 @@ const routes = [
         component: () => import('@/pages/AdminPage.vue'),
         meta: {
           requiresAuth: true,
-          requiresPerm: 'can_manage_locations'
+          requiresPerm: 'can_manage_shelf_type'
         }
       },
       {
@@ -238,7 +238,7 @@ const routes = [
         component: () => import('@/pages/ShelvingPage.vue'),
         meta: {
           requiresAuth: true,
-          requiresPerm: 'can_access_shelving'
+          requiresPerm: 'can_move_trays_and_items_shelving_locations'
         }
       },
       {
