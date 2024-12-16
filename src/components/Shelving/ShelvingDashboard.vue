@@ -436,7 +436,7 @@ const {
 } = storeToRefs(useGlobalStore())
 const { buildings } = storeToRefs(useOptionStore())
 const { getVerificationJobList } = useVerificationStore()
-const { verificationJobList, shelvingJobListTotal } = storeToRefs(useVerificationStore())
+const { verificationJobList } = storeToRefs(useVerificationStore())
 const {
   getBuildingDetails,
   getModuleDetails,
@@ -458,7 +458,8 @@ const {
 const {
   shelvingJobList,
   shelvingJob,
-  directToShelfJob
+  directToShelfJob,
+  shelvingJobListTotal
 } = storeToRefs(useShelvingStore())
 const {
   resetShelvingStore,
