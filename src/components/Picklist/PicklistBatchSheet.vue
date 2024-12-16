@@ -62,8 +62,8 @@
                 v-for="rowItem in picklistJobItems"
                 :key="rowItem.id"
               >
-                <td>{{ rowItem.item ? rowItem.item?.barcode?.value : rowItem.non_tray_item?.barcode?.value }}</td>
-                <td>{{ rowItem.item ? rowItem.item?.tray?.barcode?.value : '' }}</td>
+                <td>{{ rowItem.item ? renderItemBarcodeDisplay(rowItem.item) : renderItemBarcodeDisplay(rowItem.non_tray_item) }}</td>
+                <td>{{ rowItem.item ? renderItemBarcodeDisplay(rowItem.item.tray) : '' }}</td>
                 <td>{{ rowItem.item ? rowItem.item?.owner?.name : rowItem.non_tray_item?.owner?.name }}</td>
                 <td>{{ rowItem.item ? rowItem.item?.size_class?.name : rowItem.non_tray_item?.size_class?.name }}</td>
                 <td>{{ rowItem.item ? getItemLocation(rowItem.item.tray) : getItemLocation(rowItem.non_tray_item) }}</td>
@@ -101,6 +101,7 @@ const renderTotalItems = computed(() => {
 // Logic
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 const printBatchReport = () => {
   printTemplate.value.print()

@@ -96,6 +96,7 @@ const searchResultsTableFilters =  ref([
 // Logic
 const formatDateTime = inject('format-date-time')
 const handleAlert = inject('handle-alert')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 onBeforeMount(() => {
   generateSearchTableFields()
@@ -146,7 +147,7 @@ const generateSearchTableFields = () => {
       },
       {
         name: 'barcode',
-        field: row => row.barcode?.value,
+        field: row => renderItemBarcodeDisplay(row),
         label: 'Item Barcode',
         align: 'left',
         sortable: true
@@ -202,7 +203,7 @@ const generateSearchTableFields = () => {
       },
       {
         name: 'barcode',
-        field: row => row.barcode?.value,
+        field: row => renderItemBarcodeDisplay(row),
         label: 'Tray Barcode',
         align: 'left',
         sortable: true
@@ -228,7 +229,7 @@ const generateSearchTableFields = () => {
     searchResultsTableColumns.value = [
       {
         name: 'barcode',
-        field: row => row.barcode?.value,
+        field: row => renderItemBarcodeDisplay(row),
         label: 'Shelf Barcode',
         align: 'left',
         sortable: true
