@@ -96,31 +96,6 @@ const breadcrumbList = computed(() => {
       { text: 'Admin' }
     ]
     break
-  case 'admin-building-view':
-    if (!route.params.buildingId) {
-      breadCrumbs = [
-        ...breadCrumbs,
-        {
-          text: 'Admin',
-          to: '/admin'
-        },
-        { text: 'Buildings' }
-      ]
-    } else {
-      breadCrumbs = [
-        ...breadCrumbs,
-        {
-          text: 'Admin',
-          to: '/admin'
-        },
-        {
-          text: 'Buildings',
-          to: '/admin/buildings/'
-        },
-        { text: route.params.buildingId }
-      ]
-    }
-    break
   case 'admin-groups':
     if (!route.params.groupId) {
       breadCrumbs = [

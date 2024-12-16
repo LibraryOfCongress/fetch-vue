@@ -5,6 +5,11 @@ export const useBuildingStore = defineStore('building-store', {
   state: () => ({
     buildingsTotal: 0,
     buildings: [],
+    modules: [], //TODO setup endpoint to get list of modules filtered by building id
+    aisles: [], //TODO setup endpoint to get list of aisles filtered by building id, module id
+    sides: [], //TODO setup endpoint to get list of sides filtered by building id, module id, aisle id
+    ladders: [], //TODO setup endpoint to get list of ladders filtered by building id, module id, aisle id, side id
+    shelves: [], //TODO setup endpoint to get list of shelves filtered by building id, module id, aisle id, side id, ladder id
     buildingDetails: {},
     moduleDetails: {},
     aisleDetails: {},
@@ -423,6 +428,23 @@ export const useBuildingStore = defineStore('building-store', {
       try {
         const res = await this.$api.get(inventoryServiceApi.shelvesPositions, { params: { shelf_id, empty: available, size: this.apiPageSizeDefault } })
         this.shelfPositions = res.data.items
+      } catch (error) {
+        throw error
+      }
+    },
+    async postBulkLocation (payload) {
+      try {
+        // create a formData Object and assign the file to the formData to be passed to api as 'multipart/form-data' content
+        let formData = new FormData()
+        Object.entries(payload).forEach(entry => {
+          const [
+            key,
+            value
+          ] = entry
+          formData.append(key, value)
+        })
+        const res = await this.$api.post(`${inventoryServiceApi.batchUploadLocationManagement}`, formData)
+        return res
       } catch (error) {
         throw error
       }

@@ -484,7 +484,6 @@ const updateListType = async () => {
           max_capacity: sizeClassObj.max_capacity
         })
         if (res.status !== 200) {
-          console.log(res)
           handleAlert({
             type: 'error',
             text: `"${payload.type} - ${sizeClassObj.name}" - ${res.response.data.detail}`,

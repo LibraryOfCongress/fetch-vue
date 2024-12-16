@@ -50,6 +50,11 @@
     :location-title="showLocationManageRouteModal"
     @hide="showLocationManageRouteModal = null; resetBuildingStore();"
   />
+
+  <AdminLocationManagerBulkUpload
+    v-if="showBulkUploadLocationModal"
+    @hide="showBulkUploadLocationModal = false"
+  />
 </template>
 
 <script setup>
@@ -59,6 +64,7 @@ import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { useBuildingStore } from '@/stores/building-store'
 import EssentialLink from '@/components/EssentialLink.vue'
 import AdminLocationManagerRouting from '@/components/Admin/AdminLocationManagerRouting.vue'
+import AdminLocationManagerBulkUpload from '@/components/Admin/AdminLocationManagerBulkUpload.vue'
 
 const router = useRouter()
 
@@ -71,10 +77,6 @@ const { resetBuildingStore } = useBuildingStore()
 // Local Data
 const adminLinkList = computed(() => {
   let linkList = [
-    {
-      title: 'Buildings',
-      link: '/admin/buildings/'
-    },
     {
       title: 'Groups & Permissions',
       link: '/admin/groups/',
@@ -119,6 +121,9 @@ const adminLinkList = computed(() => {
         },
         {
           title: 'Shelves'
+        },
+        {
+          title: 'Bulk Upload Ladders/Shelves'
         }
       ],
       hidden: !checkUserPermission('can_manage_locations')
@@ -138,6 +143,7 @@ const adminLinkList = computed(() => {
   })
 })
 const showLocationManageRouteModal = ref(null)
+const showBulkUploadLocationModal = ref(false)
 
 // Logic
 onBeforeMount(() => {
@@ -148,6 +154,9 @@ const handleRouting = (link) => {
   switch (link.title) {
   case 'Buildings':
     router.push({ name: 'admin-location-manage-buildings' })
+    break
+  case 'Bulk Upload Ladders/Shelves':
+    showBulkUploadLocationModal.value = true
     break
   case 'Add/Edit/Remove Owners':
     router.push({ name: 'admin-manage-owner' })
