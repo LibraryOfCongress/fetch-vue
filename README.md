@@ -80,6 +80,11 @@ If you are a mac user this should all work right out of the box, if anything you
 
 If you are a windows user and using wsl there is a little more extra steps inorder to add the ceritficate to your local system. After you ran `mkcert -install` from the wsl terminal this generates the ceriticate in wsl only, so you need to copy this certificate which can be found in your linux (wsl) files under `/usr/local/share/ca-certificates/mkcert_development_CA_XXXXXXX` to anywhere on your local desktop. Now double click and install the cert to your Trusted Root Certification Authorities and you are now good to go!
 
+Alternative solution to running pwa mode with service workers is to launch chrome via terminal using the following command: 
+```bash
+open -a /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --args --ignore-certificate-errors
+```
+
 ## 2. Creating new components or views
 
 This application is built using Vue 3's composition api, which gets rid of a lot of the organization that the options api uses. In order to prevent disorganized code structure and make files easy to follow. We have a template file to be used as a starting point for any new views or components. This template file has defined commented code blocks to be used as guidlines for where certain code or logic belongs.
