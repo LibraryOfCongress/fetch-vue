@@ -15,7 +15,7 @@ export default {
   barcodes: '/barcodes/',
   barcodesValue: '/barcodes/value/',
   batchUpload: '/batch-upload/',
-  batchUploadLocationManagement: '/batch-upload/location-management/',
+  batchUploadLocationManagement: '/batch-upload/location-management',
   buildings: '/buildings/',
   containerTypes: '/container-types/',
   groups: '/groups/',
