@@ -57,12 +57,53 @@
             >
               <q-btn
                 no-caps
-                flat
+                unelevated
+                icon-right="arrow_drop_down"
                 color="accent"
                 label="Export Report"
-                class="btn-no-wrap text-body1 q-ml-auto"
-                @click="reportPrintTemplate.printReport()"
-              />
+                class="text-body1 q-ml-xs-none q-ml-sm-sm"
+                :disabled="appIsOffline"
+                aria-label="exportReportMenu"
+                aria-haspopup="menu"
+                :aria-expanded="exportReportMenuState"
+              >
+                <q-menu
+                  @show="exportReportMenuState = true"
+                  @hide="exportReportMenuState = false"
+                  aria-label="exportReportMenuList"
+                >
+                  <q-list>
+                    <q-item
+                      clickable
+                      v-close-popup
+                      @click="reportPrintTemplate.value.printReport()"
+                      role="menuitem"
+                    >
+                      <q-item-section>
+                        <q-item-label>
+                          <span>
+                            Print
+                          </span>
+                        </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                    <q-item
+                      clickable
+                      v-close-popup
+                      @click="downloadReport(reportType)"
+                      role="menuitem"
+                    >
+                      <q-item-section>
+                        <q-item-label>
+                          <span>
+                            Download CSV
+                          </span>
+                        </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
             </div>
           </template>
 
@@ -118,6 +159,8 @@ const { currentScreenSize } = useCurrentScreenSize()
 const { reportData, reportDataTotal } = storeToRefs(useReportsStore())
 const { getReport } = useReportsStore()
 const { appIsLoadingData } = storeToRefs(useGlobalStore())
+const { appIsOffline } = storeToRefs(useGlobalStore())
+const { downloadReport } = useReportsStore()
 
 // Local Data
 const generatedTableVisibleColumns = ref([])
@@ -148,17 +191,18 @@ const lastReportType = ref(null)
 const reportOptions =  ref([
   'Item Accession',
   'Item in Tray',
-  'Move/Withdraw Discrepency',
+  'Move/Withdraw Discrepancy',
   'Non-Tray Count',
   'Open Locations',
-  'Refile Discrepency',
-  'Shelving Job Discrepency',
+  'Refile Discrepancy',
+  'Shelving Job Discrepancy',
   'Total Item Retrieved',
   'Tray/Item Count By Aisle',
   'User Job Summary',
   'Verification Change'
 ])
 const reportPrintTemplate = ref(null)
+const exportReportMenuState = ref (false)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -236,7 +280,7 @@ const generateReportTableFields = () => {
       'item_count'
     ]
     break
-  case 'Move/Withdraw Discrepency':
+  case 'Move/Withdraw Discrepancy':
     generatedTableColumns.value = [
       {
         name: 'complete_dt',
@@ -382,7 +426,7 @@ const generateReportTableFields = () => {
       'available_space'
     ]
     break
-  case 'Refile Discrepency':
+  case 'Refile Discrepancy':
     generatedTableColumns.value = [
       {
         name: 'id',
@@ -436,7 +480,7 @@ const generateReportTableFields = () => {
       'error'
     ]
     break
-  case 'Shelving Job Discrepency':
+  case 'Shelving Job Discrepancy':
     generatedTableColumns.value = [
       {
         name: 'id',
