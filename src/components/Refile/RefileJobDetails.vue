@@ -358,14 +358,14 @@ const itemTableColumns = ref([
   },
   {
     name: 'tray_barcode',
-    field: row => row.tray?.barcode?.value,
+    field: row => renderItemBarcodeDisplay(row.tray),
     label: 'Tray Barcode',
     align: 'left',
     sortable: true
   },
   {
     name: 'barcode',
-    field: row => row.barcode?.value,
+    field: row => renderItemBarcodeDisplay(row),
     label: 'Barcode',
     align: 'left',
     sortable: true

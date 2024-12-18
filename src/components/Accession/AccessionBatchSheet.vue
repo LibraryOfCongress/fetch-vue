@@ -86,7 +86,7 @@
                 v-for="tray in accessionJobDetails.trays"
                 :key="tray.id"
               >
-                <td>{{ tray.barcode?.value }}</td>
+                <td>{{ renderItemBarcodeDisplay(tray) }}</td>
                 <td>{{ tray.size_class?.name }}</td>
                 <td>{{ renderTrayItems(tray) }}</td>
               </tr>
@@ -121,6 +121,7 @@ const renderTotalItems = computed(() => {
 
 // Logic
 const formatDateTime = inject('format-date-time')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 const printBatchReport = () => {
   printTemplate.value.print()
