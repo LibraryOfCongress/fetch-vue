@@ -252,7 +252,6 @@ const resetBulkUploadLocationForm = () => {
   resetBuildingStore()
 }
 const submitBulkUploadLocationForm = async () => {
-  // TODO: Setup endpoints needed to send the different building properties to the location hierarchy and the file
   try {
     appActionIsLoadingData.value = true
     const payload = {
@@ -272,7 +271,7 @@ const submitBulkUploadLocationForm = async () => {
         handleAlert({
           type: 'error',
           text: `Bulk Location upload failed: ${JSON.stringify(err)}`,
-          autoClose: true
+          autoClose: false
         })
       })
     } else {
