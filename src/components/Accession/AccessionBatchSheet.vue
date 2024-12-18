@@ -65,7 +65,7 @@
                 v-for="item in accessionJobDetails.non_tray_items"
                 :key="item.id"
               >
-                <td>{{ item.barcode?.value }}</td>
+                <td>{{ renderItemBarcodeDisplay(item) }}</td>
                 <td>{{ item.size_class?.name }}</td>
               </tr>
             </tbody>
