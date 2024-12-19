@@ -401,13 +401,15 @@ const mainProps = defineProps({
   reportType: {
     type: String,
     default: ''
-  }
+  },
+  reportHistory: undefined
 })
 
 // Emits
 const emit = defineEmits([
   'hide',
-  'submit'
+  'submit',
+  'update'
 ])
 
 // Composables
@@ -579,7 +581,7 @@ const generateReportModal = () => {
       }
     ]
     break
-  case 'Move/Withdraw Discrepency':
+  case 'Move/Withdraw Discrepancy':
     reportForm.value = {
       from_dt: null,
       to_dt: null,
@@ -668,7 +670,7 @@ const generateReportModal = () => {
       partial_shelves: true
     }
     break
-  case 'Refile Discrepency':
+  case 'Refile Discrepancy':
     reportForm.value = {
       job_id: null, // allows multi select
       from_dt: null,
@@ -698,7 +700,7 @@ const generateReportModal = () => {
       }
     ]
     break
-  case 'Shelving Job Discrepency':
+  case 'Shelving Job Discrepancy':
     reportForm.value = {
       from_dt: null,
       to_dt: null,
@@ -827,6 +829,12 @@ const generateReportModal = () => {
   default:
     break
   }
+
+  // if report history was passed in we replace the generated form with the prop
+  // ex: user hits redo report we want to prepopulate the form with their past report search so they can update it
+  if (mainProps.reportHistory) {
+    reportForm.value = mainProps.reportHistory
+  }
 }
 
 const generateReport = async () => {
@@ -866,6 +874,9 @@ const generateReport = async () => {
       autoClose: true
     })
   } finally {
+    // emit the current form to the parent
+    emit('update', reportForm.value)
+
     appActionIsLoadingData.value = false
     reportModal.value.hideModal()
   }

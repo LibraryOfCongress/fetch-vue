@@ -132,7 +132,11 @@ const neverShowAppInstallBanner = () => {
 const checkForServiceWorkerUpdates = () => {
   navigator.serviceWorker.getRegistrations().then(async (registrations) => {
     for (let registration of registrations) {
-      // update the service workers and get latest content
+      // update the service workers and get latest content and refresh all indexDb instances
+      const dbs = await window.indexedDB.databases()
+      dbs.forEach(db => {
+        window.indexedDB.deleteDatabase(db.name)
+      })
       await registration.update()
     }
   })
@@ -230,6 +234,15 @@ const audioAlert = () => {
   oscillatorNode.stop(beep.currentTime + 250 * 0.001)
 }
 provide('audio-alert', audioAlert)
+const renderItemBarcodeDisplay = (itemData) => {
+  // check if item data object contains barcode.value, or withdrawn_barcode.value field
+  if (itemData) {
+    return itemData.withdrawn_barcode?.value ?? itemData.barcode.value
+  } else {
+    return ''
+  }
+}
+provide('render-item-barcode-display', renderItemBarcodeDisplay)
 </script>
 
 <style lang="scss" scoped>

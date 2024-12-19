@@ -545,7 +545,7 @@ const batchSheetComponent = ref(null)
 const accessionTableColumns = ref([
   {
     name: 'barcode_value',
-    field: (row) => row.barcode.value,
+    field: (row) => renderItemBarcodeDisplay(row),
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -578,6 +578,7 @@ const renderIsEditMode = computed(() => {
 
 // Logic
 const handleAlert = inject('handle-alert')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 watch(route, () => {
   if (!route.params.containerId) {
@@ -655,7 +656,7 @@ const triggerItemScan = async (barcode_value) => {
           name: 'accession-container',
           params: {
             jobId: accessionJob.value.workflow_id,
-            containerId: accessionContainer.value.barcode.value
+            containerId: renderItemBarcodeDisplay(accessionContainer.value)
           }
         })
       }

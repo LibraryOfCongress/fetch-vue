@@ -96,31 +96,6 @@ const breadcrumbList = computed(() => {
       { text: 'Admin' }
     ]
     break
-  case 'admin-building-view':
-    if (!route.params.buildingId) {
-      breadCrumbs = [
-        ...breadCrumbs,
-        {
-          text: 'Admin',
-          to: '/admin'
-        },
-        { text: 'Buildings' }
-      ]
-    } else {
-      breadCrumbs = [
-        ...breadCrumbs,
-        {
-          text: 'Admin',
-          to: '/admin'
-        },
-        {
-          text: 'Buildings',
-          to: '/admin/buildings/'
-        },
-        { text: route.params.buildingId }
-      ]
-    }
-    break
   case 'admin-groups':
     if (!route.params.groupId) {
       breadCrumbs = [
@@ -146,6 +121,26 @@ const breadcrumbList = computed(() => {
       ]
     }
     break
+  case 'admin-manage-media-type':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Admin',
+        to: '/admin'
+      },
+      { text: 'Manage Media Types' }
+    ]
+    break
+  case 'admin-manage-owner':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Admin',
+        to: '/admin'
+      },
+      { text: 'Manage Owners' }
+    ]
+    break
   case 'admin-manage-size-class':
     breadCrumbs = [
       ...breadCrumbs,
@@ -154,6 +149,16 @@ const breadcrumbList = computed(() => {
         to: '/admin'
       },
       { text: 'Manage Size Class' }
+    ]
+    break
+  case 'admin-manage-shelf-type':
+    breadCrumbs = [
+      ...breadCrumbs,
+      {
+        text: 'Admin',
+        to: '/admin'
+      },
+      { text: 'Manage Shelf Type' }
     ]
     break
   case 'admin-location-manage-buildings':

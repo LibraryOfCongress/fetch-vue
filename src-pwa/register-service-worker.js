@@ -44,9 +44,15 @@ register(process.env.SERVICE_WORKER_FILE, {
         {
           label: 'Ok',
           color: 'white',
-          handler: () => {
+          handler: async () => {
             // localStorage.clear()
-            location.reload()
+            // clear out all the indexDB databases
+            console.log('indexDb has been wiped and refreshed.')
+            const dbs = await window.indexedDB.databases()
+            dbs.forEach(db => {
+              window.indexedDB.deleteDatabase(db.name)
+            })
+            window.location.reload(true)
           }
         }
       ],

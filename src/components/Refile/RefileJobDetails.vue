@@ -186,7 +186,7 @@
         :highlight-row-class="'bg-color-green-light'"
         :highlight-row-key="'status'"
         :highlight-row-value="'In'"
-        @selected-table-row="loadRefileItem($event.barcode.value)"
+        @selected-table-row="loadRefileItem(renderItemBarcodeDisplay($event))"
       >
         <template #heading-row>
           <div class="col-xs-7 col-sm-5 q-mb-md-sm">
@@ -358,14 +358,14 @@ const itemTableColumns = ref([
   },
   {
     name: 'tray_barcode',
-    field: row => row.tray?.barcode?.value,
+    field: row => renderItemBarcodeDisplay(row.tray),
     label: 'Tray Barcode',
     align: 'left',
     sortable: true
   },
   {
     name: 'barcode',
-    field: row => row.barcode?.value,
+    field: row => renderItemBarcodeDisplay(row),
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -416,6 +416,7 @@ const showRefileItemDetailModal = ref(false)
 const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {

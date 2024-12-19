@@ -62,12 +62,12 @@ npm install
 
 # spa mode
 quasar dev:local
-# or 
+# or
 npm run dev:local
 
 # pwa mode (see extra cert instruction below for to run https locally)
 quasar dev:local-pwa
-# or 
+# or
 npm run dev:local-pwa
 
 ```
@@ -79,6 +79,11 @@ When running the application in PWA mode the app will launch using the vite devS
 If you are a mac user this should all work right out of the box, if anything you just need to make sure to add the certificate to your trust root certificates if it did not do so automatically when you installed mkcert.
 
 If you are a windows user and using wsl there is a little more extra steps inorder to add the ceritficate to your local system. After you ran `mkcert -install` from the wsl terminal this generates the ceriticate in wsl only, so you need to copy this certificate which can be found in your linux (wsl) files under `/usr/local/share/ca-certificates/mkcert_development_CA_XXXXXXX` to anywhere on your local desktop. Now double click and install the cert to your Trusted Root Certification Authorities and you are now good to go!
+
+Alternative solution to running pwa mode with service workers is to launch chrome via terminal using the following command:
+```bash
+open -a /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --args --ignore-certificate-errors
+```
 
 ## 2. Creating new components or views
 
@@ -94,7 +99,7 @@ _If running the local environment make sure you have a .env.local file created u
 Api calls can be added and referenced under the _src/http_ folder where you will see a js file named after the api its endpoints will be under (ex: inventoryService.js)
 
 ### Sending api requests
-All api requests are stored and called from a related pinia store file, these are found under _src/stores_. 
+All api requests are stored and called from a related pinia store file, these are found under _src/stores_.
 
 When adding api calls try to follow the current naming conventions (naming your action function starting with the api request type ex: postTrayItems, patchTrayItems, getTrayItems, deleteTrayItems, ect)
 

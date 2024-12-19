@@ -166,10 +166,13 @@
           :wrap-cells="true"
           :hide-selected-banner="true"
           column-sort-order="da"
-          :hide-pagination="true"
-          :pagination="paginationConfig"
+          :hide-pagination="enablePagination ? false : true"
+          v-model:pagination="paginationConfig"
+          :loading="paginationLoading"
+          :rows-per-page-options="[25, 50, 75, 100]"
           :selection="enableSelection ? 'multiple' : 'none'"
           v-model:selected="selectedTableData"
+          @request="onTableRequest"
           class="table-component-table"
           tabindex="0"
         >
@@ -253,6 +256,18 @@ import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 
 // Props
 const mainProps = defineProps({
+  enablePagination: {
+    type: Boolean,
+    default: false
+  },
+  paginationTotal: {
+    type: Number,
+    default: 0
+  },
+  paginationLoading: {
+    type: Boolean,
+    default: false
+  },
   enableSelection: {
     type: Boolean,
     default: false
@@ -347,7 +362,8 @@ const mainProps = defineProps({
 // Emits
 const emit = defineEmits([
   'selected-table-row',
-  'selected-data'
+  'selected-data',
+  'update-pagination'
 ])
 
 // Compasables
@@ -362,16 +378,20 @@ const allowTableReorder = ref(false)
 const draggedItemElement = ref(null)
 const selectedTableData = ref([])
 const tableComponent = ref(null)
+const tableFilterMenuState = ref(false)
 const paginationConfig = ref({
   sortBy: 'desc',
   descending: false,
   page: 1,
-  rowsPerPage: 0
+  rowsPerPage: 50 // this needs to match our apiPageSizeDefault
 })
-const tableFilterMenuState = ref(false)
 
 // Logic
 onMounted(() => {
+  // if pagination is enabled and a pagination total is passed in we add the rowsNumber param to our pagination config as needed for server side rendering
+  if (mainProps.enablePagination && mainProps.paginationTotal !== 0) {
+    paginationConfig.value.rowsNumber = mainProps.paginationTotal
+  }
   // if no tableVisibleColumns prop is passed map the tableColumns so all columns are always visible
   if (mainProps.tableVisibleColumns.length == 0) {
     localTableVisibleColumns.value = mainProps.tableColumns.map(col => col.name)
@@ -399,6 +419,14 @@ watch(() => mainProps.filterOptions, (updatedPropData) => {
 // watch the tableData props for a change update the localTableData with a copy/non reactive clone
 watch(() => mainProps.tableData, (updatedTableData) => {
   localTableData.value = toRaw(updatedTableData)
+},
+{ deep: true })
+
+// watch the paginated related props for changes and update our local paginationConfig
+watch(() => mainProps.paginationTotal, () => {
+  if (mainProps.enablePagination) {
+    paginationConfig.value.rowsNumber = mainProps.paginationTotal
+  }
 },
 { deep: true })
 
@@ -440,6 +468,22 @@ const filterTableData = () => {
   })
 
   localTableData.value = [...toRaw(filteredData)]
+}
+
+const onTableRequest = (props) => {
+  console.log('paginate table', props)
+  if (mainProps.enablePagination) {
+    const { page, sortBy, rowsPerPage, descending } = props.pagination
+
+    // update local pagination object
+    paginationConfig.value.page = page
+    paginationConfig.value.rowsPerPage = rowsPerPage
+    paginationConfig.value.sortBy = sortBy
+    paginationConfig.value.descending = descending
+
+    // emit to parent to get next set of paged data with refrenced query params
+    emit('update-pagination', { size: rowsPerPage, page, sort_by: sortBy, sort_order: descending ? 'desc' : 'asc' })
+  }
 }
 
 const startDrag = (e) => {

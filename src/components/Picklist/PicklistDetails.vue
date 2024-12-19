@@ -374,14 +374,14 @@ const itemTableColumns = ref([
   },
   {
     name: 'barcode',
-    field: row => row.item ? row.item?.barcode?.value : row.non_tray_item?.barcode?.value,
+    field: row => row.item ? renderItemBarcodeDisplay(row.item) : renderItemBarcodeDisplay(row.non_tray_item),
     label: 'Barcode',
     align: 'left',
     sortable: true
   },
   {
     name: 'tray_barcode',
-    field: row => row.item ? row.item?.tray?.barcode?.value : '',
+    field: row => row.item ? renderItemBarcodeDisplay(row.item?.tray) : '',
     label: 'Tray Barcode',
     align: 'left',
     sortable: true
@@ -438,6 +438,7 @@ const showConfirmationModal = ref(null)
 const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
@@ -709,7 +710,7 @@ const updatePicklistItem = async (barcode_value) => {
     await patchPicklistJobItemScanned(payload)
 
     // update the item directly in the picklist job and set it to retrieved
-    pickListItemToUpdate.status = 'Out'
+    pickListItemToUpdate.item ? pickListItemToUpdate.item.status = 'Out' : pickListItemToUpdate.non_tray_item.status = 'Out'
     originalPicklistJob.value = { ...toRaw(picklistJob.value) }
 
     // store the current picklist job data in indexdb for reference offline whenever job is executed

@@ -148,7 +148,8 @@ const mainProps = defineProps({
 // Emits
 const emit = defineEmits([
   'hide',
-  'submit'
+  'submit',
+  'newLocationAdded'
 ])
 
 // Composables
@@ -415,6 +416,9 @@ const addNewLocationType = async () => {
       autoClose: true
     })
   } finally {
+    // emit to parent that we added a new location option
+    emit('newLocationAdded')
+
     appActionIsLoadingData.value = false
     locationModal.value.hideModal()
   }

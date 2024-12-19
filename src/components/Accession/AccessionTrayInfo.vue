@@ -309,6 +309,7 @@ const trayBarcodeInput = ref('')
 
 // Logic
 const handleAlert = inject('handle-alert')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 const handleOptionMenu = (option) => {
   if (option.text == 'Edit') {
@@ -348,10 +349,10 @@ const handleTrayScan = async (barcode_value) => {
 
     // example barcode for tray: 'CH220987'
     // if the scanned tray exists in the accessionJob load the tray details
-    if (accessionJob.value.trays && accessionJob.value.trays.some(tray => tray.barcode_id == barcodeDetails.value.id)) {
+    if (accessionJob.value.trays && (accessionJob.value.trays.some(tray => tray.barcode_id == barcodeDetails.value.id) || accessionJob.value.trays.some(tray => tray.withdrawn_barcode?.id == barcodeDetails.value.id)) ) {
       await getAccessionTray(barcode_value)
     } else if (accessionJob.value.status !== 'Completed') {
-      // if the scanned tray barcode doesnt exist create the scanned tray using the scanned barcodes uuid
+      // if the scanned tray barcode doesn't exist create the scanned tray using the scanned barcodes uuid
       const currentDate = new Date()
       const payload = {
         accession_dt: currentDate,
@@ -373,7 +374,7 @@ const handleTrayScan = async (barcode_value) => {
         name: 'accession-container',
         params: {
           jobId: accessionJob.value.workflow_id,
-          containerId: accessionContainer.value.barcode.value
+          containerId: renderItemBarcodeDisplay(accessionContainer.value)
         }
       })
     }
