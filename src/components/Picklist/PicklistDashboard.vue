@@ -11,6 +11,10 @@
           :enable-selection="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-xl'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="picklistJobListTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadPicklistJobs($event)"
           @selected-table-row="loadPicklistJob($event.id)"
         >
           <template #heading-row>
@@ -75,7 +79,7 @@ const {
   getPicklistJobList,
   getPicklistJob
 } = usePicklistStore()
-const { picklistJobList } = storeToRefs(usePicklistStore())
+const { picklistJobList, picklistJobListTotal } = storeToRefs(usePicklistStore())
 const { userData } = storeToRefs(useUserStore())
 
 // Local Data
@@ -133,8 +137,8 @@ const picklistTableColumns = ref([
   },
   {
     name: 'complete_dt',
-    field: row => row.status == 'Completed' ? row.last_transition : '',
-    label: 'Date Completed',
+    field: 'last_transition',
+    label: 'Last Updated',
     align: 'left',
     sortable: true
   }
@@ -149,10 +153,6 @@ const picklistTableFilters =  ref([
       },
       {
         text: 'Paused',
-        value: false
-      },
-      {
-        text: 'Completed',
         value: false
       }
     ]
@@ -177,10 +177,10 @@ onBeforeMount(() => {
   }
 })
 
-const loadPicklistJobs = async () => {
+const loadPicklistJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    await getPicklistJobList({ queue: true, user_id: checkUserPermission('can_view_all_picklist_jobs') ? null : userData.value.user_id })
+    await getPicklistJobList({ ...qParams, queue: true, user_id: checkUserPermission('can_view_all_picklist_jobs') ? null : userData.value.user_id })
   } catch (error) {
     handleAlert({
       type: 'error',

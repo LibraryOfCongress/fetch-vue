@@ -12,6 +12,10 @@
           :enable-selection="showCreatePickList || showAddPickList"
           :heading-row-class="'q-mb-xs-md q-mb-md-xl'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="requestJobListTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadRequestJobs($event)"
           @selected-table-row="loadRequestJob($event.id)"
           @selected-data="selectedRequestItems = $event"
         >
@@ -146,7 +150,7 @@
                   outline
                   label="Cancel"
                   class="btn-no-wrap text-body1 q-ml-xs full-height"
-                  @click="resetPickListForm(); getRequestJobList();"
+                  @click="resetPickListForm(); getRequestJobList({ queue: true });"
                 />
               </div>
             </div>
@@ -161,7 +165,7 @@
               :button-two-color="'black'"
               :button-two-label="'Cancel'"
               :button-two-outline="true"
-              @button-two-click="resetPickListForm(); getRequestJobList();"
+              @button-two-click="resetPickListForm(); getRequestJobList({ queue: true });"
             />
           </template>
 
@@ -265,11 +269,11 @@
             <SelectInput
               v-model="addToPickListJob"
               :options="picklists"
-              option-type="picklists"
               option-value="id"
               option-label="id"
               :placeholder="'Select Pick List Job'"
               aria-label="picklistJobSelect"
+              @focus="loadPicklistJobs"
             />
           </div>
         </q-card-section>
@@ -331,6 +335,7 @@ const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { getOptions } = useOptionStore()
 const { buildings, picklists } = storeToRefs(useOptionStore())
 const {
   resetRequestJob,
@@ -340,7 +345,11 @@ const {
   getRequestBatchJobList,
   getRequestBatchJob
 } = useRequestStore()
-const { requestJobList, requestJob } = storeToRefs(useRequestStore())
+const {
+  requestJobList,
+  requestJobListTotal,
+  requestJob
+} = storeToRefs(useRequestStore())
 const { postPicklistJob, patchPicklistJobItem } = usePicklistStore()
 const { picklistJob } = storeToRefs(usePicklistStore())
 const { userData } = storeToRefs(useUserStore())
@@ -379,7 +388,7 @@ const requestTableColumns = ref([
   },
   {
     name: 'barcode',
-    field: row => row.item ? row.item?.barcode?.value : row.non_tray_item?.barcode?.value,
+    field: row => row.item ? renderItemBarcodeDisplay(row.item) : renderItemBarcodeDisplay(row.non_tray_item),
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -552,6 +561,7 @@ const filterRequestsByBuilding = ref(null)
 const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 onBeforeMount(() => {
   resetRequestStore()
@@ -601,13 +611,13 @@ const resetRequestOverlay = () => {
   })
 }
 
-const loadRequestJobs = async () => {
+const loadRequestJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
     if (requestDisplayType.value == 'request_view') {
-      await getRequestJobList({ queue: true })
+      await getRequestJobList({ ...qParams, queue: true })
     } else {
-      await getRequestBatchJobList()
+      await getRequestBatchJobList({ ...qParams })
     }
   } catch (error) {
     handleAlert({
@@ -675,6 +685,17 @@ const loadRequestJob = async (id) => {
     })
   } finally {
     appIsLoadingData.value = false
+  }
+}
+const loadPicklistJobs = async () => {
+  try {
+    await getOptions('picklists', { queue: true })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
   }
 }
 const createPickListJob = async () => {

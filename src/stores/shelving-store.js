@@ -5,6 +5,7 @@ const globalStore = useGlobalStore()
 
 export const useShelvingStore = defineStore('shelving-store', {
   state: () => ({
+    shelvingJobListTotal: 0,
     shelvingJobList: [],
     shelvingJob: {
       type: null,
@@ -200,8 +201,11 @@ export const useShelvingStore = defineStore('shelving-store', {
     },
     async getShelvingJobList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.shelvingJobs, { params: { ...qParams, size: 100 } })
+        const res = await this.$api.get(inventoryServiceApi.shelvingJobs, { params: { size: this.apiPageSizeDefault, ...qParams } })
         this.shelvingJobList = res.data.items
+
+        // keep track of response total for pagination
+        this.shelvingJobListTotal = res.data.total
       } catch (error) {
         throw error
       }

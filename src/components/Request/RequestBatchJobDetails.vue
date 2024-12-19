@@ -255,11 +255,11 @@
           <SelectInput
             v-model="addToPickListJob"
             :options="picklists"
-            option-type="picklists"
             option-value="id"
             option-label="id"
             :placeholder="'Select Pick List Job'"
             aria-label="picklistJobSelect"
+            @focus="loadPicklistJobs"
           />
         </div>
       </q-card-section>
@@ -314,6 +314,7 @@ const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { getOptions } = useOptionStore()
 const { picklists } = storeToRefs(useOptionStore())
 const { requestBatchJob } = storeToRefs(useRequestStore())
 const { getRequestBatchJob } = useRequestStore()
@@ -353,7 +354,7 @@ const requestTableColumns = ref([
   },
   {
     name: 'barcode',
-    field: row => row.item ? row.item?.barcode?.value : row.non_tray_item?.barcode?.value,
+    field: row => row.item ? renderItemBarcodeDisplay(row.item) : renderItemBarcodeDisplay(row.non_tray_item),
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -466,6 +467,7 @@ const selectedRequestItem = ref(null)
 const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
@@ -491,6 +493,17 @@ const clearTableSelection = () => {
   selectedRequestItems.value = []
 }
 
+const loadPicklistJobs = async () => {
+  try {
+    await getOptions('picklists', { queue: true })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  }
+}
 const createPickListJob = async () => {
   try {
     appActionIsLoadingData.value = true

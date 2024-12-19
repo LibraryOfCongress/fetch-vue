@@ -3,6 +3,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useAccessionStore = defineStore('accession-store', {
   state: () => ({
+    accessionJobListTotal: 0,
     accessionJobList: [],
     accessionJob: {
       id: null,
@@ -75,8 +76,11 @@ export const useAccessionStore = defineStore('accession-store', {
     },
     async getAccessionJobList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.accessionJobs, { params: { ...qParams, size: 100 } })
+        const res = await this.$api.get(inventoryServiceApi.accessionJobs, { params: { size: this.apiPageSizeDefault, ...qParams } })
         this.accessionJobList = res.data.items
+
+        // keep track of response total for pagination
+        this.accessionJobListTotal = res.data.total
       } catch (error) {
         throw error
       }

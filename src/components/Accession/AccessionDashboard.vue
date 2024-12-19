@@ -10,6 +10,10 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="accessionJobListTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadAccessionJobs($event)"
           @selected-table-row="loadAccessionJob($event.workflow_id)"
         >
           <template #heading-row>
@@ -237,7 +241,8 @@ const {
   getAccessionJob } = useAccessionStore()
 const {
   accessionJob,
-  accessionJobList
+  accessionJobList,
+  accessionJobListTotal
 } = storeToRefs(useAccessionStore())
 const {
   owners,
@@ -330,10 +335,10 @@ const startAccessionProcess = () => {
   showAccessionModal.value = !showAccessionModal.value
 }
 
-const loadAccessionJobs = async () => {
+const loadAccessionJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    await getAccessionJobList({ queue: true })
+    await getAccessionJobList({ ...qParams, queue: true })
   } catch (error) {
     handleAlert({
       type: 'error',

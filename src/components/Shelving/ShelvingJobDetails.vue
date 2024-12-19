@@ -185,7 +185,6 @@
         :table-visible-columns="shelfTableVisibleColumns"
         :filter-options="shelfTableFilters"
         :table-data="shelvingJobContainers"
-        :row-key="'barcode.value'"
         :hide-table-rearrange="false"
         :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
@@ -411,7 +410,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'barcode',
-    field: row => row.barcode.value,
+    field: row => renderItemBarcodeDisplay(row),
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -478,6 +477,7 @@ const showCompleteJobModal = ref(false)
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
 const handleAlert = inject('handle-alert')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
