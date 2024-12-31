@@ -190,7 +190,8 @@ deploy_stage:
     - export TF_VAR_timestamp=$CI_COMMIT_TIMESTAMP
     - terraform --version
     - cd terraform
-    - cp -v $FETCH_DEPLOYER_K8S_CONFIG_STAGE kubeconfig
+    - kubectl config use-context fetch/build:fetch-stage -v=6
+    - cp -v $KUBECONFIG kubeconfig
     - export TF_STATE_NAME=stage
     - envsubst < backend.hcl.tmpl > backend.hcl
     - terraform init -backend-config=backend.hcl
