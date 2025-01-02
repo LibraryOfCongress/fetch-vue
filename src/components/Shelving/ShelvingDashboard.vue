@@ -377,7 +377,7 @@
             color="accent"
             label="Submit"
             class="text-body1 full-width"
-            :disabled="!isCreateShelvingjobFormValid"
+            :disabled="!isCreateShelvingJobFormValid"
             @click="submitDirectToShelfJob(); hideModal();"
           />
           <q-btn
@@ -387,7 +387,7 @@
             color="accent"
             label="Submit"
             class="text-body1 full-width"
-            :disabled="!isCreateShelvingjobFormValid"
+            :disabled="!isCreateShelvingJobFormValid"
             @click="submitShelvingJob(); hideModal();"
           />
 
@@ -549,10 +549,10 @@ const shelfTableFilters =  ref([
 ])
 const shelvingJobMenuState = ref(false)
 const showShelvingJobModal = ref(null)
-const isCreateShelvingjobFormValid = computed(() => {
-  if (shelvingJob.value.type == 'Verification' && (shelvingJob.value.verification_jobs.length == 0 || !shelvingJob.value.building_id)) {
+const isCreateShelvingJobFormValid = computed(() => {
+  if (showShelvingJobModal.value == 'Verification' && (shelvingJob.value.verification_jobs.length == 0 || !shelvingJob.value.building_id)) {
     return false
-  } else if (shelvingJob.value.type == 'Direct' && !shelvingJob.value.building_id) {
+  } else if (showShelvingJobModal.value == 'Direct' && !shelvingJob.value.building_id) {
     return false
   } else {
     return true
