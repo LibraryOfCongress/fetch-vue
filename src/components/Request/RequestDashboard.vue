@@ -481,7 +481,7 @@ const requestTableFilters =  ref([
   }
 ])
 const requestBatchTableVisibleColumns = ref([
-  'import_source',
+  'file_type',
   'request_count',
   'status',
   'uploaded_by',
@@ -489,7 +489,7 @@ const requestBatchTableVisibleColumns = ref([
 ])
 const requestBatchTableColumns = ref([
   {
-    name: 'import_source',
+    name: 'file_type',
     field: 'file_type',
     label: 'Import Source',
     align: 'left',
@@ -575,7 +575,7 @@ onBeforeMount(() => {
       'requestor_name'
     ]
     requestBatchTableVisibleColumns.value = [
-      'import_source',
+      'file_type',
       'request_count',
       'status',
       'import_dt'

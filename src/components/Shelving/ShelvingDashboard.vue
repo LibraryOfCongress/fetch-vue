@@ -509,7 +509,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'user_id',
-    field: row => row.user?.first_name,
+    field: row => row.user ? `${row.user.first_name} ${row.user.last_name}` : '',
     label: 'Assigned User',
     align: 'left',
     sortable: true,
