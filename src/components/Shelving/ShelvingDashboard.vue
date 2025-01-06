@@ -543,6 +543,14 @@ const shelfTableFilters =  ref([
       {
         text: 'Paused',
         value: false
+      },
+      {
+        text: 'Running',
+        value: false
+      },
+      {
+        text: 'Completed',
+        value: false
       }
     ]
   }

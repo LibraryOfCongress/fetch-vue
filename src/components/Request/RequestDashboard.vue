@@ -459,22 +459,31 @@ const requestTableColumns = ref([
 ])
 const requestTableFilters =  ref([
   {
-    field: 'status',
+    field: row => row.request_type?.type,
     options: [
       {
-        text: 'Created',
+        text: 'General Delivery',
         value: false
       },
       {
-        text: 'Paused',
+        text: 'ILL (InterLibrary Loan)',
         value: false
       },
       {
-        text: 'On Hold',
+        text: 'Scan and Deliver',
+        value: false
+      }
+    ]
+  },
+  {
+    field: row => row.item ? row.item?.status : row.non_tray_item?.status,
+    options: [
+      {
+        text: 'PickList',
         value: false
       },
       {
-        text: 'Completed',
+        text: 'Requested',
         value: false
       }
     ]
