@@ -5,7 +5,7 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit', hidden: !checkUserPermission('can_assign_and_reassign_picklist_job'), disabled: appIsOffline || editJob || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' },
-            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_picklist_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed' || picklistItems.some(itm => itm.status !== 'Requested')},
+            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_picklist_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed' || picklistItems.some(itm => itm.status !== 'PickList')},
             { text: 'Print Job' }
           ]"
           class="q-mr-xs"
@@ -207,7 +207,7 @@
             v-if="colName == 'actions'"
           >
             <MoreOptionsMenu
-              :options="[{ text: 'Revert Item to Queue', disabled: props.row.status !== 'Requested' || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' || !checkUserPermission('can_edit_picklist_job')}]"
+              :options="[{ text: 'Revert Item to Queue', disabled: props.row.status !== 'PickList' || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' || !checkUserPermission('can_edit_picklist_job')}]"
               class=""
               @click="handleOptionMenu($event, props.row)"
             />
@@ -215,11 +215,11 @@
           <span
             v-else-if="colName == 'status'"
             class="text-bold text-nowrap"
-            :class="value !== 'Requested' ? 'text-positive' : ''"
+            :class="value !== 'PickList' ? 'text-positive' : ''"
           >
-            {{ value !== 'Requested' ? 'Retrieved' : '' }}
+            {{ value !== 'PickList' ? 'Retrieved' : '' }}
             <q-icon
-              v-if="value !== 'Requested'"
+              v-if="value !== 'PickList'"
               name="mdi-check-circle"
               color="positive"
               size="25px"
@@ -494,7 +494,7 @@ const triggerItemScan = (barcode_value) => {
       autoClose: true
     })
     return
-  } else if (picklistItems.value.some(itm => itm.item ? itm.item.barcode.value == barcode_value && itm.status !== 'Requested' : itm.non_tray_item.barcode.value == barcode_value && itm.status !== 'Requested')) {
+  } else if (picklistItems.value.some(itm => itm.item ? itm.item.barcode.value == barcode_value && itm.status !== 'PickList' : itm.non_tray_item.barcode.value == barcode_value && itm.status !== 'PickList')) {
     handleAlert({
       type: 'error',
       text: 'The scanned item has already been marked as retrieved.',
