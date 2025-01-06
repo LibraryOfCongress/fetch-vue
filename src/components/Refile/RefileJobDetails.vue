@@ -276,7 +276,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, onMounted, ref, inject, toRaw, watch } from 'vue'
+import { onBeforeMount, onMounted, ref, computed, inject, toRaw, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -394,21 +394,34 @@ const itemTableColumns = ref([
     headerStyle: 'max-width: 200px'
   }
 ])
-const itemTableFilters =  ref([
-  {
-    field: row => row.size_class.name,
-    options: [
+const itemTableFilters = computed(() => {
+  let tablesFilters = []
+  if (refileJob.value.refile_job_items.length > 0) {
+    tablesFilters = [
       {
-        text: 'C High',
-        value: false
+        field: row => row.owner?.name,
+        // render options based on the passed in table data
+        // loop through all containers and return customized data set for table filtering and remove the duplicates
+        options: getUniqueListByKey(refileJob.value.refile_job_items.map(tableEntry => {
+          return {
+            text: tableEntry.owner?.name,
+            value: false
+          }
+        }), 'text')
       },
       {
-        text: 'C Low',
-        value: false
+        field: row => row.size_class?.name,
+        options: getUniqueListByKey(refileJob.value.refile_job_items.map(tableEntry => {
+          return {
+            text: tableEntry.size_class?.name,
+            value: false
+          }
+        }), 'text')
       }
     ]
   }
-])
+  return tablesFilters
+})
 const showConfirmationModal = ref(null)
 const showRefileItemDetailModal = ref(false)
 
@@ -417,6 +430,7 @@ const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
+const getUniqueListByKey = inject('get-uniqure-list-by-key')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {

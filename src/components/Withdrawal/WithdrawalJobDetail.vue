@@ -376,7 +376,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, inject, toRaw } from 'vue'
+import { onBeforeMount, ref, computed, inject, toRaw } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -471,21 +471,25 @@ const itemTableColumns = ref([
     sortable: false
   }
 ])
-const itemTableFilters =  ref([
-  {
-    field: row => row.owner.name,
-    options: [
+const itemTableFilters = computed(() => {
+  let tablesFilters = []
+  if (withdrawJobItems.value.length > 0) {
+    tablesFilters = [
       {
-        text: 'John Doe',
-        value: false
-      },
-      {
-        text: 'Abraham Lincoln',
-        value: false
+        field: row => row.owner?.name,
+        // render options based on the passed in table data
+        // loop through all containers and return customized data set for table filtering and remove the duplicates
+        options: getUniqueListByKey(withdrawJobItems.value.map(tableEntry => {
+          return {
+            text: tableEntry.owner?.name,
+            value: false
+          }
+        }), 'text')
       }
     ]
   }
-])
+  return tablesFilters
+})
 const trayTableVisibleColumns = ref([
   'actions',
   'shelf_barcode',
@@ -523,21 +527,23 @@ const trayTableColumns = ref([
     sortable: true
   }
 ])
-const trayTableFilters =  ref([
-  {
-    field: row => row.owner.name,
-    options: [
+const trayTableFilters = computed(() => {
+  let tablesFilters = []
+  if (withdrawJob.value.trays.length > 0) {
+    tablesFilters = [
       {
-        text: 'John Doe',
-        value: false
-      },
-      {
-        text: 'Abraham Lincoln',
-        value: false
+        field: row => row.owner?.name,
+        options: getUniqueListByKey(withdrawJob.value.trays.map(tableEntry => {
+          return {
+            text: tableEntry.owner?.name,
+            value: false
+          }
+        }), 'text')
       }
     ]
   }
-])
+  return tablesFilters
+})
 const showConfirmationModal = ref(null)
 const showAddItemModal = ref(null)
 
@@ -545,6 +551,7 @@ const showAddItemModal = ref(null)
 const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
+const getUniqueListByKey = inject('get-uniqure-list-by-key')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {

@@ -416,29 +416,52 @@ const requestTableColumns = ref([
     sortable: true
   }
 ])
-const requestTableFilters =  ref([
-  {
-    field: 'status',
-    options: [
+const requestTableFilters = computed(() => {
+  let tablesFilters = []
+  if (requestItems.value && requestItems.value.length > 0) {
+    tablesFilters = [
       {
-        text: 'Created',
-        value: false
+        field: row => row.request_type?.type,
+        // render options based on the passed in table data
+        // loop through all containers and return customized data set for table filtering and remove the duplicates
+        options: getUniqueListByKey(requestItems.value.map(tableEntry => {
+          return {
+            text: tableEntry.request_type.type,
+            value: false
+          }
+        }), 'text')
       },
       {
-        text: 'Paused',
-        value: false
+        field: row => row.item ? row.item?.status : row.non_tray_item?.status,
+        options: getUniqueListByKey(requestItems.value.map(tableEntry => {
+          return {
+            text: tableEntry.item ? tableEntry.item.status : tableEntry.non_tray_item.status,
+            value: false
+          }
+        }), 'text')
       },
       {
-        text: 'On Hold',
-        value: false
+        field: row => row.priority?.value,
+        options: getUniqueListByKey(requestItems.value.map(tableEntry => {
+          return {
+            text: tableEntry.priority.value,
+            value: false
+          }
+        }), 'text')
       },
       {
-        text: 'Completed',
-        value: false
+        field: row => row.item ? row.item?.media_type?.name : row.non_tray_item?.media_type?.name,
+        options: getUniqueListByKey(requestItems.value.map(tableEntry => {
+          return {
+            text: tableEntry.item ? tableEntry.item?.media_type?.name : tableEntry.non_tray_item?.media_type?.name,
+            value: false
+          }
+        }), 'text')
       }
     ]
   }
-])
+  return tablesFilters
+})
 const requestItems = computed(() => {
   let requests = requestBatchJob.value.requests
   if (showCreatePickList.value) {
@@ -468,6 +491,7 @@ const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
+const getUniqueListByKey = inject('get-uniqure-list-by-key')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {

@@ -471,7 +471,6 @@ const filterTableData = () => {
 }
 
 const onTableRequest = (props) => {
-  console.log('paginate table', props)
   if (mainProps.enablePagination) {
     const { page, sortBy, rowsPerPage, descending } = props.pagination
 
