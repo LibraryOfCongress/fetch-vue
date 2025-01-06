@@ -15,16 +15,7 @@ export const useReportsStore = defineStore('reports-store', {
       try {
         this.reportData = []
         if (reportType == 'Item Accession') {
-          const res = await this.$api.get(inventoryServiceApi.reportingAccessionItems, { params: { size: this.apiPageSizeDefault, ...paramsObj },
-            paramsSerializer: function handleQuery (query) {
-              // this will process param arrays as multiple entries in get request query params
-              // ex: owner_id: [1,2] => owner_id=1&owner_id=2
-              return Object.entries(query).map(([
-                key,
-                value
-              ]) => Array.isArray(value) ? `${key}=${value.join('&' + key + '=')}` : `${key}=${value}`).join('&')
-            }
-          })
+          const res = await this.$api.get(inventoryServiceApi.reportingAccessionItems, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
           this.reportData = res.data.items
 
           // keep track of response total for pagination
