@@ -240,7 +240,7 @@
         :filter-options="shelfTableFilters"
         :table-data="shelvingJobContainers"
         :hide-table-rearrange="false"
-        :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
+        :heading-row-class="'justify-end q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="
           currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'
         "

@@ -212,14 +212,14 @@
         :row-key="'id'"
         :enable-table-reorder="false"
         :enable-selection="false"
-        :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
+        :heading-row-class="'justify-end q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
         :highlight-row-class="'bg-color-green-light'"
         :highlight-row-key="'status'"
         :highlight-row-value="'Withdrawn'"
       >
         <template #heading-row>
-          <div class="col-xs-7 col-sm-5 col-md-auto q-mb-md-sm">
+          <div class="col-xs-7 col-sm-5 col-md-auto q-mb-md-sm q-mr-auto">
             <h2 class="text-h4 text-bold">
               Items in Job:
             </h2>

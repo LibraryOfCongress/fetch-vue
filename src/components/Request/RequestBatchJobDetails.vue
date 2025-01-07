@@ -72,14 +72,14 @@
         :table-data="requestItems"
         :enable-table-reorder="false"
         :enable-selection="showCreatePickList || showAddPickList"
-        :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
+        :heading-row-class="'justify-end q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
         @selected-table-row="selectedRequestItem = $event"
         @selected-data="selectedRequestItems = $event"
       >
         <template #heading-row>
           <div
-            class="col-xs-7 col-sm-5 q-mb-md-sm"
+            class="col-xs-7 col-sm-5 q-mb-md-sm q-mr-auto"
             :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
           >
             <h2 class="text-h4 text-bold">
