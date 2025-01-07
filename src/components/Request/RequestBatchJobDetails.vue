@@ -441,18 +441,9 @@ const requestTableFilters =  ref([
 ])
 const requestItems = computed(() => {
   let requests = requestBatchJob.value.requests
-  if (showCreatePickList.value) {
+  if (showCreatePickList.value || showAddPickList.value) {
     // filter out any requests that already belong to a picklist
     requests = requests.filter(r => !r.pick_list_id)
-  } else if (showAddPickList.value) {
-    // filter out the requests that match the selected picklist job
-    requests = requests.filter(r => {
-      if (r.pick_list_id) {
-        return r.pick_list_id !== addToPickListJob.value
-      } else {
-        return true
-      }
-    })
   }
   return requests
 })
