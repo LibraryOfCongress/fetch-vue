@@ -344,6 +344,23 @@ const mainProps = defineProps({
       //     ]
       //   }
       // ]
+      // example of how filterOptions need to be structured when filtering via api
+      // [
+      //   {
+      //     apiField: 'media_type'
+      //     field: row => row.media_type.name
+      //     options: [
+      //       {
+      //         text: 'Document',
+      //         value: false
+      //       },
+      //       {
+      //         text: 'Archival Material',
+      //         value: false
+      //       }
+      //     ]
+      //   }
+      // ]
     }
   },
   headingRowClass: {
@@ -453,8 +470,15 @@ const filterTableData = () => {
   // get all user selected filters
   const activeFilters = localFilterOptions.value.flatMap(opt => {
     if (opt.options.some(obj => obj.value == true)) {
-      return {
-        [opt.field]: opt.options.filter(obj => obj.value == true).map(obj => Object.hasOwn(obj, 'boolValue') ? obj.boolValue : obj.text)
+      // if opt contains an apiField return that instead of the table field (this is for paginated filtering from the api)
+      if (opt.apiField) {
+        return {
+          [opt.apiField]: opt.options.filter(obj => obj.value == true).map(obj => Object.hasOwn(obj, 'boolValue') ? obj.boolValue : obj.text)
+        }
+      } else {
+        return {
+          [opt.field]: opt.options.filter(obj => obj.value == true).map(obj => Object.hasOwn(obj, 'boolValue') ? obj.boolValue : obj.text)
+        }
       }
     } else {
       return []

@@ -131,7 +131,7 @@
             <span v-else-if="colName == 'create_dt'">
               {{ formatDateTime(value).date }}
             </span>
-            <span v-else-if="colName == 'complete_dt'">
+            <span v-else-if="colName == 'last_transition'">
               {{ formatDateTime(value).date }}
             </span>
           </template>
@@ -434,7 +434,7 @@ const {
   appIsLoadingData,
   appIsOffline
 } = storeToRefs(useGlobalStore())
-const { buildings } = storeToRefs(useOptionStore())
+const { buildings, users } = storeToRefs(useOptionStore())
 const { getVerificationJobList } = useVerificationStore()
 const { verificationJobList } = storeToRefs(useVerificationStore())
 const {
@@ -480,7 +480,7 @@ const shelfTableVisibleColumns = ref([
   'status',
   'user_id',
   'create_dt',
-  'complete_dt'
+  'last_transition'
 ])
 const shelfTableColumns = ref([
   {
@@ -524,7 +524,7 @@ const shelfTableColumns = ref([
     order: 4
   },
   {
-    name: 'complete_dt',
+    name: 'last_transition',
     field: 'last_transition',
     label: 'Last Updated',
     align: 'left',
@@ -532,29 +532,43 @@ const shelfTableColumns = ref([
     order: 5
   }
 ])
-const shelfTableFilters =  ref([
-  {
-    field: 'status',
-    options: [
-      {
-        text: 'Created',
-        value: false
-      },
-      {
-        text: 'Paused',
-        value: false
-      },
-      {
-        text: 'Running',
-        value: false
-      },
-      {
-        text: 'Completed',
-        value: false
-      }
-    ]
-  }
-])
+const shelfTableFilters = computed(() => {
+  let tablesFilters = []
+  tablesFilters = [
+    {
+      field: 'status',
+      options: [
+        {
+          text: 'Created',
+          value: false
+        },
+        {
+          text: 'Paused',
+          value: false
+        },
+        {
+          text: 'Running',
+          value: false
+        },
+        {
+          text: 'Completed',
+          value: false
+        }
+      ]
+    },
+    {
+      field: row => row.user ? `${row.user.first_name} ${row.user.last_name}` : '',
+      apiField: 'assigned_user',
+      options: users.value.map(usr => {
+        return {
+          text: `${usr.first_name} ${usr.last_name}`,
+          value: false
+        }
+      })
+    }
+  ]
+  return tablesFilters
+})
 const shelvingJobMenuState = ref(false)
 const showShelvingJobModal = ref(null)
 const isCreateShelvingjobFormValid = computed(() => {
