@@ -5,7 +5,7 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit', hidden: !checkUserPermission('can_assign_and_reassign_picklist_job'), disabled: appIsOffline || editJob || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' },
-            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_picklist_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed' || picklistItems.some(itm => itm.status !== 'Requested')},
+            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_picklist_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed' || picklistItems.some(itm => itm.status !== 'PickList')},
             { text: 'Print Job' }
           ]"
           class="q-mr-xs"
@@ -190,7 +190,7 @@
         :enable-selection="false"
         :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
-        :highlight-row-class="'bg-color-green-light'"
+        :highlight-row-class="'justify-end bg-color-green-light'"
         :highlight-row-key="'status'"
         :highlight-row-value="'Out'"
       >
@@ -207,7 +207,7 @@
             v-if="colName == 'actions'"
           >
             <MoreOptionsMenu
-              :options="[{ text: 'Revert Item to Queue', disabled: props.row.status !== 'Requested' || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' || !checkUserPermission('can_edit_picklist_job')}]"
+              :options="[{ text: 'Revert Item to Queue', disabled: props.row.status !== 'PickList' || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' || !checkUserPermission('can_edit_picklist_job')}]"
               class=""
               @click="handleOptionMenu($event, props.row)"
             />
@@ -215,11 +215,11 @@
           <span
             v-else-if="colName == 'status'"
             class="text-bold text-nowrap"
-            :class="value !== 'Requested' ? 'text-positive' : ''"
+            :class="value !== 'PickList' ? 'text-positive' : ''"
           >
-            {{ value !== 'Requested' ? 'Retrieved' : '' }}
+            {{ value !== 'PickList' ? 'Retrieved' : '' }}
             <q-icon
-              v-if="value !== 'Requested'"
+              v-if="value !== 'PickList'"
               name="mdi-check-circle"
               color="positive"
               size="25px"
@@ -298,7 +298,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, onMounted, ref, inject, toRaw, watch } from 'vue'
+import { onBeforeMount, onMounted, ref, computed, inject, toRaw, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -417,21 +417,34 @@ const itemTableColumns = ref([
     headerStyle: 'max-width: 200px'
   }
 ])
-const itemTableFilters =  ref([
-  {
-    field: row => row.size_class.name,
-    options: [
+const itemTableFilters = computed(() => {
+  let tablesFilters = []
+  if (picklistItems.value.length > 0) {
+    tablesFilters = [
       {
-        text: 'C High',
-        value: false
+        field: row => row.item ? row.item?.owner?.name : row.non_tray_item?.owner?.name,
+        // render options based on the passed in table data
+        // loop through all containers and return customized data set for table filtering and remove the duplicates
+        options: getUniqueListByKey(picklistItems.value.map(tableEntry => {
+          return {
+            text: tableEntry.item ? tableEntry.item?.owner?.name : tableEntry.non_tray_item?.owner?.name,
+            value: false
+          }
+        }), 'text')
       },
       {
-        text: 'C Low',
-        value: false
+        field: row => row.item ? row.item?.size_class?.name : row.non_tray_item?.size_class?.name,
+        options: getUniqueListByKey(picklistItems.value.map(tableEntry => {
+          return {
+            text: tableEntry.item ? tableEntry.item?.size_class?.name : tableEntry.non_tray_item?.size_class?.name,
+            value: false
+          }
+        }), 'text')
       }
     ]
   }
-])
+  return tablesFilters
+})
 const showConfirmationModal = ref(null)
 
 // Logic
@@ -439,6 +452,7 @@ const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
+const getUniqueListByKey = inject('get-uniqure-list-by-key')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
@@ -480,7 +494,7 @@ const triggerItemScan = (barcode_value) => {
       autoClose: true
     })
     return
-  } else if (picklistItems.value.some(itm => itm.item ? itm.item.barcode.value == barcode_value && itm.status !== 'Requested' : itm.non_tray_item.barcode.value == barcode_value && itm.status !== 'Requested')) {
+  } else if (picklistItems.value.some(itm => itm.item ? itm.item.barcode.value == barcode_value && itm.status !== 'PickList' : itm.non_tray_item.barcode.value == barcode_value && itm.status !== 'PickList')) {
     handleAlert({
       type: 'error',
       text: 'The scanned item has already been marked as retrieved.',

@@ -30,7 +30,7 @@
 
           <template #table-td="{ colName, value }">
             <span
-              v-if="colName == 'request_items'"
+              v-if="colName == 'request_count'"
               class="outline text-nowrap"
             >
               {{ value }} Items
@@ -86,7 +86,7 @@ const { userData } = storeToRefs(useUserStore())
 const picklistTableVisibleColumns = ref([
   'id',
   'building',
-  'request_items',
+  'request_count',
   'status',
   'user',
   'create_dt',
@@ -108,7 +108,7 @@ const picklistTableColumns = ref([
     sortable: true
   },
   {
-    name: 'request_items',
+    name: 'request_count',
     field: 'request_count',
     label: '# of Items in Job',
     align: 'left',
@@ -123,7 +123,7 @@ const picklistTableColumns = ref([
   },
   {
     name: 'user',
-    field: row => row.user?.first_name,
+    field: row => row.user ? `${row.user.first_name} ${row.user.last_name}` : '',
     label: 'Assigned User',
     align: 'left',
     sortable: true
@@ -153,6 +153,14 @@ const picklistTableFilters =  ref([
       },
       {
         text: 'Paused',
+        value: false
+      },
+      {
+        text: 'Running',
+        value: false
+      },
+      {
+        text: 'Completed',
         value: false
       }
     ]

@@ -8,6 +8,19 @@ const api = axios.create({
   headers: {
     Accept: ['application/json'],
     'Access-Control-Allow-Origin': '*'
+  },
+  paramsSerializer: (queryParams) => {
+    // this will process param arrays as multiple entries in get request queryParams params and also removes null query params as well
+    // ex: owner_id: [1,2] => owner_id=1&owner_id=2
+    for (const key of Object.keys(queryParams)) {
+      if (queryParams[key] === null) {
+        delete queryParams[key]
+      }
+    }
+    return Object.entries(queryParams).map(([
+      key,
+      value
+    ]) => Array.isArray(value) ? `${key}=${value.join('&' + key + '=')}` : `${key}=${value}`).join('&')
   }
 })
 

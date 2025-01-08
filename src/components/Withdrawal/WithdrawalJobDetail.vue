@@ -212,14 +212,14 @@
         :row-key="'id'"
         :enable-table-reorder="false"
         :enable-selection="false"
-        :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
+        :heading-row-class="'justify-end q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
         :highlight-row-class="'bg-color-green-light'"
         :highlight-row-key="'status'"
         :highlight-row-value="'Withdrawn'"
       >
         <template #heading-row>
-          <div class="col-xs-7 col-sm-5 col-md-auto q-mb-md-sm">
+          <div class="col-xs-7 col-sm-5 col-md-auto q-mb-md-sm q-mr-auto">
             <h2 class="text-h4 text-bold">
               Items in Job:
             </h2>
@@ -376,7 +376,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, inject, toRaw } from 'vue'
+import { onBeforeMount, ref, computed, inject, toRaw } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -471,21 +471,25 @@ const itemTableColumns = ref([
     sortable: false
   }
 ])
-const itemTableFilters =  ref([
-  {
-    field: row => row.owner.name,
-    options: [
+const itemTableFilters = computed(() => {
+  let tablesFilters = []
+  if (withdrawJobItems.value.length > 0) {
+    tablesFilters = [
       {
-        text: 'John Doe',
-        value: false
-      },
-      {
-        text: 'Abraham Lincoln',
-        value: false
+        field: row => row.owner?.name,
+        // render options based on the passed in table data
+        // loop through all containers and return customized data set for table filtering and remove the duplicates
+        options: getUniqueListByKey(withdrawJobItems.value.map(tableEntry => {
+          return {
+            text: tableEntry.owner?.name,
+            value: false
+          }
+        }), 'text')
       }
     ]
   }
-])
+  return tablesFilters
+})
 const trayTableVisibleColumns = ref([
   'actions',
   'shelf_barcode',
@@ -523,21 +527,23 @@ const trayTableColumns = ref([
     sortable: true
   }
 ])
-const trayTableFilters =  ref([
-  {
-    field: row => row.owner.name,
-    options: [
+const trayTableFilters = computed(() => {
+  let tablesFilters = []
+  if (withdrawJob.value.trays.length > 0) {
+    tablesFilters = [
       {
-        text: 'John Doe',
-        value: false
-      },
-      {
-        text: 'Abraham Lincoln',
-        value: false
+        field: row => row.owner?.name,
+        options: getUniqueListByKey(withdrawJob.value.trays.map(tableEntry => {
+          return {
+            text: tableEntry.owner?.name,
+            value: false
+          }
+        }), 'text')
       }
     ]
   }
-])
+  return tablesFilters
+})
 const showConfirmationModal = ref(null)
 const showAddItemModal = ref(null)
 
@@ -545,6 +551,7 @@ const showAddItemModal = ref(null)
 const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
+const getUniqueListByKey = inject('get-uniqure-list-by-key')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {

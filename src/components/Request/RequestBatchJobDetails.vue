@@ -72,14 +72,14 @@
         :table-data="requestItems"
         :enable-table-reorder="false"
         :enable-selection="showCreatePickList || showAddPickList"
-        :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
+        :heading-row-class="'justify-end q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
         @selected-table-row="selectedRequestItem = $event"
         @selected-data="selectedRequestItems = $event"
       >
         <template #heading-row>
           <div
-            class="col-xs-7 col-sm-5 q-mb-md-sm"
+            class="col-xs-7 col-sm-5 q-mb-md-sm q-mr-auto"
             :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
           >
             <h2 class="text-h4 text-bold">
@@ -416,29 +416,52 @@ const requestTableColumns = ref([
     sortable: true
   }
 ])
-const requestTableFilters =  ref([
-  {
-    field: 'status',
-    options: [
+const requestTableFilters = computed(() => {
+  let tablesFilters = []
+  if (requestItems.value && requestItems.value.length > 0) {
+    tablesFilters = [
       {
-        text: 'Created',
-        value: false
+        field: row => row.request_type?.type,
+        // render options based on the passed in table data
+        // loop through all containers and return customized data set for table filtering and remove the duplicates
+        options: getUniqueListByKey(requestItems.value.map(tableEntry => {
+          return {
+            text: tableEntry.request_type.type,
+            value: false
+          }
+        }), 'text')
       },
       {
-        text: 'Paused',
-        value: false
+        field: row => row.item ? row.item?.status : row.non_tray_item?.status,
+        options: getUniqueListByKey(requestItems.value.map(tableEntry => {
+          return {
+            text: tableEntry.item ? tableEntry.item.status : tableEntry.non_tray_item.status,
+            value: false
+          }
+        }), 'text')
       },
       {
-        text: 'On Hold',
-        value: false
+        field: row => row.priority?.value,
+        options: getUniqueListByKey(requestItems.value.map(tableEntry => {
+          return {
+            text: tableEntry.priority.value,
+            value: false
+          }
+        }), 'text')
       },
       {
-        text: 'Completed',
-        value: false
+        field: row => row.item ? row.item?.media_type?.name : row.non_tray_item?.media_type?.name,
+        options: getUniqueListByKey(requestItems.value.map(tableEntry => {
+          return {
+            text: tableEntry.item ? tableEntry.item?.media_type?.name : tableEntry.non_tray_item?.media_type?.name,
+            value: false
+          }
+        }), 'text')
       }
     ]
   }
-])
+  return tablesFilters
+})
 const requestItems = computed(() => {
   let requests = requestBatchJob.value.requests
   if (showCreatePickList.value || showAddPickList.value) {
@@ -459,6 +482,7 @@ const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
+const getUniqueListByKey = inject('get-uniqure-list-by-key')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {

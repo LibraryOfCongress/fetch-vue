@@ -276,7 +276,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, inject } from 'vue'
+import { onBeforeMount, ref, computed, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -300,7 +300,11 @@ const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
-const { buildings, refileJobs } = storeToRefs(useOptionStore())
+const {
+  buildings,
+  refileJobs,
+  users
+} = storeToRefs(useOptionStore())
 const {
   resetRefileStore,
   getRefileJobList,
@@ -352,7 +356,7 @@ const refileTableColumns = ref([
   },
   {
     name: 'user',
-    field: row => row.assigned_user?.first_name,
+    field: row => row.assigned_user ? `${row.assigned_user?.first_name} ${row.assigned_user?.last_name}` : '',
     label: 'Assigned User',
     align: 'left',
     sortable: true
@@ -372,21 +376,21 @@ const refileTableColumns = ref([
     sortable: true
   }
 ])
-const refileTableFilters =  ref([
-  {
-    field: row => row.assigned_user.first_name,
-    options: [
-      {
-        text: 'User 1',
-        value: false
-      },
-      {
-        text: 'User 2',
-        value: false
-      }
-    ]
-  }
-])
+const refileTableFilters = computed(() => {
+  let tablesFilters = []
+  tablesFilters = [
+    {
+      field: row => row.assigned_user ? `${row.assigned_user?.first_name} ${row.assigned_user?.last_name}` : '',
+      options: users.value.map(usr => {
+        return {
+          text: `${usr.first_name} ${usr.last_name}`,
+          value: false
+        }
+      })
+    }
+  ]
+  return tablesFilters
+})
 const queueTableVisibleColumns = ref([
   'item_location',
   'container_type',
