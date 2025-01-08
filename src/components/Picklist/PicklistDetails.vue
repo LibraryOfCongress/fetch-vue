@@ -6,7 +6,8 @@
           :options="[
             { text: 'Edit', hidden: !checkUserPermission('can_assign_and_reassign_picklist_job'), disabled: appIsOffline || editJob || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' },
             { text: 'Delete Job', hidden: !checkUserPermission('can_delete_picklist_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed' || picklistItems.some(itm => itm.status !== 'PickList')},
-            { text: 'Print Job' }
+            { text: 'Print Job' },
+            { text: 'View History' }
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
@@ -295,6 +296,15 @@
     :picklist-job-details="picklistJob"
     :picklist-job-items="picklistItems"
   />
+
+  <!-- audit trail modal -->
+  <AuditTrail
+    v-if="showAuditTrailModal"
+    ref="historyModal"
+    @reset="showAuditTrailModal = null"
+    :job-type="showAuditTrailModal"
+    :job-id="picklistJob.id"
+  />
 </template>
 
 <script setup>
@@ -316,6 +326,7 @@ import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import PicklistBatchSheet from '@/components/Picklist/PicklistBatchSheet.vue'
+import AuditTrail from '@/components/AuditTrail.vue'
 
 const router = useRouter()
 
@@ -446,6 +457,8 @@ const itemTableFilters = computed(() => {
   return tablesFilters
 })
 const showConfirmationModal = ref(null)
+const historyModal = ref(null)
+const showAuditTrailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -520,6 +533,9 @@ const handleOptionMenu = async (action, rowData) => {
     return
   case 'Print Job':
     batchSheetComponent.value.printBatchReport()
+    return
+  case 'View History':
+    showAuditTrailModal.value = 'pick_lists'
     return
   }
 }

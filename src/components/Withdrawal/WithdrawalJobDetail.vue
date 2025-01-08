@@ -5,7 +5,8 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit', disabled: editJob || withdrawJob.status == 'Completed' },
-            { text: 'Delete Job', optionClass: 'text-negative', disabled: editJob || withdrawJob.status == 'Completed' || withdrawJobItems.some(itm => itm.status == 'Withdrawn')}
+            { text: 'Delete Job', optionClass: 'text-negative', disabled: editJob || withdrawJob.status == 'Completed' || withdrawJobItems.some(itm => itm.status == 'Withdrawn')},
+            { text: 'View History' }
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
@@ -373,6 +374,15 @@
     :entry-type="showAddItemModal"
     @hide="showAddItemModal = null"
   />
+
+  <!-- audit trail modal -->
+  <AuditTrail
+    v-if="showAuditTrailModal"
+    ref="historyModal"
+    @reset="showAuditTrailModal = null"
+    :job-type="showAuditTrailModal"
+    :job-id="withdrawJob.id"
+  />
 </template>
 
 <script setup>
@@ -391,6 +401,7 @@ import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import WithdrawalJobAddItemModal from '@/components/Withdrawal/WithdrawalJobAddItemModal.vue'
+import AuditTrail from '@/components/AuditTrail.vue'
 
 const router = useRouter()
 
@@ -546,6 +557,8 @@ const trayTableFilters = computed(() => {
 })
 const showConfirmationModal = ref(null)
 const showAddItemModal = ref(null)
+const historyModal = ref(null)
+const showAuditTrailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -575,6 +588,9 @@ const handleOptionMenu = async (action, rowData) => {
     return
   case 'Remove Item':
     removeWithdrawItems([rowData.barcode.value])
+    return
+  case 'View History':
+    showAuditTrailModal.value = 'withdraw_jobs'
     return
   }
 }

@@ -5,7 +5,8 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit', hidden: !checkUserPermission('can_assign_and_reassign_refile_job'), disabled: appIsOffline || editJob || refileJob.status == 'Paused' || refileJob.status == 'Completed' },
-            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_refile_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed' || refileJob.refile_job_items.some(itm => itm.status == 'In')}
+            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_refile_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed' || refileJob.refile_job_items.some(itm => itm.status == 'In')},
+            { text: 'View History' }
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
@@ -273,6 +274,15 @@
     v-if="showRefileItemDetailModal"
     @hide="showRefileItemDetailModal = false"
   />
+
+  <!-- audit trail modal -->
+  <AuditTrail
+    v-if="showAuditTrailModal"
+    ref="historyModal"
+    @reset="showAuditTrailModal = null"
+    :job-type="showAuditTrailModal"
+    :job-id="refileJob.id"
+  />
 </template>
 
 <script setup>
@@ -294,6 +304,7 @@ import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import RefileItemDetailModal from '@/components/Refile/RefileItemDetailModal.vue'
+import AuditTrail from '@/components/AuditTrail.vue'
 
 const router = useRouter()
 
@@ -424,6 +435,8 @@ const itemTableFilters = computed(() => {
 })
 const showConfirmationModal = ref(null)
 const showRefileItemDetailModal = ref(false)
+const historyModal = ref(null)
+const showAuditTrailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -495,6 +508,9 @@ const handleOptionMenu = async (action, rowData) => {
     return
   case 'Revert Item to Queue':
     removeRefileItems([rowData.barcode.value])
+    return
+  case 'View History':
+    showAuditTrailModal.value = 'refile_jobs'
     return
   }
 }
