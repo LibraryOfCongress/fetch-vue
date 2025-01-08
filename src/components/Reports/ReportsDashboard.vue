@@ -498,14 +498,14 @@ const generateReportTableFields = () => {
       },
       {
         name: 'barcode',
-        field: row => row.barcode?.value,
+        field: row => row.tray ? row.tray?.barcode?.value : row.non_tray_item?.barcode?.value,
         label: 'Tray / Non-Tray Barcode',
         align: 'left',
         sortable: true
       },
       {
         name: 'size_class',
-        field: row => row.size_class?.name,
+        field: row => row.size_class?.short_name,
         label: 'Size Class',
         align: 'left',
         sortable: true
@@ -519,14 +519,14 @@ const generateReportTableFields = () => {
       },
       {
         name: 'assigned_location',
-        field: row => row.item ? getItemLocation(row.item.tray) : getItemLocation(row.non_tray_item),
+        field: row => row?.assigned_location,
         label: 'Assigned Location',
         align: 'left',
         sortable: true
       },
       {
         name: 'preassigned_location',
-        field: 'preassigned_location',
+        field: row => row.preassigned_location ? row.preassigned_location?.value : 'N/A',
         label: 'Pre-Assigned Location',
         align: 'left',
         sortable: true
