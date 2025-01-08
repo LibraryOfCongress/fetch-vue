@@ -146,6 +146,7 @@ const picklistTableColumns = ref([
 const picklistTableFilters =  ref([
   {
     field: 'status',
+    label: 'Status',
     options: [
       {
         text: 'Created',

@@ -422,6 +422,7 @@ const requestTableFilters = computed(() => {
     tablesFilters = [
       {
         field: row => row.request_type?.type,
+        label: 'Request Type',
         // render options based on the passed in table data
         // loop through all containers and return customized data set for table filtering and remove the duplicates
         options: getUniqueListByKey(requestItems.value.map(tableEntry => {
@@ -433,6 +434,7 @@ const requestTableFilters = computed(() => {
       },
       {
         field: row => row.item ? row.item?.status : row.non_tray_item?.status,
+        label: 'Status',
         options: getUniqueListByKey(requestItems.value.map(tableEntry => {
           return {
             text: tableEntry.item ? tableEntry.item.status : tableEntry.non_tray_item.status,
@@ -442,6 +444,7 @@ const requestTableFilters = computed(() => {
       },
       {
         field: row => row.priority?.value,
+        label: 'Priority',
         options: getUniqueListByKey(requestItems.value.map(tableEntry => {
           return {
             text: tableEntry.priority.value,
@@ -451,6 +454,7 @@ const requestTableFilters = computed(() => {
       },
       {
         field: row => row.item ? row.item?.media_type?.name : row.non_tray_item?.media_type?.name,
+        label: 'Media Type',
         options: getUniqueListByKey(requestItems.value.map(tableEntry => {
           return {
             text: tableEntry.item ? tableEntry.item?.media_type?.name : tableEntry.non_tray_item?.media_type?.name,

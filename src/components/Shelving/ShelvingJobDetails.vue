@@ -536,6 +536,7 @@ const shelfTableFilters = computed(() => {
     tablesFilters = [
       {
         field: (row) => row.owner?.name,
+        label: 'Owner',
         // render options based on the passed in table data
         // loop through all containers and return customized data set for table filtering and remove the duplicates
         options: getUniqueListByKey(shelvingJobContainers.value.map(c => {
@@ -547,6 +548,7 @@ const shelfTableFilters = computed(() => {
       },
       {
         field: (row) => row.size_class?.name,
+        label: 'Size Class',
         options: getUniqueListByKey(shelvingJobContainers.value.map(c => {
           return {
             text: c.size_class.name,

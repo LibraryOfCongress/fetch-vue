@@ -76,6 +76,7 @@ const searchResultsTableColumns = ref([])
 const searchResultsTableFilters =  ref([
   {
     field: 'status',
+    label: 'Status',
     options: [
       {
         text: 'Created',

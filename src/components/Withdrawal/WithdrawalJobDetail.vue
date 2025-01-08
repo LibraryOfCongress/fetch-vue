@@ -488,6 +488,7 @@ const itemTableFilters = computed(() => {
     tablesFilters = [
       {
         field: row => row.owner?.name,
+        label: 'Owner',
         // render options based on the passed in table data
         // loop through all containers and return customized data set for table filtering and remove the duplicates
         options: getUniqueListByKey(withdrawJobItems.value.map(tableEntry => {
@@ -544,6 +545,7 @@ const trayTableFilters = computed(() => {
     tablesFilters = [
       {
         field: row => row.owner?.name,
+        label: 'Owner',
         options: getUniqueListByKey(withdrawJob.value.trays.map(tableEntry => {
           return {
             text: tableEntry.owner?.name,

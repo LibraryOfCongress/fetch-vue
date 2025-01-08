@@ -104,6 +104,7 @@ const verificationTableColumns = ref([
 const verificationTableFilters =  ref([
   {
     field: 'trayed',
+    label: 'Job Type',
     options: [
       {
         text: 'Trayed',
@@ -119,6 +120,7 @@ const verificationTableFilters =  ref([
   },
   {
     field: 'status',
+    label: 'Status',
     options: [
       {
         text: 'Created',

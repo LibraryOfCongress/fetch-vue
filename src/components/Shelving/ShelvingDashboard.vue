@@ -537,6 +537,7 @@ const shelfTableFilters = computed(() => {
   tablesFilters = [
     {
       field: 'status',
+      label: 'Status',
       options: [
         {
           text: 'Created',

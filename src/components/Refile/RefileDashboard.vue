@@ -381,6 +381,7 @@ const refileTableFilters = computed(() => {
   tablesFilters = [
     {
       field: row => row.assigned_user ? `${row.assigned_user?.first_name} ${row.assigned_user?.last_name}` : '',
+      label: 'Assigned User',
       options: users.value.map(usr => {
         return {
           text: `${usr.first_name} ${usr.last_name}`,
@@ -454,6 +455,7 @@ const queueTableColumns = ref([
 const queueTableFilters =  ref([
   {
     field: 'container_type',
+    label: 'Container Type',
     options: [
       {
         text: 'Tray',

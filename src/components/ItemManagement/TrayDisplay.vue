@@ -273,6 +273,7 @@ const trayItemsTableColumns = ref([
 const trayItemTableFilters = ref([
   {
     field: 'media_type',
+    label: 'Media Type',
     options: [
       {
         text: 'Document',
@@ -286,6 +287,7 @@ const trayItemTableFilters = ref([
   },
   {
     field: 'size',
+    label: 'Size Class',
     options: [
       {
         text: 'C High',
