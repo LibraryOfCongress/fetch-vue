@@ -423,6 +423,7 @@ const itemTableFilters = computed(() => {
     tablesFilters = [
       {
         field: row => row.item ? row.item?.owner?.name : row.non_tray_item?.owner?.name,
+        label: 'Owner',
         // render options based on the passed in table data
         // loop through all containers and return customized data set for table filtering and remove the duplicates
         options: getUniqueListByKey(picklistItems.value.map(tableEntry => {
@@ -434,6 +435,7 @@ const itemTableFilters = computed(() => {
       },
       {
         field: row => row.item ? row.item?.size_class?.name : row.non_tray_item?.size_class?.name,
+        label: 'Size Class',
         options: getUniqueListByKey(picklistItems.value.map(tableEntry => {
           return {
             text: tableEntry.item ? tableEntry.item?.size_class?.name : tableEntry.non_tray_item?.size_class?.name,

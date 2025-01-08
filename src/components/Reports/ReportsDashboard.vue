@@ -168,6 +168,7 @@ const generatedTableColumns = ref([])
 const generatedTableFilters =  ref([
   {
     field: 'status',
+    label: 'Status',
     options: [
       {
         text: 'Created',

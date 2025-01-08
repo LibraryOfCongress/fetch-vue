@@ -400,6 +400,7 @@ const itemTableFilters = computed(() => {
     tablesFilters = [
       {
         field: row => row.owner?.name,
+        label: 'Owner',
         // render options based on the passed in table data
         // loop through all containers and return customized data set for table filtering and remove the duplicates
         options: getUniqueListByKey(refileJob.value.refile_job_items.map(tableEntry => {
@@ -411,6 +412,7 @@ const itemTableFilters = computed(() => {
       },
       {
         field: row => row.size_class?.name,
+        label: 'Size Class',
         options: getUniqueListByKey(refileJob.value.refile_job_items.map(tableEntry => {
           return {
             text: tableEntry.size_class?.name,

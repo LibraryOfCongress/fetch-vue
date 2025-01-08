@@ -45,7 +45,7 @@
               >
                 <q-item-section>
                   <q-item-label header>
-                    {{ renderFilterGroupLabel(data) }}
+                    {{ data.label }}
                   </q-item-label>
 
                   <q-item
@@ -308,6 +308,7 @@ const mainProps = defineProps({
       // [
       //   {
       //     field: 'media_type', or field: row => row.media_type.name
+      //     label: 'Media Type'
       //     options: [
       //       {
       //         text: 'Document',
@@ -321,6 +322,7 @@ const mainProps = defineProps({
       //   },
       //   {
       //     field: 'container_type',
+      //     label: 'Container Type'
       //     options: [
       //       {
       //         text: 'Book Tray',
@@ -330,6 +332,7 @@ const mainProps = defineProps({
       //   },
       //   {
       //     field: 'trayed',
+      //     label: 'Trayed'
       //     options: [
       //       {
       //         text: 'Trayed',
@@ -349,6 +352,7 @@ const mainProps = defineProps({
       //   {
       //     apiField: 'media_type'
       //     field: row => row.media_type.name
+      //     label: 'Media Type'
       //     options: [
       //       {
       //         text: 'Document',
@@ -466,20 +470,6 @@ const clearSelectedData = () => {
   tableComponent.value.clearSelection()
 }
 
-const renderFilterGroupLabel = (data) => {
-  let groupLabel = 'test'
-  localTableColumns.value.forEach(obj => {
-    console.log('rendered filter group',  obj.field.toString().replace(/\s+/g, '') == data.field.toString().replace(/\s+/g, ''))
-    console.log('1', obj.field.toString().replace(/\s+/g, ''))
-    console.log('2', data.field.toString().replace(/\s+/g, ''))
-  })
-  // find the matching active filter 'field' in localTableColumn fields
-  const matchingTableColumnFilter = localTableColumns.value.find(obj => obj.field.toString().replace(/\s+/g, '') == data.field.toString().replace(/\s+/g, ''))
-  if (matchingTableColumnFilter) {
-    groupLabel = matchingTableColumnFilter.label
-  }
-  return groupLabel
-}
 const filterTableData = () => {
   // get all user selected filters
   const activeFilters = localFilterOptions.value.flatMap(opt => {

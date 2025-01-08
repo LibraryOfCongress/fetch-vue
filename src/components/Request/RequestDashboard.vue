@@ -460,6 +460,7 @@ const requestTableColumns = ref([
 const requestTableFilters =  ref([
   {
     field: row => row.request_type?.type,
+    label: 'Request Type',
     options: [
       {
         text: 'General Delivery',
@@ -477,6 +478,7 @@ const requestTableFilters =  ref([
   },
   {
     field: row => row.item ? row.item?.status : row.non_tray_item?.status,
+    label: 'Status',
     options: [
       {
         text: 'PickList',
@@ -536,6 +538,7 @@ const requestBatchTableColumns = ref([
 const requestBatchTableFilters =  ref([
   {
     field: 'status',
+    label: 'Status',
     options: [
       {
         text: 'Created',

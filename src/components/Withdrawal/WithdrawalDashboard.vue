@@ -142,6 +142,7 @@ const withdrawTableColumns = ref([
 const withdrawTableFilters =  ref([
   {
     field: 'status',
+    label: 'Status',
     options: [
       {
         text: 'Created',
