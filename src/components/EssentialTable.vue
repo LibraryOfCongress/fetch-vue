@@ -45,7 +45,7 @@
               >
                 <q-item-section>
                   <q-item-label header>
-                    {{ localTableColumns.find(obj => obj.field.toString() == data.field.toString())?.label }}
+                    {{ renderFilterGroupLabel(data) }}
                   </q-item-label>
 
                   <q-item
@@ -466,18 +466,28 @@ const clearSelectedData = () => {
   tableComponent.value.clearSelection()
 }
 
+const renderFilterGroupLabel = (data) => {
+  let groupLabel = ''
+  // find the matching active filter 'field' in localTableColumn fields
+  const matchingTableColumnFilter = localTableColumns.value.find(obj => obj.field.toString().replace(/\s+/g, '') == data.field.toString().replace(/\s+/g, ''))
+  if (matchingTableColumnFilter) {
+    groupLabel = matchingTableColumnFilter.label
+  }
+  return groupLabel
+}
 const filterTableData = () => {
   // get all user selected filters
   const activeFilters = localFilterOptions.value.flatMap(opt => {
     if (opt.options.some(obj => obj.value == true)) {
       // if opt contains an apiField return that instead of the table field (this is for paginated filtering from the api)
+      const optValue = opt.options.filter(obj => obj.value == true).map(obj => Object.hasOwn(obj, 'boolValue') ? obj.boolValue : obj.text)
       if (opt.apiField) {
         return {
-          [opt.apiField]: opt.options.filter(obj => obj.value == true).map(obj => Object.hasOwn(obj, 'boolValue') ? obj.boolValue : obj.text)
+          [opt.apiField]: optValue
         }
       } else {
         return {
-          [opt.field]: opt.options.filter(obj => obj.value == true).map(obj => Object.hasOwn(obj, 'boolValue') ? obj.boolValue : obj.text)
+          [opt.field]: optValue
         }
       }
     } else {
@@ -499,10 +509,10 @@ const filterTableData = () => {
         val
       ]) => {
         if (field.includes('=>')) {
-        // if we pass in an arrow function string convert it to an actual function to check the entry param path
-        // ex row => row.barcode.value becomes entry.barcode.value and we compare that value to the selected filter
-          const fieldArrowFunc = eval(field.replaceAll('row', 'entry').split('=>').pop())
-          return val.includes(fieldArrowFunc, entry)
+          // if we pass in an arrow function string convert it to an actual function to check the entry param path
+          // ex row => row.barcode.value becomes entry.barcode.value and we compare that value to the selected filter
+          const fieldArrowFunc = eval(field)
+          return val.includes(fieldArrowFunc(entry))
         } else {
           return val.includes(entry[field])
         }
@@ -513,6 +523,7 @@ const filterTableData = () => {
     localTableData.value = [...toRaw(filteredData)]
   }
 }
+
 
 const onTableRequest = (props, tableFilters) => {
   if (mainProps.enablePagination) {
