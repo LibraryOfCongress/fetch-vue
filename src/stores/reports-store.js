@@ -5,7 +5,8 @@ export const useReportsStore = defineStore('reports-store', {
   state: () => ({
     reportDataTotal: 0,
     reportData: [],
-    reportQueryParams: {}
+    reportQueryParams: {},
+    auditTrailData: []
   }),
   actions: {
     resetReportsStore () {
@@ -86,6 +87,20 @@ export const useReportsStore = defineStore('reports-store', {
           link.remove()
           window.URL.revokeObjectURL(url)
         }
+      } catch (error) {
+        throw error
+      }
+    },
+    async getAuditTrailData (jobType, jobId) {
+      try {
+        this.auditTrailData = []
+        const res = await this.$api.get(`${inventoryServiceApi.history}${jobType}/${jobId}`)
+        this.auditTrailData = res.data.map(item => {
+          delete item.original_values
+          delete item.new_values
+          return item
+        })
+          .filter(item => item.last_action && item.last_action.trim() !== '')
       } catch (error) {
         throw error
       }

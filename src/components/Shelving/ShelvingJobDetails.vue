@@ -16,6 +16,7 @@
                 shelvingJob.status == 'Completed',
             },
             { text: 'Print Job' },
+            { text: 'View History' }
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
@@ -393,6 +394,15 @@
     ref="batchSheetComponent"
     :shelving-job-details="shelvingJob"
   />
+
+  <!-- audit trail modal -->
+  <AuditTrail
+    v-if="showAuditTrailModal"
+    ref="historyModal"
+    @reset="showAuditTrailModal = null"
+    :job-type="showAuditTrailModal"
+    :job-id="shelvingJob.id"
+  />
 </template>
 
 <script setup>
@@ -417,6 +427,7 @@ import PopupModal from '@/components/PopupModal.vue'
 import ShelvingBatchSheet from '@/components/Shelving/ShelvingBatchSheet.vue'
 import ShelvingJobDetailsEditLocationModal from '@/components/Shelving/ShelvingJobDetailsEditLocationModal.vue'
 import ShelvingJobDetailsScanContainerModal from '@/components/Shelving/ShelvingJobDetailsScanContainerModal.vue'
+import AuditTrail from '@/components/AuditTrail.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -551,6 +562,8 @@ const showShelvingLocationModal = ref(false)
 const showScanContainerNote = ref(false)
 const showScanContainerModal = ref(false)
 const showCompleteJobModal = ref(false)
+const historyModal = ref(null)
+const showAuditTrailModal = ref(false)
 
 // Logic
 const formatDateTime = inject('format-date-time')
@@ -675,6 +688,9 @@ const handleOptionMenu = async (action, rowData) => {
     return
   case 'Print Job':
     batchSheetComponent.value.printBatchReport()
+    return
+  case 'View History':
+    showAuditTrailModal.value = 'shelving_jobs'
     return
   }
 }

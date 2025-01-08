@@ -19,6 +19,7 @@ export default {
   buildings: '/buildings/',
   containerTypes: '/container-types/',
   groups: '/groups/',
+  history: '/history/',
   items: '/items/',
   itemsBarcode: '/items/barcode/',
   itemsMove: '/items/move/',
