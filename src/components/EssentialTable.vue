@@ -467,7 +467,12 @@ const clearSelectedData = () => {
 }
 
 const renderFilterGroupLabel = (data) => {
-  let groupLabel = ''
+  let groupLabel = 'test'
+  localTableColumns.value.forEach(obj => {
+    console.log('rendered filter group',  obj.field.toString().replace(/\s+/g, '') == data.field.toString().replace(/\s+/g, ''))
+    console.log('1', obj.field.toString().replace(/\s+/g, ''))
+    console.log('2', data.field.toString().replace(/\s+/g, ''))
+  })
   // find the matching active filter 'field' in localTableColumn fields
   const matchingTableColumnFilter = localTableColumns.value.find(obj => obj.field.toString().replace(/\s+/g, '') == data.field.toString().replace(/\s+/g, ''))
   if (matchingTableColumnFilter) {
