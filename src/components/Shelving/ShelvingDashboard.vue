@@ -559,6 +559,7 @@ const shelfTableFilters = computed(() => {
     },
     {
       field: row => row.user ? `${row.user.first_name} ${row.user.last_name}` : '',
+      label: 'Assigned User',
       apiField: 'assigned_user',
       options: users.value.map(usr => {
         return {
