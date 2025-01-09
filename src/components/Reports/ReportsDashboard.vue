@@ -76,7 +76,7 @@
                     <q-item
                       clickable
                       v-close-popup
-                      @click="reportPrintTemplate.value.printReport()"
+                      @click="reportPrintTemplate.printReport()"
                       role="menuitem"
                     >
                       <q-item-section>
@@ -136,7 +136,8 @@
     ref="reportPrintTemplate"
     :report-details="{
       type: reportType,
-      data: reportData
+      data: reportData,
+      headers: generatedTableColumns
     }"
   />
 </template>

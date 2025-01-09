@@ -18,10 +18,12 @@
           >
             <thead>
               <tr>
-                <th>Owner</th>
-                <th>Media Type</th>
-                <th>Size Class</th>
-                <th>Total Accessioned Count</th>
+                <th
+                  v-for="(data, i) in reportDetails.headers"
+                  :key="i"
+                >
+                  {{ data.label }}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -29,10 +31,12 @@
                 v-for="(data, i) in reportDetails.data"
                 :key="i"
               >
-                <td>{{ data.owner_name }}</td>
-                <td>{{ data.media_type_name }}</td>
-                <td>{{ data.size_class_name }}</td>
-                <td>{{ data.count }}</td>
+                <td
+                  v-for="(header, j) in reportDetails.headers"
+                  :key="j"
+                >
+                  {{ typeof header.field === 'function' ? header.field(data) : data[header.field] }}
+                </td>
               </tr>
             </tbody>
           </table>
@@ -45,6 +49,7 @@
 <script setup>
 import { ref } from 'vue'
 import PrintTemplate from '@/components/PrintTemplate.vue'
+
 // Props
 defineProps({
   reportDetails: {
