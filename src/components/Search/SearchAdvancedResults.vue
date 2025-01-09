@@ -13,17 +13,31 @@
           :enable-pagination="true"
           :pagination-total="searchResultsTotal"
           :pagination-loading="appIsLoadingData"
-          @update-pagination="paginateAdvancedSearch($event)"
+          @update-pagination="loadAdvancedSearch($event)"
           @selected-table-row="handleResultSelection($event)"
         >
           <template #heading-row>
             <div
-              class="col-xs-12 col-sm-auto col-md-12 col-lg-auto"
-              :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
+              class="col-12 q-mb-sm"
             >
               <h1 class="text-h4 text-bold">
                 Advanced Search
               </h1>
+            </div>
+
+            <div
+              v-if="route.params.searchType == 'Item'"
+              class="col-xs-12 col-sm-auto col-md-auto q-mb-xs-md q-mb-sm-none"
+            >
+              <ToggleButtonInput
+                v-model="toggleSearchTab"
+                :options="[
+                  {label: 'Non-Tray Items', value: 'nonTrayItem'},
+                  {label: 'Tray Items', value: 'trayItem'}
+                ]"
+                @update:model-value="loadAdvancedSearch(advanceSearchHistory, toggleSearchTab)"
+                class="text-no-wrap"
+              />
             </div>
           </template>
 
@@ -53,6 +67,7 @@ import { useGlobalStore } from '@/stores/global-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from '@/components/EssentialTable.vue'
+import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -70,6 +85,7 @@ const { getAdvancedSearchResults } = useSearchStore()
 const { appIsLoadingData } = storeToRefs(useGlobalStore())
 
 // Local Data
+const toggleSearchTab = ref(null)
 const searchResultsTableVisibleColumns = ref([])
 const searchResultsTableColumns = ref([])
 // TODO need to figure out how filtering will work
@@ -110,6 +126,8 @@ const generateSearchTableFields = () => {
   // creates the search table fields needed based on the route searcType
   switch (route.params.searchType) {
   case 'Item':
+    // set the default tab for advance item search
+    toggleSearchTab.value = 'nonTrayItem'
     searchResultsTableColumns.value = [
       {
         name: 'accession_dt',
@@ -654,10 +672,10 @@ const handleResultSelection = (rowData) => {
   }
 }
 
-const paginateAdvancedSearch = async (qParams) => {
+const loadAdvancedSearch = async (qParams, subType) => {
   try {
     appIsLoadingData.value = true
-    await getAdvancedSearchResults({ ...advanceSearchHistory.value, ...qParams }, route.params.searchType)
+    await getAdvancedSearchResults({ ...advanceSearchHistory.value, ...qParams }, route.params.searchType, subType)
   } catch (error) {
     handleAlert({
       type: 'error',
