@@ -116,6 +116,7 @@ const handleAlert = inject('handle-alert')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 onBeforeMount(() => {
+  loadAdvancedSearch(route.query)
   generateSearchTableFields()
 })
 watch(route, () => {
@@ -676,6 +677,9 @@ const loadAdvancedSearch = async (qParams, subType) => {
   try {
     appIsLoadingData.value = true
     await getAdvancedSearchResults({ ...advanceSearchHistory.value, ...qParams }, route.params.searchType, subType)
+
+    // update route queries to match new searches
+    router.replace({ query: { ...advanceSearchHistory.value, ...qParams } })
   } catch (error) {
     handleAlert({
       type: 'error',

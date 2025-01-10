@@ -619,7 +619,8 @@ const executeAdvancedSearch = async () => {
       name: 'search-results',
       params: {
         searchType: mainProps.searchType
-      }
+      },
+      query: queryParams
     })
   } catch (error) {
     handleAlert({
