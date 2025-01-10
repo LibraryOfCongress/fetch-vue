@@ -672,7 +672,7 @@ const generateReportModal = () => {
     break
   case 'Refile Discrepancy':
     reportForm.value = {
-      job_id: null, // allows multi select
+      job_id: null,
       from_dt: null,
       to_dt: null,
       assigned_user_id: null
@@ -704,6 +704,7 @@ const generateReportModal = () => {
     reportForm.value = {
       from_dt: null,
       to_dt: null,
+      shelving_job_id: null,
       assigned_user_id: null
     }
     reportParams.value = [
@@ -714,6 +715,10 @@ const generateReportModal = () => {
       {
         query: 'to_dt',
         label: 'Date (To)'
+      },
+      {
+        query: 'shelving_job_id',
+        label: 'Job Number'
       },
       {
         query: 'assigned_user_id',

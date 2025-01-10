@@ -37,6 +37,8 @@ const { getOptions } = useOptionStore()
 const handlePageOffset = inject('handle-page-offset')
 
 onBeforeMount( async () => {
+  appIsLoadingData.value = true
+
   // load any options info that will be needed on the shelving page
   await Promise.all([getOptions('users')])
 
@@ -45,10 +47,9 @@ onBeforeMount( async () => {
     await getShelvingJob(route.params.jobId)
   } else if (route.name == 'shelving-dts' && route.params.jobId) {
     // only load the direct shelving job page after dts data is retrieved since the store data is slightly different from whats returned from api
-    appIsLoadingData.value = true
     await getDirectShelvingJob(route.params.jobId)
-    appIsLoadingData.value = false
   }
+  appIsLoadingData.value = false
 })
 </script>
 <style lang="scss" scoped>
