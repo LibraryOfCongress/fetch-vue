@@ -149,6 +149,8 @@
               </label>
               <SelectInput
                 v-model="reportForm.size_class_id"
+                :multiple="true"
+                :hide-selected="false"
                 :options="sizeClass"
                 option-type="sizeClass"
                 option-value="id"
@@ -168,6 +170,8 @@
               </label>
               <SelectInput
                 v-model="reportForm.owner_id"
+                :multiple="true"
+                :hide-selected="false"
                 :options="owners"
                 option-type="owners"
                 option-value="id"
@@ -185,16 +189,12 @@
               <label class="form-group-label">
                 Height
               </label>
-              <SelectInput
-                v-model="reportForm.height_id"
-                :options="[]"
-                option-type="''"
-                option-value="id"
-                option-label="name"
-                :placeholder="`Select Height`"
+              <TextInput
+                v-model="reportForm.height"
+                :placeholder="`Enter Height`"
                 :disabled="!reportForm.shelf_id"
                 @update:model-value="null"
-                :aria-label="`heightSelect`"
+                :aria-label="`heightInput`"
               />
             </div>
           </div>
@@ -204,16 +204,12 @@
               <label class="form-group-label">
                 Width
               </label>
-              <SelectInput
-                v-model="reportForm.width_id"
-                :options="[]"
-                option-type="''"
-                option-value="id"
-                option-label="name"
-                :placeholder="`Select Width`"
+              <TextInput
+                v-model="reportForm.width"
+                :placeholder="`Enter Width`"
                 :disabled="!reportForm.shelf_id"
                 @update:model-value="null"
-                :aria-label="`widthSelect`"
+                :aria-label="`widthInput`"
               />
             </div>
           </div>
@@ -223,16 +219,12 @@
               <label class="form-group-label">
                 Depth
               </label>
-              <SelectInput
-                v-model="reportForm.depth_id"
-                :options="[]"
-                option-type="''"
-                option-value="id"
-                option-label="name"
-                :placeholder="`Select Depth`"
+              <TextInput
+                v-model="reportForm.depth"
+                :placeholder="`Enter Depth`"
                 :disabled="!reportForm.shelf_id"
                 @update:model-value="null"
-                :aria-label="`depthSelect`"
+                :aria-label="`depthInput`"
               />
             </div>
           </div>
@@ -339,7 +331,7 @@
                 </label>
                 <SelectInput
                   v-model="reportForm[param.query]"
-                  :multiple="true"
+                  :multiple="param.multiple"
                   :hide-selected="false"
                   :options="param.options"
                   :option-type="param.optionType"
@@ -519,18 +511,21 @@ const generateReportModal = () => {
       },
       {
         query: 'owner_id',
+        multiple: true,
         label: 'Owner',
         options: owners,
         optionType: 'owners'
       },
       {
         query: 'media_type_id',
+        multiple: true,
         label: 'Media Type',
         options: mediaTypes,
         optionType: 'mediaTypes'
       },
       {
         query: 'size_class_id',
+        multiple: true,
         label: 'Size Class',
         options: sizeClass,
         optionType: 'sizeClass'
@@ -664,9 +659,9 @@ const generateReportModal = () => {
       ladder_id: null,
       shelf_id: null,
       owner_id: null,
-      height_id: null,
-      width_id: null,
-      depth_id: null,
+      height: null,
+      width: null,
+      depth: null,
       partial_shelves: true
     }
     break
@@ -722,6 +717,7 @@ const generateReportModal = () => {
       },
       {
         query: 'assigned_user_id',
+        multiple: true,
         label: 'Assigned User',
         options: users,
         optionType: 'users'

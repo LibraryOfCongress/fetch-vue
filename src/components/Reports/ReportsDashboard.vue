@@ -370,7 +370,7 @@ const generateReportTableFields = () => {
     generatedTableColumns.value = [
       {
         name: 'shelf_location',
-        field: row => getItemLocation(row),
+        field: 'location',
         label: 'Shelf Location',
         align: 'left',
         sortable: true
@@ -384,7 +384,7 @@ const generateReportTableFields = () => {
       },
       {
         name: 'size_class',
-        field: row => row.size_class?.name,
+        field: row => row.shelf_type?.size_class?.short_name,
         label: 'Size Class',
         align: 'left',
         sortable: true

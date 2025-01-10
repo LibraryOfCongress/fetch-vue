@@ -36,6 +36,7 @@ export default {
   refileJobs: '/refile-jobs/',
   refileQueue: '/refile-queue/',
   reportingAccessionItems: '/reporting/accession-items',
+  reportingOpenLocations: '/reporting/open-locations/',
   reportingShelvingDiscrepancy: '/reporting/shelving-job-discrepancies/',
   requests: '/requests/',
   requestsLocations: '/requests/locations',
