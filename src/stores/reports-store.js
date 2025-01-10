@@ -57,6 +57,12 @@ export const useReportsStore = defineStore('reports-store', {
 
           // keep track of response total for pagination
           this.reportDataTotal = res.data.total
+        } else if (reportType == 'Open Locations') {
+          const res = await this.$api.get(inventoryServiceApi.reportingOpenLocations, { params: { ...paramsObj, size: 100 } } )
+          this.reportData = res.data.items
+
+          // keep track of response total for pagination
+          this.reportDataTotal = res.data.total
         }
 
         // Remember the query params for download
@@ -67,12 +73,17 @@ export const useReportsStore = defineStore('reports-store', {
     },
     async downloadReport (reportType) {
       try {
+        let endpoint = null
         if (reportType == 'Shelving Job Discrepancy') {
-          const res = await this.$api.get(`${inventoryServiceApi.reportingShelvingDiscrepancy}download`, {
+          endpoint = `${inventoryServiceApi.reportingShelvingDiscrepancy}`
+        } else if (reportType == 'Open Locations') {
+          endpoint = `${inventoryServiceApi.reportingOpenLocations}`
+        }
+        if (endpoint) {
+          const res = await this.$api.get(`${endpoint}download`, {
             params: { ...this.reportQueryParams },
             responseType: 'blob'
           })
-
           const url = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
 
           // Get the current date and time and format as YYYY_MM_DD_HH_MM_SS
