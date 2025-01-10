@@ -127,24 +127,6 @@
           <div class="col-12 q-mb-md">
             <div class="form-group">
               <label class="form-group-label">
-                Shelf
-              </label>
-              <SelectInput
-                v-model="reportForm.shelf_id"
-                :options="renderLadderShelves"
-                option-value="id"
-                :option-label="opt => opt.shelf_number.number"
-                :placeholder="'Select Shelf'"
-                :disabled="renderLadderShelves.length == 0"
-                @update:model-value="handleLocationFormChange('Shelf')"
-                aria-label="shelfSelect"
-              />
-            </div>
-          </div>
-
-          <div class="col-12 q-mb-md">
-            <div class="form-group">
-              <label class="form-group-label">
                 Size Class
               </label>
               <SelectInput
@@ -156,7 +138,7 @@
                 option-value="id"
                 option-label="name"
                 :placeholder="`Select Size Class`"
-                :disabled="!reportForm.shelf_id"
+                :disabled="!reportForm.ladder_id"
                 @update:model-value="null"
                 :aria-label="`sizeClassSelect`"
               />
@@ -177,7 +159,7 @@
                 option-value="id"
                 option-label="name"
                 :placeholder="`Select Owner`"
-                :disabled="!reportForm.shelf_id"
+                :disabled="!reportForm.ladder_id"
                 @update:model-value="null"
                 :aria-label="`ownerSelect`"
               />
@@ -192,7 +174,7 @@
               <TextInput
                 v-model="reportForm.height"
                 :placeholder="`Enter Height`"
-                :disabled="!reportForm.shelf_id"
+                :disabled="!reportForm.ladder_id"
                 @update:model-value="null"
                 :aria-label="`heightInput`"
               />
@@ -207,7 +189,7 @@
               <TextInput
                 v-model="reportForm.width"
                 :placeholder="`Enter Width`"
-                :disabled="!reportForm.shelf_id"
+                :disabled="!reportForm.ladder_id"
                 @update:model-value="null"
                 :aria-label="`widthInput`"
               />
@@ -222,7 +204,7 @@
               <TextInput
                 v-model="reportForm.depth"
                 :placeholder="`Enter Depth`"
-                :disabled="!reportForm.shelf_id"
+                :disabled="!reportForm.ladder_id"
                 @update:model-value="null"
                 :aria-label="`depthInput`"
               />
@@ -431,8 +413,7 @@ const {
   renderBuildingModules,
   renderBuildingOrModuleAisles,
   renderAisleSides,
-  renderSideLadders,
-  renderLadderShelves
+  renderSideLadders
 } = storeToRefs(useBuildingStore())
 const { getReport } = useReportsStore()
 
@@ -457,7 +438,6 @@ const handleLocationFormChange = async (valueType) => {
     reportForm.value.aisle_id = null
     reportForm.value.side_id = null
     reportForm.value.ladder_id = null
-    reportForm.value.shelf_id = null
     resetBuildingChildren()
     return
   case 'Module':
@@ -465,25 +445,21 @@ const handleLocationFormChange = async (valueType) => {
     reportForm.value.aisle_id = null
     reportForm.value.side_id = null
     reportForm.value.ladder_id = null
-    reportForm.value.shelf_id = null
     resetModuleChildren()
     return
   case 'Aisle':
     await getAisleDetails(reportForm.value.aisle_id)
     reportForm.value.side_id = null
     reportForm.value.ladder_id = null
-    reportForm.value.shelf_id = null
     resetAisleChildren()
     return
   case 'Side':
     await getSideDetails(reportForm.value.side_id)
     reportForm.value.ladder_id = null
-    reportForm.value.shelf_id = null
     resetSideChildren()
     return
   case 'Ladder':
     await getLadderDetails(reportForm.value.ladder_id)
-    reportForm.value.shelf_id = null
     return
   }
 }
@@ -657,7 +633,6 @@ const generateReportModal = () => {
       aisle_id: null,
       side_id: 1,
       ladder_id: null,
-      shelf_id: null,
       owner_id: null,
       height: null,
       width: null,
