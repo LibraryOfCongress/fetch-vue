@@ -138,7 +138,7 @@
                 option-value="id"
                 option-label="name"
                 :placeholder="`Select Size Class`"
-                :disabled="!reportForm.ladder_id"
+                :disabled="!reportForm.building_id"
                 @update:model-value="null"
                 :aria-label="`sizeClassSelect`"
               />
@@ -159,7 +159,7 @@
                 option-value="id"
                 option-label="name"
                 :placeholder="`Select Owner`"
-                :disabled="!reportForm.ladder_id"
+                :disabled="!reportForm.building_id"
                 @update:model-value="null"
                 :aria-label="`ownerSelect`"
               />
@@ -174,7 +174,7 @@
               <TextInput
                 v-model="reportForm.height"
                 :placeholder="`Enter Height`"
-                :disabled="!reportForm.ladder_id"
+                :disabled="!reportForm.building_id"
                 @update:model-value="null"
                 :aria-label="`heightInput`"
               />
@@ -189,7 +189,7 @@
               <TextInput
                 v-model="reportForm.width"
                 :placeholder="`Enter Width`"
-                :disabled="!reportForm.ladder_id"
+                :disabled="!reportForm.building_id"
                 @update:model-value="null"
                 :aria-label="`widthInput`"
               />
@@ -204,7 +204,7 @@
               <TextInput
                 v-model="reportForm.depth"
                 :placeholder="`Enter Depth`"
-                :disabled="!reportForm.ladder_id"
+                :disabled="!reportForm.building_id"
                 @update:model-value="null"
                 :aria-label="`depthInput`"
               />
