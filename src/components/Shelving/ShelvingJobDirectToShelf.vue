@@ -330,7 +330,7 @@ onBeforeMount(() => {
 
 onMounted(async () => {
   // when user is online and loads a job we store the current shelving job data in indexdb for reference offline
-  if (!appIsOffline.value) {
+  if (!appIsOffline.value && !appPendingSync.value) {
     await nextTick()
     addDataToIndexDb('shelvingStore', 'directToShelfJob', JSON.parse(JSON.stringify(directToShelfJob.value)))
   } else {

@@ -135,7 +135,9 @@ const checkForServiceWorkerUpdates = () => {
       // update the service workers and get latest content and refresh all indexDb instances
       const dbs = await window.indexedDB.databases()
       dbs.forEach(db => {
-        window.indexedDB.deleteDatabase(db.name)
+        if (db.name !== 'workbox-background-sync') {
+          window.indexedDB.deleteDatabase(db.name)
+        }
       })
       await registration.update()
     }
