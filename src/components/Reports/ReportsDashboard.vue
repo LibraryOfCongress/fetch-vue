@@ -76,7 +76,7 @@
                     <q-item
                       clickable
                       v-close-popup
-                      @click="reportPrintTemplate.value.printReport()"
+                      @click="reportPrintTemplate.printReport()"
                       role="menuitem"
                     >
                       <q-item-section>
@@ -136,7 +136,8 @@
     ref="reportPrintTemplate"
     :report-details="{
       type: reportType,
-      data: reportData
+      data: reportData,
+      headers: generatedTableColumns
     }"
   />
 </template>
@@ -168,6 +169,7 @@ const generatedTableColumns = ref([])
 const generatedTableFilters =  ref([
   {
     field: 'status',
+    label: 'Status',
     options: [
       {
         text: 'Created',
@@ -368,7 +370,7 @@ const generateReportTableFields = () => {
     generatedTableColumns.value = [
       {
         name: 'shelf_location',
-        field: row => getItemLocation(row),
+        field: 'location',
         label: 'Shelf Location',
         align: 'left',
         sortable: true
@@ -382,7 +384,7 @@ const generateReportTableFields = () => {
       },
       {
         name: 'size_class',
-        field: row => row.size_class?.name,
+        field: row => row.shelf_type?.size_class?.short_name,
         label: 'Size Class',
         align: 'left',
         sortable: true
@@ -498,14 +500,14 @@ const generateReportTableFields = () => {
       },
       {
         name: 'barcode',
-        field: row => row.barcode?.value,
+        field: row => row.tray ? row.tray?.barcode?.value : row.non_tray_item?.barcode?.value,
         label: 'Tray / Non-Tray Barcode',
         align: 'left',
         sortable: true
       },
       {
         name: 'size_class',
-        field: row => row.size_class?.name,
+        field: row => row.size_class?.short_name,
         label: 'Size Class',
         align: 'left',
         sortable: true
@@ -519,14 +521,14 @@ const generateReportTableFields = () => {
       },
       {
         name: 'assigned_location',
-        field: row => row.item ? getItemLocation(row.item.tray) : getItemLocation(row.non_tray_item),
+        field: row => row?.assigned_location,
         label: 'Assigned Location',
         align: 'left',
         sortable: true
       },
       {
         name: 'preassigned_location',
-        field: 'preassigned_location',
+        field: row => row.preassigned_location ? row.preassigned_location?.value : 'N/A',
         label: 'Pre-Assigned Location',
         align: 'left',
         sortable: true

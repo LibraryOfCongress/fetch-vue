@@ -459,29 +459,40 @@ const requestTableColumns = ref([
 ])
 const requestTableFilters =  ref([
   {
-    field: 'status',
+    field: row => row.request_type?.type,
+    label: 'Request Type',
     options: [
       {
-        text: 'Created',
+        text: 'General Delivery',
         value: false
       },
       {
-        text: 'Paused',
+        text: 'ILL (InterLibrary Loan)',
         value: false
       },
       {
-        text: 'On Hold',
+        text: 'Scan and Deliver',
+        value: false
+      }
+    ]
+  },
+  {
+    field: row => row.item ? row.item?.status : row.non_tray_item?.status,
+    label: 'Status',
+    options: [
+      {
+        text: 'PickList',
         value: false
       },
       {
-        text: 'Completed',
+        text: 'Requested',
         value: false
       }
     ]
   }
 ])
 const requestBatchTableVisibleColumns = ref([
-  'import_source',
+  'file_type',
   'request_count',
   'status',
   'uploaded_by',
@@ -489,7 +500,7 @@ const requestBatchTableVisibleColumns = ref([
 ])
 const requestBatchTableColumns = ref([
   {
-    name: 'import_source',
+    name: 'file_type',
     field: 'file_type',
     label: 'Import Source',
     align: 'left',
@@ -527,6 +538,7 @@ const requestBatchTableColumns = ref([
 const requestBatchTableFilters =  ref([
   {
     field: 'status',
+    label: 'Status',
     options: [
       {
         text: 'Created',
@@ -575,7 +587,7 @@ onBeforeMount(() => {
       'requestor_name'
     ]
     requestBatchTableVisibleColumns.value = [
-      'import_source',
+      'file_type',
       'request_count',
       'status',
       'import_dt'

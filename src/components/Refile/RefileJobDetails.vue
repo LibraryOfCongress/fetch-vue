@@ -5,7 +5,8 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit', hidden: !checkUserPermission('can_assign_and_reassign_refile_job'), disabled: appIsOffline || editJob || refileJob.status == 'Paused' || refileJob.status == 'Completed' },
-            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_refile_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed' || refileJob.refile_job_items.some(itm => itm.status == 'In')}
+            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_refile_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed' || refileJob.refile_job_items.some(itm => itm.status == 'In')},
+            { text: 'View History' }
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
@@ -183,13 +184,13 @@
         :enable-selection="false"
         :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
-        :highlight-row-class="'bg-color-green-light'"
+        :highlight-row-class="'justify-end bg-color-green-light'"
         :highlight-row-key="'status'"
         :highlight-row-value="'In'"
         @selected-table-row="loadRefileItem(renderItemBarcodeDisplay($event))"
       >
         <template #heading-row>
-          <div class="col-xs-7 col-sm-5 q-mb-md-sm">
+          <div class="col-xs-7 col-sm-5 q-mb-md-sm q-mr-auto">
             <h2 class="text-h4 text-bold">
               Items in Job:
             </h2>
@@ -273,10 +274,19 @@
     v-if="showRefileItemDetailModal"
     @hide="showRefileItemDetailModal = false"
   />
+
+  <!-- audit trail modal -->
+  <AuditTrail
+    v-if="showAuditTrailModal"
+    ref="historyModal"
+    @reset="showAuditTrailModal = null"
+    :job-type="showAuditTrailModal"
+    :job-id="refileJob.id"
+  />
 </template>
 
 <script setup>
-import { onBeforeMount, onMounted, ref, inject, toRaw, watch } from 'vue'
+import { onBeforeMount, onMounted, ref, computed, inject, toRaw, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -294,6 +304,7 @@ import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import RefileItemDetailModal from '@/components/Refile/RefileItemDetailModal.vue'
+import AuditTrail from '@/components/AuditTrail.vue'
 
 const router = useRouter()
 
@@ -394,29 +405,47 @@ const itemTableColumns = ref([
     headerStyle: 'max-width: 200px'
   }
 ])
-const itemTableFilters =  ref([
-  {
-    field: row => row.size_class.name,
-    options: [
+const itemTableFilters = computed(() => {
+  let tablesFilters = []
+  if (refileJob.value.refile_job_items.length > 0) {
+    tablesFilters = [
       {
-        text: 'C High',
-        value: false
+        field: row => row.owner?.name,
+        label: 'Owner',
+        // render options based on the passed in table data
+        // loop through all containers and return customized data set for table filtering and remove the duplicates
+        options: getUniqueListByKey(refileJob.value.refile_job_items.map(tableEntry => {
+          return {
+            text: tableEntry.owner?.name,
+            value: false
+          }
+        }), 'text')
       },
       {
-        text: 'C Low',
-        value: false
+        field: row => row.size_class?.name,
+        label: 'Size Class',
+        options: getUniqueListByKey(refileJob.value.refile_job_items.map(tableEntry => {
+          return {
+            text: tableEntry.size_class?.name,
+            value: false
+          }
+        }), 'text')
       }
     ]
   }
-])
+  return tablesFilters
+})
 const showConfirmationModal = ref(null)
 const showRefileItemDetailModal = ref(false)
+const historyModal = ref(null)
+const showAuditTrailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
+const getUniqueListByKey = inject('get-uniqure-list-by-key')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
@@ -481,6 +510,9 @@ const handleOptionMenu = async (action, rowData) => {
     return
   case 'Revert Item to Queue':
     removeRefileItems([rowData.barcode.value])
+    return
+  case 'View History':
+    showAuditTrailModal.value = 'refile_jobs'
     return
   }
 }

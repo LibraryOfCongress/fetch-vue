@@ -19,6 +19,7 @@ import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useShelvingStore } from '@/stores/shelving-store'
 import { useGlobalStore } from '@/stores/global-store'
+import { useOptionStore } from '@/stores/option-store'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import ShelvingDashboard from '@/components/Shelving/ShelvingDashboard.vue'
 import ShelvingJobDetails from '@/components/Shelving/ShelvingJobDetails.vue'
@@ -30,20 +31,25 @@ const route = useRoute()
 // Store Data
 const { getShelvingJob, getDirectShelvingJob } = useShelvingStore()
 const { appIsLoadingData } = storeToRefs(useGlobalStore())
+const { getOptions } = useOptionStore()
 
 // Logic
 const handlePageOffset = inject('handle-page-offset')
 
 onBeforeMount( async () => {
+  appIsLoadingData.value = true
+
+  // load any options info that will be needed on the shelving page
+  await Promise.all([getOptions('users')])
+
   // if there is an id in the url we need to load that shelving job
   if (route.name == 'shelving' && route.params.jobId) {
     await getShelvingJob(route.params.jobId)
   } else if (route.name == 'shelving-dts' && route.params.jobId) {
     // only load the direct shelving job page after dts data is retrieved since the store data is slightly different from whats returned from api
-    appIsLoadingData.value = true
     await getDirectShelvingJob(route.params.jobId)
-    appIsLoadingData.value = false
   }
+  appIsLoadingData.value = false
 })
 </script>
 <style lang="scss" scoped>

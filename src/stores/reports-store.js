@@ -5,7 +5,8 @@ export const useReportsStore = defineStore('reports-store', {
   state: () => ({
     reportDataTotal: 0,
     reportData: [],
-    reportQueryParams: {}
+    reportQueryParams: {},
+    auditTrailData: []
   }),
   actions: {
     resetReportsStore () {
@@ -15,16 +16,7 @@ export const useReportsStore = defineStore('reports-store', {
       try {
         this.reportData = []
         if (reportType == 'Item Accession') {
-          const res = await this.$api.get(inventoryServiceApi.reportingAccessionItems, { params: { size: this.apiPageSizeDefault, ...paramsObj },
-            paramsSerializer: function handleQuery (query) {
-              // this will process param arrays as multiple entries in get request query params
-              // ex: owner_id: [1,2] => owner_id=1&owner_id=2
-              return Object.entries(query).map(([
-                key,
-                value
-              ]) => Array.isArray(value) ? `${key}=${value.join('&' + key + '=')}` : `${key}=${value}`).join('&')
-            }
-          })
+          const res = await this.$api.get(inventoryServiceApi.reportingAccessionItems, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
           this.reportData = res.data.items
 
           // keep track of response total for pagination
@@ -65,6 +57,12 @@ export const useReportsStore = defineStore('reports-store', {
 
           // keep track of response total for pagination
           this.reportDataTotal = res.data.total
+        } else if (reportType == 'Open Locations') {
+          const res = await this.$api.get(inventoryServiceApi.reportingOpenLocations, { params: { ...paramsObj, size: 100 } } )
+          this.reportData = res.data.items
+
+          // keep track of response total for pagination
+          this.reportDataTotal = res.data.total
         }
 
         // Remember the query params for download
@@ -75,12 +73,17 @@ export const useReportsStore = defineStore('reports-store', {
     },
     async downloadReport (reportType) {
       try {
+        let endpoint = null
         if (reportType == 'Shelving Job Discrepancy') {
-          const res = await this.$api.get(`${inventoryServiceApi.reportingShelvingDiscrepancy}download`, {
+          endpoint = `${inventoryServiceApi.reportingShelvingDiscrepancy}`
+        } else if (reportType == 'Open Locations') {
+          endpoint = `${inventoryServiceApi.reportingOpenLocations}`
+        }
+        if (endpoint) {
+          const res = await this.$api.get(`${endpoint}download`, {
             params: { ...this.reportQueryParams },
             responseType: 'blob'
           })
-
           const url = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
 
           // Get the current date and time and format as YYYY_MM_DD_HH_MM_SS
@@ -95,6 +98,20 @@ export const useReportsStore = defineStore('reports-store', {
           link.remove()
           window.URL.revokeObjectURL(url)
         }
+      } catch (error) {
+        throw error
+      }
+    },
+    async getAuditTrailData (jobType, jobId) {
+      try {
+        this.auditTrailData = []
+        const res = await this.$api.get(`${inventoryServiceApi.history}${jobType}/${jobId}`)
+        this.auditTrailData = res.data.map(item => {
+          delete item.original_values
+          delete item.new_values
+          return item
+        })
+          .filter(item => item.last_action && item.last_action.trim() !== '')
       } catch (error) {
         throw error
       }

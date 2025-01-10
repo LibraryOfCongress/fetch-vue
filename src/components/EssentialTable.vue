@@ -45,7 +45,7 @@
               >
                 <q-item-section>
                   <q-item-label header>
-                    {{ localTableColumns.find(obj => obj.field.toString() == data.field.toString())?.label }}
+                    {{ data.label }}
                   </q-item-label>
 
                   <q-item
@@ -308,6 +308,7 @@ const mainProps = defineProps({
       // [
       //   {
       //     field: 'media_type', or field: row => row.media_type.name
+      //     label: 'Media Type'
       //     options: [
       //       {
       //         text: 'Document',
@@ -321,9 +322,44 @@ const mainProps = defineProps({
       //   },
       //   {
       //     field: 'container_type',
+      //     label: 'Container Type'
       //     options: [
       //       {
       //         text: 'Book Tray',
+      //         value: false
+      //       }
+      //     ]
+      //   },
+      //   {
+      //     field: 'trayed',
+      //     label: 'Trayed'
+      //     options: [
+      //       {
+      //         text: 'Trayed',
+      //         boolValue: true,
+      //         value: false
+      //       },
+      //       {
+      //         text: 'Non-Trayed',
+      //         boolValue: false,
+      //         value: false
+      //       }
+      //     ]
+      //   }
+      // ]
+      // example of how filterOptions need to be structured when filtering via api
+      // [
+      //   {
+      //     apiField: 'media_type'
+      //     field: row => row.media_type.name
+      //     label: 'Media Type'
+      //     options: [
+      //       {
+      //         text: 'Document',
+      //         value: false
+      //       },
+      //       {
+      //         text: 'Archival Material',
       //         value: false
       //       }
       //     ]
@@ -380,7 +416,7 @@ const selectedTableData = ref([])
 const tableComponent = ref(null)
 const tableFilterMenuState = ref(false)
 const paginationConfig = ref({
-  sortBy: 'desc',
+  sortBy: '',
   descending: false,
   page: 1,
   rowsPerPage: 50 // this needs to match our apiPageSizeDefault
@@ -438,8 +474,16 @@ const filterTableData = () => {
   // get all user selected filters
   const activeFilters = localFilterOptions.value.flatMap(opt => {
     if (opt.options.some(obj => obj.value == true)) {
-      return {
-        [opt.field]: opt.options.filter(obj => obj.value == true).map(obj => obj.text)
+      // if opt contains an apiField return that instead of the table field (this is for paginated filtering from the api)
+      const optValue = opt.options.filter(obj => obj.value == true).map(obj => Object.hasOwn(obj, 'boolValue') ? obj.boolValue : obj.text)
+      if (opt.apiField) {
+        return {
+          [opt.apiField]: optValue
+        }
+      } else {
+        return {
+          [opt.field]: optValue
+        }
       }
     } else {
       return []
@@ -448,41 +492,67 @@ const filterTableData = () => {
   // convert the filters array to a single object
   const activeFiltersObj = Object.assign({}, ...activeFilters)
 
-  // filters the original table data based on the active filters obj
-  const filteredData = mainProps.tableData.filter(entry => {
+  if (mainProps.enablePagination) {
+    // call the table request function and pass active filters + required table props
+    onTableRequest(tableComponent.value, activeFiltersObj)
+  } else {
+    // filters the original table data based on the active filters obj if pagination is not enabled
+    const filteredData = mainProps.tableData.filter(entry => {
     // iterate through every active filter by field and selected filter values and check if the value exists under the table data entrys field
-    const filterMatchesData = Object.entries(activeFiltersObj).every(([
-      field,
-      val
-    ]) => {
-      if (field.includes('=>')) {
-        // if we pass in an arrow function string convert it to an actual function to check the entry param path
-        // ex row => row.barcode.value becomes entry.barcode.value and we compare that value to the selected filter
-        const fieldArrowFunc = eval(field.replaceAll('row', 'entry').split('=>').pop())
-        return val.includes(fieldArrowFunc, entry)
-      } else {
-        return val.includes(entry[field])
-      }
+      const filterMatchesData = Object.entries(activeFiltersObj).every(([
+        field,
+        val
+      ]) => {
+        if (field.includes('=>')) {
+          // if we pass in an arrow function string convert it to an actual function to check the entry param path
+          // ex row => row.barcode.value becomes entry.barcode.value and we compare that value to the selected filter
+          const fieldArrowFunc = eval(field)
+          return val.includes(fieldArrowFunc(entry))
+        } else {
+          return val.includes(entry[field])
+        }
+      })
+      return filterMatchesData
     })
-    return filterMatchesData
-  })
 
-  localTableData.value = [...toRaw(filteredData)]
+    localTableData.value = [...toRaw(filteredData)]
+  }
 }
 
-const onTableRequest = (props) => {
-  console.log('paginate table', props)
+
+const onTableRequest = (props, tableFilters) => {
   if (mainProps.enablePagination) {
     const { page, sortBy, rowsPerPage, descending } = props.pagination
 
-    // update local pagination object
-    paginationConfig.value.page = page
-    paginationConfig.value.rowsPerPage = rowsPerPage
-    paginationConfig.value.sortBy = sortBy
-    paginationConfig.value.descending = descending
+    // update local pagination object to match table props
+    paginationConfig.value = {
+      ...paginationConfig.value,
+      page,
+      sortBy,
+      rowsPerPage,
+      descending
+    }
+
+    // if filters are passed update our pagination object and add/remove the filters
+    if (tableFilters) {
+      paginationConfig.value = {
+        ...tableFilters,
+        page,
+        sortBy,
+        rowsPerPage,
+        descending,
+        rowsNumber: paginationConfig.value.rowsNumber
+      }
+    }
 
     // emit to parent to get next set of paged data with refrenced query params
-    emit('update-pagination', { size: rowsPerPage, page, sort_by: sortBy, sort_order: descending ? 'desc' : 'asc' })
+    emit('update-pagination', {
+      ...paginationConfig.value,
+      size: paginationConfig.value.rowsPerPage,
+      page: paginationConfig.value.page,
+      sort_by: paginationConfig.value.sortBy,
+      sort_order: paginationConfig.value.descending ? 'desc' : 'asc'
+    })
   }
 }
 

@@ -115,7 +115,7 @@
         :table-columns="shelfTableColumns"
         :table-visible-columns="shelfTableVisibleColumns"
         :table-data="shelvingJobContainers"
-        :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
+        :heading-row-class="'justify-end q-mb-lg q-px-xs-sm q-px-sm-md'"
         :highlight-row-class="'bg-color-green-light'"
         :highlight-row-key="'scanned_for_shelving'"
         :highlight-row-value="true"
@@ -330,7 +330,7 @@ onBeforeMount(() => {
 
 onMounted(async () => {
   // when user is online and loads a job we store the current shelving job data in indexdb for reference offline
-  if (!appIsOffline.value) {
+  if (!appIsOffline.value && !appPendingSync.value) {
     await nextTick()
     addDataToIndexDb('shelvingStore', 'directToShelfJob', JSON.parse(JSON.stringify(directToShelfJob.value)))
   } else {

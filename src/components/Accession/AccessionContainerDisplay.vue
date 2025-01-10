@@ -298,7 +298,7 @@
           no-caps
           unelevated
           color="accent"
-          label="submit"
+          label="Submit"
           class="text-body1 full-width"
           :disabled="!manualBarcodeEdit"
           :loading="appActionIsLoadingData"

@@ -135,7 +135,9 @@ const checkForServiceWorkerUpdates = () => {
       // update the service workers and get latest content and refresh all indexDb instances
       const dbs = await window.indexedDB.databases()
       dbs.forEach(db => {
-        window.indexedDB.deleteDatabase(db.name)
+        if (db.name !== 'workbox-background-sync') {
+          window.indexedDB.deleteDatabase(db.name)
+        }
       })
       await registration.update()
     }
@@ -175,6 +177,13 @@ const getNestedKeyPath = (obj, path) => {
   return getNestedKeyPath(obj[path[0]], path.slice(1))
 }
 provide('get-nested-key-path', getNestedKeyPath)
+const getUniqueListByKey = (arr, key) => {
+  // removes duplicate objects from provided array using specified key
+  return arr.filter((obj1, i, array) =>
+    array.findIndex(obj2 => (obj2[key] == obj1[key])) == i
+  )
+}
+provide('get-uniqure-list-by-key', getUniqueListByKey)
 const formatDateTime = (dateTime) => {
   if (!dateTime) {
     return {

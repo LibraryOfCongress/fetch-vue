@@ -14,7 +14,10 @@
 
         <section>
           <p class="text-bold q-mb-sm">
-            Shelving Job Completed Date: {{ shelvingJobDetails.status == 'Completed' ? formatDateTime(shelvingJobDetails.last_transition).date : '' }}
+            Shelving Job Completed Date/Time: {{ shelvingJobDetails.status == 'Completed' ? formatDateTime(shelvingJobDetails.last_transition).dateTime : '' }}
+          </p>
+          <p class="text-bold q-mb-sm">
+            Shelving Job Created Date/Time: {{ formatDateTime(shelvingJobDetails.create_dt).dateTime }}
           </p>
           <p class="text-bold">
             Shelving Job User: {{ shelvingJobDetails.user ? `${shelvingJobDetails.user.first_name} ${shelvingJobDetails.user.last_name}` : 'No Assignee' }}

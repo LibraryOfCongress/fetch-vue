@@ -284,7 +284,24 @@ const accessionTableColumns = ref([
 ])
 const accessionTableFilters =  ref([
   {
+    field: 'trayed',
+    label: 'Job Type',
+    options: [
+      {
+        text: 'Trayed',
+        boolValue: true,
+        value: false
+      },
+      {
+        text: 'Non-Trayed',
+        boolValue: false,
+        value: false
+      }
+    ]
+  },
+  {
     field: 'status',
+    label: 'Status',
     options: [
       {
         text: 'Created',
@@ -296,6 +313,10 @@ const accessionTableFilters =  ref([
       },
       {
         text: 'Running',
+        value: false
+      },
+      {
+        text: 'Completed',
         value: false
       }
     ]
