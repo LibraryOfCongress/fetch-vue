@@ -139,7 +139,7 @@ const routes = [
       },
       {
         name: 'item-management-items',
-        path: 'item-management/items',
+        path: 'item-management/items/:barcode?',
         component: () => import('@/pages/ItemManagementPage.vue'),
         meta: {
           requiresAuth: true,

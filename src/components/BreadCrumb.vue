@@ -214,7 +214,7 @@ const breadcrumbList = computed(() => {
   case 'item-management-items':
     breadCrumbs = [
       ...breadCrumbs,
-      { text: 'Item Management - Tray/Non-Tray Items' }
+      { text: `Item Management - Tray/Non-Tray Item: ${route.params.barcode}` }
     ]
     break
   case 'item-management-shelf':

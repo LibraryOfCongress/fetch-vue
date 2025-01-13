@@ -139,6 +139,19 @@
     :search-bar-input="searchText"
     @hide="showAdvancedSearchModal = false"
   />
+
+  <!-- Item Overlay (quick view for item exact searchs)-->
+  <ItemDataOverlay
+    v-if="showItemQuickView"
+    :item-data="itemDetails"
+    @close="showItemQuickView = false"
+    @update="router.push({
+      name: 'item-management-items',
+      params: {
+        barcode: searchText
+      }
+    })"
+  />
 </template>
 
 <script setup>
@@ -158,6 +171,7 @@ import { useRefileStore } from '@/stores/refile-store'
 import { useWithdrawalStore } from '@/stores/withdrawal-store'
 import { storeToRefs } from 'pinia'
 import SearchAdvancedModal from '@/components/Search/SearchAdvancedModal.vue'
+import ItemDataOverlay from '@/components/ItemManagement/ItemDataOverlay.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -244,6 +258,7 @@ const searchTypes = computed(() => {
 const showExactSearch = ref(false)
 const showAdvancedSearchModal = ref(false)
 const exactSearchResponseInfo = ref(null)
+const showItemQuickView = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -287,7 +302,7 @@ const handlingSearchResultRouting = () => {
   switch (searchType.value) {
   case 'Item':
     itemDetails.value = exactSearchResponseInfo.value
-    // TODO setup routing to item-management pages once they are built out
+    showItemQuickView.value = true
     break
   case 'Tray':
     trayDetails.value = exactSearchResponseInfo.value
