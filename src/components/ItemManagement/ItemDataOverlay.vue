@@ -71,8 +71,8 @@
           <label class="item-details-label">
             Owner:
           </label>
-          <p class="item-details-text outline">
-            {{ 'missing from owner object from api' }}
+          <p class="item-details-text">
+            {{ itemData.owner.name }}
           </p>
         </div>
       </q-card-section>
@@ -95,7 +95,7 @@
             Shelved Date:
           </label>
           <p class="item-details-text">
-            {{ 'missing shelved date from api' }}
+            {{ itemData.shelving_job && itemData.shelving_job.status == 'Completed' ? formatDateTime(itemData.shelving_job.last_transition).date : '' }}
           </p>
         </div>
         <div class="item-details">

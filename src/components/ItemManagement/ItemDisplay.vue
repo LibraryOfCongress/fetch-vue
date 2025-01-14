@@ -42,7 +42,7 @@
                 Owner
               </label>
               <p class="item-details-text">
-                {{ 'missing owner obj from api' }}
+                {{ itemDetails.owner.name }}
               </p>
             </div>
 
@@ -95,7 +95,7 @@
                 Shelved Date:
               </label>
               <p class="item-details-text">
-                {{ 'missing shelved date from api' }}
+                {{ itemDetails.shelving_job && itemDetails.shelving_job.status == 'Completed' ? formatDateTime(itemDetails.shelving_job.last_transition).date : '' }}
               </p>
             </div>
           </div>
