@@ -297,7 +297,7 @@
 </template>
 
 <script setup>
-import { inject, onMounted, ref, watch } from 'vue'
+import { inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useItemManagementStore } from '@/stores/item-management-store'
 import { useGlobalStore } from '@/stores/global-store'
@@ -309,7 +309,7 @@ import EssentialTable from '@/components/EssentialTable.vue'
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { getItemRequestHistory } = useItemManagementStore()
+const { getItemRequestHistory, resetItemManagementStore } = useItemManagementStore()
 const {
   itemDetails,
   itemRequestHistory,
@@ -354,6 +354,9 @@ const handleAlert = inject('handle-alert')
 
 onMounted(() => {
   loadRequestHistory()
+})
+onUnmounted(() => {
+  resetItemManagementStore()
 })
 
 // if user changes to another item while in the item display we need to make sure to load that items request history

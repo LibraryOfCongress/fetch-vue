@@ -397,7 +397,7 @@ const selectedItemData = ref(null)
 const handlePageOffset = inject('handle-page-offset')
 
 onBeforeMount( async () => {
-  if (route.name == 'item-management-items' && route.params.barcode && !itemDetails.value.id) {
+  if (route.name == 'item-management-items' && route.params.barcode) {
     await getItemDetails(route.params.barcode)
   }
 })

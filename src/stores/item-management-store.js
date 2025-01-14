@@ -17,7 +17,7 @@ export const useItemManagementStore = defineStore('item-management-store', {
   }),
   actions: {
     resetItemManagementStore () {
-      this.$reset
+      this.$reset()
     },
     async getItemDetails (barcodeValue) {
       try {
