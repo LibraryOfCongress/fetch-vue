@@ -339,7 +339,7 @@
           label="Run Report"
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
-          :disable="reportForm.hasOwnProperty('building_id') && reportForm.building_id == null"
+          :disable="!isReportFormValid"
           @click="generateReport()"
         />
 
@@ -358,7 +358,7 @@
 </template>
 
 <script setup>
-import { ref, inject, onBeforeMount } from 'vue'
+import { ref, inject, onBeforeMount, computed } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -421,6 +421,18 @@ const { getReport } = useReportsStore()
 const reportModal = ref(null)
 const reportParams = ref(null)
 const reportForm = ref({})
+const isReportFormValid = computed( () => {
+  switch (mainProps.reportType) {
+  case 'Item in Tray':
+  case 'Non-Tray Count':
+  case 'Tray/Item Count By Aisle':
+    return !!reportForm.value.building_id
+  case 'Open Locations':
+    return !(!reportForm.value.building_id && !(reportForm.value.owner_id?.length) && !(reportForm.value.size_class_id?.length))
+  default:
+    return true
+  }
+})
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -631,7 +643,7 @@ const generateReportModal = () => {
       building_id: null,
       module_id: null,
       aisle_id: null,
-      side_id: 1,
+      side_id: null,
       ladder_id: null,
       owner_id: null,
       height: null,
