@@ -138,7 +138,6 @@
                 option-value="id"
                 option-label="name"
                 :placeholder="`Select Size Class`"
-                :disabled="!reportForm.building_id"
                 @update:model-value="null"
                 :aria-label="`sizeClassSelect`"
               />
@@ -159,7 +158,6 @@
                 option-value="id"
                 option-label="name"
                 :placeholder="`Select Owner`"
-                :disabled="!reportForm.building_id"
                 @update:model-value="null"
                 :aria-label="`ownerSelect`"
               />
