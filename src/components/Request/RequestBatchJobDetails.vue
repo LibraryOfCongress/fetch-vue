@@ -425,10 +425,15 @@ const requestTableFilters = computed(() => {
         label: 'Request Type',
         // render options based on the passed in table data
         // loop through all containers and return customized data set for table filtering and remove the duplicates
-        options: getUniqueListByKey(requestItems.value.map(tableEntry => {
-          return {
-            text: tableEntry.request_type.type,
-            value: false
+        options: getUniqueListByKey(requestItems.value.flatMap(tableEntry => {
+          // these fields are optional so we need to account for blank entries using flatMap
+          if (tableEntry.request_type?.type) {
+            return {
+              text: tableEntry.request_type.type,
+              value: false
+            }
+          } else {
+            return []
           }
         }), 'text')
       },
@@ -445,10 +450,15 @@ const requestTableFilters = computed(() => {
       {
         field: row => row.priority?.value,
         label: 'Priority',
-        options: getUniqueListByKey(requestItems.value.map(tableEntry => {
-          return {
-            text: tableEntry.priority.value,
-            value: false
+        options: getUniqueListByKey(requestItems.value.flatMap(tableEntry => {
+          // these fields are optional so we need to account for blank entries using flatMap
+          if (tableEntry.priority?.value) {
+            return {
+              text: tableEntry.priority.value,
+              value: false
+            }
+          } else {
+            return []
           }
         }), 'text')
       },
