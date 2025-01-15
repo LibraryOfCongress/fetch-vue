@@ -95,7 +95,7 @@
                 Shelved Date:
               </label>
               <p class="item-details-text">
-                {{ formatDateTime(itemDetails.tray ? itemDetails.tray.shelved_dt : itemDetails.shelved_dt).date }}
+                {{ formatDateTime(itemDetails.tray ? itemDetails.tray.shelving_job?.update_dt : itemDetails.shelving_job?.update_dt).date }}
               </p>
             </div>
           </div>
@@ -218,7 +218,7 @@
               Shelved Date:
             </label>
             <p class="item-details-text">
-              {{ formatDateTime(itemDetails.tray ? itemDetails.tray.shelved_dt : itemDetails.shelved_dt).date }}
+              {{ formatDateTime(itemDetails.tray ? itemDetails.tray.shelving_job?.update_dt : itemDetails.shelving_job?.update_dt).date }}
             </p>
           </div>
           <div class="item-details">
@@ -290,6 +290,15 @@
               </h1>
             </div>
           </template>
+
+          <template #table-td="{ colName, value }">
+            <span
+              v-if="colName == 'create_dt'"
+              class=""
+            >
+              {{ formatDateTime(value).date }}
+            </span>
+          </template>
         </EssentialTable>
       </div>
     </div>
@@ -321,7 +330,7 @@ const { appIsLoadingData } = storeToRefs(useGlobalStore())
 const itemTableVisibleColumns = ref([
   'id',
   'external_request_id',
-  'requested_dt'
+  'create_dt'
 ])
 const itemTableColumns = ref([
   {
@@ -334,13 +343,13 @@ const itemTableColumns = ref([
   {
     name: 'external_request_id',
     field: 'external_request_id',
-    label: 'Request ID',
+    label: 'External Request ID',
     align: 'left',
     sortable: true
   },
   {
-    name: 'requested_dt',
-    field: 'requested_dt',
+    name: 'create_dt',
+    field: 'create_dt',
     label: 'Request Date',
     align: 'left',
     sortable: true
@@ -386,7 +395,17 @@ const renderItemBuilding = () => {
 const loadRequestHistory = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    await getItemRequestHistory(qParams)
+    if (itemDetails.value && itemDetails.value.container_type?.type == 'Non-Tray') {
+      await getItemRequestHistory({
+        ...qParams,
+        non_tray_item_barcode: itemDetails.value.barcode.value
+      })
+    } else {
+      await getItemRequestHistory({
+        ...qParams,
+        item_barcode: itemDetails.value.barcode.value
+      })
+    }
   } catch (error) {
     handleAlert({
       type: 'error',

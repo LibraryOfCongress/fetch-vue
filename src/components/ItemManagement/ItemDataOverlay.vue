@@ -95,7 +95,7 @@
             Shelved Date:
           </label>
           <p class="item-details-text">
-            {{ formatDateTime(itemData.tray ? itemData.tray.shelved_dt : itemData.shelved_dt).date }}
+            {{ formatDateTime(itemData.tray ? itemData.tray.shelving_job?.update_dt : itemData.shelving_job?.update_dt).date }}
           </p>
         </div>
         <div class="item-details">
@@ -142,43 +142,12 @@
         </div>
       </q-card-section>
 
-      <q-card-section class="column q-pt-none">
-        <h2 class="text-h5 q-mb-sm">
-          Request History
-        </h2>
-
-        <div class="item-details">
-          <label class="item-details-label">
-            Request ID:
-          </label>
-          <p class="item-details-text">
-            {{ 'missing from item detail api' }}
-          </p>
-        </div>
-        <div class="item-details">
-          <label class="item-details-label">
-            External Request ID:
-          </label>
-          <p class="item-details-text">
-            {{ 'missing from item detail api' }}
-          </p>
-        </div>
-        <div class="item-details">
-          <label class="item-details-label">
-            Request Date:
-          </label>
-          <p class="item-details-text">
-            {{ 'missing from item detail api' }}
-          </p>
-        </div>
-      </q-card-section>
-
       <q-card-section class="row items-center q-pt-sm">
         <q-btn
           outline
           class="full-width"
           color="accent"
-          label="Show Full Request History"
+          label="Show Item Request History"
           @click="emit('update')"
           v-close-popup
         />

@@ -43,13 +43,16 @@ export const useItemManagementStore = defineStore('item-management-store', {
     },
     async getItemRequestHistory (qParams) {
       try {
-        //TODO setup endpoint to get an items request history
-        console.log('getting item request history', qParams)
-        // const res = await this.$api.get(`${inventoryServiceApi.itemRequestHistory}${this.itemDetails.barcode.value}`, { params: { size: this.apiPageSizeDefault, ...qParams } })
-        // this.itemRequestHistory = res.data
+        const res = await this.$api.get(inventoryServiceApi.requests, {
+          params: {
+            size: this.apiPageSizeDefault,
+            ...qParams
+          }
+        })
+        this.itemRequestHistory = res.data.items
 
         // keep track of response total for pagination
-        // this.itemRequestHistoryTotal = res.data.total
+        this.itemRequestHistoryTotal = res.data.total
       } catch (error) {
         throw error
       }
