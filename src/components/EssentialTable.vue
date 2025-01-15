@@ -48,28 +48,40 @@
                     {{ data.label }}
                   </q-item-label>
 
+                  <template v-if="data.options.length > 0">
+                    <q-item
+                      v-for="opt in data.options"
+                      :key="opt.text"
+                      tag="label"
+                      v-ripple
+                      :class="opt.value ? 'active' : ''"
+                      role=""
+                    >
+                      <q-item-section
+                        side
+                        top
+                      >
+                        <q-checkbox
+                          v-model="opt.value"
+                          @update:model-value="filterTableData(opt)"
+                          aria-label="tableFilterOptionCheckbox"
+                          role="menuitemcheckbox"
+                        />
+                      </q-item-section>
+
+                      <q-item-section>
+                        <q-item-label>{{ opt.text }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </template>
                   <q-item
-                    v-for="opt in data.options"
-                    :key="opt.text"
+                    v-else
+                    :disable="true"
                     tag="label"
-                    v-ripple
-                    :class="opt.value ? 'active' : ''"
                     role=""
                   >
-                    <q-item-section
-                      side
-                      top
-                    >
-                      <q-checkbox
-                        v-model="opt.value"
-                        @update:model-value="filterTableData(opt)"
-                        aria-label="tableFilterOptionCheckbox"
-                        role="menuitemcheckbox"
-                      />
-                    </q-item-section>
-
                     <q-item-section>
-                      <q-item-label>{{ opt.text }}</q-item-label>
+                      <q-item-label>No Filters Found</q-item-label>
                     </q-item-section>
                   </q-item>
                 </q-item-section>
