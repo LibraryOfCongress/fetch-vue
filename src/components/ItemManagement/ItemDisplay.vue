@@ -23,18 +23,26 @@
               <label class="item-details-label text-h6">
                 Tray Barcode
               </label>
-              <p class="item-details-text">
-                {{ itemDetails.tray ? itemDetails.tray.barcode.value : 'N/A' }}
-              </p>
+              <EssentialLink
+                :title="itemDetails.tray ? itemDetails.tray.barcode.value : 'N/A'"
+                @click="() => (console.log('pending tray detail page'))"
+                :disabled="!itemDetails.tray"
+                dense
+                class="item-details-text q-pa-none"
+              />
             </div>
 
             <div class="item-details">
               <label class="item-details-label text-h6">
                 Shelf Barcode
               </label>
-              <p class="item-details-text">
-                {{ renderShelfBarcode() }}
-              </p>
+              <EssentialLink
+                :title="renderShelfBarcode()"
+                @click="() => (console.log('pending shelf detail page'))"
+                :disabled="!renderShelfBarcode()"
+                dense
+                class="item-details-text q-pa-none"
+              />
             </div>
 
             <div class="item-details">
@@ -152,17 +160,25 @@
             <label class="item-details-label">
               Tray Barcode:
             </label>
-            <p class="item-details-text">
-              {{ itemDetails.tray ? itemDetails.tray.barcode.value : 'N/A' }}
-            </p>
+            <EssentialLink
+              :title="itemDetails.tray ? itemDetails.tray.barcode.value : 'N/A'"
+              @click="() => (console.log('pending tray detail page'))"
+              :disabled="!itemDetails.tray"
+              dense
+              class="item-details-text q-pa-none"
+            />
           </div>
           <div class="item-details">
             <label class="item-details-label">
               Shelf Barcode:
             </label>
-            <p class="item-details-text">
-              {{ renderShelfBarcode() }}
-            </p>
+            <EssentialLink
+              :title="renderShelfBarcode()"
+              @click="() => (console.log('pending shelf detail page'))"
+              :disabled="!renderShelfBarcode()"
+              dense
+              class="item-details-text q-pa-none"
+            />
           </div>
           <div class="item-details">
             <label class="item-details-label">
@@ -313,6 +329,7 @@ import { useGlobalStore } from '@/stores/global-store'
 import { storeToRefs } from 'pinia'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
+import EssentialLink from '@/components/EssentialLink.vue'
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()

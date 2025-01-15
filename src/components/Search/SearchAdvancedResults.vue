@@ -604,12 +604,14 @@ const renderUserName = (userObj) => {
 const handleResultSelection = (rowData) => {
   switch (route.params.searchType) {
     case 'Item':
-      router.push({
-        name: 'item-management-items',
-        params: {
-          barcode: rowData.barcode.value
-        }
-      })
+      if (rowData.barcode) {
+        router.push({
+          name: 'item-management-items',
+          params: {
+            barcode: rowData.barcode.value
+          }
+        })
+      }
       break
     case 'Tray':
       console.log('routing to tray detail page')
