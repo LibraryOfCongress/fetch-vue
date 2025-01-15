@@ -40,7 +40,11 @@ register(process.env.SERVICE_WORKER_FILE, {
       position: 'top',
       multiline: true,
       actions: [
-        { label: 'Cancel', color: 'white', handler: () => { /**/ } },
+        {
+          label: 'Cancel',
+          color: 'white',
+          handler: () => { /**/ }
+        },
         {
           label: 'Ok',
           color: 'white',

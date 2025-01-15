@@ -27,8 +27,14 @@ const mainProps = defineProps({
     type: Array,
     default () {
       return [
-        { label: 'Yes', value: true },
-        { label: 'No', value: false }
+        {
+          label: 'Yes',
+          value: true
+        },
+        {
+          label: 'No',
+          value: false
+        }
       ]
     }
   },

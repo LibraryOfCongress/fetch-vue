@@ -507,9 +507,9 @@ const neverShowContainerNote = () => {
 
 const handleOptionMenu = (action, rowData) => {
   switch (action.text) {
-  case 'Remove From Transfer':
-    removeTransferContainer(rowData.barcode.value)
-    return
+    case 'Remove From Transfer':
+      removeTransferContainer(rowData.barcode.value)
+      return
   }
 }
 

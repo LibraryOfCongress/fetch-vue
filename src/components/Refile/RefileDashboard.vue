@@ -529,7 +529,11 @@ const loadRefileJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
     if (refileDisplayType.value == 'refile_job') {
-      await getRefileJobList({ ...qParams, queue: true, user_id: checkUserPermission('can_view_all_refile_jobs') ? null : userData.value.user_id })
+      await getRefileJobList({
+        ...qParams,
+        queue: true,
+        user_id: checkUserPermission('can_view_all_refile_jobs') ? null : userData.value.user_id
+      })
     } else {
       await getRefileQueueList({ ...qParams })
     }

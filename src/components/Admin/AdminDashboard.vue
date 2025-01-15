@@ -152,27 +152,27 @@ onBeforeMount(() => {
 
 const handleRouting = (link) => {
   switch (link.title) {
-  case 'Buildings':
-    router.push({ name: 'admin-location-manage-buildings' })
-    break
-  case 'Bulk Upload Ladders/Shelves':
-    showBulkUploadLocationModal.value = true
-    break
-  case 'Add/Edit/Remove Owners':
-    router.push({ name: 'admin-manage-owner' })
-    break
-  case 'Add/Edit/Remove Media Type':
-    router.push({ name: 'admin-manage-media-type' })
-    break
-  case 'Add/Edit/Remove Size Class':
-    router.push({ name: 'admin-manage-size-class' })
-    break
-  case 'Add/Edit/Remove Shelf Type':
-    router.push({ name: 'admin-manage-shelf-type' })
-    break
-  default:
-    showLocationManageRouteModal.value = link.title
-    break
+    case 'Buildings':
+      router.push({ name: 'admin-location-manage-buildings' })
+      break
+    case 'Bulk Upload Ladders/Shelves':
+      showBulkUploadLocationModal.value = true
+      break
+    case 'Add/Edit/Remove Owners':
+      router.push({ name: 'admin-manage-owner' })
+      break
+    case 'Add/Edit/Remove Media Type':
+      router.push({ name: 'admin-manage-media-type' })
+      break
+    case 'Add/Edit/Remove Size Class':
+      router.push({ name: 'admin-manage-size-class' })
+      break
+    case 'Add/Edit/Remove Shelf Type':
+      router.push({ name: 'admin-manage-shelf-type' })
+      break
+    default:
+      showLocationManageRouteModal.value = link.title
+      break
   }
 }
 </script>

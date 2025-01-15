@@ -268,7 +268,10 @@ const handleTrayScan = async (barcode_value) => {
 
       // set tray scanned status to true if the scanned tray wasnt already scanned at some point
       if (!verificationContainer.value.scanned_for_verification && verificationJob.value.status !== 'Completed') {
-        await patchVerificationTray({ id: verificationContainer.value.id, scanned_for_verification: true })
+        await patchVerificationTray({
+          id: verificationContainer.value.id,
+          scanned_for_verification: true
+        })
       }
 
       // set job status to running if it isnt already running

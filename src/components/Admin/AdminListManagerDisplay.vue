@@ -171,31 +171,31 @@ const listDataTotal = ref(0)
 const listData = computed(() => {
   let tableData = []
   switch (mainProps.listType) {
-  case 'owner':
-    tableData = owners.value
-    break
-  case 'media-type':
-    tableData = mediaTypes.value
-    break
-  case 'size-class':
-    tableData = sizeClass.value
-    break
-  case 'shelf-type': {
+    case 'owner':
+      tableData = owners.value
+      break
+    case 'media-type':
+      tableData = mediaTypes.value
+      break
+    case 'size-class':
+      tableData = sizeClass.value
+      break
+    case 'shelf-type': {
     // remove any duplicate shelf types by type name
     // ex: [{ id: 1, type: 'Full' }, { id: 2, type: 'Short' }, { id: 3, type: 'Full' }] returns [{ id: 1, type: 'Full' }, { id: 2, type: 'Short' }]
-    const uniqueShelfTypes = shelfTypes.value.reduce ((initArr, current) => {
-      const matchingShelfType = initArr.find(st => st.type === current.type)
-      if (!matchingShelfType) {
-        return initArr.concat([current])
-      } else {
-        return initArr
-      }
-    }, [])
-    tableData = uniqueShelfTypes
-    break
-  }
-  default:
-    break
+      const uniqueShelfTypes = shelfTypes.value.reduce ((initArr, current) => {
+        const matchingShelfType = initArr.find(st => st.type === current.type)
+        if (!matchingShelfType) {
+          return initArr.concat([current])
+        } else {
+          return initArr
+        }
+      }, [])
+      tableData = uniqueShelfTypes
+      break
+    }
+    default:
+      break
   }
   return tableData
 })
@@ -307,22 +307,34 @@ const generateTableOptionsMenu = () => {
   if (mainProps.listType == 'owner') {
     options = [
       { text: 'Edit Owner' },
-      { text: 'Delete Owner', optionClass: 'text-negative' }
+      {
+        text: 'Delete Owner',
+        optionClass: 'text-negative'
+      }
     ]
   } else if (mainProps.listType == 'media-type') {
     options = [
       { text: 'Edit Media Type' },
-      { text: 'Delete Media Type', optionClass: 'text-negative' }
+      {
+        text: 'Delete Media Type',
+        optionClass: 'text-negative'
+      }
     ]
   } else if (mainProps.listType == 'shelf-type') {
     options = [
       { text: 'Edit Shelf Type' },
-      { text: 'Delete Shelf Type', optionClass: 'text-negative' }
+      {
+        text: 'Delete Shelf Type',
+        optionClass: 'text-negative'
+      }
     ]
   } else {
     options = [
       { text: 'Edit Size Class' },
-      { text: 'Delete Size Class', optionClass: 'text-negative' }
+      {
+        text: 'Delete Size Class',
+        optionClass: 'text-negative'
+      }
     ]
   }
   return options
@@ -331,156 +343,156 @@ const generateTableOptionsMenu = () => {
 const generateListTableInfo = () => {
   // creates the report table fields needed based on the selected list type
   switch (mainProps.listType) {
-  case 'size-class':
-    listTableColumns.value = [
-      {
-        name: 'actions',
-        field: 'actions',
-        label: '',
-        align: 'center',
-        sortable: false,
-        required: true
-      },
-      {
-        name: 'name',
-        field: 'name',
-        label: 'Full Name',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'short_name',
-        field: 'short_name',
-        label: 'Short Name',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'width',
-        field: 'width',
-        label: 'Width (in)',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'depth',
-        field: 'depth',
-        label: 'Depth (in)',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'height',
-        field: 'height',
-        label: 'Height (in)',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'owner',
-        field: 'owners',
-        label: 'Owner(s)',
-        align: 'left',
-        sortable: true
-      }
-    ]
-    listTableVisibleColumns.value = [
-      'actions',
-      'name',
-      'short_name',
-      'width',
-      'depth',
-      'height',
-      'owner'
-    ]
-    break
-  case 'media-type':
-    listTableColumns.value = [
-      {
-        name: 'actions',
-        field: 'actions',
-        label: '',
-        align: 'center',
-        sortable: false,
-        required: true
-      },
-      {
-        name: 'name',
-        field: 'name',
-        label: 'Name',
-        align: 'left',
-        sortable: true
-      }
-    ]
-    listTableVisibleColumns.value = [
-      'actions',
-      'name'
-    ]
-    break
-  case 'shelf-type':
-    listTableColumns.value = [
-      {
-        name: 'actions',
-        field: 'actions',
-        label: '',
-        align: 'center',
-        sortable: false,
-        required: true
-      },
-      {
-        name: 'shelf_type',
-        field: 'type',
-        label: 'Shelf Type',
-        align: 'left',
-        sortable: true
-      }
-    ]
-    listTableVisibleColumns.value = [
-      'actions',
-      'shelf_type'
-    ]
-    break
-  case 'owner':
-    listTableColumns.value = [
-      {
-        name: 'actions',
-        field: 'actions',
-        label: '',
-        align: 'center',
-        sortable: false,
-        required: true
-      },
-      {
-        name: 'name',
-        field: 'name',
-        label: 'Owner Name',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'parent_owner',
-        field: row => row.parent_owner?.name,
-        label: 'Parent Owner',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'owner_tier_id',
-        field: 'owner_tier_id',
-        label: 'Owner Tier',
-        align: 'left',
-        sortable: true
-      }
-    ]
-    listTableVisibleColumns.value = [
-      'actions',
-      'name',
-      'parent_owner',
-      'owner_tier_id'
-    ]
-    break
-  default:
-    break
+    case 'size-class':
+      listTableColumns.value = [
+        {
+          name: 'actions',
+          field: 'actions',
+          label: '',
+          align: 'center',
+          sortable: false,
+          required: true
+        },
+        {
+          name: 'name',
+          field: 'name',
+          label: 'Full Name',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'short_name',
+          field: 'short_name',
+          label: 'Short Name',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'width',
+          field: 'width',
+          label: 'Width (in)',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'depth',
+          field: 'depth',
+          label: 'Depth (in)',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'height',
+          field: 'height',
+          label: 'Height (in)',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'owner',
+          field: 'owners',
+          label: 'Owner(s)',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      listTableVisibleColumns.value = [
+        'actions',
+        'name',
+        'short_name',
+        'width',
+        'depth',
+        'height',
+        'owner'
+      ]
+      break
+    case 'media-type':
+      listTableColumns.value = [
+        {
+          name: 'actions',
+          field: 'actions',
+          label: '',
+          align: 'center',
+          sortable: false,
+          required: true
+        },
+        {
+          name: 'name',
+          field: 'name',
+          label: 'Name',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      listTableVisibleColumns.value = [
+        'actions',
+        'name'
+      ]
+      break
+    case 'shelf-type':
+      listTableColumns.value = [
+        {
+          name: 'actions',
+          field: 'actions',
+          label: '',
+          align: 'center',
+          sortable: false,
+          required: true
+        },
+        {
+          name: 'shelf_type',
+          field: 'type',
+          label: 'Shelf Type',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      listTableVisibleColumns.value = [
+        'actions',
+        'shelf_type'
+      ]
+      break
+    case 'owner':
+      listTableColumns.value = [
+        {
+          name: 'actions',
+          field: 'actions',
+          label: '',
+          align: 'center',
+          sortable: false,
+          required: true
+        },
+        {
+          name: 'name',
+          field: 'name',
+          label: 'Owner Name',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'parent_owner',
+          field: row => row.parent_owner?.name,
+          label: 'Parent Owner',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'owner_tier_id',
+          field: 'owner_tier_id',
+          label: 'Owner Tier',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      listTableVisibleColumns.value = [
+        'actions',
+        'name',
+        'parent_owner',
+        'owner_tier_id'
+      ]
+      break
+    default:
+      break
   }
 }
 
@@ -514,50 +526,50 @@ const deleteListOption = async (id) => {
   try {
     appActionIsLoadingData.value = true
     switch (mainProps.listType) {
-    case 'size-class': {
-      await deleteSizeClass(id)
-      break
-    }
-    case 'media-type':
-      await deleteMediaType(id)
-      break
-    case 'owner':
-      await deleteOwner(id)
-      break
-    case 'shelf-type': {
-      const matchingShelfTypesById = shelfTypes.value.filter(s => s.type == shelfTypes.value.find(s => s.id == id).type)
-      let deletedShelfTypes = []
-      await Promise.all(matchingShelfTypesById.map(async shelfType => {
-        const res = await deleteShelfType(shelfType.id)
-        if (res.status == 200) {
-          deletedShelfTypes.push(shelfType)
-        } else {
+      case 'size-class': {
+        await deleteSizeClass(id)
+        break
+      }
+      case 'media-type':
+        await deleteMediaType(id)
+        break
+      case 'owner':
+        await deleteOwner(id)
+        break
+      case 'shelf-type': {
+        const matchingShelfTypesById = shelfTypes.value.filter(s => s.type == shelfTypes.value.find(s => s.id == id).type)
+        let deletedShelfTypes = []
+        await Promise.all(matchingShelfTypesById.map(async shelfType => {
+          const res = await deleteShelfType(shelfType.id)
+          if (res.status == 200) {
+            deletedShelfTypes.push(shelfType)
+          } else {
+            handleAlert({
+              type: 'error',
+              text: `"${shelfType.type} - ${shelfType.size_class.name}" is in use and cannot be deleted.`,
+              autoClose: false
+            })
+          }
+        }))
+
+        // display and alert for the successfully deleted shelfTypes
+        if (deletedShelfTypes.length == matchingShelfTypesById.length) {
           handleAlert({
-            type: 'error',
-            text: `"${shelfType.type} - ${shelfType.size_class.name}" is in use and cannot be deleted.`,
-            autoClose: false
+            type: 'success',
+            text: `"${deletedShelfTypes[0].type}" has been successfully deleted.`,
+            autoClose: true
+          })
+        } else if (deletedShelfTypes.length > 0) {
+          handleAlert({
+            type: 'success',
+            text: `${deletedShelfTypes.length} size classes have been successfully deleted from "${deletedShelfTypes[0].type}".`,
+            autoClose: true
           })
         }
-      }))
-
-      // display and alert for the successfully deleted shelfTypes
-      if (deletedShelfTypes.length == matchingShelfTypesById.length) {
-        handleAlert({
-          type: 'success',
-          text: `"${deletedShelfTypes[0].type}" has been successfully deleted.`,
-          autoClose: true
-        })
-      } else if (deletedShelfTypes.length > 0) {
-        handleAlert({
-          type: 'success',
-          text: `${deletedShelfTypes.length} size classes have been successfully deleted from "${deletedShelfTypes[0].type}".`,
-          autoClose: true
-        })
+        break
       }
-      break
-    }
-    default:
-      break
+      default:
+        break
     }
 
     handleAlert({

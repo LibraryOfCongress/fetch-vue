@@ -12,7 +12,10 @@ export function useAlertPopup () {
       persistent: false,
       timestamp: Date.now()
     }
-    alerts.value.push({ ...defaultOptions, ...options })
+    alerts.value.push({
+      ...defaultOptions,
+      ...options
+    })
 
     // intercept any error based alerts and check if there is an error object and change it to return response data
     if (alerts.value.some(alrt => alrt.type == 'error')) {
