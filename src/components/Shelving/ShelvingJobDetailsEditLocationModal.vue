@@ -302,45 +302,48 @@ watch(compiledBarCode, (barcode) => {
 const handleLocationFormChange = async (valueType) => {
   // reset the form depending on the edited form field type and clear any related building state as needed
   switch (valueType) {
-  case 'Module':
-    await getModuleDetails(locationForm.value.module_id)
-    locationForm.value.aisle_id = null
-    locationForm.value.side_id = null
-    locationForm.value.ladder_id = null
-    locationForm.value.shelf_id = null
-    locationForm.value.shelf_position_id = null
+    case 'Module':
+      await getModuleDetails(locationForm.value.module_id)
+      locationForm.value.aisle_id = null
+      locationForm.value.side_id = null
+      locationForm.value.ladder_id = null
+      locationForm.value.shelf_id = null
+      locationForm.value.shelf_position_id = null
 
-    // clear state for aisle options downward since user needs to select an aisle next to populate the rest of the data
-    resetModuleChildren()
-    return
-  case 'Aisle':
-    await getAisleDetails(locationForm.value.aisle_id)
-    locationForm.value.side_id = null
-    locationForm.value.ladder_id = null
-    locationForm.value.shelf_id = null
-    locationForm.value.shelf_position_id = null
+      // clear state for aisle options downward since user needs to select an aisle next to populate the rest of the data
+      resetModuleChildren()
+      return
+    case 'Aisle':
+      await getAisleDetails(locationForm.value.aisle_id)
+      locationForm.value.side_id = null
+      locationForm.value.ladder_id = null
+      locationForm.value.shelf_id = null
+      locationForm.value.shelf_position_id = null
 
-    resetAisleChildren()
-    return
-  case 'Side':
-    await getSideDetails(locationForm.value.side_id)
-    locationForm.value.ladder_id = null
-    locationForm.value.shelf_id = null
-    locationForm.value.shelf_position_id = null
+      resetAisleChildren()
+      return
+    case 'Side':
+      await getSideDetails(locationForm.value.side_id)
+      locationForm.value.ladder_id = null
+      locationForm.value.shelf_id = null
+      locationForm.value.shelf_position_id = null
 
-    resetSideChildren()
-    return
-  case 'Ladder':
-    await getLadderDetails(locationForm.value.ladder_id, { owner_id: mainProps.shelvingItem.owner.id, size_class_id: mainProps.shelvingItem.size_class.id })
-    locationForm.value.shelf_id = null
-    locationForm.value.shelf_position_id = null
+      resetSideChildren()
+      return
+    case 'Ladder':
+      await getLadderDetails(locationForm.value.ladder_id, {
+        owner_id: mainProps.shelvingItem.owner.id,
+        size_class_id: mainProps.shelvingItem.size_class.id
+      })
+      locationForm.value.shelf_id = null
+      locationForm.value.shelf_position_id = null
 
-    resetLadderChildren()
-    return
-  case 'Shelf':
-    await getShelfPositionsList(locationForm.value.shelf_id, true)
-    locationForm.value.shelf_position_id = null
-    return
+      resetLadderChildren()
+      return
+    case 'Shelf':
+      await getShelfPositionsList(locationForm.value.shelf_id, true)
+      locationForm.value.shelf_position_id = null
+      return
   }
 }
 const resetLocationForm = () => {

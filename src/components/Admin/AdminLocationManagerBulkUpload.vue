@@ -218,26 +218,26 @@ const handleAlert = inject('handle-alert')
 const handleLocationFormChange = async (valueType) => {
   // reset the report form depending on the edited form field type
   switch (valueType) {
-  case 'Building':
-    await getBuildingDetails(bulkUploadLocationForm.value.building_id)
-    bulkUploadLocationForm.value.module_id = null
-    bulkUploadLocationForm.value.aisle_id = null
-    bulkUploadLocationForm.value.side_id = null
-    resetBuildingChildren()
-    return
-  case 'Module':
-    await getModuleDetails(bulkUploadLocationForm.value.module_id)
-    bulkUploadLocationForm.value.aisle_id = null
-    bulkUploadLocationForm.value.side_id = null
-    resetModuleChildren()
-    return
-  case 'Aisle':
-    await getAisleDetails(bulkUploadLocationForm.value.aisle_id)
-    bulkUploadLocationForm.value.side_id = null
-    resetAisleChildren()
-    return
-  default:
-    return
+    case 'Building':
+      await getBuildingDetails(bulkUploadLocationForm.value.building_id)
+      bulkUploadLocationForm.value.module_id = null
+      bulkUploadLocationForm.value.aisle_id = null
+      bulkUploadLocationForm.value.side_id = null
+      resetBuildingChildren()
+      return
+    case 'Module':
+      await getModuleDetails(bulkUploadLocationForm.value.module_id)
+      bulkUploadLocationForm.value.aisle_id = null
+      bulkUploadLocationForm.value.side_id = null
+      resetModuleChildren()
+      return
+    case 'Aisle':
+      await getAisleDetails(bulkUploadLocationForm.value.aisle_id)
+      bulkUploadLocationForm.value.side_id = null
+      resetAisleChildren()
+      return
+    default:
+      return
   }
 }
 const resetBulkUploadLocationForm = () => {

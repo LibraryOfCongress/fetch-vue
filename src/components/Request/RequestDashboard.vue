@@ -627,7 +627,10 @@ const loadRequestJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
     if (requestDisplayType.value == 'request_view') {
-      await getRequestJobList({ ...qParams, queue: true })
+      await getRequestJobList({
+        ...qParams,
+        queue: true
+      })
     } else {
       await getRequestBatchJobList({ ...qParams })
     }
@@ -646,7 +649,10 @@ const loadRequestJobsByBuilding = async () => {
     appActionIsLoadingData.value = true
     // this function only gets called during the creation/add picklist workflow
     if (requestDisplayType.value == 'request_view') {
-      await getRequestJobList({ building_id: filterRequestsByBuilding.value, unassociated_pick_list: true })
+      await getRequestJobList({
+        building_id: filterRequestsByBuilding.value,
+        unassociated_pick_list: true
+      })
     } else {
       await getRequestBatchJobList({ building_id: filterRequestsByBuilding.value })
     }

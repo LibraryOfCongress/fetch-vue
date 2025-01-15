@@ -609,43 +609,47 @@ const resetCreateShelfJobModal = () => {
 const handleShelvingJobFormChange = async (valueType) => {
   // reset the form depending on the edited form field type
   switch (valueType) {
-  case 'Building':
-    await getBuildingDetails(shelvingJob.value.building_id)
-    shelvingJob.value.module_id = null
-    shelvingJob.value.aisle_id = null
-    shelvingJob.value.side_id = null
-    shelvingJob.value.ladder_id = null
-    resetBuildingChildren()
-    return
-  case 'Module':
-    await getModuleDetails(shelvingJob.value.module_id)
-    shelvingJob.value.aisle_id = null
-    shelvingJob.value.side_id = null
-    shelvingJob.value.ladder_id = null
-    // clear state for aisle options downward since user needs to select an aisle next to populate the rest of the data
-    resetModuleChildren()
-    return
-  case 'Aisle':
-    await getAisleDetails(shelvingJob.value.aisle_id)
-    shelvingJob.value.side_id = null
-    shelvingJob.value.ladder_id = null
-    resetAisleChildren()
-    return
-  case 'Side':
-    await getSideDetails(shelvingJob.value.side_id)
-    shelvingJob.value.ladder_id = null
-    resetSideChildren()
-    return
-  case 'Ladder':
-    await getLadderDetails(shelvingJob.value.ladder_id)
-    return
+    case 'Building':
+      await getBuildingDetails(shelvingJob.value.building_id)
+      shelvingJob.value.module_id = null
+      shelvingJob.value.aisle_id = null
+      shelvingJob.value.side_id = null
+      shelvingJob.value.ladder_id = null
+      resetBuildingChildren()
+      return
+    case 'Module':
+      await getModuleDetails(shelvingJob.value.module_id)
+      shelvingJob.value.aisle_id = null
+      shelvingJob.value.side_id = null
+      shelvingJob.value.ladder_id = null
+      // clear state for aisle options downward since user needs to select an aisle next to populate the rest of the data
+      resetModuleChildren()
+      return
+    case 'Aisle':
+      await getAisleDetails(shelvingJob.value.aisle_id)
+      shelvingJob.value.side_id = null
+      shelvingJob.value.ladder_id = null
+      resetAisleChildren()
+      return
+    case 'Side':
+      await getSideDetails(shelvingJob.value.side_id)
+      shelvingJob.value.ladder_id = null
+      resetSideChildren()
+      return
+    case 'Ladder':
+      await getLadderDetails(shelvingJob.value.ladder_id)
+      return
   }
 }
 
 const loadShelvingJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    await getShelvingJobList({ ...qParams, queue: true, user_id: checkUserPermission('can_view_all_shelving_jobs') ? null : userData.value.user_id })
+    await getShelvingJobList({
+      ...qParams,
+      queue: true,
+      user_id: checkUserPermission('can_view_all_shelving_jobs') ? null : userData.value.user_id
+    })
   } catch (error) {
     handleAlert({
       type: 'error',

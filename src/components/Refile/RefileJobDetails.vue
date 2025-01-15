@@ -502,18 +502,18 @@ const triggerItemScan = (barcode_value) => {
 
 const handleOptionMenu = async (action, rowData) => {
   switch (action.text) {
-  case 'Edit':
-    editJob.value = true
-    return
-  case 'Delete Job':
-    showConfirmationModal.value = 'DeleteJob'
-    return
-  case 'Revert Item to Queue':
-    removeRefileItems([rowData.barcode.value])
-    return
-  case 'View History':
-    showAuditTrailModal.value = 'refile_jobs'
-    return
+    case 'Edit':
+      editJob.value = true
+      return
+    case 'Delete Job':
+      showConfirmationModal.value = 'DeleteJob'
+      return
+    case 'Revert Item to Queue':
+      removeRefileItems([rowData.barcode.value])
+      return
+    case 'View History':
+      showAuditTrailModal.value = 'refile_jobs'
+      return
   }
 }
 

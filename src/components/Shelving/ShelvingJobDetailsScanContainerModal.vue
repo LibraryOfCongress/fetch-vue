@@ -265,9 +265,15 @@ const updateContainerLocation = async () => {
       updatedLocationString[6] = payload.shelf_position_number
       shelvingJobContainer.value.shelf_position.location = updatedLocationString.join('-')
       if (payload.trayed) {
-        shelvingJob.value.trays[shelvingJob.value.trays.findIndex(container => container.id == payload.container_id)] = { ...shelvingJobContainer.value, scanned_for_shelving: payload.scanned_for_shelving }
+        shelvingJob.value.trays[shelvingJob.value.trays.findIndex(container => container.id == payload.container_id)] = {
+          ...shelvingJobContainer.value,
+          scanned_for_shelving: payload.scanned_for_shelving
+        }
       } else {
-        shelvingJob.value.non_tray_items[shelvingJob.value.non_tray_items.findIndex(container => container.id == payload.container_id)] = { ...shelvingJobContainer.value, scanned_for_shelving: payload.scanned_for_shelving }
+        shelvingJob.value.non_tray_items[shelvingJob.value.non_tray_items.findIndex(container => container.id == payload.container_id)] = {
+          ...shelvingJobContainer.value,
+          scanned_for_shelving: payload.scanned_for_shelving
+        }
       }
     }
 

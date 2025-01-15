@@ -16,7 +16,12 @@ export const useReportsStore = defineStore('reports-store', {
       try {
         this.reportData = []
         if (reportType == 'Item Accession') {
-          const res = await this.$api.get(inventoryServiceApi.reportingAccessionItems, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
+          const res = await this.$api.get(inventoryServiceApi.reportingAccessionItems, {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
+            }
+          })
           this.reportData = res.data.items
 
           // keep track of response total for pagination
@@ -52,13 +57,23 @@ export const useReportsStore = defineStore('reports-store', {
           //   }
           // })
         } else if (reportType == 'Shelving Job Discrepancy') {
-          const res = await this.$api.get(inventoryServiceApi.reportingShelvingDiscrepancy, { params: { ...paramsObj, size: 100 } } )
+          const res = await this.$api.get(inventoryServiceApi.reportingShelvingDiscrepancy, {
+            params: {
+              ...paramsObj,
+              size: 100
+            }
+          } )
           this.reportData = res.data.items
 
           // keep track of response total for pagination
           this.reportDataTotal = res.data.total
         } else if (reportType == 'Open Locations') {
-          const res = await this.$api.get(inventoryServiceApi.reportingOpenLocations, { params: { ...paramsObj, size: 100 } } )
+          const res = await this.$api.get(inventoryServiceApi.reportingOpenLocations, {
+            params: {
+              ...paramsObj,
+              size: 100
+            }
+          } )
           this.reportData = res.data.items
 
           // keep track of response total for pagination

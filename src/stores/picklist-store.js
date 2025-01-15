@@ -23,7 +23,10 @@ export const usePicklistStore = defineStore('picklist-store', {
       let items = []
       if (state.picklistJob.requests.length > 0) {
         items = state.picklistJob.requests.map(rq => {
-          return { ...rq, status: rq.item ? rq.item.status : rq.non_tray_item.status }
+          return {
+            ...rq,
+            status: rq.item ? rq.item.status : rq.non_tray_item.status
+          }
         })
       }
       return items
@@ -43,7 +46,12 @@ export const usePicklistStore = defineStore('picklist-store', {
     },
     async getPicklistJobList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.picklists, { params: { size: this.apiPageSizeDefault, ...qParams } })
+        const res = await this.$api.get(inventoryServiceApi.picklists, {
+          params: {
+            size: this.apiPageSizeDefault,
+            ...qParams
+          }
+        })
         this.picklistJobList = res.data.items
 
         // keep track of response total for pagination

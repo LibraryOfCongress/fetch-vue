@@ -161,7 +161,10 @@ onBeforeMount(() => {
 const loadVerificationJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    await getVerificationJobList({ ...qParams, queue: true })
+    await getVerificationJobList({
+      ...qParams,
+      queue: true
+    })
   } catch (error) {
     handleAlert({
       type: 'error',

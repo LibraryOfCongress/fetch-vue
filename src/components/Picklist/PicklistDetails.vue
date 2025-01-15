@@ -524,21 +524,21 @@ const triggerItemScan = (barcode_value) => {
 
 const handleOptionMenu = async (action, rowData) => {
   switch (action.text) {
-  case 'Edit':
-    editJob.value = true
-    return
-  case 'Delete Job':
-    showConfirmationModal.value = 'DeleteJob'
-    return
-  case 'Revert Item to Queue':
-    removePicklistItem(rowData.id)
-    return
-  case 'Print Job':
-    batchSheetComponent.value.printBatchReport()
-    return
-  case 'View History':
-    showAuditTrailModal.value = 'pick_lists'
-    return
+    case 'Edit':
+      editJob.value = true
+      return
+    case 'Delete Job':
+      showConfirmationModal.value = 'DeleteJob'
+      return
+    case 'Revert Item to Queue':
+      removePicklistItem(rowData.id)
+      return
+    case 'Print Job':
+      batchSheetComponent.value.printBatchReport()
+      return
+    case 'View History':
+      showAuditTrailModal.value = 'pick_lists'
+      return
   }
 }
 
