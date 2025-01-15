@@ -74,7 +74,10 @@ export function useIndexDbHandler () {
     return new Promise((resolve, reject) => {
       const trans = indexDb.value.transaction([dataStore], 'readwrite')
       const store = trans.objectStore(dataStore)
-      store.put({ id: dataKeyName, data: dataToAdd })
+      store.put({
+        id: dataKeyName,
+        data: dataToAdd
+      })
 
       // const storeData = store.get(keyTerm)
       // // if storeData exists in defined store, we add/update the passed in data

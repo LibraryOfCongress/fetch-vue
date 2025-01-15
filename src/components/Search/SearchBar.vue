@@ -300,83 +300,83 @@ const executeExactSearch = async () => {
 const handlingSearchResultRouting = () => {
   // load the exact search result route depending on search type and assign info to matching job store if needed
   switch (searchType.value) {
-  case 'Item':
-    itemDetails.value = exactSearchResponseInfo.value
-    showItemQuickView.value = true
-    break
-  case 'Tray':
-    trayDetails.value = exactSearchResponseInfo.value
-    // TODO setup routing to item-management pages once they are built out
-    break
-  case 'Shelf':
-    shelfDetails.value = exactSearchResponseInfo.value
-    // TODO setup routing to item-management pages once they are built out
-    break
-  case 'Accession':
-    accessionJob.value = exactSearchResponseInfo.value
-    router.push({
-      name: searchType.value.toLowerCase(),
-      params: {
-        jobId: searchText.value
-      }
-    })
-    break
-  case 'Verification':
-    verificationJob.value = exactSearchResponseInfo.value
-    router.push({
-      name: searchType.value.toLowerCase(),
-      params: {
-        jobId: searchText.value
-      }
-    })
-    break
-  case 'Shelving':
-    shelvingJob.value = exactSearchResponseInfo.value
-    router.push({
-      name: searchType.value.toLowerCase(),
-      params: {
-        jobId: searchText.value
-      }
-    })
-    break
-  case 'Request':
-    requestJob.value = exactSearchResponseInfo.value
-    router.push({
-      name: searchType.value.toLowerCase(),
-      params: {
-        jobId: searchText.value
-      }
-    })
-    break
-  case 'Picklist':
-    picklistJob.value = exactSearchResponseInfo.value
-    router.push({
-      name: searchType.value.toLowerCase(),
-      params: {
-        jobId: searchText.value
-      }
-    })
-    break
-  case 'Refile':
-    refileJob.value = exactSearchResponseInfo.value
-    router.push({
-      name: searchType.value.toLowerCase(),
-      params: {
-        jobId: searchText.value
-      }
-    })
-    break
-  case 'Withdraw':
-    withdrawJob.value = exactSearchResponseInfo.value
-    router.push({
-      name: 'withdrawal',
-      params: {
-        jobId: searchText.value
-      }
-    })
-    break
-  default:
-    break
+    case 'Item':
+      itemDetails.value = exactSearchResponseInfo.value
+      showItemQuickView.value = true
+      break
+    case 'Tray':
+      trayDetails.value = exactSearchResponseInfo.value
+      // TODO setup routing to item-management pages once they are built out
+      break
+    case 'Shelf':
+      shelfDetails.value = exactSearchResponseInfo.value
+      // TODO setup routing to item-management pages once they are built out
+      break
+    case 'Accession':
+      accessionJob.value = exactSearchResponseInfo.value
+      router.push({
+        name: searchType.value.toLowerCase(),
+        params: {
+          jobId: searchText.value
+        }
+      })
+      break
+    case 'Verification':
+      verificationJob.value = exactSearchResponseInfo.value
+      router.push({
+        name: searchType.value.toLowerCase(),
+        params: {
+          jobId: searchText.value
+        }
+      })
+      break
+    case 'Shelving':
+      shelvingJob.value = exactSearchResponseInfo.value
+      router.push({
+        name: searchType.value.toLowerCase(),
+        params: {
+          jobId: searchText.value
+        }
+      })
+      break
+    case 'Request':
+      requestJob.value = exactSearchResponseInfo.value
+      router.push({
+        name: searchType.value.toLowerCase(),
+        params: {
+          jobId: searchText.value
+        }
+      })
+      break
+    case 'Picklist':
+      picklistJob.value = exactSearchResponseInfo.value
+      router.push({
+        name: searchType.value.toLowerCase(),
+        params: {
+          jobId: searchText.value
+        }
+      })
+      break
+    case 'Refile':
+      refileJob.value = exactSearchResponseInfo.value
+      router.push({
+        name: searchType.value.toLowerCase(),
+        params: {
+          jobId: searchText.value
+        }
+      })
+      break
+    case 'Withdraw':
+      withdrawJob.value = exactSearchResponseInfo.value
+      router.push({
+        name: 'withdrawal',
+        params: {
+          jobId: searchText.value
+        }
+      })
+      break
+    default:
+      break
   }
 }
 </script>

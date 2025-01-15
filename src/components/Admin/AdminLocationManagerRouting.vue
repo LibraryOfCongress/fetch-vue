@@ -230,30 +230,30 @@ const isRoutingValid = computed(() => {
   let routingFormValid = false
   let optionalFields = []
   switch (mainProps.locationTitle) {
-  case 'Modules':
-    optionalFields = [
-      'module_id',
-      'aisle_id',
-      'side_id',
-      'ladder_id'
-    ]
-    routingFormValid = Object.keys(locationRoutingForm.value).every(key => optionalFields.includes(key) || locationRoutingForm.value[key] !== null && locationRoutingForm.value[key] !== '')
-    break
-  case 'Aisles':
-    optionalFields = [
-      'aisle_id',
-      'side_id',
-      'ladder_id'
-    ]
-    routingFormValid = Object.keys(locationRoutingForm.value).every(key => optionalFields.includes(key) || locationRoutingForm.value[key] !== null && locationRoutingForm.value[key] !== '')
-    break
-  case 'Ladders':
-    optionalFields = ['ladder_id']
-    routingFormValid = Object.keys(locationRoutingForm.value).every(key => optionalFields.includes(key) || locationRoutingForm.value[key] !== null && locationRoutingForm.value[key] !== '')
-    break
-  case 'Shelves':
-    routingFormValid = Object.keys(locationRoutingForm.value).every(key => locationRoutingForm.value[key] !== null && locationRoutingForm.value[key] !== '')
-    break
+    case 'Modules':
+      optionalFields = [
+        'module_id',
+        'aisle_id',
+        'side_id',
+        'ladder_id'
+      ]
+      routingFormValid = Object.keys(locationRoutingForm.value).every(key => optionalFields.includes(key) || locationRoutingForm.value[key] !== null && locationRoutingForm.value[key] !== '')
+      break
+    case 'Aisles':
+      optionalFields = [
+        'aisle_id',
+        'side_id',
+        'ladder_id'
+      ]
+      routingFormValid = Object.keys(locationRoutingForm.value).every(key => optionalFields.includes(key) || locationRoutingForm.value[key] !== null && locationRoutingForm.value[key] !== '')
+      break
+    case 'Ladders':
+      optionalFields = ['ladder_id']
+      routingFormValid = Object.keys(locationRoutingForm.value).every(key => optionalFields.includes(key) || locationRoutingForm.value[key] !== null && locationRoutingForm.value[key] !== '')
+      break
+    case 'Shelves':
+      routingFormValid = Object.keys(locationRoutingForm.value).every(key => locationRoutingForm.value[key] !== null && locationRoutingForm.value[key] !== '')
+      break
   }
   return routingFormValid
 })
@@ -264,110 +264,110 @@ const renderFormElement = (formField) => {
   // Ex: when routing to manage aisles we only want to see building and module form fields
   let allowedTitles = []
   switch (formField) {
-  case 'Module':
-    allowedTitles = [
-      'Aisles',
-      'Ladders',
-      'Shelves'
-    ]
-    return allowedTitles.some(str => mainProps.locationTitle.includes(str))
-  case 'Aisle':
-    allowedTitles = [
-      'Ladders',
-      'Shelves'
-    ]
-    return allowedTitles.some(str => mainProps.locationTitle.includes(str))
-  case 'Side':
-    allowedTitles = [
-      'Ladders',
-      'Shelves'
-    ]
-    return allowedTitles.some(str => mainProps.locationTitle.includes(str))
-  case 'Ladder':
-    allowedTitles = ['Shelves']
-    return allowedTitles.some(str => mainProps.locationTitle.includes(str))
+    case 'Module':
+      allowedTitles = [
+        'Aisles',
+        'Ladders',
+        'Shelves'
+      ]
+      return allowedTitles.some(str => mainProps.locationTitle.includes(str))
+    case 'Aisle':
+      allowedTitles = [
+        'Ladders',
+        'Shelves'
+      ]
+      return allowedTitles.some(str => mainProps.locationTitle.includes(str))
+    case 'Side':
+      allowedTitles = [
+        'Ladders',
+        'Shelves'
+      ]
+      return allowedTitles.some(str => mainProps.locationTitle.includes(str))
+    case 'Ladder':
+      allowedTitles = ['Shelves']
+      return allowedTitles.some(str => mainProps.locationTitle.includes(str))
   }
 }
 
 const handleLocationFormChange = async (valueType) => {
   // reset the report form depending on the edited form field type
   switch (valueType) {
-  case 'Building':
-    await getBuildingDetails(locationRoutingForm.value.building_id)
-    locationRoutingForm.value.module_id = null
-    locationRoutingForm.value.aisle_id = null
-    locationRoutingForm.value.side_id = null
-    locationRoutingForm.value.ladder_id = null
-    resetBuildingChildren()
-    return
-  case 'Module':
-    await getModuleDetails(locationRoutingForm.value.module_id)
-    locationRoutingForm.value.aisle_id = null
-    locationRoutingForm.value.side_id = null
-    locationRoutingForm.value.ladder_id = null
-    resetModuleChildren()
-    return
-  case 'Aisle':
-    await getAisleDetails(locationRoutingForm.value.aisle_id)
-    locationRoutingForm.value.side_id = null
-    locationRoutingForm.value.ladder_id = null
-    resetAisleChildren()
-    return
-  case 'Side':
-    await getSideDetails(locationRoutingForm.value.side_id)
-    locationRoutingForm.value.ladder_id = null
-    resetSideChildren()
-    return
-  case 'Ladder':
-    await getLadderDetails(locationRoutingForm.value.ladder_id)
-    return
+    case 'Building':
+      await getBuildingDetails(locationRoutingForm.value.building_id)
+      locationRoutingForm.value.module_id = null
+      locationRoutingForm.value.aisle_id = null
+      locationRoutingForm.value.side_id = null
+      locationRoutingForm.value.ladder_id = null
+      resetBuildingChildren()
+      return
+    case 'Module':
+      await getModuleDetails(locationRoutingForm.value.module_id)
+      locationRoutingForm.value.aisle_id = null
+      locationRoutingForm.value.side_id = null
+      locationRoutingForm.value.ladder_id = null
+      resetModuleChildren()
+      return
+    case 'Aisle':
+      await getAisleDetails(locationRoutingForm.value.aisle_id)
+      locationRoutingForm.value.side_id = null
+      locationRoutingForm.value.ladder_id = null
+      resetAisleChildren()
+      return
+    case 'Side':
+      await getSideDetails(locationRoutingForm.value.side_id)
+      locationRoutingForm.value.ladder_id = null
+      resetSideChildren()
+      return
+    case 'Ladder':
+      await getLadderDetails(locationRoutingForm.value.ladder_id)
+      return
   }
 }
 
 const handleLocationRouting = () => {
   switch (mainProps.locationTitle) {
-  case 'Modules':
-    router.push({
-      name: 'admin-location-manage-modules',
-      params: {
-        buildingId: locationRoutingForm.value.building_id
-      }
-    })
-    break
-  case 'Aisles':
-    router.push({
-      name: 'admin-location-manage-aisles',
-      params: {
-        buildingId: locationRoutingForm.value.building_id,
-        moduleId: locationRoutingForm.value.module_id
-      }
-    })
-    break
-  case 'Ladders':
-    router.push({
-      name: 'admin-location-manage-ladders',
-      params: {
-        buildingId: locationRoutingForm.value.building_id,
-        moduleId: locationRoutingForm.value.module_id,
-        aisleId: locationRoutingForm.value.aisle_id,
-        sideId: locationRoutingForm.value.side_id
-      }
-    })
-    break
-  case 'Shelves':
-    router.push({
-      name: 'admin-location-manage-shelves',
-      params: {
-        buildingId: locationRoutingForm.value.building_id,
-        moduleId: locationRoutingForm.value.module_id,
-        aisleId: locationRoutingForm.value.aisle_id,
-        sideId: locationRoutingForm.value.side_id,
-        ladderId: locationRoutingForm.value.ladder_id
-      }
-    })
-    break
-  default:
-    break
+    case 'Modules':
+      router.push({
+        name: 'admin-location-manage-modules',
+        params: {
+          buildingId: locationRoutingForm.value.building_id
+        }
+      })
+      break
+    case 'Aisles':
+      router.push({
+        name: 'admin-location-manage-aisles',
+        params: {
+          buildingId: locationRoutingForm.value.building_id,
+          moduleId: locationRoutingForm.value.module_id
+        }
+      })
+      break
+    case 'Ladders':
+      router.push({
+        name: 'admin-location-manage-ladders',
+        params: {
+          buildingId: locationRoutingForm.value.building_id,
+          moduleId: locationRoutingForm.value.module_id,
+          aisleId: locationRoutingForm.value.aisle_id,
+          sideId: locationRoutingForm.value.side_id
+        }
+      })
+      break
+    case 'Shelves':
+      router.push({
+        name: 'admin-location-manage-shelves',
+        params: {
+          buildingId: locationRoutingForm.value.building_id,
+          moduleId: locationRoutingForm.value.module_id,
+          aisleId: locationRoutingForm.value.aisle_id,
+          sideId: locationRoutingForm.value.side_id,
+          ladderId: locationRoutingForm.value.ladder_id
+        }
+      })
+      break
+    default:
+      break
   }
 }
 </script>

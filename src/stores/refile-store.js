@@ -45,7 +45,12 @@ export const useRefileStore = defineStore('refile-store', {
     },
     async getRefileJobList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.refileJobs, { params: { size: this.apiPageSizeDefault, ...qParams } })
+        const res = await this.$api.get(inventoryServiceApi.refileJobs, {
+          params: {
+            size: this.apiPageSizeDefault,
+            ...qParams
+          }
+        })
         this.refileJobList = res.data.items
 
         // keep track of response total for pagination
@@ -56,7 +61,12 @@ export const useRefileStore = defineStore('refile-store', {
     },
     async getRefileQueueList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.refileQueue, { params: { size: this.apiPageSizeDefault, ...qParams } })
+        const res = await this.$api.get(inventoryServiceApi.refileQueue, {
+          params: {
+            size: this.apiPageSizeDefault,
+            ...qParams
+          }
+        })
         this.refileJobList = res.data.items
 
         // keep track of response total for pagination

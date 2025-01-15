@@ -59,256 +59,267 @@ const breadcrumbList = computed(() => {
   // handle the breadcrumb generation for specific routes and their params
   // this list of routes should match all the routes in the routes.js file
   switch (route.name) {
-  case 'accession':
-    if (!route.params.jobId) {
-      breadCrumbs = [
-        ...breadCrumbs,
-        { text: 'Accession' }
-      ]
-    } else {
+    case 'accession':
+      if (!route.params.jobId) {
+        breadCrumbs = [
+          ...breadCrumbs,
+          { text: 'Accession' }
+        ]
+      } else {
+        breadCrumbs = [
+          ...breadCrumbs,
+          {
+            text: 'Accession',
+            to: '/accession'
+          },
+          { text: `${route.params.jobId}` }
+        ]
+      }
+      break
+    case 'accession-container':
       breadCrumbs = [
         ...breadCrumbs,
         {
           text: 'Accession',
           to: '/accession'
         },
-        { text: `${route.params.jobId}` }
+        {
+          text: route.params.jobId,
+          to: `/accession/${route.params.jobId}`
+        },
+        { text: route.params.containerId }
       ]
-    }
-    break
-  case 'accession-container':
-    breadCrumbs = [
-      ...breadCrumbs,
-      {
-        text: 'Accession',
-        to: '/accession'
-      },
-      {
-        text: route.params.jobId,
-        to: `/accession/${route.params.jobId}`
-      },
-      { text: route.params.containerId }
-    ]
-    break
-  case 'admin-home':
-    breadCrumbs = [
-      ...breadCrumbs,
-      { text: 'Admin' }
-    ]
-    break
-  case 'admin-groups':
-    if (!route.params.groupId) {
+      break
+    case 'admin-home':
+      breadCrumbs = [
+        ...breadCrumbs,
+        { text: 'Admin' }
+      ]
+      break
+    case 'admin-groups':
+      if (!route.params.groupId) {
+        breadCrumbs = [
+          ...breadCrumbs,
+          {
+            text: 'Admin',
+            to: '/admin'
+          },
+          { text: 'Groups & Permissions' }
+        ]
+      } else {
+        breadCrumbs = [
+          ...breadCrumbs,
+          {
+            text: 'Admin',
+            to: '/admin'
+          },
+          {
+            text: 'Groups & Permissions',
+            to: '/admin/groups/'
+          },
+          { text: `${groupDetails.value.name}` }
+        ]
+      }
+      break
+    case 'admin-manage-media-type':
       breadCrumbs = [
         ...breadCrumbs,
         {
           text: 'Admin',
           to: '/admin'
         },
-        { text: 'Groups & Permissions' }
+        { text: 'Manage Media Types' }
       ]
-    } else {
+      break
+    case 'admin-manage-owner':
       breadCrumbs = [
         ...breadCrumbs,
         {
           text: 'Admin',
           to: '/admin'
         },
-        {
-          text: 'Groups & Permissions',
-          to: '/admin/groups/'
-        },
-        { text: `${groupDetails.value.name}` }
+        { text: 'Manage Owners' }
       ]
-    }
-    break
-  case 'admin-manage-media-type':
-    breadCrumbs = [
-      ...breadCrumbs,
-      {
-        text: 'Admin',
-        to: '/admin'
-      },
-      { text: 'Manage Media Types' }
-    ]
-    break
-  case 'admin-manage-owner':
-    breadCrumbs = [
-      ...breadCrumbs,
-      {
-        text: 'Admin',
-        to: '/admin'
-      },
-      { text: 'Manage Owners' }
-    ]
-    break
-  case 'admin-manage-size-class':
-    breadCrumbs = [
-      ...breadCrumbs,
-      {
-        text: 'Admin',
-        to: '/admin'
-      },
-      { text: 'Manage Size Class' }
-    ]
-    break
-  case 'admin-manage-shelf-type':
-    breadCrumbs = [
-      ...breadCrumbs,
-      {
-        text: 'Admin',
-        to: '/admin'
-      },
-      { text: 'Manage Shelf Type' }
-    ]
-    break
-  case 'admin-location-manage-buildings':
-    breadCrumbs = [
-      ...breadCrumbs,
-      {
-        text: 'Admin',
-        to: '/admin'
-      },
-      { text: 'Manage Buildings' }
-    ]
-    break
-  case 'admin-location-manage-modules':
-    breadCrumbs = [
-      ...breadCrumbs,
-      {
-        text: 'Admin',
-        to: '/admin'
-      },
-      { text: 'Manage Modules' }
-    ]
-    break
-  case 'admin-location-manage-aisles':
-    breadCrumbs = [
-      ...breadCrumbs,
-      {
-        text: 'Admin',
-        to: '/admin'
-      },
-      { text: 'Manage Aisles' }
-    ]
-    break
-  case 'admin-location-manage-ladders':
-    breadCrumbs = [
-      ...breadCrumbs,
-      {
-        text: 'Admin',
-        to: '/admin'
-      },
-      { text: 'Manage Ladders' }
-    ]
-    break
-  case 'admin-location-manage-shelves':
-    breadCrumbs = [
-      ...breadCrumbs,
-      {
-        text: 'Admin',
-        to: '/admin'
-      },
-      { text: 'Manage Shelves' }
-    ]
-    break
-  case 'item-management-items':
-    breadCrumbs = [
-      ...breadCrumbs,
-      { text: `Item Management - Tray/Non-Tray Item: ${route.params.barcode}` }
-    ]
-    break
-  case 'item-management-shelf':
-    breadCrumbs = [
-      ...breadCrumbs,
-      { text: 'Item Management - Shelf' }
-    ]
-    break
-  case 'item-management-tray':
-    breadCrumbs = [
-      ...breadCrumbs,
-      { text: 'Item Management - Tray' }
-    ]
-    break
-  case 'picklist':
-    if (!route.params.jobId) {
-      breadCrumbs = [
-        ...breadCrumbs,
-        { text: 'Pick List' }
-      ]
-    } else {
+      break
+    case 'admin-manage-size-class':
       breadCrumbs = [
         ...breadCrumbs,
         {
-          text: 'Pick List',
-          to: '/picklist'
+          text: 'Admin',
+          to: '/admin'
         },
-        { text: `${route.params.jobId}` }
+        { text: 'Manage Size Class' }
       ]
-    }
-    break
-  case 'refile':
-    if (!route.params.jobId) {
-      breadCrumbs = [
-        ...breadCrumbs,
-        { text: 'Refile' }
-      ]
-    } else {
+      break
+    case 'admin-manage-shelf-type':
       breadCrumbs = [
         ...breadCrumbs,
         {
-          text: 'Refile',
-          to: '/refile'
+          text: 'Admin',
+          to: '/admin'
         },
-        { text: `${route.params.jobId}` }
+        { text: 'Manage Shelf Type' }
       ]
-    }
-    break
-  case 'reports':
-    breadCrumbs = [
-      ...breadCrumbs,
-      { text: 'Reports' }
-    ]
-    break
-  case 'request':
-    if (!route.params.jobId) {
+      break
+    case 'admin-location-manage-buildings':
       breadCrumbs = [
         ...breadCrumbs,
-        { text: 'Request' }
+        {
+          text: 'Admin',
+          to: '/admin'
+        },
+        { text: 'Manage Buildings' }
       ]
-    } else {
+      break
+    case 'admin-location-manage-modules':
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Admin',
+          to: '/admin'
+        },
+        { text: 'Manage Modules' }
+      ]
+      break
+    case 'admin-location-manage-aisles':
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Admin',
+          to: '/admin'
+        },
+        { text: 'Manage Aisles' }
+      ]
+      break
+    case 'admin-location-manage-ladders':
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Admin',
+          to: '/admin'
+        },
+        { text: 'Manage Ladders' }
+      ]
+      break
+    case 'admin-location-manage-shelves':
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Admin',
+          to: '/admin'
+        },
+        { text: 'Manage Shelves' }
+      ]
+      break
+    case 'item-management-items':
+      breadCrumbs = [
+        ...breadCrumbs,
+        { text: `Item Management - Tray/Non-Tray Item: ${route.params.barcode}` }
+      ]
+      break
+    case 'item-management-shelf':
+      breadCrumbs = [
+        ...breadCrumbs,
+        { text: 'Item Management - Shelf' }
+      ]
+      break
+    case 'item-management-tray':
+      breadCrumbs = [
+        ...breadCrumbs,
+        { text: 'Item Management - Tray' }
+      ]
+      break
+    case 'picklist':
+      if (!route.params.jobId) {
+        breadCrumbs = [
+          ...breadCrumbs,
+          { text: 'Pick List' }
+        ]
+      } else {
+        breadCrumbs = [
+          ...breadCrumbs,
+          {
+            text: 'Pick List',
+            to: '/picklist'
+          },
+          { text: `${route.params.jobId}` }
+        ]
+      }
+      break
+    case 'refile':
+      if (!route.params.jobId) {
+        breadCrumbs = [
+          ...breadCrumbs,
+          { text: 'Refile' }
+        ]
+      } else {
+        breadCrumbs = [
+          ...breadCrumbs,
+          {
+            text: 'Refile',
+            to: '/refile'
+          },
+          { text: `${route.params.jobId}` }
+        ]
+      }
+      break
+    case 'reports':
+      breadCrumbs = [
+        ...breadCrumbs,
+        { text: 'Reports' }
+      ]
+      break
+    case 'request':
+      if (!route.params.jobId) {
+        breadCrumbs = [
+          ...breadCrumbs,
+          { text: 'Request' }
+        ]
+      } else {
+        breadCrumbs = [
+          ...breadCrumbs,
+          {
+            text: 'Request',
+            to: '/request'
+          },
+          { text: `${route.params.jobId}` }
+        ]
+      }
+      break
+    case 'request-batch':
       breadCrumbs = [
         ...breadCrumbs,
         {
           text: 'Request',
           to: '/request'
         },
-        { text: `${route.params.jobId}` }
+        { text: `Request Batch: ${route.params.jobId}` }
       ]
-    }
-    break
-  case 'request-batch':
-    breadCrumbs = [
-      ...breadCrumbs,
-      {
-        text: 'Request',
-        to: '/request'
-      },
-      { text: `Request Batch: ${route.params.jobId}` }
-    ]
-    break
-  case 'search-results':
-    breadCrumbs = [
-      ...breadCrumbs,
-      { text: `Advanced Search Results: ${route.params.searchType}` }
-    ]
-    break
-  case 'shelving':
-    if (!route.params.jobId) {
+      break
+    case 'search-results':
       breadCrumbs = [
         ...breadCrumbs,
-        { text: 'Shelving' }
+        { text: `Advanced Search Results: ${route.params.searchType}` }
       ]
-    } else {
+      break
+    case 'shelving':
+      if (!route.params.jobId) {
+        breadCrumbs = [
+          ...breadCrumbs,
+          { text: 'Shelving' }
+        ]
+      } else {
+        breadCrumbs = [
+          ...breadCrumbs,
+          {
+            text: 'Shelving',
+            to: '/shelving'
+          },
+          { text: `${route.params.jobId}` }
+        ]
+      }
+      break
+    case 'shelving-dts':
       breadCrumbs = [
         ...breadCrumbs,
         {
@@ -317,78 +328,67 @@ const breadcrumbList = computed(() => {
         },
         { text: `${route.params.jobId}` }
       ]
-    }
-    break
-  case 'shelving-dts':
-    breadCrumbs = [
-      ...breadCrumbs,
-      {
-        text: 'Shelving',
-        to: '/shelving'
-      },
-      { text: `${route.params.jobId}` }
-    ]
-    break
-  case 'shelving-move':
-    breadCrumbs = [
-      ...breadCrumbs,
-      {
-        text: 'Shelving',
-        to: '/shelving'
-      },
-      { text: `Move ${route.params.type == 'tray-non-tray' ? 'Tray/Non-Tray' : 'Tray Item'}` }
-    ]
-    break
-  case 'verification':
-    if (!route.params.jobId) {
+      break
+    case 'shelving-move':
       breadCrumbs = [
         ...breadCrumbs,
-        { text: 'Verification' }
+        {
+          text: 'Shelving',
+          to: '/shelving'
+        },
+        { text: `Move ${route.params.type == 'tray-non-tray' ? 'Tray/Non-Tray' : 'Tray Item'}` }
       ]
-    } else {
+      break
+    case 'verification':
+      if (!route.params.jobId) {
+        breadCrumbs = [
+          ...breadCrumbs,
+          { text: 'Verification' }
+        ]
+      } else {
+        breadCrumbs = [
+          ...breadCrumbs,
+          {
+            text: 'Verification',
+            to: '/verification'
+          },
+          { text: `${route.params.jobId}` }
+        ]
+      }
+      break
+    case 'verification-container':
       breadCrumbs = [
         ...breadCrumbs,
         {
           text: 'Verification',
           to: '/verification'
         },
-        { text: `${route.params.jobId}` }
-      ]
-    }
-    break
-  case 'verification-container':
-    breadCrumbs = [
-      ...breadCrumbs,
-      {
-        text: 'Verification',
-        to: '/verification'
-      },
-      {
-        text: route.params.jobId,
-        to: `/verification/${route.params.jobId}`
-      },
-      { text: route.params.containerId }
-    ]
-    break
-  case 'withdrawal':
-    if (!route.params.jobId) {
-      breadCrumbs = [
-        ...breadCrumbs,
-        { text: 'Withdrawal' }
-      ]
-    } else {
-      breadCrumbs = [
-        ...breadCrumbs,
         {
-          text: 'Withdrawal',
-          to: '/withdrawal'
+          text: route.params.jobId,
+          to: `/verification/${route.params.jobId}`
         },
-        { text: `${route.params.jobId}` }
+        { text: route.params.containerId }
       ]
-    }
-    break
-  default:
-    break
+      break
+    case 'withdrawal':
+      if (!route.params.jobId) {
+        breadCrumbs = [
+          ...breadCrumbs,
+          { text: 'Withdrawal' }
+        ]
+      } else {
+        breadCrumbs = [
+          ...breadCrumbs,
+          {
+            text: 'Withdrawal',
+            to: '/withdrawal'
+          },
+          { text: `${route.params.jobId}` }
+        ]
+      }
+      break
+    default:
+      break
   }
 
   return breadCrumbs

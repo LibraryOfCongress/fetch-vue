@@ -238,7 +238,8 @@ const {
   resetAccessionStore,
   postAccessionJob,
   getAccessionJobList,
-  getAccessionJob } = useAccessionStore()
+  getAccessionJob
+} = useAccessionStore()
 const {
   accessionJob,
   accessionJobList,
@@ -359,7 +360,10 @@ const startAccessionProcess = () => {
 const loadAccessionJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    await getAccessionJobList({ ...qParams, queue: true })
+    await getAccessionJobList({
+      ...qParams,
+      queue: true
+    })
   } catch (error) {
     handleAlert({
       type: 'error',

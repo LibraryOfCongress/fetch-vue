@@ -73,7 +73,12 @@ export const useVerificationStore = defineStore('verification-store', {
     },
     async getVerificationJobList (paramsObj) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.verificationJobs, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
+        const res = await this.$api.get(inventoryServiceApi.verificationJobs, {
+          params: {
+            size: this.apiPageSizeDefault,
+            ...paramsObj
+          }
+        })
         this.verificationJobList = res.data.items
 
         // keep track of response total for pagination
@@ -113,7 +118,10 @@ export const useVerificationStore = defineStore('verification-store', {
     async patchVerificationTray (payload) {
       try {
         const res = await this.$api.patch(`${inventoryServiceApi.trays}${payload.id}`, payload)
-        this.verificationContainer = { ...res.data, items: res.data.items ?? [] }
+        this.verificationContainer = {
+          ...res.data,
+          items: res.data.items ?? []
+        }
         this.originalVerificationContainer = { ...this.verificationContainer }
 
         // update the tray in the verificationJob trays

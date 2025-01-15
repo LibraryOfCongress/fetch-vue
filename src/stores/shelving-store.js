@@ -109,7 +109,10 @@ export const useShelvingStore = defineStore('shelving-store', {
         containerList = containerList.concat(state.directToShelfJob.trays, state.directToShelfJob.non_tray_items)
       }
       // return the list sorted alphnumerically
-      return containerList.sort(new Intl.Collator('en', { numeric:true, sensitivity:'accent' }).compare)
+      return containerList.sort(new Intl.Collator('en', {
+        numeric:true,
+        sensitivity:'accent'
+      }).compare)
     },
     allContainersShelved: (state) => {
       if (state.shelvingJob.id && state.shelvingJob.status !== 'Created') {
@@ -201,7 +204,12 @@ export const useShelvingStore = defineStore('shelving-store', {
     },
     async getShelvingJobList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.shelvingJobs, { params: { size: this.apiPageSizeDefault, ...qParams } })
+        const res = await this.$api.get(inventoryServiceApi.shelvingJobs, {
+          params: {
+            size: this.apiPageSizeDefault,
+            ...qParams
+          }
+        })
         this.shelvingJobList = res.data.items
 
         // keep track of response total for pagination
@@ -248,7 +256,10 @@ export const useShelvingStore = defineStore('shelving-store', {
     async getDirectShelvingJob (id) {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.shelvingJobs}${id}`)
-        this.directToShelfJob = { ...this.directToShelfJob, ...res.data }
+        this.directToShelfJob = {
+          ...this.directToShelfJob,
+          ...res.data
+        }
       } catch (error) {
         throw error
       }
@@ -256,7 +267,10 @@ export const useShelvingStore = defineStore('shelving-store', {
     async postDirectShelvingJob (payload) {
       try {
         const res = await this.$api.post(inventoryServiceApi.shelvingJobs, payload)
-        this.directToShelfJob = { ...this.directToShelfJob, ...res.data }
+        this.directToShelfJob = {
+          ...this.directToShelfJob,
+          ...res.data
+        }
       } catch (error) {
         throw error
       }
@@ -264,7 +278,10 @@ export const useShelvingStore = defineStore('shelving-store', {
     async patchDirectShelvingJob (payload) {
       try {
         const res = await this.$api.patch(`${inventoryServiceApi.shelvingJobs}${payload.id}`, payload)
-        this.directToShelfJob = { ...this.directToShelfJob, ...res.data }
+        this.directToShelfJob = {
+          ...this.directToShelfJob,
+          ...res.data
+        }
       } catch (error) {
         throw error
       }

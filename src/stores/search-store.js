@@ -73,16 +73,36 @@ export const useSearchStore = defineStore('search-store', {
         if (searchType == 'Item') {
           if (!subType || subType == 'nonTrayItem') {
             // advanced item search defaults to nonTrayItems
-            res = await this.$api.get(inventoryServiceApi.nonTrayItems, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
+            res = await this.$api.get(inventoryServiceApi.nonTrayItems, {
+              params: {
+                size: this.apiPageSizeDefault,
+                ...paramsObj
+              }
+            })
           } else if (subType == 'trayItem') {
-            res = await this.$api.get(inventoryServiceApi.items, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
+            res = await this.$api.get(inventoryServiceApi.items, {
+              params: {
+                size: this.apiPageSizeDefault,
+                ...paramsObj
+              }
+            })
           }
           this.searchResults = res.data.items
         } else if (searchType == 'Tray') {
-          res = await this.$api.get(inventoryServiceApi.trays, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
+          res = await this.$api.get(inventoryServiceApi.trays, {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
+            }
+          })
           this.searchResults = res.data.items
         } else if (searchType == 'Shelf') {
-          res = await this.$api.get(inventoryServiceApi.shelves, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
+          res = await this.$api.get(inventoryServiceApi.shelves, {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
+            }
+          })
           this.searchResults = res.data.items
         } else {
           // job related advanced searches
@@ -93,7 +113,12 @@ export const useSearchStore = defineStore('search-store', {
             jobEndpoint = 'picklists'
           }
 
-          res = await this.$api.get(inventoryServiceApi[jobEndpoint], { params: { size: this.apiPageSizeDefault, ...paramsObj } })
+          res = await this.$api.get(inventoryServiceApi[jobEndpoint], {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
+            }
+          })
           this.searchResults = res.data.items
         }
 
