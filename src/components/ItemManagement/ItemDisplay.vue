@@ -33,7 +33,7 @@
                 Shelf Barcode
               </label>
               <p class="item-details-text">
-                {{ 'shelf barcode here' }}
+                {{ renderShelfBarcode() }}
               </p>
             </div>
 
@@ -95,7 +95,7 @@
                 Shelved Date:
               </label>
               <p class="item-details-text">
-                {{ itemDetails.shelving_job && itemDetails.shelving_job.status == 'Completed' ? formatDateTime(itemDetails.shelving_job.last_transition).date : '' }}
+                {{ formatDateTime(itemDetails.tray ? itemDetails.tray.shelved_dt : itemDetails.shelved_dt).date }}
               </p>
             </div>
           </div>
@@ -107,7 +107,7 @@
                 Last Requested Date:
               </label>
               <p class="item-details-text">
-                {{ 'missing requested date from api' }}
+                {{ formatDateTime(itemDetails.last_requested_dt).date }}
               </p>
             </div>
 
@@ -116,7 +116,7 @@
                 Last Refile Date:
               </label>
               <p class="item-details-text">
-                {{ 'missing refile date from api' }}
+                {{ formatDateTime(itemDetails.last_refiled_dt).date }}
               </p>
             </div>
 
@@ -134,13 +134,13 @@
                 Location
               </label>
               <p
-                v-if="renderItemBuilding(itemDetails)"
+                v-if="renderItemBuilding()"
                 class="item-details-text outline q-mr-sm"
               >
-                {{ renderItemBuilding(itemDetails) }}
+                {{ renderItemBuilding() }}
               </p>
               <p class="item-details-text outline">
-                {{ getItemLocation(itemDetails) }}
+                {{ getItemLocation(itemDetails.tray ?? itemDetails) }}
               </p>
             </div>
           </div>
@@ -153,7 +153,7 @@
               Tray Barcode:
             </label>
             <p class="item-details-text">
-              {{ itemDetails.tray ? itemDetails.tray.barcode.value : '' }}
+              {{ itemDetails.tray ? itemDetails.tray.barcode.value : 'N/A' }}
             </p>
           </div>
           <div class="item-details">
@@ -161,7 +161,7 @@
               Shelf Barcode:
             </label>
             <p class="item-details-text">
-              {{ 'shelf barcode here' }}
+              {{ renderShelfBarcode() }}
             </p>
           </div>
           <div class="item-details">
@@ -196,7 +196,7 @@
               Owner:
             </label>
             <p class="item-details-text outline">
-              {{ 'missing from owner object from api' }}
+              {{ itemDetails.owner.name }}
             </p>
           </div>
         </div>
@@ -218,7 +218,7 @@
               Shelved Date:
             </label>
             <p class="item-details-text">
-              {{ 'missing shelved date from api' }}
+              {{ formatDateTime(itemDetails.tray ? itemDetails.tray.shelved_dt : itemDetails.shelved_dt).date }}
             </p>
           </div>
           <div class="item-details">
@@ -226,7 +226,7 @@
               Last Requested Date:
             </label>
             <p class="item-details-text">
-              {{ 'missing requested date from api' }}
+              {{ formatDateTime(itemDetails.last_requested_dt).date }}
             </p>
           </div>
           <div class="item-details">
@@ -234,7 +234,7 @@
               Last Refile Date:
             </label>
             <p class="item-details-text">
-              {{ 'missing refile date from api' }}
+              {{ formatDateTime(itemDetails.last_refiled_dt).date }}
             </p>
           </div>
           <div class="item-details">
@@ -253,13 +253,13 @@
 
           <div class="item-details">
             <p
-              v-if="renderItemBuilding(itemDetails)"
+              v-if="renderItemBuilding()"
               class="item-details-text outline q-mr-sm"
             >
-              {{ renderItemBuilding(itemDetails) }}
+              {{ renderItemBuilding() }}
             </p>
             <p class="item-details-text outline">
-              {{ getItemLocation(itemDetails) }}
+              {{ getItemLocation(itemDetails.tray ?? itemDetails) }}
             </p>
           </div>
         </div>
@@ -364,9 +364,20 @@ watch(() => itemDetails.value.barcode, () => {
   loadRequestHistory()
 })
 
+const renderShelfBarcode = () => {
+  let barcode = ''
+  if (itemDetails.value.tray && itemDetails.value.tray.shelf_position) {
+    barcode = itemDetails.value.tray.shelf_position.shelf?.barcode.value
+  } else if (itemDetails.value.shelf_position) {
+    barcode = itemDetails.value.shelf_position.shelf.barcode.value
+  }
+  return barcode
+}
 const renderItemBuilding = () => {
   let building = ''
-  if (itemDetails.value.shelf_position) {
+  if (itemDetails.value.tray && itemDetails.value.tray.shelf_position) {
+    building = itemDetails.value.tray.shelf_position.location?.split('-')[0]
+  } else if (itemDetails.value.shelf_position) {
     building = itemDetails.value.shelf_position.location?.split('-')[0]
   }
   return building

@@ -37,7 +37,7 @@
             Tray Barcode:
           </label>
           <p class="item-details-text">
-            {{ itemData.tray ? itemData.tray.barcode.value : '' }}
+            {{ itemData.tray ? itemData.tray.barcode.value : 'N/A' }}
           </p>
         </div>
         <div class="item-details">
@@ -95,7 +95,7 @@
             Shelved Date:
           </label>
           <p class="item-details-text">
-            {{ itemData.shelving_job && itemData.shelving_job.status == 'Completed' ? formatDateTime(itemData.shelving_job.last_transition).date : '' }}
+            {{ formatDateTime(itemData.tray ? itemData.tray.shelved_dt : itemData.shelved_dt).date }}
           </p>
         </div>
         <div class="item-details">
@@ -103,7 +103,7 @@
             Last Requested Date:
           </label>
           <p class="item-details-text">
-            {{ 'missing requested date from api' }}
+            {{ formatDateTime(itemData.last_requested_dt).date }}
           </p>
         </div>
         <div class="item-details">
@@ -111,7 +111,7 @@
             Last Refile Date:
           </label>
           <p class="item-details-text">
-            {{ 'missing refile date from api' }}
+            {{ formatDateTime(itemData.last_refiled_dt).date }}
           </p>
         </div>
         <div class="item-details">
@@ -137,7 +137,7 @@
             {{ renderItemBuilding(itemData) }}
           </p>
           <p class="item-details-text outline">
-            {{ getItemLocation(itemData) }}
+            {{ getItemLocation(itemData.tray ?? itemData) }}
           </p>
         </div>
       </q-card-section>
@@ -392,13 +392,16 @@ const renderItemBarcodeColor = () => {
 
 const renderItemBuilding = () => {
   let building = ''
-  if (mainProps.itemData.shelf_position) {
+  if (mainProps.itemData.tray && mainProps.itemData.tray.shelf_position) {
+    building = mainProps.itemData.tray.shelf_position.location?.split('-')[0]
+  } else if (mainProps.itemData.shelf_position) {
     building = mainProps.itemData.shelf_position.location?.split('-')[0]
-  } else if (mainProps.itemData.item && mainProps.itemData.item.tray.shelf_position) {
-    building = mainProps.itemData.item.tray.shelf_position.location?.split('-')[0]
-  } else if (mainProps.itemData.non_tray_item && mainProps.itemData.non_tray_item.shelf_position) {
-    building = mainProps.itemData.non_tray_item.shelf_position.location?.split('-')[0]
   }
+  // else if (mainProps.itemData.item && mainProps.itemData.item.tray.shelf_position) {
+  //   building = mainProps.itemData.item.tray.shelf_position.location?.split('-')[0]
+  // } else if (mainProps.itemData.non_tray_item && mainProps.itemData.non_tray_item.shelf_position) {
+  //   building = mainProps.itemData.non_tray_item.shelf_position.location?.split('-')[0]
+  // }
   return building
 }
 </script>
