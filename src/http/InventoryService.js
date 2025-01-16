@@ -35,7 +35,7 @@ export default {
   picklists: '/pick-lists/',
   refileJobs: '/refile-jobs/',
   refileQueue: '/refile-queue/',
-  reportingAccessionItems: '/reporting/accession-items',
+  reportingAccessionItems: '/reporting/accession-items/',
   reportingOpenLocations: '/reporting/open-locations/',
   reportingShelvingDiscrepancy: '/reporting/shelving-job-discrepancies/',
   reportingTrayItemCountByAisle: '/reporting/aisles/items_count/',
