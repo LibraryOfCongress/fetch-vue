@@ -347,23 +347,23 @@ const generateReportTableFields = () => {
     case 'Non-Tray Count':
       generatedTableColumns.value = [
         {
-          name: 'size_class',
-          field: row => row.size_class?.name,
+          name: 'size_class_short_name',
+          field: 'size_class_short_name',
           label: 'Size Class',
           align: 'left',
           sortable: true
         },
         {
-          name: 'item_count',
-          field: 'item_count',
+          name: 'non_tray_item_count',
+          field: 'non_tray_item_count',
           label: '# of Non-Tray Items',
           align: 'left',
           sortable: true
         }
       ]
       generatedTableVisibleColumns.value = [
-        'size_class',
-        'item_count'
+        'size_class_short_name',
+        'non_tray_item_count'
       ]
       break
     case 'Open Locations':
