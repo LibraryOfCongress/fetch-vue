@@ -217,7 +217,7 @@
           <div class="col-xs-12 col-sm-4 q-mb-md">
             <div class="form-group">
               <ToggleButtonInput
-                v-model="reportForm.partial_shelves"
+                v-model="reportForm.show_partial"
                 :options="[
                   {label: 'Yes', value: true},
                   {label: 'No', value: false}
@@ -607,8 +607,8 @@ const generateReportModal = () => {
       reportForm.value = {
         building_id: null, // required
         owner_id: null,
-        aisle_from: null,
-        aisle_to: null,
+        aisle_num_from: null,
+        aisle_num_to: null,
         from_dt: null,
         to_dt: null,
         size_class_id: null
@@ -622,21 +622,18 @@ const generateReportModal = () => {
         },
         {
           query: 'owner_id',
+          multiple: true,
           label: 'Owner',
           options: owners,
           optionType: 'owners'
         },
         {
-          query: 'aisle_from',
-          label: 'Aisle (From)',
-          options: [],
-          optionType: ''
+          query: 'aisle_num_from',
+          label: 'Aisle (From)'
         },
         {
-          query: 'aisle_to',
-          label: 'Aisle (To)',
-          options: [],
-          optionType: ''
+          query: 'aisle_num_to',
+          label: 'Aisle (To)'
         },
         {
           query: 'from_dt',
@@ -648,6 +645,7 @@ const generateReportModal = () => {
         },
         {
           query: 'size_class_id',
+          multiple: true,
           label: 'Size Class',
           options: sizeClass,
           optionType: 'sizeClass'
@@ -665,7 +663,7 @@ const generateReportModal = () => {
         height: null,
         width: null,
         depth: null,
-        partial_shelves: true
+        show_partial: true
       }
       break
     case 'Refile Discrepancy':
