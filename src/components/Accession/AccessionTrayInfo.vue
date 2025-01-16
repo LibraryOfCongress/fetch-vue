@@ -377,7 +377,6 @@ const handleTrayScan = async (barcode_value) => {
         collection_accessioned: false,
         media_type_id: accessionJob.value.media_type_id,
         scanned_for_accession: false,
-        shelved_dt: currentDate,
         size_class_id: generateSizeClass,
         withdrawal_dt: currentDate
       }

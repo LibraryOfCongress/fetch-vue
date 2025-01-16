@@ -3,15 +3,16 @@
     <div class="row">
       <div class="col">
         <h1 class="text-h4 text-bold q-mb-xs-sm q-mb-sm-lg">
-          {{ itemData.item ? itemData.item.title : itemData.non_tray_item.title }}
+          {{ itemDetails.tray ? 'Tray Item Details' : 'Non-Tray Item Details' }}
         </h1>
       </div>
     </div>
 
     <div class="row">
-      <div class="col-xs-12 col-lg-3 q-pr-xs-none q-pr-lg-md q-pb-xs-md q-pb-lg-none">
+      <div class="col-xs-12 col-lg-4 q-pr-xs-none q-pr-lg-md q-pb-xs-md q-pb-lg-none">
         <BarcodeBox
-          :barcode="itemData.item ? itemData.item.barcode.value : itemData.non_tray_item.barcode.value"
+          :barcode="itemDetails.barcode.value"
+          :class="itemDetails.status == 'Out' ? 'bg-color-pink text-negative' : 'bg-color-green-light text-positive'"
           class="q-py-xs-sm q-py-sm-md"
         />
       </div>
@@ -20,54 +21,50 @@
           <div class="column no-wrap">
             <div class="item-details">
               <label class="item-details-label text-h6">
-                Media Type
+                Tray Barcode
               </label>
-              <p class="item-details-text text-highlight outline">
-                {{ itemData.item ? itemData.item.media_type.name : itemData.non_tray_item.media_type.name }}
+              <EssentialLink
+                :title="itemDetails.tray ? itemDetails.tray.barcode.value : 'N/A'"
+                @click="() => (console.log('pending tray detail page'))"
+                :disabled="!itemDetails.tray"
+                dense
+                class="item-details-text q-pa-none"
+              />
+            </div>
+
+            <div class="item-details">
+              <label class="item-details-label text-h6">
+                Shelf Barcode
+              </label>
+              <EssentialLink
+                :title="renderShelfBarcode()"
+                @click="() => (console.log('pending shelf detail page'))"
+                :disabled="!renderShelfBarcode()"
+                dense
+                class="item-details-text q-pa-none"
+              />
+            </div>
+
+            <div class="item-details">
+              <label class="item-details-label text-h6">
+                Owner
+              </label>
+              <p class="item-details-text">
+                {{ itemDetails.owner.name }}
               </p>
             </div>
 
             <div class="item-details">
               <label class="item-details-label text-h6">
-                Size Class
+                Status
               </label>
-              <p class="item-details-text text-highlight outline">
-                {{ itemData.item ? itemData.item.size_class.name : itemData.non_tray_item.size_class.name }}
+              <p
+                class="item-details-text outline"
+                :class="itemDetails.status == 'Out' ? 'text-highlight-negative' : 'text-highlight' "
+              >
+                {{ itemDetails.status }}
               </p>
             </div>
-
-            <div class="item-details">
-              <label class="item-details-label text-h6">
-                Volume
-              </label>
-              <p class="item-details-text outline">
-                {{ itemData.item ? itemData.item.volume : itemData.non_tray_item.volume }}
-              </p>
-            </div>
-
-            <div class="item-details">
-              <label class="item-details-label text-h6">
-                Location
-              </label>
-              <p class="item-details-text text-highlight outline q-mr-sm">
-                {{ itemData.item ? itemData.item.status : itemData.non_tray_item.status }}
-              </p>
-              <p class="item-details-text outline q-mr-sm">
-                {{ renderItemBuilding(itemData) }}
-              </p>
-              <p class="item-details-text outline">
-                {{ itemData.item ? getItemLocation(itemData.item.tray) : getItemLocation(itemData.non_tray_item) }}
-              </p>
-            </div>
-
-            <!-- <div class="item-details">
-              <label class="item-details-label text-h6">
-                Container Type
-              </label>
-              <p class="item-details-text outline">
-                {{ itemData.container_type }}
-              </p>
-            </div> -->
           </div>
         </div>
         <div
@@ -76,40 +73,58 @@
           <div class="column no-wrap">
             <div class="item-details">
               <label class="item-details-label text-h6">
-                Owner
+                Media Type
               </label>
-              <p class="item-details-text">
-                {{ itemData.item ? itemData.item.owner.name : itemData.non_tray_item.owner.name }}
+              <p class="item-details-text text-highlight outline">
+                {{ itemDetails.media_type.name }}
               </p>
             </div>
 
             <div class="item-details">
               <label class="item-details-label text-h6">
-                Dimensions
+                Size Class
               </label>
-              <p class="item-details-text outline">
-                {{ itemData.dimensions }}
+              <p class="item-details-text text-highlight outline">
+                {{ itemDetails.size_class.name }}
               </p>
             </div>
 
-            <div class="item-details">
-              <label class="item-details-label text-h6">
-                Condition
-              </label>
-              <p class="item-details-text outline">
-                {{ itemData.item ? itemData.item.condition : itemData.non_tray_item.condition }}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div class="col-sm-4 col-lg-3">
-          <div class="column no-wrap">
             <div class="item-details">
               <label class="item-details-label text-h6">
                 Accession Date
               </label>
-              <p class="item-details-text outline">
-                {{ formatDateTime(itemData.item ? itemData.item.accession_dt : itemData.non_tray_item.accession_dt).date }}
+              <p class="item-details-text">
+                {{ formatDateTime(itemDetails.accession_dt).date }}
+              </p>
+            </div>
+
+            <div class="item-details">
+              <label class="item-details-label text-h6">
+                Shelved Date:
+              </label>
+              <p class="item-details-text">
+                {{ formatDateTime(itemDetails.tray ? itemDetails.tray.shelving_job?.update_dt : itemDetails.shelving_job?.update_dt).date }}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-4 col-lg-2">
+          <div class="column no-wrap">
+            <div class="item-details">
+              <label class="item-details-label text-h6">
+                Last Requested Date:
+              </label>
+              <p class="item-details-text">
+                {{ formatDateTime(itemDetails.last_requested_dt).date }}
+              </p>
+            </div>
+
+            <div class="item-details">
+              <label class="item-details-label text-h6">
+                Last Refile Date:
+              </label>
+              <p class="item-details-text">
+                {{ formatDateTime(itemDetails.last_refiled_dt).date }}
               </p>
             </div>
 
@@ -117,18 +132,23 @@
               <label class="item-details-label text-h6">
                 Withdrawal Date
               </label>
-              <p class="item-details-text outline">
-                {{ formatDateTime(itemData.item ? itemData.item.withdrawal_dt : itemData.non_tray_item.withdrawal_dt).date }}
+              <p class="item-details-text">
+                {{ formatDateTime(itemDetails.withdrawal_dt).date }}
               </p>
             </div>
 
             <div class="item-details">
               <label class="item-details-label text-h6">
-                Arrival Date
+                Location
               </label>
+              <p
+                v-if="renderItemBuilding()"
+                class="item-details-text outline q-mr-sm"
+              >
+                {{ renderItemBuilding() }}
+              </p>
               <p class="item-details-text outline">
-                <!-- TODO change this once api returns correct arrival date -->
-                {{ formatDateTime(itemData.item ? itemData.item.accession_dt : itemData.non_tray_item.accession_dt).date }}
+                {{ getItemLocation(itemDetails.tray ?? itemDetails) }}
               </p>
             </div>
           </div>
@@ -138,74 +158,61 @@
         <div class="col-12 q-pb-sm">
           <div class="item-details">
             <label class="item-details-label">
+              Tray Barcode:
+            </label>
+            <EssentialLink
+              :title="itemDetails.tray ? itemDetails.tray.barcode.value : 'N/A'"
+              @click="() => (console.log('pending tray detail page'))"
+              :disabled="!itemDetails.tray"
+              dense
+              class="item-details-text q-pa-none"
+            />
+          </div>
+          <div class="item-details">
+            <label class="item-details-label">
+              Shelf Barcode:
+            </label>
+            <EssentialLink
+              :title="renderShelfBarcode()"
+              @click="() => (console.log('pending shelf detail page'))"
+              :disabled="!renderShelfBarcode()"
+              dense
+              class="item-details-text q-pa-none"
+            />
+          </div>
+          <div class="item-details">
+            <label class="item-details-label">
               Media Type:
             </label>
             <p class="item-details-text outline">
-              {{ itemData.item ? itemData.item.media_type.name : itemData.non_tray_item.media_type.name }}
+              {{ itemDetails.media_type.name }}
             </p>
           </div>
-
-          <div
-            class="item-details"
-          >
+          <div class="item-details">
             <label class="item-details-label">
               Size Class:
             </label>
-            <p class="item-details-text outline">
-              {{ itemData.item ? itemData.item.size_class.name : itemData.non_tray_item.size_class.name }}
-            </p>
-          </div>
-
-          <div
-            class="item-details"
-          >
-            <label class="item-details-label">
-              Volume:
-            </label>
             <p class="item-details-text">
-              {{ itemData.item ? itemData.item.volume : itemData.non_tray_item.volume }}
+              {{ itemDetails.size_class.name }}
             </p>
           </div>
-
-          <!-- <div
-            class="item-details"
-          >
-            <label class="item-details-label">
-              Container Type:
-            </label>
-            <p class="item-details-text outline">
-              {{ itemData.container_type }}
-            </p>
-          </div> -->
-
           <div class="item-details">
             <label class="item-details-label">
-              Dimensions:
+              Status:
             </label>
-            <p class="item-details-text">
-              {{ itemData.dimensions }}
+            <p
+              class="item-details-text outline"
+              :class="itemDetails.status == 'Out' ? 'text-highlight-negative' : 'text-highlight'"
+            >
+              {{ itemDetails.status }}
             </p>
           </div>
-
-          <div
-            class="item-details"
-          >
-            <label class="item-details-label">
-              Condition:
-            </label>
-            <p class="item-details-text text-highlight-negative">
-              {{ itemData.item ? itemData.item.condition : itemData.non_tray_item.condition }}
-            </p>
-          </div>
-        </div>
-        <div class="col-12 q-pb-sm">
-          <h1 class="text-h4 q-mb-xs-sm q-mb-sm-md">
-            Owner
-          </h1>
-
           <div class="item-details">
+            <label class="item-details-label">
+              Owner:
+            </label>
             <p class="item-details-text outline">
-              {{ itemData.item ? itemData.item.owner.name : itemData.non_tray_item.owner.name }}
+              {{ itemDetails.owner.name }}
             </p>
           </div>
         </div>
@@ -219,91 +226,212 @@
               Accession Date:
             </label>
             <p class="item-details-text">
-              {{ formatDateTime(itemData.item ? itemData.item.accession_dt : itemData.non_tray_item.accession_dt).date }}
+              {{ formatDateTime(itemDetails.accession_dt).date }}
             </p>
           </div>
-
-          <div
-            class="item-details"
-          >
+          <div class="item-details">
+            <label class="item-details-label">
+              Shelved Date:
+            </label>
+            <p class="item-details-text">
+              {{ formatDateTime(itemDetails.tray ? itemDetails.tray.shelving_job?.update_dt : itemDetails.shelving_job?.update_dt).date }}
+            </p>
+          </div>
+          <div class="item-details">
+            <label class="item-details-label">
+              Last Requested Date:
+            </label>
+            <p class="item-details-text">
+              {{ formatDateTime(itemDetails.last_requested_dt).date }}
+            </p>
+          </div>
+          <div class="item-details">
+            <label class="item-details-label">
+              Last Refile Date:
+            </label>
+            <p class="item-details-text">
+              {{ formatDateTime(itemDetails.last_refiled_dt).date }}
+            </p>
+          </div>
+          <div class="item-details">
             <label class="item-details-label">
               Withdrawal Date:
             </label>
             <p class="item-details-text">
-              {{ formatDateTime(itemData.item ? itemData.item.withdrawal_dt : itemData.non_tray_item.withdrawal_dt).date }}
-            </p>
-          </div>
-
-          <div
-            class="item-details"
-          >
-            <label class="item-details-label">
-              Arrival Date:
-            </label>
-            <p class="item-details-text">
-              <!-- TODO change this once api returns correct arrival date -->
-              {{ formatDateTime(itemData.item ? itemData.item.accession_dt : itemData.non_tray_item.accession_dt).date }}
+              {{ formatDateTime(itemDetails.withdrawal_dt).date }}
             </p>
           </div>
         </div>
-        <div class="col-12">
+        <div class="col-12 q-pb-sm">
           <h1 class="text-h4 q-mb-xs-sm q-mb-sm-md">
-            Location
+            Item Location
           </h1>
 
           <div class="item-details">
-            <p class="item-details-text text-highlight outline q-mr-sm">
-              {{ itemData.item ? itemData.item.status : itemData.non_tray_item.status }}
-            </p>
-            <p class="item-details-text outline q-mr-sm">
-              {{ renderItemBuilding(itemData) }}
+            <p
+              v-if="renderItemBuilding()"
+              class="item-details-text outline q-mr-sm"
+            >
+              {{ renderItemBuilding() }}
             </p>
             <p class="item-details-text outline">
-              {{ itemData.item ? getItemLocation(itemData.item.tray) : getItemLocation(itemData.non_tray_item) }}
+              {{ getItemLocation(itemDetails.tray ?? itemDetails) }}
             </p>
           </div>
         </div>
       </template>
     </div>
+
+    <div class="row q-mt-lg q-mb-xs-xl q-mb-sm-none">
+      <div class="col-grow q-mb-xs-md q-mb-sm-none">
+        <EssentialTable
+          :table-columns="itemTableColumns"
+          :table-visible-columns="itemTableVisibleColumns"
+          :table-data="itemRequestHistory"
+          :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
+          :heading-rearrange-class="'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="itemRequestHistoryTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadRequestHistory($event)"
+          @selected-table-row="null"
+        >
+          <template #heading-row>
+            <div
+              class="col-sm-5 col-md-12 col-lg-auto"
+              :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
+            >
+              <h1 class="text-h4 text-bold">
+                Request History
+              </h1>
+            </div>
+          </template>
+
+          <template #table-td="{ colName, value }">
+            <span
+              v-if="colName == 'create_dt'"
+              class=""
+            >
+              {{ formatDateTime(value).date }}
+            </span>
+          </template>
+        </EssentialTable>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { inject } from 'vue'
-import BarcodeBox from '@/components/BarcodeBox.vue'
+import { inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
-
-// Props
-defineProps({
-  itemData: {
-    type: Object,
-    required: true
-  }
-})
+import { useItemManagementStore } from '@/stores/item-management-store'
+import { useGlobalStore } from '@/stores/global-store'
+import { storeToRefs } from 'pinia'
+import BarcodeBox from '@/components/BarcodeBox.vue'
+import EssentialTable from '@/components/EssentialTable.vue'
+import EssentialLink from '@/components/EssentialLink.vue'
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-// const { templateAction } = useTemplateStore()
-// const { templateState } = storeToRefs(useTemplateStore())
+const { getItemRequestHistory, resetItemManagementStore } = useItemManagementStore()
+const {
+  itemDetails,
+  itemRequestHistory,
+  itemRequestHistoryTotal
+} = storeToRefs(useItemManagementStore())
+const { appIsLoadingData } = storeToRefs(useGlobalStore())
 
 // Local Data
-// const templateData = ref(null)
+const itemTableVisibleColumns = ref([
+  'id',
+  'external_request_id',
+  'create_dt'
+])
+const itemTableColumns = ref([
+  {
+    name: 'id',
+    field: 'id',
+    label: 'Request ID',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'external_request_id',
+    field: 'external_request_id',
+    label: 'External Request ID',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'create_dt',
+    field: 'create_dt',
+    label: 'Request Date',
+    align: 'left',
+    sortable: true
+  }
+])
 
 // Logic
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
+const handleAlert = inject('handle-alert')
 
-const renderItemBuilding = (itemData) => {
-  let building = ''
-  if (itemData.item && itemData.item.tray.shelf_position) {
-    building = itemData.item.tray.shelf_position.location?.split('-')[0]
-  } else if (itemData.non_tray_item && itemData.non_tray_item.shelf_position) {
-    building = itemData.non_tray_item.shelf_position.location?.split('-')[0]
+onMounted(() => {
+  loadRequestHistory()
+})
+onUnmounted(() => {
+  resetItemManagementStore()
+})
+
+// if user changes to another item while in the item display we need to make sure to load that items request history
+watch(() => itemDetails.value.barcode, () => {
+  loadRequestHistory()
+})
+
+const renderShelfBarcode = () => {
+  let barcode = ''
+  if (itemDetails.value.tray && itemDetails.value.tray.shelf_position) {
+    barcode = itemDetails.value.tray.shelf_position.shelf?.barcode.value
+  } else if (itemDetails.value.shelf_position) {
+    barcode = itemDetails.value.shelf_position.shelf.barcode.value
   }
-
+  return barcode
+}
+const renderItemBuilding = () => {
+  let building = ''
+  if (itemDetails.value.tray && itemDetails.value.tray.shelf_position) {
+    building = itemDetails.value.tray.shelf_position.location?.split('-')[0]
+  } else if (itemDetails.value.shelf_position) {
+    building = itemDetails.value.shelf_position.location?.split('-')[0]
+  }
   return building
+}
+
+const loadRequestHistory = async (qParams) => {
+  try {
+    appIsLoadingData.value = true
+    if (itemDetails.value && itemDetails.value.container_type?.type == 'Non-Tray') {
+      await getItemRequestHistory({
+        ...qParams,
+        non_tray_item_barcode: itemDetails.value.barcode.value
+      })
+    } else {
+      await getItemRequestHistory({
+        ...qParams,
+        item_barcode: itemDetails.value.barcode.value
+      })
+    }
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
+  }
 }
 </script>
 
@@ -319,7 +447,7 @@ const renderItemBuilding = (itemData) => {
     margin-bottom: 1rem;
 
     @media (max-width: $breakpoint-sm-min) {
-      margin-bottom: 5px;
+      margin-bottom: 8px;
     }
 
     &-label {
@@ -328,6 +456,15 @@ const renderItemBuilding = (itemData) => {
       @media (max-width: $breakpoint-sm-min) {
         width: initial;
         margin-right: 4px;
+      }
+    }
+
+    &-text {
+      min-width: 1px;
+      min-height: 28px; // this offsets any text with outline/highlight classes
+
+      @media (max-width: $breakpoint-sm-min) {
+        min-height: initial;
       }
     }
   }

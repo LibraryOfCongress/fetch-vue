@@ -107,6 +107,7 @@
     >
       <q-list
         class="nav-list"
+        role="group"
       >
         <q-item
           class="q-mb-lg align-center"

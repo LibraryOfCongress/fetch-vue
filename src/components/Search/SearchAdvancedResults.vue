@@ -135,42 +135,48 @@ const generateSearchTableFields = () => {
           field: 'accession_dt',
           label: 'Accession Date',
           align: 'left',
-          sortable: true
+          sortable: true,
+          classes: row => row.withdrawn_barcode_id ? 'q-td--no-hover' : ''
         },
         {
           name: 'status',
           field: 'status',
           label: 'Status',
           align: 'left',
-          sortable: true
+          sortable: true,
+          classes: row => row.withdrawn_barcode_id ? 'q-td--no-hover' : ''
         },
         {
           name: 'owner',
           field: row => row.owner?.name,
           label: 'Owner',
           align: 'left',
-          sortable: true
+          sortable: true,
+          classes: row => row.withdrawn_barcode_id ? 'q-td--no-hover' : ''
         },
         {
           name: 'size_class',
           field: row => row.size_class?.name,
           label: 'Size Class',
           align: 'left',
-          sortable: true
+          sortable: true,
+          classes: row => row.withdrawn_barcode_id ? 'q-td--no-hover' : ''
         },
         {
           name: 'media_type',
           field: row => row.media_type?.name,
           label: 'Media Type',
           align: 'left',
-          sortable: true
+          sortable: true,
+          classes: row => row.withdrawn_barcode_id ? 'q-td--no-hover' : ''
         },
         {
           name: 'barcode',
           field: row => renderItemBarcodeDisplay(row),
           label: 'Item Barcode',
           align: 'left',
-          sortable: true
+          sortable: true,
+          classes: row => row.withdrawn_barcode_id ? 'q-td--no-hover' : ''
         }
       ]
       searchResultsTableVisibleColumns.value = [
@@ -604,7 +610,14 @@ const renderUserName = (userObj) => {
 const handleResultSelection = (rowData) => {
   switch (route.params.searchType) {
     case 'Item':
-      console.log('routing to item detail page')
+      if (rowData.barcode) {
+        router.push({
+          name: 'item-management-items',
+          params: {
+            barcode: rowData.barcode.value
+          }
+        })
+      }
       break
     case 'Tray':
       console.log('routing to tray detail page')

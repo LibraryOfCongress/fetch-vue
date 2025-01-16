@@ -655,8 +655,12 @@ defineExpose({ clearSelectedData })
 
   &-table {
     :deep(tbody) {
-      & tr {
+      & tr td {
         cursor: pointer;
+
+        &.q-td--no-hover {
+          cursor: initial;
+        }
       }
     }
   }
