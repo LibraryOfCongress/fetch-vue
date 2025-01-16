@@ -294,6 +294,24 @@
                 />
               </div>
             </div>
+            <!-- numeric inputs -->
+            <div
+              v-else-if="param.query.startsWith('aisle_')"
+              class="col-12 q-mb-md"
+            >
+              <div class="form-group">
+                <label class="form-group-label">
+                  {{ param.label }}
+                </label>
+                <TextInput
+                  v-model="reportForm[param.query]"
+                  :placeholder="`Enter ${param.label}`"
+                  :aria-label="`${param.query}_input`"
+                  type="number"
+                  min="1"
+                />
+              </div>
+            </div>
             <!-- select inputs -->
             <div
               v-else
@@ -746,16 +764,12 @@ const generateReportModal = () => {
           optionType: 'buildings'
         },
         {
-          query: 'aisle_from',
-          label: 'Aisle (From)',
-          options: [],
-          optionType: ''
+          query: 'aisle_num_from',
+          label: 'Aisle (From)'
         },
         {
-          query: 'aisle_to',
-          label: 'Aisle (To)',
-          options: [],
-          optionType: ''
+          query: 'aisle_num_to',
+          label: 'Aisle (To)'
         }
       ]
       break
