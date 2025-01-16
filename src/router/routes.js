@@ -138,27 +138,27 @@ const routes = [
         }
       },
       {
-        name: 'item-management-items',
-        path: 'item-management/items/:barcode?',
-        component: () => import('@/pages/ItemManagementPage.vue'),
+        name: 'record-management-items',
+        path: 'record-management/items/:barcode?',
+        component: () => import('@/pages/RecordManagementPage.vue'),
         meta: {
           requiresAuth: true,
           requiresPerm: 'can_access_item_detail'
         }
       },
       {
-        name: 'item-management-shelf',
-        path: 'item-management/shelf',
-        component: () => import('@/pages/ItemManagementPage.vue'),
+        name: 'record-management-shelf',
+        path: 'record-management/shelf',
+        component: () => import('@/pages/RecordManagementPage.vue'),
         meta: {
           requiresAuth: true,
           requiresPerm: 'can_access_shelf_detail'
         }
       },
       {
-        name: 'item-management-tray',
-        path: 'item-management/tray',
-        component: () => import('@/pages/ItemManagementPage.vue'),
+        name: 'record-management-tray',
+        path: 'record-management/tray/:barcode?',
+        component: () => import('@/pages/RecordManagementPage.vue'),
         meta: {
           requiresAuth: true,
           requiresPerm: 'can_access_tray_detail'
