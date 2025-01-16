@@ -585,9 +585,16 @@ const generateReportTableFields = () => {
     case 'Tray/Item Count By Aisle':
       generatedTableColumns.value = [
         {
-          name: 'aisle',
-          field: row => row.aisle?.aisle_number?.number,
+          name: 'aisle_number',
+          field: 'aisle_number',
           label: 'Aisle Number',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'shelf_count',
+          field: 'shelf_count',
+          label: 'Shelf Count',
           align: 'left',
           sortable: true
         },
@@ -599,33 +606,34 @@ const generateReportTableFields = () => {
           sortable: true
         },
         {
-          name: 'tray_item_count',
-          field: 'tray_item_count',
+          name: 'item_count',
+          field: 'item_count',
           label: '# of Tray Items',
           align: 'left',
           sortable: true
         },
         {
-          name: 'non_tray_count',
-          field: 'non_tray_count',
+          name: 'non_tray_item_count',
+          field: 'non_tray_item_count',
           label: '# of Non-Tray Items',
           align: 'left',
           sortable: true
         },
         {
-          name: 'total_count',
-          field: 'total_count',
+          name: 'total_item_count',
+          field: 'total_item_count',
           label: 'Total Items',
           align: 'left',
           sortable: true
         }
       ]
       generatedTableVisibleColumns.value = [
-        'aisle',
+        'aisle_number',
+        'shelf_count',
         'tray_count',
-        'tray_item_count',
-        'non_tray_count',
-        'total_count'
+        'item_count',
+        'non_tray_item_count',
+        'total_item_count'
       ]
       break
     case 'User Job Summary':
