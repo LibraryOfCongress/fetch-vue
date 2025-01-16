@@ -245,7 +245,7 @@ const audioAlert = () => {
 provide('audio-alert', audioAlert)
 const renderItemBarcodeDisplay = (itemData) => {
   // check if item data object contains barcode.value, or withdrawn_barcode.value field
-  if (typeof itemData == 'object') {
+  if (typeof itemData == 'object' && itemData) {
     return itemData.withdrawn_barcode?.value ?? itemData.barcode.value
   } else {
     return ''
