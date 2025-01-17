@@ -747,7 +747,7 @@ const regenerateReport = async (qParams) => {
           // sets to date to end of date
           queryParamsForm[key] = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999)).toISOString()
         }
-      } else if (!value) {
+      } else if ((Array.isArray(value) && value.length == 0) || !value) {
         delete queryParamsForm[key]
       }
     })

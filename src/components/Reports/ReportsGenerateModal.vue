@@ -857,7 +857,7 @@ const generateReport = async () => {
           // sets to date to end of date
           queryParams[key] = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999)).toISOString()
         }
-      } else if (!value) {
+      } else if ((Array.isArray(value) && value.length == 0) || !value) {
         delete queryParams[key]
       }
     })
