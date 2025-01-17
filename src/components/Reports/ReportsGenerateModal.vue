@@ -330,7 +330,7 @@
                 <SelectInput
                   v-model="reportForm[param.query]"
                   :multiple="param.multiple"
-                  :hide-selected="false"
+                  :hide-selected="!param.multiple"
                   :options="param.options"
                   :option-type="param.optionType"
                   option-value="id"
