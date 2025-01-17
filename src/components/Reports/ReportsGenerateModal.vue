@@ -557,19 +557,16 @@ const generateReportModal = () => {
           query: 'owner_id',
           label: 'Owner',
           options: owners,
-          optionType: 'owners'
+          optionType: 'owners',
+          multiple: true
         },
         {
           query: 'aisle_from',
-          label: 'Aisle (From)',
-          options: [],
-          optionType: ''
+          label: 'Aisle (From)'
         },
         {
           query: 'aisle_to',
-          label: 'Aisle (To)',
-          options: [],
-          optionType: ''
+          label: 'Aisle (To)'
         },
         {
           query: 'from_dt',

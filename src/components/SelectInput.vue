@@ -3,6 +3,7 @@
     ref="selectInputComponent"
     :dense="currentScreenSize == 'xs'"
     outlined
+    clearable
     :model-value="modelValue"
     @update:model-value="updateModelValue"
     :options="localOptions"
