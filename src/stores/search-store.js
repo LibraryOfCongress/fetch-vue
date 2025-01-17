@@ -14,7 +14,7 @@ export const useSearchStore = defineStore('search-store', {
     async getExactSearchResult (searchInput, searchType) {
       try {
         if (searchType == 'Item') {
-          // exact searches for item/tray items types will load the item-managment ui for the item barcode value
+          // exact searches for item/tray items types will load the record-management ui for the item barcode value
           const [
             resTrayItem,
             resNonTrayItem
@@ -33,12 +33,12 @@ export const useSearchStore = defineStore('search-store', {
             this.searchResults = ['No results found...']
           }
         } else if (searchType == 'Tray') {
-          // exact search for shelf type will load the item-managment ui for the tray barcode value
+          // exact search for shelf type will load the record-management ui for the tray barcode value
           const res = await this.$api.get(`${inventoryServiceApi.traysBarcode}${searchInput}`)
           this.searchResults = [`Tray: ${searchInput}`]
           return res
         } else if (searchType == 'Shelf') {
-          // exact search for shelf type will load the item-managment ui for the shelf barcode value
+          // exact search for shelf type will load the record-management ui for the shelf barcode value
           const res = await this.$api.get(`${inventoryServiceApi.shelvesBarcode}${searchInput}`)
           this.searchResults = [`Shelf: ${searchInput}`]
           return res

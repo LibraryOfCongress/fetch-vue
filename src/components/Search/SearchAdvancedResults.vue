@@ -612,7 +612,7 @@ const handleResultSelection = (rowData) => {
     case 'Item':
       if (rowData.barcode) {
         router.push({
-          name: 'item-management-items',
+          name: 'record-management-items',
           params: {
             barcode: rowData.barcode.value
           }
@@ -620,7 +620,12 @@ const handleResultSelection = (rowData) => {
       }
       break
     case 'Tray':
-      console.log('routing to tray detail page')
+      router.push({
+        name: 'record-management-tray',
+        params: {
+          barcode: rowData.barcode.value
+        }
+      })
       break
     case 'Shelf':
       console.log('routing to shelf detail page')

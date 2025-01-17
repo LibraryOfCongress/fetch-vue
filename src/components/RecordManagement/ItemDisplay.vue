@@ -2,7 +2,7 @@
   <div class="item">
     <div class="row">
       <div class="col">
-        <h1 class="text-h4 text-bold q-mb-xs-sm q-mb-sm-lg">
+        <h1 class="text-h4 text-bold q-mb-xs-md q-mb-sm-lg">
           {{ itemDetails.tray ? 'Tray Item Details' : 'Non-Tray Item Details' }}
         </h1>
       </div>
@@ -25,7 +25,7 @@
               </label>
               <EssentialLink
                 :title="itemDetails.tray ? itemDetails.tray.barcode.value : 'N/A'"
-                @click="() => (console.log('pending tray detail page'))"
+                @click="routeToTrayDetail(itemDetails.tray.barcode.value)"
                 :disabled="!itemDetails.tray"
                 dense
                 class="item-details-text q-pa-none"
@@ -162,7 +162,7 @@
             </label>
             <EssentialLink
               :title="itemDetails.tray ? itemDetails.tray.barcode.value : 'N/A'"
-              @click="() => (console.log('pending tray detail page'))"
+              @click="routeToTrayDetail(itemDetails.tray.barcode.value)"
               :disabled="!itemDetails.tray"
               dense
               class="item-details-text q-pa-none"
@@ -322,25 +322,28 @@
 </template>
 
 <script setup>
-import { inject, onMounted, onUnmounted, ref, watch } from 'vue'
+import { inject, onMounted, ref, watch } from 'vue'
+import { useRouter  } from 'vue-router'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
-import { useItemManagementStore } from '@/stores/item-management-store'
+import { useRecordManagementStore } from '@/stores/record-management-store'
 import { useGlobalStore } from '@/stores/global-store'
 import { storeToRefs } from 'pinia'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import EssentialLink from '@/components/EssentialLink.vue'
 
+const router = useRouter()
+
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { getItemRequestHistory, resetItemManagementStore } = useItemManagementStore()
+const { getItemRequestHistory } = useRecordManagementStore()
 const {
   itemDetails,
   itemRequestHistory,
   itemRequestHistoryTotal
-} = storeToRefs(useItemManagementStore())
+} = storeToRefs(useRecordManagementStore())
 const { appIsLoadingData } = storeToRefs(useGlobalStore())
 
 // Local Data
@@ -381,9 +384,6 @@ const handleAlert = inject('handle-alert')
 onMounted(() => {
   loadRequestHistory()
 })
-onUnmounted(() => {
-  resetItemManagementStore()
-})
 
 // if user changes to another item while in the item display we need to make sure to load that items request history
 watch(() => itemDetails.value.barcode, () => {
@@ -407,6 +407,15 @@ const renderItemBuilding = () => {
     building = itemDetails.value.shelf_position.location?.split('-')[0]
   }
   return building
+}
+
+const routeToTrayDetail = (barcode) => {
+  router.push({
+    name: 'record-management-tray',
+    params: {
+      barcode
+    }
+  })
 }
 
 const loadRequestHistory = async (qParams) => {

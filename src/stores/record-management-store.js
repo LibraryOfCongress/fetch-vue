@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import inventoryServiceApi from '@/http/InventoryService.js'
 
-export const useItemManagementStore = defineStore('item-management-store', {
+export const useRecordManagementStore = defineStore('record-management-store', {
   state: () => ({
     itemDetails: {
       id: null
@@ -16,7 +16,7 @@ export const useItemManagementStore = defineStore('item-management-store', {
     }
   }),
   actions: {
-    resetItemManagementStore () {
+    resetRecordManagementStore () {
       this.$reset()
     },
     async getItemDetails (barcodeValue) {
@@ -56,38 +56,14 @@ export const useItemManagementStore = defineStore('item-management-store', {
       } catch (error) {
         throw error
       }
+    },
+    async getTrayDetails (barcodeValue) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.traysBarcode}${barcodeValue}`)
+        this.trayDetails = res.data
+      } catch (error) {
+        throw error
+      }
     }
-    // async postBarcode (barcode, type) {
-    //   try {
-    //     const res = await this.$api.post(inventoryServiceApi.barcodes, {
-    //       type,
-    //       value: barcode
-    //     })
-
-    //     this.barcodeDetails = res.data
-    //   } catch (error) {
-    //     throw error
-    //   }
-    // },
-    // async patchBarcode (barcode_id, barcode_value) {
-    //   try {
-    //     const res = await this.$api.patch(`${inventoryServiceApi.barcodes}${barcode_id}`, {
-    //       value: barcode_value
-    //     })
-
-    //     this.barcodeDetails = res.data
-    //   } catch (error) {
-    //     throw error
-    //   }
-    // },
-    // async deleteBarcode (barcode_id) {
-    //   try {
-    //     const res = await this.$api.delete(`${inventoryServiceApi.barcodes}${barcode_id}`)
-
-    //     this.barcodeDetails = res.data
-    //   } catch (error) {
-    //     throw error
-    //   }
-    // }
   }
 })

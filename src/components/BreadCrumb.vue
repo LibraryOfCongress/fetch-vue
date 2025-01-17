@@ -211,24 +211,6 @@ const breadcrumbList = computed(() => {
         { text: 'Manage Shelves' }
       ]
       break
-    case 'item-management-items':
-      breadCrumbs = [
-        ...breadCrumbs,
-        { text: `Item Management - Tray/Non-Tray Item: ${route.params.barcode}` }
-      ]
-      break
-    case 'item-management-shelf':
-      breadCrumbs = [
-        ...breadCrumbs,
-        { text: 'Item Management - Shelf' }
-      ]
-      break
-    case 'item-management-tray':
-      breadCrumbs = [
-        ...breadCrumbs,
-        { text: 'Item Management - Tray' }
-      ]
-      break
     case 'picklist':
       if (!route.params.jobId) {
         breadCrumbs = [
@@ -245,6 +227,24 @@ const breadcrumbList = computed(() => {
           { text: `${route.params.jobId}` }
         ]
       }
+      break
+    case 'record-management-items':
+      breadCrumbs = [
+        ...breadCrumbs,
+        { text: `Record Management - Tray/Non-Tray Item: ${route.params.barcode}` }
+      ]
+      break
+    case 'record-management-shelf':
+      breadCrumbs = [
+        ...breadCrumbs,
+        { text: 'Record Management - Shelf' }
+      ]
+      break
+    case 'record-management-tray':
+      breadCrumbs = [
+        ...breadCrumbs,
+        { text: `Record Management - Tray: ${route.params.barcode}` }
+      ]
       break
     case 'refile':
       if (!route.params.jobId) {

@@ -146,7 +146,7 @@
     :item-data="itemDetails"
     @close="showItemQuickView = false"
     @update="router.push({
-      name: 'item-management-items',
+      name: 'record-management-items',
       params: {
         barcode: searchText
       }
@@ -161,7 +161,7 @@ import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { useGlobalStore } from '@/stores/global-store'
 import { useSearchStore } from '@/stores/search-store'
-import { useItemManagementStore } from '@/stores/item-management-store'
+import { useRecordManagementStore } from '@/stores/record-management-store'
 import { useAccessionStore } from '@/stores/accession-store'
 import { useVerificationStore } from '@/stores/verification-store'
 import { useShelvingStore } from '@/stores/shelving-store'
@@ -171,7 +171,7 @@ import { useRefileStore } from '@/stores/refile-store'
 import { useWithdrawalStore } from '@/stores/withdrawal-store'
 import { storeToRefs } from 'pinia'
 import SearchAdvancedModal from '@/components/Search/SearchAdvancedModal.vue'
-import ItemDataOverlay from '@/components/ItemManagement/ItemDataOverlay.vue'
+import ItemDataOverlay from '@/components/RecordManagement/ItemDataOverlay.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -188,7 +188,7 @@ const {
   itemDetails,
   trayDetails,
   shelfDetails
-} = storeToRefs(useItemManagementStore())
+} = storeToRefs(useRecordManagementStore())
 const { accessionJob } = storeToRefs(useAccessionStore())
 const { verificationJob } = storeToRefs(useVerificationStore())
 const { shelvingJob } = storeToRefs(useShelvingStore())
@@ -306,11 +306,16 @@ const handlingSearchResultRouting = () => {
       break
     case 'Tray':
       trayDetails.value = exactSearchResponseInfo.value
-      // TODO setup routing to item-management pages once they are built out
+      router.push({
+        name: 'record-management-tray',
+        params: {
+          barcode: searchText.value
+        }
+      })
       break
     case 'Shelf':
       shelfDetails.value = exactSearchResponseInfo.value
-      // TODO setup routing to item-management pages once they are built out
+      // TODO setup routing to record-management pages once they are built out
       break
     case 'Accession':
       accessionJob.value = exactSearchResponseInfo.value
