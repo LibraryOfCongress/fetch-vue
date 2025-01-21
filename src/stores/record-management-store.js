@@ -13,7 +13,9 @@ export const useRecordManagementStore = defineStore('record-management-store', {
     },
     shelfDetails: {
       id: null
-    }
+    },
+    shelfContainers: [],
+    shelfContainersTotal: 0
   }),
   actions: {
     resetRecordManagementStore () {
@@ -61,6 +63,32 @@ export const useRecordManagementStore = defineStore('record-management-store', {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.traysBarcode}${barcodeValue}`)
         this.trayDetails = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async getShelfDetails (barcodeValue) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.shelvesBarcode}${barcodeValue}`)
+        this.shelfDetails = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async getShelfContainers (qParams) {
+      try {
+        //TODO figure out how we want to get a shelfs containers, looks like they should be limityed by container type?
+        // const res = await this.$api.get(inventoryServiceApi.requests, {
+        //   params: {
+        //     size: this.apiPageSizeDefault,
+        //     ...qParams
+        //   }
+        // })
+        // this.shelfContainers = res.data.items
+
+        // // keep track of response total for pagination
+        // this.shelfContainersTotal = res.data.total
+        console.log('getting shelf containers', qParams)
       } catch (error) {
         throw error
       }

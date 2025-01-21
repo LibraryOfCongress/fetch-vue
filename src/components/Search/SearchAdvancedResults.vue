@@ -628,7 +628,12 @@ const handleResultSelection = (rowData) => {
       })
       break
     case 'Shelf':
-      console.log('routing to shelf detail page')
+      router.push({
+        name: 'record-management-shelf',
+        params: {
+          barcode: rowData.barcode.value
+        }
+      })
       break
     case 'Accession':
       router.push({
