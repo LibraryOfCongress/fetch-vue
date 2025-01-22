@@ -334,9 +334,10 @@
                   :options="param.options"
                   :option-type="param.optionType"
                   option-value="id"
-                  :option-label="'name'"
+                  :option-label="param.query == 'module_id' ? 'module_number' : 'name'"
                   :placeholder="`Select ${param.label}`"
-                  @update:model-value="null"
+                  :disabled="param.query == 'module_id' ? !reportForm.building_id : false"
+                  @update:model-value="reportForm[param.query] !== null && param.query == 'building_id' ? handleLocationFormChange('Building') : null"
                   :aria-label="`${param.query}Select`"
                 />
               </div>
@@ -606,6 +607,7 @@ const generateReportModal = () => {
     case 'Non-Tray Count':
       reportForm.value = {
         building_id: null, // required
+        module_id: null,
         owner_id: null,
         aisle_num_from: null,
         aisle_num_to: null,
@@ -619,6 +621,11 @@ const generateReportModal = () => {
           label: 'Building',
           options: buildings,
           optionType: 'buildings'
+        },
+        {
+          query: 'module_id',
+          label: 'Module',
+          options: renderBuildingModules
         },
         {
           query: 'owner_id',
