@@ -187,7 +187,7 @@ const generatedTableFilters =  ref([
   }
 ])
 const showReportModal = ref(false)
-const reportFormHistory= ref(null)
+const reportFormHistory = ref(null)
 const reportType = ref(null)
 const lastReportType = ref(null)
 const reportOptions =  ref([
