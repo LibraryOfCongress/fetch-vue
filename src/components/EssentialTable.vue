@@ -392,8 +392,9 @@ const mainProps = defineProps({
     default: ''
   },
   rowKey: {
-    type: String,
+    type: undefined,
     default: 'id' // if tableData doesnt include an 'id' param we need to specifiy this
+    // warning some data patterns like tray/non tray based tables could contain similar id's this will cause duplicate issues
   },
   // inorder to generate a class to highlight an entire row of data you must provide a key/value pair to use as an indicator on what row needs the class added
   highlightRowClass: {

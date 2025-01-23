@@ -12,21 +12,21 @@ export const useReportsStore = defineStore('reports-store', {
     resetReportsStore () {
       this.$reset()
     },
-    generateEndpoint (reportType) {
+    generateReportEndpoint (reportType) {
       const endpointMap = {
         'Item Accession': inventoryServiceApi.reportingAccessionItems,
         'Shelving Job Discrepancy':inventoryServiceApi.reportingShelvingDiscrepancy,
         'Open Locations': inventoryServiceApi.reportingOpenLocations,
         'Tray/Item Count By Aisle': inventoryServiceApi.reportingTrayItemCountByAisle,
         'Non-Tray Count': inventoryServiceApi.reportingNonTrayItemsCount,
-        'Item in Tray': inventoryServiceApi.reportingItemsCount
+        'Item in Tray': inventoryServiceApi.reportingTrayItemsCount
       }
 
       return endpointMap[reportType] || null
     },
     async getReport (paramsObj, reportType) {
       try {
-        const endpoint = this.generateEndpoint(reportType)
+        const endpoint = this.generateReportEndpoint(reportType)
         this.reportData = []
         if (endpoint) {
           const res = await this.$api.get(endpoint, {
@@ -45,7 +45,7 @@ export const useReportsStore = defineStore('reports-store', {
     },
     async downloadReport (reportType) {
       try {
-        const endpoint = this.generateEndpoint(reportType)
+        const endpoint = this.generateReportEndpoint(reportType)
         if (endpoint) {
           const res = await this.$api.get(`${endpoint}download`, {
             params: { ...this.reportQueryParams },

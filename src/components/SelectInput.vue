@@ -3,7 +3,7 @@
     ref="selectInputComponent"
     :dense="currentScreenSize == 'xs'"
     outlined
-    clearable
+    :clearable="clearable"
     :model-value="modelValue"
     @update:model-value="updateModelValue"
     :options="localOptions"
@@ -112,6 +112,10 @@ const mainProps = defineProps({
   hideSelected: {
     type: Boolean,
     default: true
+  },
+  clearable: {
+    type: Boolean,
+    default: false
   },
   disabled: {
     type: Boolean,

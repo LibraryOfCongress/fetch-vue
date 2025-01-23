@@ -255,8 +255,8 @@ const generateReportTableFields = () => {
     case 'Item in Tray':
       generatedTableColumns.value = [
         {
-          name: 'size_class',
-          field: row => row.size_class?.name,
+          name: 'size_class_short_name',
+          field: 'size_class_short_name',
           label: 'Size Class',
           align: 'left',
           sortable: true
@@ -269,17 +269,17 @@ const generateReportTableFields = () => {
           sortable: true
         },
         {
-          name: 'item_count',
-          field: 'item_count',
+          name: 'tray_item_count',
+          field: 'tray_item_count',
           label: 'Total Item Count',
           align: 'left',
           sortable: true
         }
       ]
       generatedTableVisibleColumns.value = [
-        'size_class',
+        'size_class_short_name',
         'tray_count',
-        'item_count'
+        'tray_item_count'
       ]
       break
     case 'Move/Withdraw Discrepancy':
