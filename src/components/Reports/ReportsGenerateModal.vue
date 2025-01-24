@@ -33,9 +33,6 @@
             <div class="form-group">
               <label class="form-group-label">
                 Building
-                <span class="text-caption text-negative">
-                  (Required)
-                </span>
               </label>
               <SelectInput
                 v-model="reportForm.building_id"
@@ -243,6 +240,12 @@
               <div class="form-group q-pr-xs">
                 <label class="form-group-label">
                   {{ param.label }}
+                  <span
+                    v-if="param.required"
+                    class="text-caption text-negative"
+                  >
+                    (Required)
+                  </span>
                 </label>
                 <TextInput
                   v-model="reportForm[param.query]"
@@ -280,12 +283,18 @@
             </div>
             <!-- text inputs -->
             <div
-              v-else-if="param.query.includes('job_id') || param.query.includes('workflow_id')"
+              v-else-if="param.type == 'text'"
               class="col-12 q-mb-md"
             >
               <div class="form-group">
                 <label class="form-group-label">
                   {{ param.label }}
+                  <span
+                    v-if="param.required"
+                    class="text-caption text-negative"
+                  >
+                    (Required)
+                  </span>
                 </label>
                 <TextInput
                   v-model="reportForm[param.query]"
@@ -296,12 +305,18 @@
             </div>
             <!-- numeric inputs -->
             <div
-              v-else-if="param.query.startsWith('aisle_')"
+              v-else-if="param.type == 'number'"
               class="col-12 q-mb-md"
             >
               <div class="form-group">
                 <label class="form-group-label">
                   {{ param.label }}
+                  <span
+                    v-if="param.required"
+                    class="text-caption text-negative"
+                  >
+                    (Required)
+                  </span>
                 </label>
                 <TextInput
                   v-model="reportForm[param.query]"
@@ -321,7 +336,7 @@
                 <label class="form-group-label">
                   {{ param.label }}
                   <span
-                    v-if="param.query == 'building_id'"
+                    v-if="param.required"
                     class="text-caption text-negative"
                   >
                     (Required)
@@ -334,10 +349,10 @@
                   :options="param.options"
                   :option-type="param.optionType"
                   option-value="id"
-                  :option-label="param.query == 'module_id' ? 'module_number' : 'name'"
+                  :option-label="param.optionLabel ?? 'name'"
                   :placeholder="`Select ${param.label}`"
-                  :disabled="param.query == 'module_id' ? !reportForm.building_id : false"
-                  @update:model-value="reportForm[param.query] !== null && param.query == 'building_id' ? handleLocationFormChange('Building') : null"
+                  :disabled="param.disabled"
+                  @update:model-value="param.onUpdate ? param.onUpdate() : null"
                   :aria-label="`${param.query}Select`"
                 />
               </div>
@@ -416,6 +431,7 @@ const {
   users
 } = storeToRefs(useOptionStore())
 const {
+  resetBuildingStore,
   getBuildingDetails,
   getModuleDetails,
   getAisleDetails,
@@ -540,9 +556,10 @@ const generateReportModal = () => {
     case 'Item in Tray':
       reportForm.value = {
         building_id: null, // required
+        module_id: null,
         owner_id: null,
-        aisle_from: null,
-        aisle_to: null,
+        aisle_num_from: null,
+        aisle_num_to: null,
         from_dt: null,
         to_dt: null
       }
@@ -551,25 +568,33 @@ const generateReportModal = () => {
           query: 'building_id',
           label: 'Building',
           options: buildings,
-          optionType: 'buildings'
+          optionType: 'buildings',
+          onUpdate: () => handleLocationFormChange('Building'),
+          required: true
+        },
+        {
+          query: 'module_id',
+          label: 'Module',
+          options: renderBuildingModules,
+          optionLabel: 'module_number',
+          disabled: computed(() => !reportForm.value.building_id)
         },
         {
           query: 'owner_id',
           label: 'Owner',
           options: owners,
-          optionType: 'owners'
+          optionType: 'owners',
+          multiple: true
         },
         {
-          query: 'aisle_from',
-          label: 'Aisle (From)',
-          options: [],
-          optionType: ''
+          type: 'number',
+          query: 'aisle_num_from',
+          label: 'Aisle (From)'
         },
         {
-          query: 'aisle_to',
-          label: 'Aisle (To)',
-          options: [],
-          optionType: ''
+          type: 'number',
+          query: 'aisle_num_to',
+          label: 'Aisle (To)'
         },
         {
           query: 'from_dt',
@@ -620,12 +645,16 @@ const generateReportModal = () => {
           query: 'building_id',
           label: 'Building',
           options: buildings,
-          optionType: 'buildings'
+          optionType: 'buildings',
+          onUpdate: () => handleLocationFormChange('Building'),
+          required: true
         },
         {
           query: 'module_id',
           label: 'Module',
-          options: renderBuildingModules
+          options: renderBuildingModules,
+          optionLabel: 'module_number',
+          disabled: computed(() => !reportForm.value.building_id)
         },
         {
           query: 'owner_id',
@@ -635,10 +664,12 @@ const generateReportModal = () => {
           optionType: 'owners'
         },
         {
+          type: 'number',
           query: 'aisle_num_from',
           label: 'Aisle (From)'
         },
         {
+          type: 'number',
           query: 'aisle_num_to',
           label: 'Aisle (To)'
         },
@@ -682,6 +713,7 @@ const generateReportModal = () => {
       }
       reportParams.value = [
         {
+          type: 'text',
           query: 'job_id',
           label: 'Job Number',
           options: [],
@@ -720,6 +752,7 @@ const generateReportModal = () => {
           label: 'Date (To)'
         },
         {
+          type: 'text',
           query: 'shelving_job_id',
           label: 'Job Number'
         },
@@ -766,13 +799,16 @@ const generateReportModal = () => {
           query: 'building_id',
           label: 'Building',
           options: buildings,
-          optionType: 'buildings'
+          optionType: 'buildings',
+          required: true
         },
         {
+          type: 'number',
           query: 'aisle_num_from',
           label: 'Aisle (From)'
         },
         {
+          type: 'number',
           query: 'aisle_num_to',
           label: 'Aisle (To)'
         }
@@ -810,6 +846,7 @@ const generateReportModal = () => {
       }
       reportParams.value = [
         {
+          type: 'text',
           query: 'workflow_id',
           label: 'Job Number',
           options: [],
@@ -839,6 +876,9 @@ const generateReportModal = () => {
   // ex: user hits redo report we want to prepopulate the form with their past report search so they can update it
   if (mainProps.reportHistory) {
     reportForm.value = mainProps.reportHistory
+  } else {
+    // reset the building related state so that we dont leak modules downard to forms that require these, ex: open location report uses module downards
+    resetBuildingStore()
   }
 }
 
