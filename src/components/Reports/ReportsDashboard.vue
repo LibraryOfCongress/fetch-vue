@@ -13,6 +13,7 @@
         <SelectInput
           v-model="reportType"
           :options="reportOptions"
+          :clearable="false"
           :placeholder="'Select Report'"
           @update:model-value="reportFormHistory = null; showReportModal = true;"
           aria-label="reportSelect"

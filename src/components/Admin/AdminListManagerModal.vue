@@ -79,6 +79,7 @@
                   :option-label="field.field == 'container_type_id' ? 'type' : 'name'"
                   :placeholder="`Select ${field.label}`"
                   :disabled="field.disabled"
+                  :clearable="!field.required"
                   @update:model-value="listType == 'shelf-type' ? updateShelfTypeSizeClass($event) : handleInputFormChange(field.field)"
                   :aria-label="`${field.field}Select`"
                 />

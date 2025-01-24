@@ -60,6 +60,7 @@
               v-else-if="!accessionContainer.id"
               v-model="accessionJob.size_class_id"
               :options="sizeClass"
+              :clearable="false"
               option-type="sizeClass"
               option-value="id"
               option-label="name"
@@ -69,6 +70,7 @@
               v-else
               v-model="accessionContainer.size_class_id"
               :options="sizeClass"
+              :clearable="false"
               option-type="sizeClass"
               option-value="id"
               option-label="name"
@@ -90,6 +92,7 @@
               v-else-if="!accessionContainer.id"
               v-model="accessionJob.media_type_id"
               :options="mediaTypes"
+              :clearable="false"
               option-type="mediaTypes"
               option-value="id"
               option-label="name"
@@ -99,6 +102,7 @@
               v-else
               v-model="accessionContainer.media_type_id"
               :options="mediaTypes"
+              :clearable="false"
               option-type="mediaTypes"
               option-value="id"
               option-label="name"

@@ -76,6 +76,7 @@
                   :option-label="field.field == 'container_type_id' || field.field == 'shelf_type_id' ? 'type' : 'name'"
                   :placeholder="`Select ${field.label}`"
                   :disabled="field.disabled"
+                  :clearable="!field.required"
                   @update:model-value="handleLocationFormChange(field.label)"
                   :aria-label="`${field.field}Select`"
                 />

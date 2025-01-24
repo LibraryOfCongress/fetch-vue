@@ -42,6 +42,7 @@
               option-type="owners"
               option-value="id"
               option-label="name"
+              :clearable="false"
               aria-label="ownerSelect"
             />
           </div>
@@ -77,6 +78,7 @@
               option-type="sizeClass"
               option-value="id"
               option-label="name"
+              :clearable="false"
               aria-label="sizeClassSelect"
             />
           </div>
@@ -99,6 +101,7 @@
                 option-type="mediaTypes"
                 option-value="id"
                 option-label="name"
+                :clearable="false"
                 aria-label="mediaTypeSelect"
               />
               <SelectInput
@@ -108,6 +111,7 @@
                 option-type="mediaTypes"
                 option-value="id"
                 option-label="name"
+                :clearable="false"
                 aria-label="mediaTypeSelect"
               />
             </template>
