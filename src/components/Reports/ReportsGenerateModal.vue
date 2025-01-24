@@ -558,8 +558,8 @@ const generateReportModal = () => {
         building_id: null, // required
         module_id: null,
         owner_id: null,
-        aisle_from: null,
-        aisle_to: null,
+        aisle_num_from: null,
+        aisle_num_to: null,
         from_dt: null,
         to_dt: null
       }
@@ -588,12 +588,12 @@ const generateReportModal = () => {
         },
         {
           type: 'number',
-          query: 'aisle_from',
+          query: 'aisle_num_from',
           label: 'Aisle (From)'
         },
         {
           type: 'number',
-          query: 'aisle_to',
+          query: 'aisle_num_to',
           label: 'Aisle (To)'
         },
         {

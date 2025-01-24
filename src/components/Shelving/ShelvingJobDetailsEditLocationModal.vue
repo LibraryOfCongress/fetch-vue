@@ -373,7 +373,8 @@ const submitLocationForm = async () => {
         container_id: locationForm.value.id,
         trayed: locationForm.value.trayed,
         shelf_position_number: locationForm.value.shelf_position_number,
-        shelf_barcode_value: locationForm.value.shelf_barcode
+        shelf_barcode_value: locationForm.value.shelf_barcode,
+        shelved_dt: new Date().toISOString()
       }
     } else {
       payload = {
@@ -381,7 +382,8 @@ const submitLocationForm = async () => {
         container_id: locationForm.value.id,
         trayed: locationForm.value.trayed,
         shelf_position_number: shelfPositions.value.find(shelf_pos => shelf_pos.id == locationForm.value.shelf_position_id)?.shelf_position_number?.number,
-        shelf_id: locationForm.value.shelf_id
+        shelf_id: locationForm.value.shelf_id,
+        shelved_dt: new Date().toISOString()
       }
     }
 
