@@ -640,8 +640,8 @@ const generateReportTableFields = () => {
     case 'User Job Summary':
       generatedTableColumns.value = [
         {
-          name: 'user',
-          field: row => row.user?.username,
+          name: 'user_name',
+          field: 'user_name',
           label: 'User Name',
           align: 'left',
           sortable: true
@@ -654,17 +654,17 @@ const generateReportTableFields = () => {
           sortable: true
         },
         {
-          name: 'total_count',
-          field: 'total_count',
+          name: 'total_items_processed',
+          field: 'total_items_processed',
           label: 'Total Items Processed',
           align: 'left',
           sortable: true
         }
       ]
       generatedTableVisibleColumns.value = [
-        'user',
+        'user_name',
         'job_type',
-        'total_count'
+        'total_items_processed'
       ]
       break
     case 'Verification Change':

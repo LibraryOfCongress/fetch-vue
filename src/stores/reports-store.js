@@ -19,7 +19,8 @@ export const useReportsStore = defineStore('reports-store', {
         'Open Locations': inventoryServiceApi.reportingOpenLocations,
         'Tray/Item Count By Aisle': inventoryServiceApi.reportingTrayItemCountByAisle,
         'Non-Tray Count': inventoryServiceApi.reportingNonTrayItemsCount,
-        'Item in Tray': inventoryServiceApi.reportingTrayItemsCount
+        'Item in Tray': inventoryServiceApi.reportingTrayItemsCount,
+        'User Job Summary': inventoryServiceApi.reportingUserJobsCount
       }
 
       return endpointMap[reportType] || null
