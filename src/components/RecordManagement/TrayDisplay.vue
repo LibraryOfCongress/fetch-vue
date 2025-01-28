@@ -24,7 +24,7 @@
             </label>
             <EssentialLink
               :title="trayDetails.shelf_position ? trayDetails.shelf_position?.shelf?.barcode?.value : ''"
-              @click="() => (console.log('pending shelf detail page'))"
+              @click="routeToShelfDetail(trayDetails.shelf_position?.shelf?.barcode?.value)"
               :disabled="!trayDetails.shelf_position?.shelf?.barcode?.value"
               dense
               class="tray-details-text q-pa-none"
@@ -193,6 +193,14 @@ const routeToItemDetail = (rowData) => {
     name: 'record-management-items',
     params: {
       barcode: rowData.barcode.value
+    }
+  })
+}
+const routeToShelfDetail = (barcode) => {
+  router.push({
+    name: 'record-management-shelf',
+    params: {
+      barcode
     }
   })
 }
