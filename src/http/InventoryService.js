@@ -42,6 +42,7 @@ export default {
   reportingTrayItemsCount: '/reporting/tray_items/count/',
   reportingTrayItemCountByAisle: '/reporting/aisles/items_count/',
   reportingUserJobsCount: '/reporting/user-jobs/count/',
+  reportingVerificationChanges: '/reporting/verification-changes/summary/',
   requests: '/requests/',
   requestsLocations: '/requests/locations',
   requestsPriorities: '/requests/priorities',

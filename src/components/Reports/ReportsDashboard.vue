@@ -165,6 +165,7 @@ const { appIsOffline } = storeToRefs(useGlobalStore())
 const { downloadReport } = useReportsStore()
 
 // Local Data
+const formatDateTime = inject('format-date-time')
 const generatedTableVisibleColumns = ref([])
 const generatedTableColumns = ref([])
 const generatedTableFilters =  ref([
@@ -677,29 +678,29 @@ const generateReportTableFields = () => {
           sortable: true
         },
         {
-          name: 'complete_dt',
-          field: 'complete_dt',
+          name: 'completed_dt',
+          field: row => formatDateTime(row.completed_dt).date,
           label: 'Completed Date',
           align: 'left',
           sortable: true
         },
         {
-          name: 'assigned_user',
-          field: row => row.assigned_user?.name,
+          name: 'completed_by',
+          field: 'completed_by',
           label: 'Completed By',
           align: 'left',
           sortable: true
         },
         {
-          name: 'barcode',
-          field: row => row.barcode?.value,
+          name: 'item_barcode',
+          field: 'item_barcode',
           label: 'Item Barcode',
           align: 'left',
           sortable: true
         },
         {
           name: 'tray_barcode',
-          field: row => row.tray?.barcode?.value,
+          field: 'tray_barcode',
           label: 'Tray Barcode',
           align: 'left',
           sortable: true
@@ -714,9 +715,9 @@ const generateReportTableFields = () => {
       ]
       generatedTableVisibleColumns.value = [
         'id',
-        'complete_dt',
-        'assigned_user',
-        'barcode',
+        'completed_dt',
+        'completed_by',
+        'item_barcode',
         'tray_barcode',
         'action'
       ]

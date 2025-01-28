@@ -428,7 +428,8 @@ const {
   owners,
   sizeClass,
   mediaTypes,
-  users
+  users,
+  verificationJobs
 } = storeToRefs(useOptionStore())
 const {
   resetBuildingStore,
@@ -842,15 +843,15 @@ const generateReportModal = () => {
         workflow_id: null,
         from_dt: null,
         to_dt: null,
-        assigned_user_id: null
+        completed_by_id: null
       }
       reportParams.value = [
         {
-          type: 'text',
           query: 'workflow_id',
+          optionLabel: 'workflow_id',
           label: 'Job Number',
-          options: [],
-          optionType: ''
+          options: verificationJobs,
+          optionType: 'verificationJobs'
         },
         {
           query: 'from_dt',
@@ -861,7 +862,7 @@ const generateReportModal = () => {
           label: 'Date (To)'
         },
         {
-          query: 'assigned_user_id',
+          query: 'completed_by_id',
           label: 'Assigned User',
           options: users,
           optionType: 'users'
