@@ -9,14 +9,14 @@
     </div>
 
     <div class="row">
-      <div class="col-xs-12 col-sm-4 q-pr-xl q-pr-xs-none q-pr-sm-md q-pb-xs-md q-pb-sm-none">
+      <div class="col-xs-12 col-lg-4 q-pr-xs-none q-pr-lg-md q-pb-xs-md q-pb-lg-none">
         <BarcodeBox
           :barcode="trayDetails.barcode.value"
           :class="trayDetails.status == 'Out' ? 'bg-color-pink text-negative' : 'bg-color-green-light text-positive'"
           class="q-py-xs-sm q-py-sm-md"
         />
       </div>
-      <div class="col-xs-6 col-sm-4 col-md-3">
+      <div class="col-xs-6 col-sm-4 col-lg-3">
         <div class="column no-wrap">
           <div class="tray-details">
             <label class="tray-details-label text-h6">

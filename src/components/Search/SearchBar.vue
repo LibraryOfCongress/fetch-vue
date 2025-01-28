@@ -315,7 +315,12 @@ const handlingSearchResultRouting = () => {
       break
     case 'Shelf':
       shelfDetails.value = exactSearchResponseInfo.value
-      // TODO setup routing to record-management pages once they are built out
+      router.push({
+        name: 'record-management-shelf',
+        params: {
+          barcode: searchText.value
+        }
+      })
       break
     case 'Accession':
       accessionJob.value = exactSearchResponseInfo.value

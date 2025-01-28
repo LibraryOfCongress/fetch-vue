@@ -237,7 +237,7 @@ const breadcrumbList = computed(() => {
     case 'record-management-shelf':
       breadCrumbs = [
         ...breadCrumbs,
-        { text: 'Record Management - Shelf' }
+        { text: `Record Management - Shelf: ${route.params.barcode}` }
       ]
       break
     case 'record-management-tray':

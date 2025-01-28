@@ -148,7 +148,7 @@ const routes = [
       },
       {
         name: 'record-management-shelf',
-        path: 'record-management/shelf',
+        path: 'record-management/shelf/:barcode?',
         component: () => import('@/pages/RecordManagementPage.vue'),
         meta: {
           requiresAuth: true,
