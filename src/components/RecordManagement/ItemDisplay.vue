@@ -38,7 +38,7 @@
               </label>
               <EssentialLink
                 :title="renderShelfBarcode()"
-                @click="() => (console.log('pending shelf detail page'))"
+                @click="routeToShelfDetail()"
                 :disabled="!renderShelfBarcode()"
                 dense
                 class="item-details-text q-pa-none"
@@ -414,6 +414,14 @@ const routeToTrayDetail = (barcode) => {
     name: 'record-management-tray',
     params: {
       barcode
+    }
+  })
+}
+const routeToShelfDetail = () => {
+  router.push({
+    name: 'record-management-shelf',
+    params: {
+      barcode: renderShelfBarcode()
     }
   })
 }
