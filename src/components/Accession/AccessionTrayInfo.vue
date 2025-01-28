@@ -296,6 +296,7 @@ const {
   sizeClass,
   mediaTypes
 } = storeToRefs(useOptionStore())
+const { getOptions } = useOptionStore()
 const {
   patchAccessionJob,
   getAccessionTray,
@@ -353,6 +354,7 @@ watch(compiledBarCode, (barcode) => {
 const handleTrayScan = async (barcode_value) => {
   try {
     // stop the scan if no size class matches the scanned tray
+    await getOptions('sizeClass', { short_name: barcode_value.slice(0, 2) })
     const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
     if (!generateSizeClass && accessionJob.value.status !== 'Completed') {
       handleAlert({
