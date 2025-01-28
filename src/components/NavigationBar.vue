@@ -441,14 +441,13 @@ const displayRouteGuardAlert = (pathName) => {
 
   &-list {
     position: relative;
+    display: flex;
+    flex-flow: column nowrap;
     height: 100%;
 
     &-link {
       &-admin {
-        position: absolute;
-        bottom: 0px;
-        width: 100%;
-        height: auto;
+        margin-top: auto;
       }
     }
   }

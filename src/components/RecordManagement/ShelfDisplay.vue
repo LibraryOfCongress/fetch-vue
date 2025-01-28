@@ -260,7 +260,7 @@
           :pagination-total="shelfContainersTotal"
           :pagination-loading="appIsLoadingData"
           @update-pagination="loadShelfContainers($event)"
-          @selected-table-row="null"
+          @selected-table-row="routeToItemDetail($event)"
         >
           <template #heading-row>
             <div
@@ -271,20 +271,6 @@
                 Containers in Shelf
               </h1>
             </div>
-          </template>
-
-          <template #table-td="{ colName, value }">
-            <span
-              v-if="colName == 'barcode_value'"
-              class=""
-            >
-              <EssentialLink
-                :title="value"
-                @click="routeToItemDetail(value)"
-                dense
-                class="shelf-details-text q-pa-none"
-              />
-            </span>
           </template>
         </EssentialTable>
       </div>
@@ -301,7 +287,6 @@ import { useGlobalStore } from '@/stores/global-store'
 import { storeToRefs } from 'pinia'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
-import EssentialLink from '@/components/EssentialLink.vue'
 
 const router = useRouter()
 
@@ -322,7 +307,7 @@ const containerTableVisibleColumns = ref(['barcode_value'])
 const containerTableColumns = ref([
   {
     name: 'barcode_value',
-    field: (row) => renderItemBarcodeDisplay(row),
+    field: 'barcode_value',
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -332,7 +317,6 @@ const containerTableColumns = ref([
 // Logic
 const formatDateTime = inject('format-date-time')
 const handleAlert = inject('handle-alert')
-const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 onMounted(() => {
   loadShelfContainers()
@@ -370,30 +354,28 @@ const renderUsedCapacity = () => {
   return usedSpace
 }
 
-const routeToItemDetail = (barcode) => {
-  //TODO: figure out how to route to the corressponding tray or non tray detail page using passed in barcode
-  router.push({
-    name: 'record-management-tray',
-    params: {
-      barcode
-    }
-  })
+const routeToItemDetail = (item) => {
+  if (item.type == 'tray') {
+    router.push({
+      name: 'record-management-tray',
+      params: {
+        barcode: item.barcode_value
+      }
+    })
+  } else {
+    router.push({
+      name: 'record-management-items',
+      params: {
+        barcode: item.barcode_value
+      }
+    })
+  }
 }
 
 const loadShelfContainers = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    if (shelfDetails.value && shelfDetails.value.container_type?.type == 'Non-Tray') {
-      await getShelfContainers({
-        ...qParams,
-        non_tray_item_barcode: shelfDetails.value.barcode.value
-      })
-    } else {
-      await getShelfContainers({
-        ...qParams,
-        item_barcode: shelfDetails.value.barcode.value
-      })
-    }
+    await getShelfContainers({ ...qParams })
   } catch (error) {
     handleAlert({
       type: 'error',
