@@ -348,7 +348,7 @@
                   :hide-selected="!param.multiple"
                   :options="param.options"
                   :option-type="param.optionType"
-                  option-value="id"
+                  :option-value="param.optionValue ?? 'id'"
                   :option-label="param.optionLabel ?? 'name'"
                   :placeholder="`Select ${param.label}`"
                   :disabled="param.disabled"
@@ -850,6 +850,7 @@ const generateReportModal = () => {
         {
           query: 'workflow_id',
           optionLabel: 'workflow_id',
+          optionValue: 'workflow_id',
           label: 'Job Number',
           options: verificationJobs,
           optionType: 'verificationJobs'
