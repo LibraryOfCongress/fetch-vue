@@ -571,7 +571,7 @@ const generateReportTableFields = () => {
         {
           name: 'max_retrieved_count',
           field: 'max_retrieved_count',
-          label: 'Max Retreival Count',
+          label: 'Max Retrieval Count',
           align: 'left',
           sortable: true
         }
