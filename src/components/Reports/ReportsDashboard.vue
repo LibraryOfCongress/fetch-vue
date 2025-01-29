@@ -555,31 +555,31 @@ const generateReportTableFields = () => {
     case 'Total Item Retrieved':
       generatedTableColumns.value = [
         {
-          name: 'owner',
-          field: row => row.owner?.name,
+          name: 'owner_name',
+          field: 'owner_name',
           label: 'Owner',
           align: 'left',
           sortable: true
         },
         {
-          name: 'total_count',
-          field: 'total_count',
-          label: 'Total Item Count',
+          name: 'total_item_retrieved_count',
+          field: 'total_item_retrieved_count',
+          label: 'Total Item Retrieval Count',
           align: 'left',
           sortable: true
         },
         {
-          name: 'retrieved_count',
-          field: 'retrieved_count',
-          label: 'Retreival Count',
+          name: 'max_retrieved_count',
+          field: 'max_retrieved_count',
+          label: 'Max Retreival Count',
           align: 'left',
           sortable: true
         }
       ]
       generatedTableVisibleColumns.value = [
-        'owner',
-        'total_count',
-        'retrieved_count'
+        'owner_name',
+        'total_item_retrieved_count',
+        'max_retrieved_count'
       ]
       break
     case 'Tray/Item Count By Aisle':
