@@ -240,6 +240,7 @@
         :table-visible-columns="shelfTableVisibleColumns"
         :filter-options="shelfTableFilters"
         :table-data="shelvingJobContainers"
+        :row-key="row => row.barcode.value"
         :hide-table-rearrange="false"
         :heading-row-class="'justify-end q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="

@@ -68,6 +68,7 @@
               aria-label="containerSizeSelect"
               v-model="accessionContainer.size_class_id"
               :options="sizeClass"
+              :clearable="false"
               option-type="sizeClass"
               option-value="id"
               option-label="name"
@@ -90,6 +91,7 @@
                 aria-label="mediaTypeSelect"
                 v-model="accessionJob.media_type_id"
                 :options="mediaTypes"
+                :clearable="false"
                 option-type="mediaTypes"
                 option-value="id"
                 option-label="name"
@@ -99,6 +101,7 @@
                 aria-label="mediaTypeSelect"
                 v-model="accessionContainer.media_type_id"
                 :options="mediaTypes"
+                :clearable="false"
                 option-type="mediaTypes"
                 option-value="id"
                 option-label="name"
@@ -293,6 +296,7 @@ const {
   sizeClass,
   mediaTypes
 } = storeToRefs(useOptionStore())
+const { getOptions } = useOptionStore()
 const {
   patchAccessionJob,
   getAccessionTray,
@@ -350,6 +354,7 @@ watch(compiledBarCode, (barcode) => {
 const handleTrayScan = async (barcode_value) => {
   try {
     // stop the scan if no size class matches the scanned tray
+    await getOptions('sizeClass', { short_name: barcode_value.slice(0, 2) })
     const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
     if (!generateSizeClass && accessionJob.value.status !== 'Completed') {
       handleAlert({

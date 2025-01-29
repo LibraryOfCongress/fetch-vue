@@ -21,6 +21,7 @@
             option-value="id"
             option-label="module_number"
             :placeholder="'Select Module'"
+            :clearable="false"
             :disabled="renderBuildingModules.length == 0"
             @update:model-value="handleLocationFormChange('Module')"
             aria-label="moduleSelect"
@@ -40,6 +41,7 @@
               option-value="id"
               :option-label="opt => opt.aisle_number.number"
               :placeholder="'Select Aisle'"
+              :clearable="false"
               :disabled="renderBuildingOrModuleAisles.length == 0"
               @update:model-value="handleLocationFormChange('Aisle')"
               aria-label="aisleSelect"
@@ -76,6 +78,7 @@
             option-value="id"
             :option-label="opt => opt.ladder_number.number"
             :placeholder="'Select Ladder'"
+            :clearable="false"
             :disabled="renderSideLadders.length == 0"
             @update:model-value="handleLocationFormChange('Ladder')"
             aria-label="ladderSelect"
@@ -97,6 +100,7 @@
               option-value="id"
               :option-label="opt => opt.shelf_number.number"
               :placeholder="'Select Shelf'"
+              :clearable="false"
               :disabled="renderLadderShelves.length == 0"
               @update:model-value="handleLocationFormChange('Shelf')"
               aria-label="shelfSelect"
@@ -129,6 +133,7 @@
               option-value="id"
               :option-label="opt => opt.shelf_position_number.number"
               :placeholder="'Select Shelf Position'"
+              :clearable="false"
               :disabled="shelfPositions.length == 0"
               aria-label="shelfPositionSelect"
             />
@@ -373,7 +378,8 @@ const submitLocationForm = async () => {
         container_id: locationForm.value.id,
         trayed: locationForm.value.trayed,
         shelf_position_number: locationForm.value.shelf_position_number,
-        shelf_barcode_value: locationForm.value.shelf_barcode
+        shelf_barcode_value: locationForm.value.shelf_barcode,
+        shelved_dt: new Date().toISOString()
       }
     } else {
       payload = {
@@ -381,7 +387,8 @@ const submitLocationForm = async () => {
         container_id: locationForm.value.id,
         trayed: locationForm.value.trayed,
         shelf_position_number: shelfPositions.value.find(shelf_pos => shelf_pos.id == locationForm.value.shelf_position_id)?.shelf_position_number?.number,
-        shelf_id: locationForm.value.shelf_id
+        shelf_id: locationForm.value.shelf_id,
+        shelved_dt: new Date().toISOString()
       }
     }
 

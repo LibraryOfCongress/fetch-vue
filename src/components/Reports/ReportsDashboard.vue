@@ -13,6 +13,7 @@
         <SelectInput
           v-model="reportType"
           :options="reportOptions"
+          :clearable="false"
           :placeholder="'Select Report'"
           @update:model-value="reportFormHistory = null; showReportModal = true;"
           aria-label="reportSelect"
@@ -164,6 +165,7 @@ const { appIsOffline } = storeToRefs(useGlobalStore())
 const { downloadReport } = useReportsStore()
 
 // Local Data
+const formatDateTime = inject('format-date-time')
 const generatedTableVisibleColumns = ref([])
 const generatedTableColumns = ref([])
 const generatedTableFilters =  ref([
@@ -187,7 +189,7 @@ const generatedTableFilters =  ref([
   }
 ])
 const showReportModal = ref(false)
-const reportFormHistory= ref(null)
+const reportFormHistory = ref(null)
 const reportType = ref(null)
 const lastReportType = ref(null)
 const reportOptions =  ref([
@@ -255,8 +257,8 @@ const generateReportTableFields = () => {
     case 'Item in Tray':
       generatedTableColumns.value = [
         {
-          name: 'size_class',
-          field: row => row.size_class?.name,
+          name: 'size_class_short_name',
+          field: 'size_class_short_name',
           label: 'Size Class',
           align: 'left',
           sortable: true
@@ -269,17 +271,17 @@ const generateReportTableFields = () => {
           sortable: true
         },
         {
-          name: 'item_count',
-          field: 'item_count',
+          name: 'tray_item_count',
+          field: 'tray_item_count',
           label: 'Total Item Count',
           align: 'left',
           sortable: true
         }
       ]
       generatedTableVisibleColumns.value = [
-        'size_class',
+        'size_class_short_name',
         'tray_count',
-        'item_count'
+        'tray_item_count'
       ]
       break
     case 'Move/Withdraw Discrepancy':
@@ -639,8 +641,8 @@ const generateReportTableFields = () => {
     case 'User Job Summary':
       generatedTableColumns.value = [
         {
-          name: 'user',
-          field: row => row.user?.username,
+          name: 'user_name',
+          field: 'user_name',
           label: 'User Name',
           align: 'left',
           sortable: true
@@ -653,52 +655,52 @@ const generateReportTableFields = () => {
           sortable: true
         },
         {
-          name: 'total_count',
-          field: 'total_count',
+          name: 'total_items_processed',
+          field: 'total_items_processed',
           label: 'Total Items Processed',
           align: 'left',
           sortable: true
         }
       ]
       generatedTableVisibleColumns.value = [
-        'user',
+        'user_name',
         'job_type',
-        'total_count'
+        'total_items_processed'
       ]
       break
     case 'Verification Change':
       generatedTableColumns.value = [
         {
-          name: 'id',
+          name: 'workflow_id',
           field: 'workflow_id',
           label: 'Verification Job #',
           align: 'left',
           sortable: true
         },
         {
-          name: 'complete_dt',
-          field: 'complete_dt',
+          name: 'completed_dt',
+          field: row => formatDateTime(row.completed_dt).date,
           label: 'Completed Date',
           align: 'left',
           sortable: true
         },
         {
-          name: 'assigned_user',
-          field: row => row.assigned_user?.name,
+          name: 'completed_by',
+          field: 'completed_by',
           label: 'Completed By',
           align: 'left',
           sortable: true
         },
         {
-          name: 'barcode',
-          field: row => row.barcode?.value,
+          name: 'item_barcode',
+          field: 'item_barcode',
           label: 'Item Barcode',
           align: 'left',
           sortable: true
         },
         {
           name: 'tray_barcode',
-          field: row => row.tray?.barcode?.value,
+          field: 'tray_barcode',
           label: 'Tray Barcode',
           align: 'left',
           sortable: true
@@ -712,10 +714,10 @@ const generateReportTableFields = () => {
         }
       ]
       generatedTableVisibleColumns.value = [
-        'id',
-        'complete_dt',
-        'assigned_user',
-        'barcode',
+        'workflow_id',
+        'completed_dt',
+        'completed_by',
+        'item_barcode',
         'tray_barcode',
         'action'
       ]
