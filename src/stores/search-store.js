@@ -67,26 +67,26 @@ export const useSearchStore = defineStore('search-store', {
         }
       }
     },
-    async getAdvancedSearchResults (paramsObj, searchType, subType) {
+    async getAdvancedSearchResults (paramsObj, searchType) {
       try {
         let res
         if (searchType == 'Item') {
-          if (!subType || subType == 'nonTrayItem') {
-            // advanced item search defaults to nonTrayItems
-            res = await this.$api.get(inventoryServiceApi.nonTrayItems, {
-              params: {
-                size: this.apiPageSizeDefault,
-                ...paramsObj
-              }
-            })
-          } else if (subType == 'trayItem') {
-            res = await this.$api.get(inventoryServiceApi.items, {
-              params: {
-                size: this.apiPageSizeDefault,
-                ...paramsObj
-              }
-            })
-          }
+          // advanced item search nonTrayItems
+          res = await this.$api.get(inventoryServiceApi.nonTrayItems, {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
+            }
+          })
+          this.searchResults = res.data.items
+        } else if (searchType == 'TrayItem') {
+          // advanced item search TrayItems
+          res = await this.$api.get(inventoryServiceApi.items, {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
+            }
+          })
           this.searchResults = res.data.items
         } else if (searchType == 'Tray') {
           res = await this.$api.get(inventoryServiceApi.trays, {

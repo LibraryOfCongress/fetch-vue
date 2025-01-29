@@ -26,7 +26,7 @@
             </div>
 
             <div
-              v-if="route.params.searchType == 'Item'"
+              v-if="route.params.searchType == 'Item' || route.params.searchType == 'TrayItem'"
               class="col-xs-12 col-sm-auto col-md-auto q-mb-xs-md q-mb-sm-none"
             >
               <ToggleButtonInput
@@ -35,7 +35,7 @@
                   {label: 'Non-Tray Items', value: 'nonTrayItem'},
                   {label: 'Tray Items', value: 'trayItem'}
                 ]"
-                @update:model-value="loadAdvancedSearch(advanceSearchHistory, toggleSearchTab)"
+                @update:model-value="loadAdvancedSearch(advanceSearchHistory);"
                 class="text-no-wrap"
               />
             </div>
@@ -127,8 +127,9 @@ const generateSearchTableFields = () => {
   // creates the search table fields needed based on the route searcType
   switch (route.params.searchType) {
     case 'Item':
+    case 'TrayItem':
     // set the default tab for advance item search
-      toggleSearchTab.value = 'nonTrayItem'
+      toggleSearchTab.value = route.params.searchType == 'TrayItem' ? 'trayItem' : 'nonTrayItem'
       searchResultsTableColumns.value = [
         {
           name: 'accession_dt',
@@ -610,6 +611,7 @@ const renderUserName = (userObj) => {
 const handleResultSelection = (rowData) => {
   switch (route.params.searchType) {
     case 'Item':
+    case 'TrayItem':
       if (rowData.barcode) {
         router.push({
           name: 'record-management-items',
@@ -696,13 +698,21 @@ const handleResultSelection = (rowData) => {
   }
 }
 
-const loadAdvancedSearch = async (qParams, subType) => {
+const loadAdvancedSearch = async (qParams) => {
   try {
     appIsLoadingData.value = true
+    if (route.params.searchType == 'Item' || route.params.searchType == 'TrayItem') {
+      await router.replace({
+        params: {
+          searchType: toggleSearchTab.value == 'trayItem' ? 'TrayItem' : 'Item'
+        }
+      })
+    }
+
     await getAdvancedSearchResults({
       ...advanceSearchHistory.value,
       ...qParams
-    }, route.params.searchType, subType)
+    }, route.params.searchType)
 
     // update route queries to match new searches
     router.replace({
