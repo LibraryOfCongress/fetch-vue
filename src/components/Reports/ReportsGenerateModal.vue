@@ -785,7 +785,8 @@ const generateReportModal = () => {
           query: 'owner_id',
           label: 'Owner',
           options: owners,
-          optionType: 'owners'
+          optionType: 'owners',
+          multiple: true
         }
       ]
       break
