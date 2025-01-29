@@ -671,7 +671,7 @@ const generateReportTableFields = () => {
     case 'Verification Change':
       generatedTableColumns.value = [
         {
-          name: 'id',
+          name: 'workflow_id',
           field: 'workflow_id',
           label: 'Verification Job #',
           align: 'left',
@@ -714,7 +714,7 @@ const generateReportTableFields = () => {
         }
       ]
       generatedTableVisibleColumns.value = [
-        'id',
+        'workflow_id',
         'completed_dt',
         'completed_by',
         'item_barcode',
