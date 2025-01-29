@@ -313,7 +313,7 @@ const generateListModal = () => {
     case 'owner':
       inputForm.value = {
         owner_tier_id: mainProps.listData.owner_tier_id ?? '',
-        parent_owner_id: mainProps.listData.parent_owner_id ?? '',
+        parent_owner_id: mainProps.listData.parent_owner_id ?? null,
         name: mainProps.listData.name ?? ''
       }
       // create a copy of our input form
