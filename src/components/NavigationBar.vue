@@ -110,24 +110,19 @@
         role="group"
       >
         <q-item
-          class="q-mb-lg align-center"
+          class="q-my-lg align-center"
           clickable
           tag="a"
           role="link"
           :to="'/'"
         >
           <q-item-section>
-            <q-icon
-              name="image"
-              color="secondary"
-              size="120px"
+            <img
+              :src="mainLogo"
+              alt="FETCH LOGO"
+              width="268"
+              height="100"
             />
-          </q-item-section>
-
-          <q-item-section>
-            <q-item-label class="text-white text-bold">
-              FETCH LOGO
-            </q-item-label>
           </q-item-section>
         </q-item>
 
@@ -198,6 +193,7 @@ import PopupModal from '@/components/PopupModal.vue'
 import UserLogin from '@/components/User/UserLogin.vue'
 import UserMenu from '@/components/User/UserMenu.vue'
 
+const mainLogo = '/assets/FETCH-Logo.svg'
 const route = useRoute()
 const router = useRouter()
 
