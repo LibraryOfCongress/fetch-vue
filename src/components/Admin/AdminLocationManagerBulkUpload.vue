@@ -52,6 +52,7 @@
               option-type="buildings"
               option-value="id"
               option-label="name"
+              :clearable="false"
               :placeholder="'Select Building'"
               @update:model-value="handleLocationFormChange('Building')"
               aria-label="buildingSelect"
@@ -69,6 +70,7 @@
               option-value="id"
               option-label="module_number"
               :placeholder="'Select Module'"
+              :clearable="false"
               :disabled="renderBuildingModules.length == 0"
               @update:model-value="handleLocationFormChange('Module')"
               aria-label="moduleSelect"
@@ -89,6 +91,7 @@
               option-value="id"
               :option-label="opt => opt.aisle_number.number"
               :placeholder="'Select Aisle'"
+              :clearable="false"
               :disabled="renderBuildingOrModuleAisles.length == 0"
               @update:model-value="handleLocationFormChange('Aisle')"
               aria-label="aisleSelect"
@@ -218,26 +221,26 @@ const handleAlert = inject('handle-alert')
 const handleLocationFormChange = async (valueType) => {
   // reset the report form depending on the edited form field type
   switch (valueType) {
-  case 'Building':
-    await getBuildingDetails(bulkUploadLocationForm.value.building_id)
-    bulkUploadLocationForm.value.module_id = null
-    bulkUploadLocationForm.value.aisle_id = null
-    bulkUploadLocationForm.value.side_id = null
-    resetBuildingChildren()
-    return
-  case 'Module':
-    await getModuleDetails(bulkUploadLocationForm.value.module_id)
-    bulkUploadLocationForm.value.aisle_id = null
-    bulkUploadLocationForm.value.side_id = null
-    resetModuleChildren()
-    return
-  case 'Aisle':
-    await getAisleDetails(bulkUploadLocationForm.value.aisle_id)
-    bulkUploadLocationForm.value.side_id = null
-    resetAisleChildren()
-    return
-  default:
-    return
+    case 'Building':
+      await getBuildingDetails(bulkUploadLocationForm.value.building_id)
+      bulkUploadLocationForm.value.module_id = null
+      bulkUploadLocationForm.value.aisle_id = null
+      bulkUploadLocationForm.value.side_id = null
+      resetBuildingChildren()
+      return
+    case 'Module':
+      await getModuleDetails(bulkUploadLocationForm.value.module_id)
+      bulkUploadLocationForm.value.aisle_id = null
+      bulkUploadLocationForm.value.side_id = null
+      resetModuleChildren()
+      return
+    case 'Aisle':
+      await getAisleDetails(bulkUploadLocationForm.value.aisle_id)
+      bulkUploadLocationForm.value.side_id = null
+      resetAisleChildren()
+      return
+    default:
+      return
   }
 }
 const resetBulkUploadLocationForm = () => {

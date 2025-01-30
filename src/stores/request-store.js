@@ -85,7 +85,12 @@ export const useRequestStore = defineStore('request-store', {
     },
     async getRequestJobList (paramsObj) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.requests, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
+        const res = await this.$api.get(inventoryServiceApi.requests, {
+          params: {
+            size: this.apiPageSizeDefault,
+            ...paramsObj
+          }
+        })
         this.requestJobList = res.data.items
 
         // keep track of response total for pagination
@@ -121,7 +126,12 @@ export const useRequestStore = defineStore('request-store', {
     },
     async getRequestBatchJobList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.batchUpload, { params: { ...qParams, batch_upload_type: 'request' } })
+        const res = await this.$api.get(inventoryServiceApi.batchUpload, {
+          params: {
+            ...qParams,
+            batch_upload_type: 'request'
+          }
+        })
         this.requestJobList = res.data.items
 
         // keep track of response total for pagination

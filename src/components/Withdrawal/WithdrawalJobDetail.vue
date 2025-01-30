@@ -582,18 +582,18 @@ onBeforeMount(() => {
 
 const handleOptionMenu = async (action, rowData) => {
   switch (action.text) {
-  case 'Edit':
-    editJob.value = true
-    return
-  case 'Delete Job':
-    showConfirmationModal.value = 'DeleteJob'
-    return
-  case 'Remove Item':
-    removeWithdrawItems([rowData.barcode.value])
-    return
-  case 'View History':
-    showAuditTrailModal.value = 'withdraw_jobs'
-    return
+    case 'Edit':
+      editJob.value = true
+      return
+    case 'Delete Job':
+      showConfirmationModal.value = 'DeleteJob'
+      return
+    case 'Remove Item':
+      removeWithdrawItems([rowData.barcode.value])
+      return
+    case 'View History':
+      showAuditTrailModal.value = 'withdraw_jobs'
+      return
   }
 }
 

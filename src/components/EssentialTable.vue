@@ -48,28 +48,40 @@
                     {{ data.label }}
                   </q-item-label>
 
+                  <template v-if="data.options.length > 0">
+                    <q-item
+                      v-for="opt in data.options"
+                      :key="opt.text"
+                      tag="label"
+                      v-ripple
+                      :class="opt.value ? 'active' : ''"
+                      role=""
+                    >
+                      <q-item-section
+                        side
+                        top
+                      >
+                        <q-checkbox
+                          v-model="opt.value"
+                          @update:model-value="filterTableData(opt)"
+                          aria-label="tableFilterOptionCheckbox"
+                          role="menuitemcheckbox"
+                        />
+                      </q-item-section>
+
+                      <q-item-section>
+                        <q-item-label>{{ opt.text }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </template>
                   <q-item
-                    v-for="opt in data.options"
-                    :key="opt.text"
+                    v-else
+                    :disable="true"
                     tag="label"
-                    v-ripple
-                    :class="opt.value ? 'active' : ''"
                     role=""
                   >
-                    <q-item-section
-                      side
-                      top
-                    >
-                      <q-checkbox
-                        v-model="opt.value"
-                        @update:model-value="filterTableData(opt)"
-                        aria-label="tableFilterOptionCheckbox"
-                        role="menuitemcheckbox"
-                      />
-                    </q-item-section>
-
                     <q-item-section>
-                      <q-item-label>{{ opt.text }}</q-item-label>
+                      <q-item-label>No Filters Found</q-item-label>
                     </q-item-section>
                   </q-item>
                 </q-item-section>
@@ -380,8 +392,9 @@ const mainProps = defineProps({
     default: ''
   },
   rowKey: {
-    type: String,
+    type: undefined,
     default: 'id' // if tableData doesnt include an 'id' param we need to specifiy this
+    // warning some data patterns like tray/non tray based tables could contain similar id's this will cause duplicate issues
   },
   // inorder to generate a class to highlight an entire row of data you must provide a key/value pair to use as an indicator on what row needs the class added
   highlightRowClass: {
@@ -643,8 +656,12 @@ defineExpose({ clearSelectedData })
 
   &-table {
     :deep(tbody) {
-      & tr {
+      & tr td {
         cursor: pointer;
+
+        &.q-td--no-hover {
+          cursor: initial;
+        }
       }
     }
   }

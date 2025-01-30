@@ -38,7 +38,10 @@ Queue.prototype.manualSync = async function () {
         console.log('Queued Request Successfully Sent', res, resdata)
         const clients = await self.clients.matchAll()
         for (const client of clients) {
-          client.postMessage({ url: res.url, response: resdata })
+          client.postMessage({
+            url: res.url,
+            response: resdata
+          })
         }
       }
     } catch (error) {
@@ -104,14 +107,20 @@ self.addEventListener('message', async (event) => {
       // Send message to client to notify sync is complete
       const clients = await self.clients.matchAll()
       for (const client of clients) {
-        client.postMessage({ message: 'sync complete', error: manualSyncErrorLog })
+        client.postMessage({
+          message: 'sync complete',
+          error: manualSyncErrorLog
+        })
         manualSyncErrorLog = []
       }
     } catch (error) {
       // Send message to client to notify sync is failed
       const clients = await self.clients.matchAll()
       for (const client of clients) {
-        client.postMessage({ message: 'sync error', error })
+        client.postMessage({
+          message: 'sync error',
+          error
+        })
       }
     }
   } else if (typeof event.data == 'object' && event.data.queueIncomingApiCall) {

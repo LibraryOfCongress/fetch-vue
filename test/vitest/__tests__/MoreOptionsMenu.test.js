@@ -10,8 +10,14 @@ describe('More Options Menu Component', () => {
     const wrapper = mount(MoreOptionsMenu, {
       props: {
         options: [
-          { text: 'Test Option 1', value: 1 },
-          { text: 'Test Option 2', value: 2 }
+          {
+            text: 'Test Option 1',
+            value: 1
+          },
+          {
+            text: 'Test Option 2',
+            value: 2
+          }
         ]
       }
     })
@@ -23,8 +29,14 @@ describe('More Options Menu Component', () => {
 
     // check that the options are loaded by the component
     expect(wrapper.vm.options).toMatchObject([
-      { text: 'Test Option 1', value: 1 },
-      { text: 'Test Option 2', value: 2 }
+      {
+        text: 'Test Option 1',
+        value: 1
+      },
+      {
+        text: 'Test Option 2',
+        value: 2
+      }
     ])
   })
 })

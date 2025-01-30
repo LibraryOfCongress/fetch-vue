@@ -401,6 +401,7 @@ const assignContainerLocation = async () => {
       container_barcode_value: shelvingJobContainer.value.barcode.value,
       shelf_barcode_value: directToShelfJob.value.shelf_barcode.value,
       shelf_position_number: parseInt(shelvingJobContainer.value.shelf_position_number),
+      shelved_dt: new Date().toISOString(),
       scanned_for_shelving: true
     }
     await postDirectShelvingJobContainer(payload)

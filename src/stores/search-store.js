@@ -14,7 +14,7 @@ export const useSearchStore = defineStore('search-store', {
     async getExactSearchResult (searchInput, searchType) {
       try {
         if (searchType == 'Item') {
-          // exact searches for item/tray items types will load the item-managment ui for the item barcode value
+          // exact searches for item/tray items types will load the record-management ui for the item barcode value
           const [
             resTrayItem,
             resNonTrayItem
@@ -33,12 +33,12 @@ export const useSearchStore = defineStore('search-store', {
             this.searchResults = ['No results found...']
           }
         } else if (searchType == 'Tray') {
-          // exact search for shelf type will load the item-managment ui for the tray barcode value
+          // exact search for shelf type will load the record-management ui for the tray barcode value
           const res = await this.$api.get(`${inventoryServiceApi.traysBarcode}${searchInput}`)
           this.searchResults = [`Tray: ${searchInput}`]
           return res
         } else if (searchType == 'Shelf') {
-          // exact search for shelf type will load the item-managment ui for the shelf barcode value
+          // exact search for shelf type will load the record-management ui for the shelf barcode value
           const res = await this.$api.get(`${inventoryServiceApi.shelvesBarcode}${searchInput}`)
           this.searchResults = [`Shelf: ${searchInput}`]
           return res
@@ -67,22 +67,42 @@ export const useSearchStore = defineStore('search-store', {
         }
       }
     },
-    async getAdvancedSearchResults (paramsObj, searchType, subType) {
+    async getAdvancedSearchResults (paramsObj, searchType) {
       try {
         let res
         if (searchType == 'Item') {
-          if (!subType || subType == 'nonTrayItem') {
-            // advanced item search defaults to nonTrayItems
-            res = await this.$api.get(inventoryServiceApi.nonTrayItems, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
-          } else if (subType == 'trayItem') {
-            res = await this.$api.get(inventoryServiceApi.items, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
-          }
+          // advanced item search nonTrayItems
+          res = await this.$api.get(inventoryServiceApi.nonTrayItems, {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
+            }
+          })
+          this.searchResults = res.data.items
+        } else if (searchType == 'TrayItem') {
+          // advanced item search TrayItems
+          res = await this.$api.get(inventoryServiceApi.items, {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
+            }
+          })
           this.searchResults = res.data.items
         } else if (searchType == 'Tray') {
-          res = await this.$api.get(inventoryServiceApi.trays, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
+          res = await this.$api.get(inventoryServiceApi.trays, {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
+            }
+          })
           this.searchResults = res.data.items
         } else if (searchType == 'Shelf') {
-          res = await this.$api.get(inventoryServiceApi.shelves, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
+          res = await this.$api.get(inventoryServiceApi.shelves, {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
+            }
+          })
           this.searchResults = res.data.items
         } else {
           // job related advanced searches
@@ -93,7 +113,12 @@ export const useSearchStore = defineStore('search-store', {
             jobEndpoint = 'picklists'
           }
 
-          res = await this.$api.get(inventoryServiceApi[jobEndpoint], { params: { size: this.apiPageSizeDefault, ...paramsObj } })
+          res = await this.$api.get(inventoryServiceApi[jobEndpoint], {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
+            }
+          })
           this.searchResults = res.data.items
         }
 

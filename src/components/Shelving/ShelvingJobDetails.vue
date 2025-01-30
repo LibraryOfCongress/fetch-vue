@@ -240,6 +240,7 @@
         :table-visible-columns="shelfTableVisibleColumns"
         :filter-options="shelfTableFilters"
         :table-data="shelvingJobContainers"
+        :row-key="row => row.barcode.value"
         :hide-table-rearrange="false"
         :heading-row-class="'justify-end q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="
@@ -649,51 +650,51 @@ const triggerContainerScan = (barcode_value) => {
 
 const handleOptionMenu = async (action, rowData) => {
   switch (action.text) {
-  case 'Edit Location':
-    try {
-      const itemLocationIdList =
+    case 'Edit Location':
+      try {
+        const itemLocationIdList =
           rowData.shelf_position?.internal_location?.split('-')
-      if (!appIsOffline.value) {
-        appIsLoadingData.value = true
-        if (itemLocationIdList) {
-          await Promise.all([
-            getBuildingDetails(shelvingJob.value.building_id),
-            getModuleDetails(itemLocationIdList[1]),
-            getAisleDetails(itemLocationIdList[2]),
-            getSideDetails(itemLocationIdList[3]),
-            getLadderDetails(itemLocationIdList[4], {
-              owner_id: rowData.owner.id,
-              size_class_id: rowData.size_class.id
-            }), //filters the shelves returned from ladder by owner and size class
-            getShelfDetails(itemLocationIdList[5]),
-            getShelfPositionsList(itemLocationIdList[5], true)
-          ])
+        if (!appIsOffline.value) {
+          appIsLoadingData.value = true
+          if (itemLocationIdList) {
+            await Promise.all([
+              getBuildingDetails(shelvingJob.value.building_id),
+              getModuleDetails(itemLocationIdList[1]),
+              getAisleDetails(itemLocationIdList[2]),
+              getSideDetails(itemLocationIdList[3]),
+              getLadderDetails(itemLocationIdList[4], {
+                owner_id: rowData.owner.id,
+                size_class_id: rowData.size_class.id
+              }), //filters the shelves returned from ladder by owner and size class
+              getShelfDetails(itemLocationIdList[5]),
+              getShelfPositionsList(itemLocationIdList[5], true)
+            ])
+          }
         }
+
+        // set the passed in rowData as the selected shelvingItem
+        selectedShelvingItem.value = rowData
+      } catch (error) {
+        handleAlert({
+          type: 'error',
+          text: error,
+          autoClose: true
+        })
+      } finally {
+        appIsLoadingData.value = false
+        showShelvingLocationModal.value = true
       }
 
-      // set the passed in rowData as the selected shelvingItem
-      selectedShelvingItem.value = rowData
-    } catch (error) {
-      handleAlert({
-        type: 'error',
-        text: error,
-        autoClose: true
-      })
-    } finally {
-      appIsLoadingData.value = false
-      showShelvingLocationModal.value = true
-    }
-
-    return
-  case 'Edit':
-    editJob.value = true
-    return
-  case 'Print Job':
-    batchSheetComponent.value.printBatchReport()
-    return
-  case 'View History':
-    showAuditTrailModal.value = 'shelving_jobs'
-    return
+      return
+    case 'Edit':
+      editJob.value = true
+      return
+    case 'Print Job':
+      batchSheetComponent.value.printBatchReport()
+      return
+    case 'View History':
+      showAuditTrailModal.value = 'shelving_jobs'
+      return
   }
 }
 

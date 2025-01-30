@@ -73,7 +73,12 @@ export const useVerificationStore = defineStore('verification-store', {
     },
     async getVerificationJobList (paramsObj) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.verificationJobs, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
+        const res = await this.$api.get(inventoryServiceApi.verificationJobs, {
+          params: {
+            size: this.apiPageSizeDefault,
+            ...paramsObj
+          }
+        })
         this.verificationJobList = res.data.items
 
         // keep track of response total for pagination
@@ -113,7 +118,10 @@ export const useVerificationStore = defineStore('verification-store', {
     async patchVerificationTray (payload) {
       try {
         const res = await this.$api.patch(`${inventoryServiceApi.trays}${payload.id}`, payload)
-        this.verificationContainer = { ...res.data, items: res.data.items ?? [] }
+        this.verificationContainer = {
+          ...res.data,
+          items: res.data.items ?? []
+        }
         this.originalVerificationContainer = { ...this.verificationContainer }
 
         // update the tray in the verificationJob trays
@@ -125,7 +133,14 @@ export const useVerificationStore = defineStore('verification-store', {
     },
     async postVerificationTrayItem (payload) {
       try {
+        // add the item to the items table
         const res = await this.$api.post(inventoryServiceApi.items, payload)
+
+        //pass an update to verification job to track which user added a new tray item
+        await this.$api.patch(`${inventoryServiceApi.verificationJobs}${payload.verification_job_id}/add`, {
+          barcode_value: payload.barcode_value,
+          user_id: payload.user_id
+        })
 
         this.verificationContainer.items = [
           ...this.verificationContainer.items,
@@ -155,14 +170,22 @@ export const useVerificationStore = defineStore('verification-store', {
         throw error
       }
     },
-    async deleteVerificationTrayItem (barcodeList) {
+    async deleteVerificationTrayItem (barcodeItemList) {
       try {
-        await Promise.all(barcodeList.map(barcode => {
-          return this.$api.delete(`${inventoryServiceApi.items}${barcode}`)
+        //pass an update to verification job to track which user removed the tray item before we delete it from the system
+        await Promise.all(barcodeItemList.map(item => {
+          return this.$api.patch(`${inventoryServiceApi.verificationJobs}${item.verification_job_id}/remove`, {
+            barcode_value: item.barcode.value,
+            user_id: item.user_id
+          })
+        }))
+
+        await Promise.all(barcodeItemList.map(item => {
+          return this.$api.delete(`${inventoryServiceApi.items}${item.id}`)
         }))
 
         // filter the deleted tray items from the verificationContainer
-        const filteredItems = this.verificationContainer.items.filter(b => !barcodeList.includes(b.id))
+        const filteredItems = this.verificationContainer.items.filter(b => !barcodeItemList.map(item => item.id).includes(b.id))
         this.verificationContainer = {
           ...this.verificationContainer,
           items: filteredItems
@@ -185,7 +208,14 @@ export const useVerificationStore = defineStore('verification-store', {
     },
     async postVerificationNonTrayItem (payload) {
       try {
+        // add the item to the nontray items table
         const res = await this.$api.post(inventoryServiceApi.nonTrayItems, payload)
+
+        //pass an update to verification job to track which user added a new tray item
+        await this.$api.patch(`${inventoryServiceApi.verificationJobs}${payload.verification_job_id}/add`, {
+          barcode_value: payload.barcode_value,
+          user_id: payload.user_id
+        })
 
         // set the item as the container since there is no tray container for non tray jobs
         this.verificationContainer = res.data
@@ -214,16 +244,24 @@ export const useVerificationStore = defineStore('verification-store', {
         throw error
       }
     },
-    async deleteVerificationNonTrayItem (barcodeList) {
+    async deleteVerificationNonTrayItem (barcodeItemList) {
       try {
-        await Promise.all(barcodeList.map(barcode => {
-          return this.$api.delete(`${inventoryServiceApi.nonTrayItems}${barcode}`)
+        //pass an update to verification job to track which user removed the nontray item before we delete it from the system
+        await Promise.all(barcodeItemList.map(item => {
+          return this.$api.patch(`${inventoryServiceApi.verificationJobs}${item.verification_job_id}/remove`, {
+            barcode_value: item.barcode.value,
+            user_id: item.user_id
+          })
+        }))
+
+        await Promise.all(barcodeItemList.map(item => {
+          return this.$api.delete(`${inventoryServiceApi.nonTrayItems}${item.id}`)
         }))
 
         // filter the deleted non tray items from the verificationJob
         this.verificationJob = {
           ...this.verificationJob,
-          non_tray_items: this.verificationJob.non_tray_items.filter(b => !barcodeList.includes(b.id) )
+          non_tray_items: this.verificationJob.non_tray_items.filter(b => !barcodeItemList.map(item => item.id).includes(b.id) )
         }
         this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {

@@ -28,7 +28,8 @@ export const useOptionStore = defineStore('option-store', {
     requestsPriorities: [],
     requestsTypes: [],
     shelves: [],
-    users: []
+    users: [],
+    verificationJobs: []
   }),
   actions: {
     resetOptionStore () {
@@ -36,7 +37,12 @@ export const useOptionStore = defineStore('option-store', {
     },
     async getOptions (optionType, qParams, combineOptions = false) {
       try {
-        const res = await this.$api.get(inventoryServiceApi[optionType], { params: { size: this.apiPageSizeDefault, ...qParams } })
+        const res = await this.$api.get(inventoryServiceApi[optionType], {
+          params: {
+            size: this.apiPageSizeDefault,
+            ...qParams
+          }
+        })
         if (combineOptions) {
           // combineOptions is only mainly used when we need to add to our list of options ex: paginated selects on scroll need to add to options
           // merge the results with current options and get rid of duplicates
@@ -58,7 +64,12 @@ export const useOptionStore = defineStore('option-store', {
     },
     async getParentOwnerOptions (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.owners, { params: { size: this.apiPageSizeDefault, ...qParams } })
+        const res = await this.$api.get(inventoryServiceApi.owners, {
+          params: {
+            size: this.apiPageSizeDefault,
+            ...qParams
+          }
+        })
         this['parentOwnerOptions'] = res.data.items
       } catch (error) {
         throw error

@@ -125,23 +125,23 @@ const locationDataTotal = ref(0)
 const locationData = computed(() => {
   let tableData = []
   switch (mainProps.locationType) {
-  case 'buildings':
-    tableData = buildings.value
-    break
-  case 'modules':
-    tableData = buildingDetails.value.modules
-    break
-  case 'aisles':
-    tableData = moduleDetails.value.aisles
-    break
-  case 'ladders':
-    tableData = sideDetails.value.ladders
-    break
-  case 'shelves':
-    tableData = ladderDetails.value.shelves
-    break
-  default:
-    break
+    case 'buildings':
+      tableData = buildings.value
+      break
+    case 'modules':
+      tableData = buildingDetails.value.modules
+      break
+    case 'aisles':
+      tableData = moduleDetails.value.aisles
+      break
+    case 'ladders':
+      tableData = sideDetails.value.ladders
+      break
+    case 'shelves':
+      tableData = ladderDetails.value.shelves
+      break
+    default:
+      break
   }
   return tableData
 })
@@ -172,46 +172,46 @@ const renderLocationTableTitle = computed(() => {
 const renderLocationTableAction = computed(() => {
   let actionText = ''
   switch (mainProps.locationType) {
-  case 'buildings':
-    actionText = 'Add Building'
-    break
-  case 'modules':
-    actionText = 'Add Module'
-    break
-  case 'aisles':
-    actionText = 'Add Aisle'
-    break
-  case 'ladders':
-    actionText = 'Add Ladder'
-    break
-  case 'shelves':
-    actionText = 'Add Shelf'
-    break
-  default:
-    break
+    case 'buildings':
+      actionText = 'Add Building'
+      break
+    case 'modules':
+      actionText = 'Add Module'
+      break
+    case 'aisles':
+      actionText = 'Add Aisle'
+      break
+    case 'ladders':
+      actionText = 'Add Ladder'
+      break
+    case 'shelves':
+      actionText = 'Add Shelf'
+      break
+    default:
+      break
   }
   return actionText
 })
 const renderLocationTableOptionsMenu = computed(() => {
   let options = []
   switch (mainProps.locationType) {
-  case 'buildings':
-    options = [{ text: 'Edit Building' }]
-    break
-  case 'modules':
-    options = [{ text: 'Edit Module' }]
-    break
-  case 'aisles':
-    options = [{ text: 'Edit Aisle' }]
-    break
-  case 'ladders':
-    options = [{ text: 'Edit Ladder' }]
-    break
-  case 'shelves':
-    options = [{ text: 'Edit Shelf' }]
-    break
-  default:
-    break
+    case 'buildings':
+      options = [{ text: 'Edit Building' }]
+      break
+    case 'modules':
+      options = [{ text: 'Edit Module' }]
+      break
+    case 'aisles':
+      options = [{ text: 'Edit Aisle' }]
+      break
+    case 'ladders':
+      options = [{ text: 'Edit Ladder' }]
+      break
+    case 'shelves':
+      options = [{ text: 'Edit Shelf' }]
+      break
+    default:
+      break
   }
   return options
 })
@@ -251,275 +251,275 @@ const handleOptionMenu = async (rowData) => {
 const generateLocationTableInfo = () => {
   // creates the report table fields needed based on the selected location type
   switch (mainProps.locationType) {
-  case 'buildings':
-    locationTableColumns.value = [
-      {
-        name: 'actions',
-        field: 'actions',
-        label: '',
-        align: 'center',
-        sortable: false,
-        required: true
-      },
-      {
-        name: 'building',
-        field: 'name',
-        label: 'Building',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'create_dt',
-        field: 'create_dt',
-        label: 'Created Date',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'update_dt',
-        field: 'update_dt',
-        label: 'Last Updated',
-        align: 'left',
-        sortable: true
-      }
-    ]
-    locationTableVisibleColumns.value = [
-      'actions',
-      'building',
-      'create_dt',
-      'update_dt'
-    ]
-    break
-  case 'modules':
-    locationTableColumns.value = [
-      {
-        name: 'actions',
-        field: 'actions',
-        label: '',
-        align: 'center',
-        sortable: false,
-        required: true
-      },
-      {
-        name: 'module',
-        field: 'module_number',
-        label: 'Module',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'create_dt',
-        field: 'create_dt',
-        label: 'Created Date',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'update_dt',
-        field: 'update_dt',
-        label: 'Last Updated',
-        align: 'left',
-        sortable: true
-      }
-    ]
-    locationTableVisibleColumns.value = [
-      'actions',
-      'module',
-      'create_dt',
-      'update_dt'
-    ]
-    break
-  case 'aisles':
-    locationTableColumns.value = [
-      {
-        name: 'actions',
-        field: 'actions',
-        label: '',
-        align: 'center',
-        sortable: false,
-        required: true
-      },
-      {
-        name: 'aisle',
-        field: row => row.aisle_number?.number,
-        label: 'Aisle',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'sort_priority',
-        field: 'sort_priority',
-        label: 'Location Logical Order',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'create_dt',
-        field: 'create_dt',
-        label: 'Created Date',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'update_dt',
-        field: 'update_dt',
-        label: 'Last Updated',
-        align: 'left',
-        sortable: true
-      }
-    ]
-    locationTableVisibleColumns.value = [
-      'actions',
-      'aisle',
-      'sort_priority',
-      'create_dt',
-      'update_dt'
-    ]
-    break
-  case 'ladders':
-    locationTableColumns.value = [
-      {
-        name: 'actions',
-        field: 'actions',
-        label: '',
-        align: 'center',
-        sortable: false,
-        required: true
-      },
-      {
-        name: 'ladder',
-        field: row => row.ladder_number?.number,
-        label: 'Ladder',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'sort_priority',
-        field: 'sort_priority',
-        label: 'Location Logical Order',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'create_dt',
-        field: 'create_dt',
-        label: 'Created Date',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'update_dt',
-        field: 'update_dt',
-        label: 'Last Updated',
-        align: 'left',
-        sortable: true
-      }
-    ]
-    locationTableVisibleColumns.value = [
-      'actions',
-      'ladder',
-      'sort_priority',
-      'create_dt',
-      'update_dt'
-    ]
-    break
-  case 'shelves':
-    locationTableColumns.value = [
-      {
-        name: 'actions',
-        field: 'actions',
-        label: '',
-        align: 'center',
-        sortable: false,
-        required: true
-      },
-      {
-        name: 'shelf_number',
-        field: row => row.shelf_number?.number,
-        label: 'Shelf Number',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'shelf_width',
-        field: 'width',
-        label: 'Shelf Width',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'shelf_height',
-        field: 'height',
-        label: 'Shelf Height',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'shelf_depth',
-        field: 'depth',
-        label: 'Shelf Depth',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'size_class',
-        field: row => row.shelf_type?.size_class?.name,
-        label: 'Size Class',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'shelf_type',
-        field: row => row.shelf_type?.type,
-        label: 'Shelf Type',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'container_type',
-        field: row => row.container_type?.type,
-        label: 'Container Type',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'owner',
-        field: row => row.owner?.name,
-        label: 'Owner',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'shelf_barcode',
-        field: row => row.barcode?.value,
-        label: 'Shelf Barcode',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'sort_priority',
-        field: 'sort_priority',
-        label: 'Location Logical Order',
-        align: 'left',
-        sortable: true
-      }
-    ]
-    locationTableVisibleColumns.value = [
-      'actions',
-      'shelf_number',
-      'shelf_width',
-      'shelf_height',
-      'shelf_depth',
-      'size_class',
-      'shelf_type',
-      'container_type',
-      'owner',
-      'shelf_barcode',
-      'sort_priority'
-    ]
-    break
-  default:
-    break
+    case 'buildings':
+      locationTableColumns.value = [
+        {
+          name: 'actions',
+          field: 'actions',
+          label: '',
+          align: 'center',
+          sortable: false,
+          required: true
+        },
+        {
+          name: 'building',
+          field: 'name',
+          label: 'Building',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'create_dt',
+          field: 'create_dt',
+          label: 'Created Date',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'update_dt',
+          field: 'update_dt',
+          label: 'Last Updated',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      locationTableVisibleColumns.value = [
+        'actions',
+        'building',
+        'create_dt',
+        'update_dt'
+      ]
+      break
+    case 'modules':
+      locationTableColumns.value = [
+        {
+          name: 'actions',
+          field: 'actions',
+          label: '',
+          align: 'center',
+          sortable: false,
+          required: true
+        },
+        {
+          name: 'module',
+          field: 'module_number',
+          label: 'Module',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'create_dt',
+          field: 'create_dt',
+          label: 'Created Date',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'update_dt',
+          field: 'update_dt',
+          label: 'Last Updated',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      locationTableVisibleColumns.value = [
+        'actions',
+        'module',
+        'create_dt',
+        'update_dt'
+      ]
+      break
+    case 'aisles':
+      locationTableColumns.value = [
+        {
+          name: 'actions',
+          field: 'actions',
+          label: '',
+          align: 'center',
+          sortable: false,
+          required: true
+        },
+        {
+          name: 'aisle',
+          field: row => row.aisle_number?.number,
+          label: 'Aisle',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'sort_priority',
+          field: 'sort_priority',
+          label: 'Location Logical Order',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'create_dt',
+          field: 'create_dt',
+          label: 'Created Date',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'update_dt',
+          field: 'update_dt',
+          label: 'Last Updated',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      locationTableVisibleColumns.value = [
+        'actions',
+        'aisle',
+        'sort_priority',
+        'create_dt',
+        'update_dt'
+      ]
+      break
+    case 'ladders':
+      locationTableColumns.value = [
+        {
+          name: 'actions',
+          field: 'actions',
+          label: '',
+          align: 'center',
+          sortable: false,
+          required: true
+        },
+        {
+          name: 'ladder',
+          field: row => row.ladder_number?.number,
+          label: 'Ladder',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'sort_priority',
+          field: 'sort_priority',
+          label: 'Location Logical Order',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'create_dt',
+          field: 'create_dt',
+          label: 'Created Date',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'update_dt',
+          field: 'update_dt',
+          label: 'Last Updated',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      locationTableVisibleColumns.value = [
+        'actions',
+        'ladder',
+        'sort_priority',
+        'create_dt',
+        'update_dt'
+      ]
+      break
+    case 'shelves':
+      locationTableColumns.value = [
+        {
+          name: 'actions',
+          field: 'actions',
+          label: '',
+          align: 'center',
+          sortable: false,
+          required: true
+        },
+        {
+          name: 'shelf_number',
+          field: row => row.shelf_number?.number,
+          label: 'Shelf Number',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'shelf_width',
+          field: 'width',
+          label: 'Shelf Width',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'shelf_height',
+          field: 'height',
+          label: 'Shelf Height',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'shelf_depth',
+          field: 'depth',
+          label: 'Shelf Depth',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'size_class',
+          field: row => row.shelf_type?.size_class?.name,
+          label: 'Size Class',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'shelf_type',
+          field: row => row.shelf_type?.type,
+          label: 'Shelf Type',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'container_type',
+          field: row => row.container_type?.type,
+          label: 'Container Type',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'owner',
+          field: row => row.owner?.name,
+          label: 'Owner',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'shelf_barcode',
+          field: row => row.barcode?.value,
+          label: 'Shelf Barcode',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'sort_priority',
+          field: 'sort_priority',
+          label: 'Location Logical Order',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      locationTableVisibleColumns.value = [
+        'actions',
+        'shelf_number',
+        'shelf_width',
+        'shelf_height',
+        'shelf_depth',
+        'size_class',
+        'shelf_type',
+        'container_type',
+        'owner',
+        'shelf_barcode',
+        'sort_priority'
+      ]
+      break
+    default:
+      break
   }
 }
 
@@ -529,41 +529,41 @@ const loadLocationData = async (qParams) => {
     // ex: shelves should be getShelves(building_id, module_id, aisle_id, side_id, ladder_id) instead of loading by parent
     appIsLoadingData.value = true
     switch (mainProps.locationType) {
-    case 'buildings': {
-      await getBuildingsList(qParams)
+      case 'buildings': {
+        await getBuildingsList(qParams)
 
-      // set the location total for pagination tracking
-      // TODO need to update other building fields to render their lists data instead of rendering from the parent
-      locationDataTotal.value = buildingsTotal.value
-      break
-    }
-    case 'modules':
-      if (!buildingDetails.value.id) {
-        await getBuildingDetails(route.params.buildingId)
+        // set the location total for pagination tracking
+        // TODO need to update other building fields to render their lists data instead of rendering from the parent
+        locationDataTotal.value = buildingsTotal.value
+        break
       }
-      break
-    case 'aisles':
-      if (!moduleDetails.value.id) {
-        await getModuleDetails(route.params.moduleId)
-      }
-      break
-    case 'ladders':
-      if (!sideDetails.value.id) {
-        await getModuleDetails(route.params.moduleId)
-        await getAisleDetails(route.params.aisleId)
-        await getSideDetails(route.params.sideId)
-      }
-      break
-    case 'shelves':
-      if (!ladderDetails.value.id) {
-        await getModuleDetails(route.params.moduleId)
-        await getAisleDetails(route.params.aisleId)
-        await getSideDetails(route.params.sideId)
-        await getLadderDetails(route.params.ladderId)
-      }
-      break
-    default:
-      break
+      case 'modules':
+        if (!buildingDetails.value.id) {
+          await getBuildingDetails(route.params.buildingId)
+        }
+        break
+      case 'aisles':
+        if (!moduleDetails.value.id) {
+          await getModuleDetails(route.params.moduleId)
+        }
+        break
+      case 'ladders':
+        if (!sideDetails.value.id) {
+          await getModuleDetails(route.params.moduleId)
+          await getAisleDetails(route.params.aisleId)
+          await getSideDetails(route.params.sideId)
+        }
+        break
+      case 'shelves':
+        if (!ladderDetails.value.id) {
+          await getModuleDetails(route.params.moduleId)
+          await getAisleDetails(route.params.aisleId)
+          await getSideDetails(route.params.sideId)
+          await getLadderDetails(route.params.ladderId)
+        }
+        break
+      default:
+        break
     }
   } catch (error) {
     handleAlert({

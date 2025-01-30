@@ -12,73 +12,43 @@ export const useReportsStore = defineStore('reports-store', {
     resetReportsStore () {
       this.$reset()
     },
+    generateReportEndpoint (reportType) {
+      const endpointMap = {
+        'Item Accession': inventoryServiceApi.reportingAccessionItems,
+        'Shelving Job Discrepancy':inventoryServiceApi.reportingShelvingDiscrepancy,
+        'Open Locations': inventoryServiceApi.reportingOpenLocations,
+        'Tray/Item Count By Aisle': inventoryServiceApi.reportingTrayItemCountByAisle,
+        'Non-Tray Count': inventoryServiceApi.reportingNonTrayItemsCount,
+        'Total Item Retrieved': inventoryServiceApi.reportingRetrievalsCount,
+        'Item in Tray': inventoryServiceApi.reportingTrayItemsCount,
+        'User Job Summary': inventoryServiceApi.reportingUserJobsCount,
+        'Verification Change': inventoryServiceApi.reportingVerificationChanges
+      }
+
+      return endpointMap[reportType] || null
+    },
     async getReport (paramsObj, reportType) {
       try {
+        const endpoint = this.generateReportEndpoint(reportType)
         this.reportData = []
-        if (reportType == 'Item Accession') {
-          const res = await this.$api.get(inventoryServiceApi.reportingAccessionItems, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
-          this.reportData = res.data.items
-
-          // keep track of response total for pagination
-          this.reportDataTotal = res.data.total
-
-          //REMOVE: Temp solution until reports are figured out
-          // let itemData = []
-          // const res = this.$api.get(inventoryServiceApi.items, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
-          // const res2 = this.$api.get(inventoryServiceApi.nonTrayItems, { params: { size: this.apiPageSizeDefault, ...paramsObj } })
-          // Promise.all([
-          //   res,
-          //   res2
-          // ]).then(values => {
-          //   itemData = itemData.concat(values[0].data.items, values[1].data.items)
-          //   console.log(itemData)
-          //   if (itemData.length == 0) {
-          //     this.reportData = []
-          //   } else {
-          //     this.reportData = [
-          //       {
-          //         owner: {
-          //           name: paramsObj.owner_id && itemData.length > 0 ? itemData[0].owner.name : 'All'
-          //         },
-          //         media_type: {
-          //           name: paramsObj.media_type_id && itemData.length > 0 ? itemData[0].media_type.name : 'All'
-          //         },
-          //         size_class: {
-          //           name: paramsObj.size_class_id && itemData.length > 0 ? itemData[0].size_class.name : 'All'
-          //         },
-          //         total_count: values[0].data.total + values[1].data.total
-          //       }
-          //     ]
-          //   }
-          // })
-        } else if (reportType == 'Shelving Job Discrepancy') {
-          const res = await this.$api.get(inventoryServiceApi.reportingShelvingDiscrepancy, { params: { ...paramsObj, size: 100 } } )
-          this.reportData = res.data.items
-
-          // keep track of response total for pagination
-          this.reportDataTotal = res.data.total
-        } else if (reportType == 'Open Locations') {
-          const res = await this.$api.get(inventoryServiceApi.reportingOpenLocations, { params: { ...paramsObj, size: 100 } } )
-          this.reportData = res.data.items
-
-          // keep track of response total for pagination
-          this.reportDataTotal = res.data.total
+        if (endpoint) {
+          const res = await this.$api.get(endpoint, {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
+            }
+          } )
+          this.reportData = res.data.items // Store the report data
+          this.reportDataTotal = res.data.total // keep track of response total for pagination
+          this.reportQueryParams = paramsObj // Remember the query params for download
         }
-
-        // Remember the query params for download
-        this.reportQueryParams = paramsObj
       } catch (error) {
         throw error
       }
     },
     async downloadReport (reportType) {
       try {
-        let endpoint = null
-        if (reportType == 'Shelving Job Discrepancy') {
-          endpoint = `${inventoryServiceApi.reportingShelvingDiscrepancy}`
-        } else if (reportType == 'Open Locations') {
-          endpoint = `${inventoryServiceApi.reportingOpenLocations}`
-        }
+        const endpoint = this.generateReportEndpoint(reportType)
         if (endpoint) {
           const res = await this.$api.get(`${endpoint}download`, {
             params: { ...this.reportQueryParams },

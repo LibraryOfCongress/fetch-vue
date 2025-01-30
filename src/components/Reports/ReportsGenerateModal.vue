@@ -33,9 +33,6 @@
             <div class="form-group">
               <label class="form-group-label">
                 Building
-                <span class="text-caption text-negative">
-                  (Required)
-                </span>
               </label>
               <SelectInput
                 v-model="reportForm.building_id"
@@ -217,7 +214,7 @@
           <div class="col-xs-12 col-sm-4 q-mb-md">
             <div class="form-group">
               <ToggleButtonInput
-                v-model="reportForm.partial_shelves"
+                v-model="reportForm.show_partial"
                 :options="[
                   {label: 'Yes', value: true},
                   {label: 'No', value: false}
@@ -243,6 +240,12 @@
               <div class="form-group q-pr-xs">
                 <label class="form-group-label">
                   {{ param.label }}
+                  <span
+                    v-if="param.required"
+                    class="text-caption text-negative"
+                  >
+                    (Required)
+                  </span>
                 </label>
                 <TextInput
                   v-model="reportForm[param.query]"
@@ -280,17 +283,47 @@
             </div>
             <!-- text inputs -->
             <div
-              v-else-if="param.query.includes('job_id') || param.query.includes('workflow_id')"
+              v-else-if="param.type == 'text'"
               class="col-12 q-mb-md"
             >
               <div class="form-group">
                 <label class="form-group-label">
                   {{ param.label }}
+                  <span
+                    v-if="param.required"
+                    class="text-caption text-negative"
+                  >
+                    (Required)
+                  </span>
                 </label>
                 <TextInput
                   v-model="reportForm[param.query]"
                   :placeholder="`Enter ${param.label}`"
                   :aria-label="`${param.query}_input`"
+                />
+              </div>
+            </div>
+            <!-- numeric inputs -->
+            <div
+              v-else-if="param.type == 'number'"
+              class="col-12 q-mb-md"
+            >
+              <div class="form-group">
+                <label class="form-group-label">
+                  {{ param.label }}
+                  <span
+                    v-if="param.required"
+                    class="text-caption text-negative"
+                  >
+                    (Required)
+                  </span>
+                </label>
+                <TextInput
+                  v-model="reportForm[param.query]"
+                  :placeholder="`Enter ${param.label}`"
+                  :aria-label="`${param.query}_input`"
+                  type="number"
+                  min="1"
                 />
               </div>
             </div>
@@ -303,7 +336,7 @@
                 <label class="form-group-label">
                   {{ param.label }}
                   <span
-                    v-if="param.query == 'building_id'"
+                    v-if="param.required"
                     class="text-caption text-negative"
                   >
                     (Required)
@@ -312,13 +345,14 @@
                 <SelectInput
                   v-model="reportForm[param.query]"
                   :multiple="param.multiple"
-                  :hide-selected="false"
+                  :hide-selected="!param.multiple"
                   :options="param.options"
                   :option-type="param.optionType"
-                  option-value="id"
-                  :option-label="'name'"
+                  :option-value="param.optionValue ?? 'id'"
+                  :option-label="param.optionLabel ?? 'name'"
                   :placeholder="`Select ${param.label}`"
-                  @update:model-value="null"
+                  :disabled="param.disabled"
+                  @update:model-value="param.onUpdate ? param.onUpdate() : null"
                   :aria-label="`${param.query}Select`"
                 />
               </div>
@@ -394,9 +428,11 @@ const {
   owners,
   sizeClass,
   mediaTypes,
-  users
+  users,
+  verificationJobs
 } = storeToRefs(useOptionStore())
 const {
+  resetBuildingStore,
   getBuildingDetails,
   getModuleDetails,
   getAisleDetails,
@@ -421,14 +457,14 @@ const reportParams = ref(null)
 const reportForm = ref({})
 const isReportFormValid = computed( () => {
   switch (mainProps.reportType) {
-  case 'Item in Tray':
-  case 'Non-Tray Count':
-  case 'Tray/Item Count By Aisle':
-    return !!reportForm.value.building_id
-  case 'Open Locations':
-    return !(!reportForm.value.building_id && !(reportForm.value.owner_id?.length) && !(reportForm.value.size_class_id?.length))
-  default:
-    return true
+    case 'Item in Tray':
+    case 'Non-Tray Count':
+    case 'Tray/Item Count By Aisle':
+      return !!reportForm.value.building_id
+    case 'Open Locations':
+      return !(!reportForm.value.building_id && !(reportForm.value.owner_id?.length) && !(reportForm.value.size_class_id?.length))
+    default:
+      return true
   }
 })
 
@@ -442,384 +478,410 @@ onBeforeMount(() => {
 const handleLocationFormChange = async (valueType) => {
   // reset the report form depending on the edited form field type
   switch (valueType) {
-  case 'Building':
-    await getBuildingDetails(reportForm.value.building_id)
-    reportForm.value.module_id = null
-    reportForm.value.aisle_id = null
-    reportForm.value.side_id = null
-    reportForm.value.ladder_id = null
-    resetBuildingChildren()
-    return
-  case 'Module':
-    await getModuleDetails(reportForm.value.module_id)
-    reportForm.value.aisle_id = null
-    reportForm.value.side_id = null
-    reportForm.value.ladder_id = null
-    resetModuleChildren()
-    return
-  case 'Aisle':
-    await getAisleDetails(reportForm.value.aisle_id)
-    reportForm.value.side_id = null
-    reportForm.value.ladder_id = null
-    resetAisleChildren()
-    return
-  case 'Side':
-    await getSideDetails(reportForm.value.side_id)
-    reportForm.value.ladder_id = null
-    resetSideChildren()
-    return
-  case 'Ladder':
-    await getLadderDetails(reportForm.value.ladder_id)
-    return
+    case 'Building':
+      await getBuildingDetails(reportForm.value.building_id)
+      reportForm.value.module_id = null
+      reportForm.value.aisle_id = null
+      reportForm.value.side_id = null
+      reportForm.value.ladder_id = null
+      resetBuildingChildren()
+      return
+    case 'Module':
+      await getModuleDetails(reportForm.value.module_id)
+      reportForm.value.aisle_id = null
+      reportForm.value.side_id = null
+      reportForm.value.ladder_id = null
+      resetModuleChildren()
+      return
+    case 'Aisle':
+      await getAisleDetails(reportForm.value.aisle_id)
+      reportForm.value.side_id = null
+      reportForm.value.ladder_id = null
+      resetAisleChildren()
+      return
+    case 'Side':
+      await getSideDetails(reportForm.value.side_id)
+      reportForm.value.ladder_id = null
+      resetSideChildren()
+      return
+    case 'Ladder':
+      await getLadderDetails(reportForm.value.ladder_id)
+      return
   }
 }
 
 const generateReportModal = () => {
   // creates the report modal params needed based on the selected report type
   switch (mainProps.reportType) {
-  case 'Item Accession':
-    reportForm.value = {
-      from_dt: null,
-      to_dt: null,
-      owner_id: null,
-      media_type_id: null,
-      size_class_id: null
-    }
+    case 'Item Accession':
+      reportForm.value = {
+        from_dt: null,
+        to_dt: null,
+        owner_id: null,
+        media_type_id: null,
+        size_class_id: null
+      }
 
-    reportParams.value = [
-      {
-        query: 'from_dt',
-        label: 'Accession Date (From)'
-      },
-      {
-        query: 'to_dt',
-        label: 'Accession Date (To)'
-      },
-      {
-        query: 'owner_id',
-        multiple: true,
-        label: 'Owner',
-        options: owners,
-        optionType: 'owners'
-      },
-      {
-        query: 'media_type_id',
-        multiple: true,
-        label: 'Media Type',
-        options: mediaTypes,
-        optionType: 'mediaTypes'
-      },
-      {
-        query: 'size_class_id',
-        multiple: true,
-        label: 'Size Class',
-        options: sizeClass,
-        optionType: 'sizeClass'
+      reportParams.value = [
+        {
+          query: 'from_dt',
+          label: 'Accession Date (From)'
+        },
+        {
+          query: 'to_dt',
+          label: 'Accession Date (To)'
+        },
+        {
+          query: 'owner_id',
+          multiple: true,
+          label: 'Owner',
+          options: owners,
+          optionType: 'owners'
+        },
+        {
+          query: 'media_type_id',
+          multiple: true,
+          label: 'Media Type',
+          options: mediaTypes,
+          optionType: 'mediaTypes'
+        },
+        {
+          query: 'size_class_id',
+          multiple: true,
+          label: 'Size Class',
+          options: sizeClass,
+          optionType: 'sizeClass'
+        }
+      ]
+      break
+    case 'Item in Tray':
+      reportForm.value = {
+        building_id: null, // required
+        module_id: null,
+        owner_id: null,
+        aisle_num_from: null,
+        aisle_num_to: null,
+        from_dt: null,
+        to_dt: null
       }
-    ]
-    break
-  case 'Item in Tray':
-    reportForm.value = {
-      building_id: null, // required
-      owner_id: null,
-      aisle_from: null,
-      aisle_to: null,
-      from_dt: null,
-      to_dt: null
-    }
-    reportParams.value = [
-      {
-        query: 'building_id',
-        label: 'Building',
-        options: buildings,
-        optionType: 'buildings'
-      },
-      {
-        query: 'owner_id',
-        label: 'Owner',
-        options: owners,
-        optionType: 'owners'
-      },
-      {
-        query: 'aisle_from',
-        label: 'Aisle (From)',
-        options: [],
-        optionType: ''
-      },
-      {
-        query: 'aisle_to',
-        label: 'Aisle (To)',
-        options: [],
-        optionType: ''
-      },
-      {
-        query: 'from_dt',
-        label: 'Date (From)'
-      },
-      {
-        query: 'to_dt',
-        label: 'Date (To)'
+      reportParams.value = [
+        {
+          query: 'building_id',
+          label: 'Building',
+          options: buildings,
+          optionType: 'buildings',
+          onUpdate: () => handleLocationFormChange('Building'),
+          required: true
+        },
+        {
+          query: 'module_id',
+          label: 'Module',
+          options: renderBuildingModules,
+          optionLabel: 'module_number',
+          disabled: computed(() => !reportForm.value.building_id)
+        },
+        {
+          query: 'owner_id',
+          label: 'Owner',
+          options: owners,
+          optionType: 'owners',
+          multiple: true
+        },
+        {
+          type: 'number',
+          query: 'aisle_num_from',
+          label: 'Aisle (From)'
+        },
+        {
+          type: 'number',
+          query: 'aisle_num_to',
+          label: 'Aisle (To)'
+        },
+        {
+          query: 'from_dt',
+          label: 'Date (From)'
+        },
+        {
+          query: 'to_dt',
+          label: 'Date (To)'
+        }
+      ]
+      break
+    case 'Move/Withdraw Discrepancy':
+      reportForm.value = {
+        from_dt: null,
+        to_dt: null,
+        assigned_user_id: null
       }
-    ]
-    break
-  case 'Move/Withdraw Discrepancy':
-    reportForm.value = {
-      from_dt: null,
-      to_dt: null,
-      assigned_user_id: null
-    }
-    reportParams.value = [
-      {
-        query: 'from_dt',
-        label: 'Date (From)'
-      },
-      {
-        query: 'to_dt',
-        label: 'Date (To)'
-      },
-      {
-        query: 'assigned_user_id',
-        label: 'Assigned User',
-        options: users,
-        optionType: 'users'
+      reportParams.value = [
+        {
+          query: 'from_dt',
+          label: 'Date (From)'
+        },
+        {
+          query: 'to_dt',
+          label: 'Date (To)'
+        },
+        {
+          query: 'assigned_user_id',
+          label: 'Assigned User',
+          options: users,
+          optionType: 'users'
+        }
+      ]
+      break
+    case 'Non-Tray Count':
+      reportForm.value = {
+        building_id: null, // required
+        module_id: null,
+        owner_id: null,
+        aisle_num_from: null,
+        aisle_num_to: null,
+        from_dt: null,
+        to_dt: null,
+        size_class_id: null
       }
-    ]
-    break
-  case 'Non-Tray Count':
-    reportForm.value = {
-      building_id: null, // required
-      owner_id: null,
-      aisle_from: null,
-      aisle_to: null,
-      from_dt: null,
-      to_dt: null,
-      size_class_id: null
-    }
-    reportParams.value = [
-      {
-        query: 'building_id',
-        label: 'Building',
-        options: buildings,
-        optionType: 'buildings'
-      },
-      {
-        query: 'owner_id',
-        label: 'Owner',
-        options: owners,
-        optionType: 'owners'
-      },
-      {
-        query: 'aisle_from',
-        label: 'Aisle (From)',
-        options: [],
-        optionType: ''
-      },
-      {
-        query: 'aisle_to',
-        label: 'Aisle (To)',
-        options: [],
-        optionType: ''
-      },
-      {
-        query: 'from_dt',
-        label: 'Date (From)'
-      },
-      {
-        query: 'to_dt',
-        label: 'Date (To)'
-      },
-      {
-        query: 'size_class_id',
-        label: 'Size Class',
-        options: sizeClass,
-        optionType: 'sizeClass'
+      reportParams.value = [
+        {
+          query: 'building_id',
+          label: 'Building',
+          options: buildings,
+          optionType: 'buildings',
+          onUpdate: () => handleLocationFormChange('Building'),
+          required: true
+        },
+        {
+          query: 'module_id',
+          label: 'Module',
+          options: renderBuildingModules,
+          optionLabel: 'module_number',
+          disabled: computed(() => !reportForm.value.building_id)
+        },
+        {
+          query: 'owner_id',
+          multiple: true,
+          label: 'Owner',
+          options: owners,
+          optionType: 'owners'
+        },
+        {
+          type: 'number',
+          query: 'aisle_num_from',
+          label: 'Aisle (From)'
+        },
+        {
+          type: 'number',
+          query: 'aisle_num_to',
+          label: 'Aisle (To)'
+        },
+        {
+          query: 'from_dt',
+          label: 'Date (From)'
+        },
+        {
+          query: 'to_dt',
+          label: 'Date (To)'
+        },
+        {
+          query: 'size_class_id',
+          multiple: true,
+          label: 'Size Class',
+          options: sizeClass,
+          optionType: 'sizeClass'
+        }
+      ]
+      break
+    case 'Open Locations':
+      reportForm.value = {
+        building_id: null,
+        module_id: null,
+        aisle_id: null,
+        side_id: null,
+        ladder_id: null,
+        owner_id: null,
+        height: null,
+        width: null,
+        depth: null,
+        show_partial: true
       }
-    ]
-    break
-  case 'Open Locations':
-    reportForm.value = {
-      building_id: null,
-      module_id: null,
-      aisle_id: null,
-      side_id: null,
-      ladder_id: null,
-      owner_id: null,
-      height: null,
-      width: null,
-      depth: null,
-      partial_shelves: true
-    }
-    break
-  case 'Refile Discrepancy':
-    reportForm.value = {
-      job_id: null,
-      from_dt: null,
-      to_dt: null,
-      assigned_user_id: null
-    }
-    reportParams.value = [
-      {
-        query: 'job_id',
-        label: 'Job Number',
-        options: [],
-        optionType: ''
-      },
-      {
-        query: 'from_dt',
-        label: 'Date (From)'
-      },
-      {
-        query: 'to_dt',
-        label: 'Date (To)'
-      },
-      {
-        query: 'assigned_user_id',
-        label: 'Assigned User',
-        options: users,
-        optionType: 'users'
+      break
+    case 'Refile Discrepancy':
+      reportForm.value = {
+        job_id: null,
+        from_dt: null,
+        to_dt: null,
+        assigned_user_id: null
       }
-    ]
-    break
-  case 'Shelving Job Discrepancy':
-    reportForm.value = {
-      from_dt: null,
-      to_dt: null,
-      shelving_job_id: null,
-      assigned_user_id: null
-    }
-    reportParams.value = [
-      {
-        query: 'from_dt',
-        label: 'Date (From)'
-      },
-      {
-        query: 'to_dt',
-        label: 'Date (To)'
-      },
-      {
-        query: 'shelving_job_id',
-        label: 'Job Number'
-      },
-      {
-        query: 'assigned_user_id',
-        multiple: true,
-        label: 'Assigned User',
-        options: users,
-        optionType: 'users'
+      reportParams.value = [
+        {
+          type: 'text',
+          query: 'job_id',
+          label: 'Job Number',
+          options: [],
+          optionType: ''
+        },
+        {
+          query: 'from_dt',
+          label: 'Date (From)'
+        },
+        {
+          query: 'to_dt',
+          label: 'Date (To)'
+        },
+        {
+          query: 'assigned_user_id',
+          label: 'Assigned User',
+          options: users,
+          optionType: 'users'
+        }
+      ]
+      break
+    case 'Shelving Job Discrepancy':
+      reportForm.value = {
+        from_dt: null,
+        to_dt: null,
+        shelving_job_id: null,
+        assigned_user_id: null
       }
-    ]
-    break
-  case 'Total Item Retrieved':
-    reportForm.value = {
-      from_dt: null,
-      to_dt: null,
-      owner_id: null
-    }
-    reportParams.value = [
-      {
-        query: 'from_dt',
-        label: 'Date (From)'
-      },
-      {
-        query: 'to_dt',
-        label: 'Date (To)'
-      },
-      {
-        query: 'owner_id',
-        label: 'Owner',
-        options: owners,
-        optionType: 'owners'
+      reportParams.value = [
+        {
+          query: 'from_dt',
+          label: 'Date (From)'
+        },
+        {
+          query: 'to_dt',
+          label: 'Date (To)'
+        },
+        {
+          type: 'text',
+          query: 'shelving_job_id',
+          label: 'Job Number'
+        },
+        {
+          query: 'assigned_user_id',
+          multiple: true,
+          label: 'Assigned User',
+          options: users,
+          optionType: 'users'
+        }
+      ]
+      break
+    case 'Total Item Retrieved':
+      reportForm.value = {
+        from_dt: null,
+        to_dt: null,
+        owner_id: null
       }
-    ]
-    break
-  case 'Tray/Item Count By Aisle':
-    reportForm.value = {
-      building_id: null, // required
-      aisle_from: null,
-      aisle_to: null
-    }
-    reportParams.value = [
-      {
-        query: 'building_id',
-        label: 'Building',
-        options: buildings,
-        optionType: 'buildings'
-      },
-      {
-        query: 'aisle_from',
-        label: 'Aisle (From)',
-        options: [],
-        optionType: ''
-      },
-      {
-        query: 'aisle_to',
-        label: 'Aisle (To)',
-        options: [],
-        optionType: ''
+      reportParams.value = [
+        {
+          query: 'from_dt',
+          label: 'Date (From)'
+        },
+        {
+          query: 'to_dt',
+          label: 'Date (To)'
+        },
+        {
+          query: 'owner_id',
+          label: 'Owner',
+          options: owners,
+          optionType: 'owners',
+          multiple: true
+        }
+      ]
+      break
+    case 'Tray/Item Count By Aisle':
+      reportForm.value = {
+        building_id: null, // required
+        aisle_from: null,
+        aisle_to: null
       }
-    ]
-    break
-  case 'User Job Summary':
-    reportForm.value = {
-      from_dt: null,
-      to_dt: null,
-      user_id: null
-    }
-    reportParams.value = [
-      {
-        query: 'from_dt',
-        label: 'Date (From)'
-      },
-      {
-        query: 'to_dt',
-        label: 'Date (To)'
-      },
-      {
-        query: 'user_id',
-        label: 'User',
-        options: users,
-        optionType: 'users'
+      reportParams.value = [
+        {
+          query: 'building_id',
+          label: 'Building',
+          options: buildings,
+          optionType: 'buildings',
+          required: true
+        },
+        {
+          type: 'number',
+          query: 'aisle_num_from',
+          label: 'Aisle (From)'
+        },
+        {
+          type: 'number',
+          query: 'aisle_num_to',
+          label: 'Aisle (To)'
+        }
+      ]
+      break
+    case 'User Job Summary':
+      reportForm.value = {
+        from_dt: null,
+        to_dt: null,
+        user_id: null
       }
-    ]
-    break
-  case 'Verification Change':
-    reportForm.value = {
-      workflow_id: null,
-      from_dt: null,
-      to_dt: null,
-      assigned_user_id: null
-    }
-    reportParams.value = [
-      {
-        query: 'workflow_id',
-        label: 'Job Number',
-        options: [],
-        optionType: ''
-      },
-      {
-        query: 'from_dt',
-        label: 'Date (From)'
-      },
-      {
-        query: 'to_dt',
-        label: 'Date (To)'
-      },
-      {
-        query: 'assigned_user_id',
-        label: 'Assigned User',
-        options: users,
-        optionType: 'users'
+      reportParams.value = [
+        {
+          query: 'from_dt',
+          label: 'Date (From)'
+        },
+        {
+          query: 'to_dt',
+          label: 'Date (To)'
+        },
+        {
+          query: 'user_id',
+          label: 'User',
+          options: users,
+          optionType: 'users'
+        }
+      ]
+      break
+    case 'Verification Change':
+      reportForm.value = {
+        workflow_id: null,
+        from_dt: null,
+        to_dt: null,
+        completed_by_id: null
       }
-    ]
-    break
-  default:
-    break
+      reportParams.value = [
+        {
+          query: 'workflow_id',
+          optionLabel: 'workflow_id',
+          optionValue: 'workflow_id',
+          label: 'Job Number',
+          options: verificationJobs,
+          optionType: 'verificationJobs'
+        },
+        {
+          query: 'from_dt',
+          label: 'Date (From)'
+        },
+        {
+          query: 'to_dt',
+          label: 'Date (To)'
+        },
+        {
+          query: 'completed_by_id',
+          label: 'Assigned User',
+          options: users,
+          optionType: 'users'
+        }
+      ]
+      break
+    default:
+      break
   }
 
   // if report history was passed in we replace the generated form with the prop
   // ex: user hits redo report we want to prepopulate the form with their past report search so they can update it
   if (mainProps.reportHistory) {
     reportForm.value = mainProps.reportHistory
+  } else {
+    // reset the building related state so that we dont leak modules downard to forms that require these, ex: open location report uses module downards
+    resetBuildingStore()
   }
 }
 
@@ -845,7 +907,7 @@ const generateReport = async () => {
           // sets to date to end of date
           queryParams[key] = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999)).toISOString()
         }
-      } else if (!value) {
+      } else if ((Array.isArray(value) && value.length == 0) || !value) {
         delete queryParams[key]
       }
     })

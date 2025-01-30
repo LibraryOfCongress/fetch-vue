@@ -79,6 +79,7 @@
                   :option-label="field.field == 'container_type_id' ? 'type' : 'name'"
                   :placeholder="`Select ${field.label}`"
                   :disabled="field.disabled"
+                  :clearable="!field.required"
                   @update:model-value="listType == 'shelf-type' ? updateShelfTypeSizeClass($event) : handleInputFormChange(field.field)"
                   :aria-label="`${field.field}Select`"
                 />
@@ -246,130 +247,134 @@ onBeforeMount(() => {
 const generateListModal = () => {
   // creates the modal fields needed based on the listType
   switch (mainProps.listType) {
-  case 'size-class':
-    inputForm.value = {
-      name: mainProps.listData.name ?? '',
-      short_name: mainProps.listData.short_name ?? '',
-      width: mainProps.listData.width ?? '',
-      depth: mainProps.listData.depth ?? '',
-      height: mainProps.listData.height ?? '',
-      owner_ids: mainProps.listData.owners ? mainProps.listData.owners.map(o => o.id) : null
-    }
-    // create a copy of our input form
-    inputFormOriginal.value = { ...toRaw(inputForm.value) }
-
-    inputFields.value = [
-      {
-        field: 'name',
-        label: 'Full Name',
-        required: true
-      },
-      {
-        field: 'short_name',
-        label: 'Short Name',
-        required: true
-      },
-      {
-        field: 'width',
-        label: 'Width (in)',
-        required: true
-      },
-      {
-        field: 'depth',
-        label: 'Depth (in)',
-        required: true
-      },
-      {
-        field: 'height',
-        label: 'Height (in)',
-        required: true
-      },
-      {
-        field: 'owner_ids',
-        label: 'Owner(s)',
-        options: owners,
-        optionType: 'owners',
-        required: false,
-        allowMultiple: true
+    case 'size-class':
+      inputForm.value = {
+        name: mainProps.listData.name ?? '',
+        short_name: mainProps.listData.short_name ?? '',
+        width: mainProps.listData.width ?? '',
+        depth: mainProps.listData.depth ?? '',
+        height: mainProps.listData.height ?? '',
+        owner_ids: mainProps.listData.owners ? mainProps.listData.owners.map(o => o.id) : null
       }
-    ]
-    break
-  case 'media-type':
-    inputForm.value = {
-      name: mainProps.listData.name ?? ''
-    }
-    // create a copy of our input form
-    inputFormOriginal.value = { ...toRaw(inputForm.value) }
+      // create a copy of our input form
+      inputFormOriginal.value = { ...toRaw(inputForm.value) }
 
-    inputFields.value = [
-      {
-        field: 'name',
-        label: 'Name',
-        required: true
+      inputFields.value = [
+        {
+          field: 'name',
+          label: 'Full Name',
+          required: true
+        },
+        {
+          field: 'short_name',
+          label: 'Short Name',
+          required: true
+        },
+        {
+          field: 'width',
+          label: 'Width (in)',
+          required: true
+        },
+        {
+          field: 'depth',
+          label: 'Depth (in)',
+          required: true
+        },
+        {
+          field: 'height',
+          label: 'Height (in)',
+          required: true
+        },
+        {
+          field: 'owner_ids',
+          label: 'Owner(s)',
+          options: owners,
+          optionType: 'owners',
+          required: false,
+          allowMultiple: true
+        }
+      ]
+      break
+    case 'media-type':
+      inputForm.value = {
+        name: mainProps.listData.name ?? ''
       }
-    ]
-    break
-  case 'owner':
-    inputForm.value = {
-      owner_tier_id: mainProps.listData.owner_tier_id ?? '',
-      parent_owner_id: mainProps.listData.parent_owner_id ?? '',
-      name: mainProps.listData.name ?? ''
-    }
-    // create a copy of our input form
-    inputFormOriginal.value = { ...toRaw(inputForm.value) }
+      // create a copy of our input form
+      inputFormOriginal.value = { ...toRaw(inputForm.value) }
 
-    inputFields.value = [
-      {
-        field: 'owner_tier_id',
-        label: 'Owner Tier',
-        options: ownersTiers,
-        optionType: 'ownersTiers',
-        required: true
-      },
-      {
-        field: 'parent_owner_id',
-        label: 'Parent Owner',
-        options: parentOwnerOptions,
-        required: parentOwnerRequired,
-        disabled: disableParentOwnerInput
-      },
-      {
-        field: 'name',
-        label: 'Owner Name',
-        required: true
+      inputFields.value = [
+        {
+          field: 'name',
+          label: 'Name',
+          required: true
+        }
+      ]
+      break
+    case 'owner':
+      inputForm.value = {
+        owner_tier_id: mainProps.listData.owner_tier_id ?? '',
+        parent_owner_id: mainProps.listData.parent_owner_id ?? null,
+        name: mainProps.listData.name ?? ''
       }
-    ]
+      // create a copy of our input form
+      inputFormOriginal.value = { ...toRaw(inputForm.value) }
 
-    break
-  case 'shelf-type': {
-    const matchingShelfTypes = shelfTypes.value.filter(s => s.type == mainProps.listData.type)
-    inputForm.value = {
-      type: mainProps.listData.type ?? '',
-      size_class_ids: matchingShelfTypes.map(s => s.size_class_id) ?? [],
-      size_classes: matchingShelfTypes.map(s => ({ ...s.size_class, max_capacity: s.max_capacity, shelf_type_id: s.id })) ?? []
-    }
-    // create a copy of our input form
-    inputFormOriginal.value = { ...toRaw(inputForm.value) }
+      inputFields.value = [
+        {
+          field: 'owner_tier_id',
+          label: 'Owner Tier',
+          options: ownersTiers,
+          optionType: 'ownersTiers',
+          required: true
+        },
+        {
+          field: 'parent_owner_id',
+          label: 'Parent Owner',
+          options: parentOwnerOptions,
+          required: parentOwnerRequired,
+          disabled: disableParentOwnerInput
+        },
+        {
+          field: 'name',
+          label: 'Owner Name',
+          required: true
+        }
+      ]
 
-    inputFields.value = [
-      {
-        field: 'type',
-        label: 'Shelf Type Name',
-        required: true
-      },
-      {
-        field: 'size_class_ids',
-        label: 'Size Class',
-        options: sizeClass,
-        optionType: 'sizeClass',
-        required: true,
-        allowMultiple: true
+      break
+    case 'shelf-type': {
+      const matchingShelfTypes = shelfTypes.value.filter(s => s.type == mainProps.listData.type)
+      inputForm.value = {
+        type: mainProps.listData.type ?? '',
+        size_class_ids: matchingShelfTypes.map(s => s.size_class_id) ?? [],
+        size_classes: matchingShelfTypes.map(s => ({
+          ...s.size_class,
+          max_capacity: s.max_capacity,
+          shelf_type_id: s.id
+        })) ?? []
       }
-    ]
-    break
-  }
-  default:
-    break
+      // create a copy of our input form
+      inputFormOriginal.value = { ...toRaw(inputForm.value) }
+
+      inputFields.value = [
+        {
+          field: 'type',
+          label: 'Shelf Type Name',
+          required: true
+        },
+        {
+          field: 'size_class_ids',
+          label: 'Size Class',
+          options: sizeClass,
+          optionType: 'sizeClass',
+          required: true,
+          allowMultiple: true
+        }
+      ]
+      break
+    }
+    default:
+      break
   }
 }
 
@@ -379,27 +384,27 @@ const addNewListType = async () => {
     // send api request to add a new list option by the listType
     const payload = inputForm.value
     switch (mainProps.listType) {
-    case 'size-class':
-      await postSizeClass(payload)
-      break
-    case 'media-type':
-      await postMediaType(payload)
-      break
-    case 'shelf-type':
+      case 'size-class':
+        await postSizeClass(payload)
+        break
+      case 'media-type':
+        await postMediaType(payload)
+        break
+      case 'shelf-type':
       // generate an individual shelf type for each size class selection
-      await Promise.all(inputForm.value.size_classes.map(sizeClassObj => {
-        return postShelfType({
-          type: payload.type,
-          size_class_id: sizeClassObj.id,
-          max_capacity: sizeClassObj.max_capacity
-        })
-      }))
-      break
-    case 'owner':
-      await postOwner(payload)
-      break
-    default:
-      break
+        await Promise.all(inputForm.value.size_classes.map(sizeClassObj => {
+          return postShelfType({
+            type: payload.type,
+            size_class_id: sizeClassObj.id,
+            max_capacity: sizeClassObj.max_capacity
+          })
+        }))
+        break
+      case 'owner':
+        await postOwner(payload)
+        break
+      default:
+        break
     }
 
     handleAlert({
@@ -430,75 +435,75 @@ const updateListType = async () => {
       ...inputForm.value
     }
     switch (mainProps.listType) {
-    case 'size-class': {
+      case 'size-class': {
       //check if we removed owner selections and send updates to api
-      let removedOwners = []
-      removedOwners = inputFormOriginal.value.owner_ids.filter(oid => !inputForm.value.owner_ids.includes(oid))
-      if (removedOwners.length > 0) {
-        await deleteSizeClassOwners(payload.id, { owner_ids: removedOwners })
-      }
+        let removedOwners = []
+        removedOwners = inputFormOriginal.value.owner_ids.filter(oid => !inputForm.value.owner_ids.includes(oid))
+        if (removedOwners.length > 0) {
+          await deleteSizeClassOwners(payload.id, { owner_ids: removedOwners })
+        }
 
-      await patchSizeClass(payload)
-      break
-    }
-    case 'media-type':
-      await patchMediaType(payload)
-      break
-    case 'shelf-type': {
+        await patchSizeClass(payload)
+        break
+      }
+      case 'media-type':
+        await patchMediaType(payload)
+        break
+      case 'shelf-type': {
       //check if we removed size class selections and send updates delete the corressponding shelf type from the api
-      let removedSizeClasses = []
-      removedSizeClasses = inputFormOriginal.value.size_classes.filter(oSizeClass => !inputForm.value.size_class_ids.includes(oSizeClass.id))
-      if (removedSizeClasses.length > 0) {
-        await Promise.all(removedSizeClasses.map(async sizeClassObj => {
-          const res = await deleteShelfType(sizeClassObj.shelf_type_id)
-          if (res.status !== 200) {
-            handleAlert({
-              type: 'error',
-              text: `The shelf type: "${payload.type} - ${sizeClassObj.name}" is in use and cannot be deleted.`,
-              autoClose: false
-            })
-          }
-        }))
-      }
+        let removedSizeClasses = []
+        removedSizeClasses = inputFormOriginal.value.size_classes.filter(oSizeClass => !inputForm.value.size_class_ids.includes(oSizeClass.id))
+        if (removedSizeClasses.length > 0) {
+          await Promise.all(removedSizeClasses.map(async sizeClassObj => {
+            const res = await deleteShelfType(sizeClassObj.shelf_type_id)
+            if (res.status !== 200) {
+              handleAlert({
+                type: 'error',
+                text: `The shelf type: "${payload.type} - ${sizeClassObj.name}" is in use and cannot be deleted.`,
+                autoClose: false
+              })
+            }
+          }))
+        }
 
-      //check if we added new size class selections and create the corressponding shelf type
-      let newSizeClasses = []
-      newSizeClasses = inputForm.value.size_classes.filter(curSizeClass => !inputFormOriginal.value.size_class_ids.includes(curSizeClass.id))
-      if (newSizeClasses.length > 0) {
-        await Promise.all(newSizeClasses.map(sizeClassObj => {
-          return postShelfType({
+        //check if we added new size class selections and create the corressponding shelf type
+        let newSizeClasses = []
+        newSizeClasses = inputForm.value.size_classes.filter(curSizeClass => !inputFormOriginal.value.size_class_ids.includes(curSizeClass.id))
+        if (newSizeClasses.length > 0) {
+          await Promise.all(newSizeClasses.map(sizeClassObj => {
+            return postShelfType({
+              type: payload.type,
+              size_class_id: sizeClassObj.id,
+              max_capacity: sizeClassObj.max_capacity
+            })
+          }))
+        }
+
+        // generate an individual shelf type update for every current shelf type by size class
+        let currentSizeClasses = inputForm.value.size_classes.filter(curSizeClass => inputFormOriginal.value.size_class_ids.includes(curSizeClass.id))
+        await Promise.all(currentSizeClasses.map(async sizeClassObj => {
+          const res = await patchShelfType({
+            id: sizeClassObj.shelf_type_id,
             type: payload.type,
             size_class_id: sizeClassObj.id,
             max_capacity: sizeClassObj.max_capacity
           })
+          if (res.status !== 200) {
+            handleAlert({
+              type: 'error',
+              text: `"${payload.type} - ${sizeClassObj.name}" - ${res.response.data.detail}`,
+              autoClose: false
+            })
+          }
         }))
+        break
       }
-
-      // generate an individual shelf type update for every current shelf type by size class
-      let currentSizeClasses = inputForm.value.size_classes.filter(curSizeClass => inputFormOriginal.value.size_class_ids.includes(curSizeClass.id))
-      await Promise.all(currentSizeClasses.map(async sizeClassObj => {
-        const res = await patchShelfType({
-          id: sizeClassObj.shelf_type_id,
-          type: payload.type,
-          size_class_id: sizeClassObj.id,
-          max_capacity: sizeClassObj.max_capacity
-        })
-        if (res.status !== 200) {
-          handleAlert({
-            type: 'error',
-            text: `"${payload.type} - ${sizeClassObj.name}" - ${res.response.data.detail}`,
-            autoClose: false
-          })
-        }
-      }))
-      break
-    }
-    case 'owner': {
-      await patchOwner(payload)
-      break
-    }
-    default:
-      break
+      case 'owner': {
+        await patchOwner(payload)
+        break
+      }
+      default:
+        break
     }
 
     handleAlert({
@@ -522,7 +527,10 @@ const updateShelfTypeSizeClass = (sizeClassIdArr) => {
   // custom function for shelf types only
   // when creating/updating a shelf type we need to map the corresponding added/removed user size class input to our input form
   const selectedSizeClasses = sizeClassIdArr.map(id => {
-    return { ...sizeClass.value.find(s => s.id == id), max_capacity: 1 }
+    return {
+      ...sizeClass.value.find(s => s.id == id),
+      max_capacity: 1
+    }
   })
 
   // if there are already existing size_classes that match any of the selectedSizeClasses we need to ignore updating them
@@ -548,18 +556,18 @@ const updateShelfTypeSizeClass = (sizeClassIdArr) => {
 
 const handleInputFormChange = async (field) => {
   switch (mainProps.listType) {
-  case 'owner':
-    if (field === 'owner_tier_id') {
+    case 'owner':
+      if (field === 'owner_tier_id') {
       // Get the parent owners for the currently selected tier
-      inputForm.value.parent_owner_id = null
-      let currentTier = ownersTiers.value.find( (ot) => ot.id == inputForm.value.owner_tier_id)
-      if (currentTier?.level > 1) {
-        await getParentOwnerOptions({ owner_tier_id: ownersTiers.value.find( (ot) => ot.level === currentTier.level - 1)?.id })
+        inputForm.value.parent_owner_id = null
+        let currentTier = ownersTiers.value.find( (ot) => ot.id == inputForm.value.owner_tier_id)
+        if (currentTier?.level > 1) {
+          await getParentOwnerOptions({ owner_tier_id: ownersTiers.value.find( (ot) => ot.level === currentTier.level - 1)?.id })
+        }
       }
-    }
-    break
-  default:
-    return
+      break
+    default:
+      return
   }
 }
 </script>
