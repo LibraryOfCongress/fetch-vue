@@ -331,7 +331,7 @@ const generateLocationModal = () => {
         {
           field: 'barcode_value',
           label: 'Shelf Barcode',
-          disabled: mainProps.actionType == 'Edit',
+          disabled: mainProps.actionType == 'Edit' && mainProps.locationData.barcode?.value ? true : false,
           required: true
         },
         {
@@ -385,9 +385,9 @@ const addNewLocationType = async () => {
         await postLadder(payload)
         break
       case 'shelves':
-      // if payload includes a shelf barcode validate it and create the shelf barcode
+        // if payload includes a shelf barcode validate it and create the shelf barcode
         if (payload.barcode_value !== '') {
-          const res = await verifyBarcode(payload.barcode_value, 'Shelf')
+          const res = await verifyBarcode(payload.barcode_value, 'Shelf', true)
           if (res == 'barcode_exists') {
           // if the inputed shelf barcode exists throw an error since shelf barcode has to be new when adding new shelves
             handleAlert({
@@ -447,7 +447,22 @@ const updateLocationType = async () => {
         await patchLadder(payload)
         break
       case 'shelves':
-      // convert empty payload value for sort priority to be null since backend expects int values only
+        // if payload includes a shelf barcode validate it and create the shelf barcode (this only occurs when a user bulk uploads a shelf without a barcode)
+        if (!mainProps.locationData.barcode?.value) {
+          const res = await verifyBarcode(payload.barcode_value, 'Shelf', true)
+          if (res == 'barcode_exists') {
+            // if the inputed shelf barcode exists throw an error since shelf barcode has to be new when adding new shelves
+            handleAlert({
+              type: 'error',
+              text: 'The shelf barcode inputed already exists. Please try again.',
+              autoClose: true
+            })
+            return
+          }
+          payload.barcode_id = barcodeDetails.value.id
+        }
+
+        // convert empty payload value for sort priority to be null since backend expects int values only
         if (payload.sort_priority == '') {
           payload.sort_priority = null
         }

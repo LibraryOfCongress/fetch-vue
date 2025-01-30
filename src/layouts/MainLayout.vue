@@ -19,7 +19,7 @@
         name="alert-notification"
         tag="div"
         class="alert-notification"
-        :style="calculateAlertContainerWidth"
+        :style="calcAlertWidthPlusScrollOffset"
       >
         <AlertPopup
           v-for="(item, i) in alerts"
@@ -90,10 +90,11 @@ const breadCrumbComponent = ref(null)
 const appInstallPrompt = ref(null)
 const showAppInstallBanner = ref(false)
 const main = ref(null)
-const calculateAlertContainerWidth = computed(() => {
+const calcAlertWidthPlusScrollOffset = computed(() => {
   // get the offset of the main qlayout prop and assign the calculated width for the alerts container
+  // get the scroll position of the main qlayout prop and assign the calculated top spacing for the alerts container
   if (main.value) {
-    return `width: calc(100% - ${main.value.$.provides._q_l_.left.offset}px);`
+    return `width: calc(100% - ${main.value.$.provides._q_l_.left.offset}px); top: ${main.value.$.provides._q_l_.scroll.value.position + 50}px`
   } else {
     return `width: calc(100% - ${300}px);`
   }
