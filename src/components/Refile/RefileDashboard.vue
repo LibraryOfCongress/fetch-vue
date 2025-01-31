@@ -7,14 +7,14 @@
           :table-columns="refileDisplayType == 'refile_job' ? refileTableColumns : queueTableColumns"
           :table-visible-columns="refileDisplayType == 'refile_job' ? refileTableVisibleColumns : queueTableVisibleColumns"
           :filter-options="refileDisplayType == 'refile_job' ? refileTableFilters : queueTableFilters"
-          :table-data="refileJobList"
+          :table-data="refileDisplayType == 'refile_job' ? refileJobList : refileQueueList"
           :row-key="refileDisplayType == 'refile_job' ? 'id' : 'barcode_value'"
           :enable-table-reorder="false"
           :enable-selection="showCreateRefileJob || showAddRefileJob"
           :heading-row-class="'q-mb-xs-md q-mb-md-xl'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
           :enable-pagination="true"
-          :pagination-total="refileJobListTotal"
+          :pagination-total="refileDisplayType == 'refile_job' ? refileJobListTotal : refileQueueListTotal"
           :pagination-loading="appIsLoadingData"
           @update-pagination="loadRefileJobs($event)"
           @selected-table-row="refileDisplayType == 'refile_job' ? loadRefileJob($event.id) : null"
@@ -108,11 +108,19 @@
                 v-model="refileDisplayType"
                 :options="[
                   {label: 'Refile Job', value: 'refile_job'},
-                  {label: 'Refile Queue', value: 'refile_queue'}
+                  {label: ``, value: 'refile_queue', slot: 'right'}
                 ]"
                 @update:model-value="loadRefileJobs()"
-                class="text-no-wrap"
-              />
+                class="refile-table-toggle"
+              >
+                <template #right>
+                  <div class="items-center no-wrap">
+                    <div class="text-center">
+                      Refile Queue <span class="refile-table-toggle-count">{{ formattedRefileQueueCount }}</span>
+                    </div>
+                  </div>
+                </template>
+              </ToggleButtonInput>
             </div>
 
             <div
@@ -316,6 +324,8 @@ const {
 const {
   refileJobList,
   refileJobListTotal,
+  refileQueueList,
+  refileQueueListTotal,
   refileJob
 } = storeToRefs(useRefileStore())
 const { userData } = storeToRefs(useUserStore())
@@ -476,7 +486,9 @@ const showRefileJobModal = ref(null)
 const selectedRefileItems = ref([])
 const filterRefileByBuilding = ref(null)
 const addToRefileJob = ref(null)
-
+const formattedRefileQueueCount = computed( () => {
+  return refileQueueListTotal.value.toLocaleString()
+})
 // Logic
 const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
@@ -484,7 +496,7 @@ const formatDateTime = inject('format-date-time')
 onBeforeMount(() => {
   resetRefileStore()
   loadRefileJobs()
-
+  getRefileQueueList({ size: 1 })
   if (currentScreenSize.value == 'xs') {
     refileTableVisibleColumns.value = [
       'id',
@@ -650,4 +662,22 @@ const updateRefileJob = async () => {
 </script>
 
 <style lang="scss" scoped>
+.refile-table-toggle {
+  :deep(.q-btn) {
+    flex: auto;
+    .refile-table-toggle-count {
+      display: inline-block;
+      padding: 2px 6px;
+      margin-top: -2px;
+      border: 1px solid $primary;
+      border-radius: 6px;
+      background-color: $color-white;
+      color: $color-black;
+    }
+    /* When the parent button is active (Refile Queue is selected) */
+    &[aria-pressed="true"] .refile-table-toggle-count {
+      border-color: $color-white;
+    }
+  }
+}
 </style>

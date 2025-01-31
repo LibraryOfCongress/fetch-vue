@@ -6,7 +6,9 @@ const globalStore = useGlobalStore()
 export const useRefileStore = defineStore('refile-store', {
   state: () => ({
     refileJobListTotal: 0,
+    refileQueueListTotal: 0,
     refileJobList: [],
+    refileQueueList: [],
     refileJob: {
       id: null,
       refile_job_items: []
@@ -67,10 +69,10 @@ export const useRefileStore = defineStore('refile-store', {
             ...qParams
           }
         })
-        this.refileJobList = res.data.items
+        this.refileQueueList = res.data.items
 
         // keep track of response total for pagination
-        this.refileJobListTotal = res.data.total
+        this.refileQueueListTotal = res.data.total
       } catch (error) {
         throw error
       }
