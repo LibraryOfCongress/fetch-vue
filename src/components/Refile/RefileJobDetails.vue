@@ -6,6 +6,7 @@
           :options="[
             { text: 'Edit', hidden: !checkUserPermission('can_assign_and_reassign_refile_job'), disabled: appIsOffline || editJob || refileJob.status == 'Paused' || refileJob.status == 'Completed' },
             { text: 'Delete Job', hidden: !checkUserPermission('can_delete_refile_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed' || refileJob.refile_job_items.some(itm => itm.status == 'In')},
+            { text: 'Print Job' },
             { text: 'View History' }
           ]"
           class="q-mr-xs"
@@ -274,6 +275,10 @@
     v-if="showRefileItemDetailModal"
     @hide="showRefileItemDetailModal = false"
   />
+  <RefileBatchSheet
+    ref="batchSheetComponent"
+    :refile-job-details="refileJob"
+  />
 
   <!-- audit trail modal -->
   <AuditTrail
@@ -305,6 +310,7 @@ import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import RefileItemDetailModal from '@/components/Refile/RefileItemDetailModal.vue'
 import AuditTrail from '@/components/AuditTrail.vue'
+import RefileBatchSheet from '@/components/Refile/RefileBatchSheet.vue'
 
 const router = useRouter()
 
@@ -341,6 +347,7 @@ const {
 } = storeToRefs(useRefileStore())
 
 // Local Data
+const batchSheetComponent = ref(null)
 const editJob = ref(false)
 const itemTableVisibleColumns = ref([
   'actions',
@@ -510,6 +517,9 @@ const handleOptionMenu = async (action, rowData) => {
       return
     case 'Revert Item to Queue':
       removeRefileItems([rowData.barcode.value])
+      return
+    case 'Print Job':
+      batchSheetComponent.value.printBatchReport()
       return
     case 'View History':
       showAuditTrailModal.value = 'refile_jobs'
