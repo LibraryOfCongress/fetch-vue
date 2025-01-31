@@ -74,6 +74,18 @@
           <label
             class="info-display-details-label-2 text-h6"
           >
+            # of Items
+          </label>
+          <p class="text-body1">
+            {{ picklistJob.request_count }}
+          </p>
+        </div>
+      </div>
+      <div class="col-xs-6 col-sm-6 col-md-grow">
+        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+          <label
+            class="info-display-details-label-2 text-h6"
+          >
             Date Created
           </label>
           <p class="text-body1">
