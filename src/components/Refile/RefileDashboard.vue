@@ -251,7 +251,7 @@
             option-label="id"
             :placeholder="'Select Refile Job'"
             aria-label="refileJobSelect"
-            @focus="getRefileJobList({ queue: true })"
+            @focus="getOptions('refileJobs', { queue: true })"
           />
         </div>
       </q-card-section>
@@ -313,6 +313,7 @@ const {
   refileJobs,
   users
 } = storeToRefs(useOptionStore())
+const { getOptions } = useOptionStore()
 const {
   resetRefileStore,
   getRefileJobList,
@@ -667,7 +668,7 @@ const updateRefileJob = async () => {
     flex: auto;
     .refile-table-toggle-count {
       display: inline-block;
-      padding: 2px 6px;
+      padding: 0px 6px;
       margin-top: -2px;
       border: 1px solid $primary;
       border-radius: 6px;
