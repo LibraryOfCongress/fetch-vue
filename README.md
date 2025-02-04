@@ -19,7 +19,7 @@ See [Pinia Docs](https://pinia.vuejs.org/getting-started.html)
 - vitest. : files for vitest configuration
 - dist/ : Build files related to deployment
 - env/ : Environment variable files and Environment Parse _(only an example file exists here since we handle this in CI/CD Pipelines)_
-- images/ : Docker Container Files to build the application
+- images/ : Container Files to build the application
 - nginx/ : Handles ssl and proxying needs for deployment
 - public/ : Static files or files that dont change often
 - test/ : Contains (unit) tests
@@ -29,11 +29,11 @@ See [Pinia Docs](https://pinia.vuejs.org/getting-started.html)
 
 ## 1. Installing the application
 
-You can either install the application using the quick install (uses docker and brew) or the manual install guides.
+You can either install the application using the quick install (uses podman and brew) or the manual install guides.
 
-### Quick Installation (Uses a dockerized version of the app)
+### Quick Installation (Uses a containerized version of the app)
 
-You will need docker and brew installed for this version to work on your pc.
+You will need podman and brew installed for this version to work on your pc.
 
 Head to the [fetch-local](https://git.loc.gov/fetch/fetch-local) repo and follow instructions up to the 'run' step to get a fully working FETCH Application.
 

@@ -5,7 +5,7 @@ start() {
 }
 
 web() {
-  docker exec -it $1 /bin/sh;
+  podman exec -it $1 /bin/sh;
 }
 
 refresh-db() {
