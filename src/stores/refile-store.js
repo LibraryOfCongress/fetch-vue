@@ -26,7 +26,7 @@ export const useRefileStore = defineStore('refile-store', {
     allItemsRefiled: (state) => {
       if (state.refileJob.id && state.refileJob.status !== 'Created') {
         // if were in a running refile job, we check that items exist and none of the items are pending refile state
-        return state.refileJob.refile_job_items.length == 0 || state.refileJob.refile_job_items.some(itm => itm.status == 'Out') ? false : true
+        return (state.refileJob.refile_job_items && state.refileJob.refile_job_items.length == 0) || state.refileJob.refile_job_items?.some(itm => itm.status == 'Out') ? false : true
       } else {
         return true
       }
