@@ -544,11 +544,13 @@ const loadLocationData = async (qParams) => {
         break
       case 'aisles':
         if (!moduleDetails.value.id) {
+          await getBuildingDetails(route.params.buildingId)
           await getModuleDetails(route.params.moduleId)
         }
         break
       case 'ladders':
         if (!sideDetails.value.id) {
+          await getBuildingDetails(route.params.buildingId)
           await getModuleDetails(route.params.moduleId)
           await getAisleDetails(route.params.aisleId)
           await getSideDetails(route.params.sideId)
@@ -556,6 +558,7 @@ const loadLocationData = async (qParams) => {
         break
       case 'shelves':
         if (!ladderDetails.value.id) {
+          await getBuildingDetails(route.params.buildingId)
           await getModuleDetails(route.params.moduleId)
           await getAisleDetails(route.params.aisleId)
           await getSideDetails(route.params.sideId)
