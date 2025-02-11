@@ -89,6 +89,14 @@ const mainProps = defineProps({
     type: String,
     default: ''
   },
+  optionQuery: {
+    type: Object,
+    default () {
+      return {
+        size: 100
+      }
+    }
+  },
   optionValue: {
     type: String,
     default: ''
@@ -166,7 +174,7 @@ const filterOptions = async (val, update) => {
   // if there is an optionType then we need to get a the intial list of options from the api based on the optionType passed in
   // the passed in optionType should match an http endpoint
   if (mainProps.optionType !== '' && localOptions.value.length == 0) {
-    await getOptions(mainProps.optionType)
+    await getOptions(mainProps.optionType, mainProps.optionQuery)
   }
 
   update(() => {
@@ -195,7 +203,10 @@ const loadMoreOptions = async ({ to, ref }) => {
   // only load more options if were at the bottom of the list, not on the last page and not trying to filter search
   if (!optionsLoading.value && to === lastIndex && nextOptionsPage.value < lastOptionsPage.value && selectInputFilterValue.value == '') {
     optionsLoading.value = true
-    await getOptions(mainProps.optionType, { page: nextOptionsPage.value }, true)
+    await getOptions(mainProps.optionType, {
+      ...mainProps.optionQuery,
+      page: nextOptionsPage.value
+    }, true)
 
     nextOptionsPage.value++
     // calls and internal qSelect function that handles refreshing the list with the updating options at the last index position

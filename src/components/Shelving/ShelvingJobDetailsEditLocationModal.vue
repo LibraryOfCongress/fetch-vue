@@ -96,12 +96,12 @@
             </label>
             <SelectInput
               v-model="locationForm.shelf_id"
-              :options="renderLadderShelves"
+              :options="shelves"
               option-value="id"
               :option-label="opt => opt.shelf_number.number"
               :placeholder="'Select Shelf'"
               :clearable="false"
-              :disabled="renderLadderShelves.length == 0"
+              :disabled="shelves.length == 0"
               @update:model-value="handleLocationFormChange('Shelf')"
               aria-label="shelfSelect"
             >
@@ -240,7 +240,7 @@ const {
   getModuleDetails,
   getAisleDetails,
   getSideDetails,
-  getLadderDetails,
+  getShelveList,
   getShelfPositionsList,
   resetModuleChildren,
   resetAisleChildren,
@@ -252,7 +252,7 @@ const {
   renderBuildingOrModuleAisles,
   renderAisleSides,
   renderSideLadders,
-  renderLadderShelves,
+  shelves,
   shelfPositions
 } = storeToRefs(useBuildingStore())
 const { postShelvingJobContainer, resetShelvingJobContainer } = useShelvingStore()
@@ -336,14 +336,19 @@ const handleLocationFormChange = async (valueType) => {
       resetSideChildren()
       return
     case 'Ladder':
-      await getLadderDetails(locationForm.value.ladder_id, {
+      resetLadderChildren()
+
+      await getShelveList({
+        building_id: shelvingJob.value.building_id,
+        module_id: locationForm.value.module_id,
+        aisle_id: locationForm.value.aisle_id,
+        side_id: locationForm.value.side_id,
+        ladder_id: locationForm.value.ladder_id,
         owner_id: mainProps.shelvingItem.owner.id,
         size_class_id: mainProps.shelvingItem.size_class.id
       })
       locationForm.value.shelf_id = null
       locationForm.value.shelf_position_id = null
-
-      resetLadderChildren()
       return
     case 'Shelf':
       await getShelfPositionsList(locationForm.value.shelf_id, true)
