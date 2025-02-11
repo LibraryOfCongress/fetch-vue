@@ -128,12 +128,19 @@
               </label>
               <SelectInput
                 v-model="searchForm.shelf_id"
-                :options="renderLadderShelves"
+                :options="shelves"
                 option-value="id"
+                option-type="shelves"
+                :option-query="{
+                  building_id: searchForm.building_id,
+                  module_id: searchForm.module_id,
+                  aisle_id: searchForm.aisle_id,
+                  side_id: searchForm.side_id,
+                  ladder_id: searchForm.ladder_id
+                }"
                 :option-label="opt => opt.shelf_number.number"
                 :placeholder="'Select Shelf'"
-                :disabled="renderLadderShelves.length == 0"
-                @update:model-value="handleLocationFormChange('Shelf')"
+                :disabled="!searchForm.ladder_id"
                 aria-label="shelfSelect"
               />
             </div>
@@ -334,6 +341,7 @@ const emit = defineEmits(['hide'])
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   buildings,
+  shelves,
   owners,
   sizeClass,
   mediaTypes,
@@ -355,8 +363,7 @@ const {
   renderBuildingModules,
   renderBuildingOrModuleAisles,
   renderAisleSides,
-  renderSideLadders,
-  renderLadderShelves
+  renderSideLadders
 } = storeToRefs(useBuildingStore())
 const { getAdvancedSearchResults } = useSearchStore()
 
