@@ -353,7 +353,13 @@ export const useBuildingStore = defineStore('building-store', {
           side_orientation_id: 2
         })
       } catch (error) {
-        throw error
+        if (error.response.status == 422 && error.response?.data?.detail.includes('No aisle_number entity')) {
+          // if we get a 422 error related to the number passed in not existing create that number and re run the aisle creation
+          await this.postAisleNumber(payload.aisle_number)
+          await this.postAisle(payload)
+        } else {
+          throw error
+        }
       }
     },
     async patchAisle (payload) {
@@ -365,6 +371,14 @@ export const useBuildingStore = defineStore('building-store', {
           ...res.data,
           aisle_number: { number: payload.aisle_number }
         }
+      } catch (error) {
+        throw error
+      }
+    },
+    async postAisleNumber (aisleNumber) {
+      try {
+        // adds a new aisle number to the db to be utilized in aisle creation
+        await this.$api.post(inventoryServiceApi.aislesNumbers, { number: aisleNumber })
       } catch (error) {
         throw error
       }
