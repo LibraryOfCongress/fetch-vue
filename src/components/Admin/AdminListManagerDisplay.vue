@@ -504,11 +504,15 @@ const loadListData = async (qParams) => {
     } else if (mainProps.listType == 'media-type') {
       await getOptions('mediaTypes', qParams)
     } else if (mainProps.listType == 'shelf-type') {
-      //TEMP force size limit to 300 until we re optimize shelf types ui
-      await getOptions('shelfTypes', {
-        ...qParams,
-        size: 300
-      })
+      //TEMP loop the shelf types until we get all shelf type data needed for the page display
+      await getOptions('shelfTypes', qParams)
+      if (optionsTotal.value > 50) {
+        let page = 1
+        let totalPages = Math.floor(optionsTotal.value/50)
+        while (page < totalPages) {
+          await getOptions('shelfTypes', qParams, true)
+        }
+      }
     } else {
       await getOptions('sizeClass', qParams)
     }
