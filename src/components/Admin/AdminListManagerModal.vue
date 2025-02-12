@@ -75,6 +75,7 @@
                   :hide-selected="!field.allowMultiple"
                   :options="field.options"
                   :option-type="field.optionType"
+                  :option-query="field.optionQuery"
                   option-value="id"
                   :option-label="field.field == 'container_type_id' ? 'type' : 'name'"
                   :placeholder="`Select ${field.label}`"
@@ -367,6 +368,7 @@ const generateListModal = () => {
           label: 'Size Class',
           options: sizeClass,
           optionType: 'sizeClass',
+          optionQuery: { size: 300 },
           required: true,
           allowMultiple: true
         }
