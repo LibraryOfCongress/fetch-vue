@@ -361,10 +361,14 @@ const generateListModal = async () => {
       //TEMP loop the shelf type size class options until we get all size class data needed for the modal
       await getOptions('sizeClass', { size: 50 })
       if (optionsTotal.value > 50) {
-        let page = 1
-        let totalPages = Math.floor(optionsTotal.value/50)
+        let page = 2
+        let totalPages = Math.ceil(optionsTotal.value/50)
         while (page < totalPages) {
-          await getOptions('sizeClass', { size: 50 }, true)
+          await getOptions('sizeClass', {
+            size: 50,
+            page
+          }, true)
+          page++
         }
       }
 
