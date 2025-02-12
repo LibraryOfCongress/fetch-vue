@@ -32,7 +32,7 @@
                 Owner
               </label>
               <p class="shelf-details-text">
-                {{ shelfDetails.owner.name }}
+                {{ shelfDetails.owner?.name ? shelfDetails.owner?.name : "" }}
               </p>
             </div>
 
@@ -148,7 +148,7 @@
               Owner
             </label>
             <p class="shelf-details-text">
-              {{ shelfDetails.owner.name }}
+              {{ shelfDetails.owner?.name ? shelfDetails.owner?.name : "" }}
             </p>
           </div>
           <div class="shelf-details">
