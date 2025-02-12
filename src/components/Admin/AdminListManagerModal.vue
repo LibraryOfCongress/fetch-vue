@@ -187,7 +187,8 @@ const {
   sizeClass,
   shelfTypes,
   ownersTiers,
-  parentOwnerOptions
+  parentOwnerOptions,
+  optionsTotal
 } = storeToRefs(useOptionStore())
 const {
   getParentOwnerOptions,
@@ -200,7 +201,8 @@ const {
   patchMediaType,
   postShelfType,
   patchShelfType,
-  deleteShelfType
+  deleteShelfType,
+  getOptions
 } = useOptionStore()
 
 // Local Data
@@ -210,7 +212,7 @@ const titleCaseListType = computed(() => {
   return title.join(' ')
 })
 const listModal = ref(null)
-const inputFields = ref(null)
+const inputFields = ref([])
 const inputForm = ref({})
 const inputFormOriginal = ref({})
 const isInputFormValid = computed(() => {
@@ -244,7 +246,7 @@ onBeforeMount(() => {
   generateListModal()
 })
 
-const generateListModal = () => {
+const generateListModal = async () => {
   // creates the modal fields needed based on the listType
   switch (mainProps.listType) {
     case 'size-class':
@@ -356,6 +358,16 @@ const generateListModal = () => {
       // create a copy of our input form
       inputFormOriginal.value = { ...toRaw(inputForm.value) }
 
+      //TEMP loop the shelf type size class options until we get all size class data needed for the modal
+      await getOptions('sizeClass', { size: 50 })
+      if (optionsTotal.value > 50) {
+        let page = 1
+        let totalPages = Math.floor(optionsTotal.value/50)
+        while (page < totalPages) {
+          await getOptions('sizeClass', { size: 50 }, true)
+        }
+      }
+
       inputFields.value = [
         {
           field: 'type',
@@ -366,7 +378,6 @@ const generateListModal = () => {
           field: 'size_class_ids',
           label: 'Size Class',
           options: sizeClass,
-          optionType: 'sizeClass',
           required: true,
           allowMultiple: true
         }
