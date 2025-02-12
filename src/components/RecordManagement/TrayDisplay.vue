@@ -36,7 +36,7 @@
               Owner
             </label>
             <p class="tray-details-text">
-              {{ trayDetails.owner.name }}
+              {{ trayDetails.owner?.name ? trayDetails.owner?.name : "" }}
             </p>
           </div>
 

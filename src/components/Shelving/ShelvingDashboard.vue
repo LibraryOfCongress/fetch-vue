@@ -442,7 +442,6 @@ const {
   getModuleDetails,
   getAisleDetails,
   getSideDetails,
-  getLadderDetails,
   resetBuildingStore,
   resetBuildingChildren,
   resetModuleChildren,
@@ -637,7 +636,6 @@ const handleShelvingJobFormChange = async (valueType) => {
       resetSideChildren()
       return
     case 'Ladder':
-      await getLadderDetails(shelvingJob.value.ladder_id)
       return
   }
 }

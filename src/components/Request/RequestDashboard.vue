@@ -274,7 +274,24 @@
               :placeholder="'Select Pick List Job'"
               aria-label="picklistJobSelect"
               @focus="loadPicklistJobs"
-            />
+            >
+              <template #option="{ itemProps, opt, selected, toggleOption }">
+                <q-item v-bind="itemProps">
+                  <q-item-section>
+                    <q-item-label class="text-body1">
+                      <span>Job #: {{ opt.id }}</span>
+                      <span class="text-secondary"> - {{ opt.request_count }} Items ({{ formatDateTime(opt.create_dt).date }})</span>
+                    </q-item-label>
+                  </q-item-section>
+                  <q-item-section side>
+                    <q-checkbox
+                      :model-value="selected"
+                      @update:model-value="toggleOption(opt)"
+                    />
+                  </q-item-section>
+                </q-item>
+              </template>
+            </SelectInput>
           </div>
         </q-card-section>
       </template>

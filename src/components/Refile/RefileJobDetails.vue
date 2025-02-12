@@ -5,7 +5,8 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit', hidden: !checkUserPermission('can_assign_and_reassign_refile_job'), disabled: appIsOffline || editJob || refileJob.status == 'Paused' || refileJob.status == 'Completed' },
-            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_refile_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed' || refileJob.refile_job_items.some(itm => itm.status == 'In')},
+            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_refile_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed' || (refileJob.refile_job_items && refileJob.refile_job_items.some(itm => itm.status == 'In'))},
+            { text: 'Print Job' },
             { text: 'View History' }
           ]"
           class="q-mr-xs"
@@ -57,7 +58,7 @@
             # of Items:
           </label>
           <p class="text-body1">
-            {{ refileJob.refile_job_items.length }}
+            {{ refileJob.refile_job_items ? refileJob.refile_job_items.length : 0 }}
           </p>
         </div>
       </div>
@@ -178,7 +179,7 @@
         :table-columns="itemTableColumns"
         :table-visible-columns="itemTableVisibleColumns"
         :filter-options="itemTableFilters"
-        :table-data="refileJob.refile_job_items"
+        :table-data="refileJob.refile_job_items ?? []"
         :row-key="'barcode'"
         :enable-table-reorder="false"
         :enable-selection="false"
@@ -274,6 +275,10 @@
     v-if="showRefileItemDetailModal"
     @hide="showRefileItemDetailModal = false"
   />
+  <RefileBatchSheet
+    ref="batchSheetComponent"
+    :refile-job-details="refileJob"
+  />
 
   <!-- audit trail modal -->
   <AuditTrail
@@ -305,6 +310,7 @@ import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import RefileItemDetailModal from '@/components/Refile/RefileItemDetailModal.vue'
 import AuditTrail from '@/components/AuditTrail.vue'
+import RefileBatchSheet from '@/components/Refile/RefileBatchSheet.vue'
 
 const router = useRouter()
 
@@ -341,6 +347,7 @@ const {
 } = storeToRefs(useRefileStore())
 
 // Local Data
+const batchSheetComponent = ref(null)
 const editJob = ref(false)
 const itemTableVisibleColumns = ref([
   'actions',
@@ -407,7 +414,7 @@ const itemTableColumns = ref([
 ])
 const itemTableFilters = computed(() => {
   let tablesFilters = []
-  if (refileJob.value.refile_job_items.length > 0) {
+  if (refileJob.value.refile_job_items && refileJob.value.refile_job_items.length > 0) {
     tablesFilters = [
       {
         field: row => row.owner?.name,
@@ -480,14 +487,14 @@ watch(compiledBarCode, (barcode) => {
 })
 const triggerItemScan = (barcode_value) => {
   // check if the scanned barcode is in the item data and that the barcode hasnt been refiled already
-  if (!refileJob.value.refile_job_items.some(itm => itm.barcode.value == barcode_value)) {
+  if (!refileJob.value.refile_job_items?.some(itm => itm.barcode.value == barcode_value)) {
     handleAlert({
       type: 'error',
       text: 'The scanned item does not exist in this refile job. Please try again.',
       autoClose: true
     })
     return
-  } else if (refileJob.value.refile_job_items.some(itm => itm.barcode.value == barcode_value && itm.status !== 'Out')) {
+  } else if (refileJob.value.refile_job_items?.some(itm => itm.barcode.value == barcode_value && itm.status !== 'Out')) {
     handleAlert({
       type: 'error',
       text: 'The scanned item has already been marked as refiled.',
@@ -510,6 +517,9 @@ const handleOptionMenu = async (action, rowData) => {
       return
     case 'Revert Item to Queue':
       removeRefileItems([rowData.barcode.value])
+      return
+    case 'Print Job':
+      batchSheetComponent.value.printBatchReport()
       return
     case 'View History':
       showAuditTrailModal.value = 'refile_jobs'

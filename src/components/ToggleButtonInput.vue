@@ -13,7 +13,14 @@
     :options="localOptions"
     :disable="disabled"
     aria-label="toggleOptionsGroup"
-  />
+  >
+    <template #left>
+      <slot name="left" />
+    </template>
+    <template #right>
+      <slot name="right" />
+    </template>
+  </q-btn-toggle>
 </template>
 
 <script setup>

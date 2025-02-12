@@ -72,7 +72,7 @@
             Owner:
           </label>
           <p class="item-details-text">
-            {{ itemData.owner.name }}
+            {{ itemData.owner?.name ? itemData.owner?.name : "" }}
           </p>
         </div>
       </q-card-section>
