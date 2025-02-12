@@ -9,6 +9,7 @@ export default {
   accessionJobs: '/accession-jobs/',
   accessionJobsWorkflow: '/accession-jobs/workflow/',
   aisles: '/aisles/',
+  aislesNumbers: '/aisles/numbers',
   authLegacyLogin: '/auth/legacy/login',
   authSsoLogin: '/auth/sso/login/',
   authSsoLogout: '/auth/sso/logout/',

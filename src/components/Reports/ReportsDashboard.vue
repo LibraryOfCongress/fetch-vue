@@ -487,8 +487,8 @@ const generateReportTableFields = () => {
     case 'Shelving Job Discrepancy':
       generatedTableColumns.value = [
         {
-          name: 'id',
-          field: 'id',
+          name: 'shelving_job_id',
+          field: 'shelving_job_id',
           label: 'Shelving Job #',
           align: 'left',
           sortable: true
@@ -544,7 +544,7 @@ const generateReportTableFields = () => {
         }
       ]
       generatedTableVisibleColumns.value = [
-        'id',
+        'shelving_job_id',
         'assigned_user',
         'barcode',
         'size_class',
