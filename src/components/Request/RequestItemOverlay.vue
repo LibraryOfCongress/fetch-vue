@@ -105,7 +105,7 @@
 
         <div class="request-item-details">
           <p class="request-item-details-text outline">
-            {{ itemData.item ? itemData.item.owner.name : itemData.non_tray_item.owner.name }}
+            {{ itemData.item ? itemData.item.owner?.name : itemData.non_tray_item.owner?.name }}
           </p>
         </div>
       </q-card-section>

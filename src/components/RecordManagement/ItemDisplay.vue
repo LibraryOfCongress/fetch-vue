@@ -50,7 +50,7 @@
                 Owner
               </label>
               <p class="item-details-text">
-                {{ itemDetails.owner.name }}
+                {{ itemDetails.owner?.name ? itemDetails.owner?.name : "" }}
               </p>
             </div>
 
@@ -212,7 +212,7 @@
               Owner:
             </label>
             <p class="item-details-text outline">
-              {{ itemDetails.owner.name }}
+              {{ itemDetails.owner?.name ? itemDetails.owner?.name : "" }}
             </p>
           </div>
         </div>
