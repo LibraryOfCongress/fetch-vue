@@ -509,7 +509,7 @@ const loadListData = async (qParams) => {
       if (optionsTotal.value > 50) {
         let page = 2
         let totalPages = Math.ceil(optionsTotal.value/50)
-        while (page < totalPages) {
+        while (page <= totalPages) {
           await getOptions('shelfTypes', {
             ...qParams,
             page

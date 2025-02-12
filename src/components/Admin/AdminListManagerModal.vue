@@ -363,7 +363,7 @@ const generateListModal = async () => {
       if (optionsTotal.value > 50) {
         let page = 2
         let totalPages = Math.ceil(optionsTotal.value/50)
-        while (page < totalPages) {
+        while (page <= totalPages) {
           await getOptions('sizeClass', {
             size: 50,
             page
