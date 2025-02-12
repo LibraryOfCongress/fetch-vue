@@ -206,6 +206,7 @@
         :highlight-row-class="'justify-end bg-color-green-light'"
         :highlight-row-key="'status'"
         :highlight-row-value="'Out'"
+        @selected-table-row="loadPicklistItem(renderItemBarcodeDisplay($event.item ? $event.item : $event.non_tray_item))"
       >
         <template #heading-row>
           <div class="col-xs-7 col-sm-5 q-mb-md-sm">
@@ -302,6 +303,12 @@
     </template>
   </PopupModal>
 
+  <!-- picklist item detail modal -->
+  <PicklistItemDetailModal
+    v-if="showPicklistItemDetailModal"
+    @hide="showPicklistItemDetailModal = false"
+  />
+
   <!-- print component: picklist job report -->
   <PicklistBatchSheet
     ref="batchSheetComponent"
@@ -339,6 +346,7 @@ import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import PicklistBatchSheet from '@/components/Picklist/PicklistBatchSheet.vue'
 import AuditTrail from '@/components/AuditTrail.vue'
+import PicklistItemDetailModal from '@/components/Picklist/PicklistItemDetailModal.vue'
 
 const router = useRouter()
 
@@ -365,7 +373,8 @@ const {
   patchPicklistJob,
   deletePicklistJob,
   patchPicklistJobItemScanned,
-  deletePicklistJobItem
+  deletePicklistJobItem,
+  getPicklistJobItem
 } = usePicklistStore()
 const {
   picklistJob,
@@ -473,6 +482,7 @@ const itemTableFilters = computed(() => {
 const showConfirmationModal = ref(null)
 const historyModal = ref(null)
 const showAuditTrailModal = ref(false)
+const showPicklistItemDetailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -767,6 +777,11 @@ const updatePicklistItem = async (barcode_value) => {
       autoClose: true
     })
   }
+}
+const loadPicklistItem = (barcode_value) => {
+  // since we already have all the items data we just need to set the refileItem from the refileJob items directly
+  getPicklistJobItem(barcode_value)
+  showPicklistItemDetailModal.value = true
 }
 </script>
 
