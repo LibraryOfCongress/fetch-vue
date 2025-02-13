@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="appIsLoadingData || testLoading"
+    v-if="appIsLoadingData || pageInitLoading || testLoading"
     class="overlay"
   >
     <q-spinner-bars
@@ -23,5 +23,5 @@ defineProps({
   }
 })
 // Store Data
-const { appIsLoadingData } = storeToRefs(useGlobalStore())
+const { appIsLoadingData, pageInitLoading } = storeToRefs(useGlobalStore())
 </script>

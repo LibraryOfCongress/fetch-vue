@@ -59,6 +59,7 @@
 import { onBeforeMount, ref, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
+import { useOptionStore } from '@/stores/option-store'
 import { usePicklistStore } from '@/stores/picklist-store'
 import { useUserStore } from '@/stores/user-store'
 import { storeToRefs } from 'pinia'
@@ -74,6 +75,10 @@ const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appIsLoadingData } = storeToRefs(useGlobalStore())
+const {
+  buildings,
+  users
+} = storeToRefs(useOptionStore())
 const {
   resetPicklistStore,
   getPicklistJobList,
@@ -145,6 +150,17 @@ const picklistTableColumns = ref([
 ])
 const picklistTableFilters =  ref([
   {
+    field: row => row.building?.name,
+    label: 'Building',
+    apiField: 'building_name',
+    options: buildings.value.map(b => {
+      return {
+        text: b.name,
+        value: false
+      }
+    })
+  },
+  {
     field: 'status',
     label: 'Status',
     options: [
@@ -165,6 +181,17 @@ const picklistTableFilters =  ref([
         value: false
       }
     ]
+  },
+  {
+    field: row => row.user ? `${row.user.first_name} ${row.user.last_name}` : '',
+    label: 'Assigned User',
+    apiField: 'assigned_user',
+    options: users.value.map(usr => {
+      return {
+        text: `${usr.first_name} ${usr.last_name}`,
+        value: false
+      }
+    })
   }
 ])
 

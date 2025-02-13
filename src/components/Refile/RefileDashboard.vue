@@ -311,7 +311,10 @@ const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore(
 const {
   buildings,
   refileJobs,
-  users
+  users,
+  mediaTypes,
+  owners,
+  sizeClass
 } = storeToRefs(useOptionStore())
 const { getOptions } = useOptionStore()
 const {
@@ -478,6 +481,36 @@ const queueTableFilters =  ref([
         value: false
       }
     ]
+  },
+  {
+    field: 'media_type',
+    label: 'Media Type',
+    options: mediaTypes.value.map(m => {
+      return {
+        text: m.name,
+        value: false
+      }
+    })
+  },
+  {
+    field: 'owner',
+    label: 'Owner',
+    options: owners.value.map(o => {
+      return {
+        text: o.name,
+        value: false
+      }
+    })
+  },
+  {
+    field: 'size_class',
+    label: 'Size Class',
+    options: sizeClass.value.map(s => {
+      return {
+        text: s.name,
+        value: false
+      }
+    })
   }
 ])
 const refileDisplayType = ref('refile_job')

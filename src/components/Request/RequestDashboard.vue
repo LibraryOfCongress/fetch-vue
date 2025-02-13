@@ -325,7 +325,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, inject, watch } from 'vue'
+import { onBeforeMount, ref, reactive, inject, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
@@ -353,7 +353,13 @@ const { checkUserPermission } = usePermissionHandler()
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { getOptions } = useOptionStore()
-const { buildings, picklists } = storeToRefs(useOptionStore())
+const {
+  buildings,
+  picklists,
+  mediaTypes,
+  requestsPriorities,
+  requestsLocations
+} = storeToRefs(useOptionStore())
 const {
   resetRequestJob,
   resetRequestStore,
@@ -474,7 +480,7 @@ const requestTableColumns = ref([
     sortable: true
   }
 ])
-const requestTableFilters =  ref([
+const requestTableFilters =  reactive([
   {
     field: row => row.request_type?.type,
     label: 'Request Type',
@@ -495,6 +501,17 @@ const requestTableFilters =  ref([
     ]
   },
   {
+    field: row => row.building?.name,
+    label: 'Building',
+    apiField: 'building_name',
+    options: buildings.value.map(b => {
+      return {
+        text: b.name,
+        value: false
+      }
+    })
+  },
+  {
     field: row => row.item ? row.item?.status : row.non_tray_item?.status,
     label: 'Status',
     apiField: 'status',
@@ -508,6 +525,39 @@ const requestTableFilters =  ref([
         value: false
       }
     ]
+  },
+  {
+    field: row => row.priority?.value,
+    label: 'Priority',
+    apiField: 'priority',
+    options: requestsPriorities.value.map(p => {
+      return {
+        text: p.value,
+        value: false
+      }
+    })
+  },
+  {
+    field: row => row.item ? row.item?.media_type?.name : row.non_tray_item?.media_type?.name,
+    label: 'Media Type',
+    apiField: 'media_type',
+    options: mediaTypes.value.map(m => {
+      return {
+        text: m.name,
+        value: false
+      }
+    })
+  },
+  {
+    field: row => row.delivery_location?.name,
+    label: 'Delivery Location',
+    apiField: 'delivery_location',
+    options: requestsLocations.value.map(dl => {
+      return {
+        text: dl.name,
+        value: false
+      }
+    })
   }
 ])
 const requestBatchTableVisibleColumns = ref([
