@@ -337,9 +337,9 @@ const refileJobMenuState = ref(false)
 const refileTableComponent = ref(null)
 const refileTableVisibleColumns = ref([
   'id',
-  'items_count',
+  'item_count',
   'shelved_count',
-  'user',
+  'user_id',
   'create_dt',
   'last_transition'
 ])
@@ -352,7 +352,7 @@ const refileTableColumns = ref([
     sortable: true
   },
   {
-    name: 'items_count',
+    name: 'item_count',
     field: row => (row.item_count + row.non_tray_item_count),
     label: '# of Items',
     align: 'left',
@@ -360,13 +360,13 @@ const refileTableColumns = ref([
   },
   {
     name: 'shelved_count',
-    field: row => (row.item_shelved_refiled_count + row.non_tray_item_shelved_refiled_count),
+    field: row => (row.item_shelved_refiled_count + row.container_shelved_refiled_count),
     label: '# of Items Shelved',
     align: 'left',
     sortable: true
   },
   {
-    name: 'user',
+    name: 'user_id',
     field: row => row.assigned_user ? `${row.assigned_user?.first_name} ${row.assigned_user?.last_name}` : '',
     label: 'Assigned User',
     align: 'left',
@@ -393,6 +393,7 @@ const refileTableFilters = computed(() => {
     {
       field: row => row.assigned_user ? `${row.assigned_user?.first_name} ${row.assigned_user?.last_name}` : '',
       label: 'Assigned User',
+      apiField: 'assigned_user',
       options: users.value.map(usr => {
         return {
           text: `${usr.first_name} ${usr.last_name}`,
@@ -501,9 +502,9 @@ onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
     refileTableVisibleColumns.value = [
       'id',
-      'items_count',
+      'item_count',
       'shelved_count',
-      'user'
+      'user_id'
     ]
     queueTableVisibleColumns.value = [
       'item_location',

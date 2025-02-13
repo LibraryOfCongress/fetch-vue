@@ -377,14 +377,14 @@ const requestTableComponent = ref(null)
 const requestTableVisibleColumns = ref([
   'id',
   'request_type',
-  'barcode',
+  'barcode_value',
   'external_request_id',
-  'building',
+  'building_name',
   'requestor_name',
   'status',
   'priority',
   'media_type',
-  'item_location',
+  'location',
   'delivery_location',
   'create_dt'
 ])
@@ -404,7 +404,7 @@ const requestTableColumns = ref([
     sortable: true
   },
   {
-    name: 'barcode',
+    name: 'barcode_value',
     field: row => row.item ? renderItemBarcodeDisplay(row.item) : renderItemBarcodeDisplay(row.non_tray_item),
     label: 'Barcode',
     align: 'left',
@@ -418,7 +418,7 @@ const requestTableColumns = ref([
     sortable: true
   },
   {
-    name: 'building',
+    name: 'building_name',
     field: row => row.building?.name,
     label: 'Building',
     align: 'left',
@@ -453,7 +453,7 @@ const requestTableColumns = ref([
     sortable: true
   },
   {
-    name: 'item_location',
+    name: 'location',
     field: row => row.item ? getItemLocation(row.item.tray) : getItemLocation(row.non_tray_item),
     label: 'Item Location',
     align: 'left',
@@ -478,6 +478,7 @@ const requestTableFilters =  ref([
   {
     field: row => row.request_type?.type,
     label: 'Request Type',
+    apiField: 'request_type',
     options: [
       {
         text: 'General Delivery',
@@ -496,6 +497,7 @@ const requestTableFilters =  ref([
   {
     field: row => row.item ? row.item?.status : row.non_tray_item?.status,
     label: 'Status',
+    apiField: 'status',
     options: [
       {
         text: 'PickList',
@@ -600,7 +602,7 @@ onBeforeMount(() => {
     requestTableVisibleColumns.value = [
       'id',
       'request_type',
-      'barcode',
+      'barcode_value',
       'requestor_name'
     ]
     requestBatchTableVisibleColumns.value = [

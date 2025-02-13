@@ -442,7 +442,7 @@ const generateSearchModal = () => {
         },
         {
           query: 'to_dt',
-          label: 'Accession Date Date (To)'
+          label: 'Accession Date (To)'
         },
         {
           query: 'owner_id',
@@ -486,11 +486,11 @@ const generateSearchModal = () => {
       searchParams.value = [
         {
           query: 'from_dt',
-          label: 'Accession Date Date (From)'
+          label: 'Accession Date (From)'
         },
         {
           query: 'to_dt',
-          label: 'Accession Date Date (To)'
+          label: 'Accession Date (To)'
         },
         {
           query: 'owner_id',

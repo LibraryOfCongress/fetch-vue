@@ -123,7 +123,7 @@
               {{ value }}
             </span>
             <span
-              v-else-if="colName == 'containers'"
+              v-else-if="colName == 'container_count'"
               class="outline text-nowrap"
             >
               {{ value }} Containers
@@ -475,7 +475,7 @@ const { userData } = storeToRefs(useUserStore())
 const createShelvingJobModal = ref(null)
 const shelfTableVisibleColumns = ref([
   'id',
-  'containers',
+  'container_count',
   'status',
   'user_id',
   'create_dt',
@@ -491,7 +491,7 @@ const shelfTableColumns = ref([
     order: 0
   },
   {
-    name: 'containers',
+    name: 'container_count',
     field: row => (row.tray_count + row.non_tray_item_count),
     label: '# of Containers in Job',
     align: 'left',

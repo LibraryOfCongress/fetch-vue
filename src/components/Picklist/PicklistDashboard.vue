@@ -85,10 +85,10 @@ const { userData } = storeToRefs(useUserStore())
 // Local Data
 const picklistTableVisibleColumns = ref([
   'id',
-  'building',
+  'building_name',
   'request_count',
   'status',
-  'user',
+  'user_id',
   'create_dt',
   'complete_dt'
 ])
@@ -101,7 +101,7 @@ const picklistTableColumns = ref([
     sortable: true
   },
   {
-    name: 'building',
+    name: 'building_name',
     field: row => row.building?.name,
     label: 'Building',
     align: 'left',
@@ -122,7 +122,7 @@ const picklistTableColumns = ref([
     sortable: true
   },
   {
-    name: 'user',
+    name: 'user_id',
     field: row => row.user ? `${row.user.first_name} ${row.user.last_name}` : '',
     label: 'Assigned User',
     align: 'left',
@@ -180,7 +180,7 @@ onBeforeMount(() => {
     picklistTableVisibleColumns.value = [
       'id',
       'status',
-      'assigned_user',
+      'user_id',
       'create_dt'
     ]
   }
