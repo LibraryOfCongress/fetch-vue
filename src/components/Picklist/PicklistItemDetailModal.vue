@@ -138,14 +138,18 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
+import { inject, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { usePicklistStore } from '@/stores/picklist-store'
 import PopupModal from '@/components/PopupModal.vue'
 import BarcodeBox from '@/components/BarcodeBox.vue'
+import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 
 // Emits
 const emit = defineEmits(['hide'])
+
+// Compasables
+const { compiledBarCode } = useBarcodeScanHandler()
 
 // Store Data
 const {
@@ -157,7 +161,9 @@ const {
 
 // Logic
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
-
+watch(compiledBarCode, () => {
+  emit('hide')
+})
 </script>
 
 <style lang="scss" scoped>
