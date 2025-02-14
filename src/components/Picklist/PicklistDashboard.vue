@@ -166,15 +166,15 @@ const picklistTableFilters =  ref([
     options: [
       {
         text: 'Created',
-        value: false
+        value: true
       },
       {
         text: 'Paused',
-        value: false
+        value: true
       },
       {
         text: 'Running',
-        value: false
+        value: true
       },
       {
         text: 'Completed',
@@ -218,7 +218,7 @@ const loadPicklistJobs = async (qParams) => {
     appIsLoadingData.value = true
     await getPicklistJobList({
       ...qParams,
-      queue: true,
+      status: picklistTableFilters.value.find(fltr => fltr.field == 'status').options.flatMap(opt => opt.value == true ? opt.text : []),
       user_id: checkUserPermission('can_view_all_picklist_jobs') ? null : userData.value.user_id
     })
   } catch (error) {

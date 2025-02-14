@@ -540,15 +540,15 @@ const shelfTableFilters = computed(() => {
       options: [
         {
           text: 'Created',
-          value: false
+          value: true
         },
         {
           text: 'Paused',
-          value: false
+          value: true
         },
         {
           text: 'Running',
-          value: false
+          value: true
         },
         {
           text: 'Completed',
@@ -645,7 +645,7 @@ const loadShelvingJobs = async (qParams) => {
     appIsLoadingData.value = true
     await getShelvingJobList({
       ...qParams,
-      queue: true,
+      status: shelfTableFilters.value.find(fltr => fltr.field == 'status').options.flatMap(opt => opt.value == true ? opt.text : []),
       user_id: checkUserPermission('can_view_all_shelving_jobs') ? null : userData.value.user_id
     })
   } catch (error) {

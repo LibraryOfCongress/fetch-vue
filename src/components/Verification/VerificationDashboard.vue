@@ -124,15 +124,15 @@ const verificationTableFilters =  ref([
     options: [
       {
         text: 'Created',
-        value: false
+        value: true
       },
       {
         text: 'Paused',
-        value: false
+        value: true
       },
       {
         text: 'Running',
-        value: false
+        value: true
       },
       {
         text: 'Completed',
@@ -163,7 +163,7 @@ const loadVerificationJobs = async (qParams) => {
     appIsLoadingData.value = true
     await getVerificationJobList({
       ...qParams,
-      queue: true
+      status: verificationTableFilters.value.find(fltr => fltr.field == 'status').options.flatMap(opt => opt.value == true ? opt.text : [])
     })
   } catch (error) {
     handleAlert({
