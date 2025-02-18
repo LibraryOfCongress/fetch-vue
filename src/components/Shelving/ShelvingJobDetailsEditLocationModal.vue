@@ -282,6 +282,7 @@ const isLocationFormValid = computed(() => {
 
 // Logic
 const handleAlert = inject('handle-alert')
+const currentIsoDate = inject('current-iso-date')
 
 onMounted(() => {
   // set the form data if shelvingItem is passed in
@@ -384,7 +385,7 @@ const submitLocationForm = async () => {
         trayed: locationForm.value.trayed,
         shelf_position_number: locationForm.value.shelf_position_number,
         shelf_barcode_value: locationForm.value.shelf_barcode,
-        shelved_dt: new Date().toISOString()
+        shelved_dt: currentIsoDate()
       }
     } else {
       payload = {
@@ -393,7 +394,7 @@ const submitLocationForm = async () => {
         trayed: locationForm.value.trayed,
         shelf_position_number: shelfPositions.value.find(shelf_pos => shelf_pos.id == locationForm.value.shelf_position_id)?.shelf_position_number?.number,
         shelf_id: locationForm.value.shelf_id,
-        shelved_dt: new Date().toISOString()
+        shelved_dt: currentIsoDate()
       }
     }
 
