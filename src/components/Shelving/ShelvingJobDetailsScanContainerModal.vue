@@ -224,6 +224,7 @@ const containerLocationDisplayValues = computed(() => {
 
 // Logic
 const handleAlert = inject('handle-alert')
+const currentIsoDate = inject('current-iso-date')
 
 watch(compiledBarCode, (barcode) => {
   if (barcode !== '') {
@@ -255,7 +256,7 @@ const updateContainerLocation = async () => {
       trayed: shelvingJobContainer.value.container_type.type == 'Tray' ? true : false,
       shelf_position_number: manualShelfPosition.value !== '' ? manualShelfPosition.value : containerLocationDisplayValues.value[6],
       shelf_barcode_value: shelvingJobContainer.value.shelf_position.shelf.barcode.value,
-      shelved_dt: new Date().toISOString(),
+      shelved_dt: currentIsoDate(),
       scanned_for_shelving: true
     }
     await postShelvingJobContainer(payload)

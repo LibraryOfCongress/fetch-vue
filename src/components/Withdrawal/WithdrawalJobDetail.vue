@@ -564,6 +564,7 @@ const showAuditTrailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
+const currentIsoDate = inject('current-iso-date')
 const formatDateTime = inject('format-date-time')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 const getUniqueListByKey = inject('get-uniqure-list-by-key')
@@ -607,7 +608,7 @@ const updateWithdrawJob = async () => {
     const payload = {
       id: withdrawJob.value.id,
       assigned_user_id: withdrawJob.value.assigned_user_id,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchWithdrawJob(payload)
 
@@ -671,7 +672,7 @@ const completeWithdrawJob = async () => {
       id: withdrawJob.value.id,
       status: 'Completed',
       assigned_user_id: withdrawJob.value.assigned_user_id ? withdrawJob.value.assigned_user_id : userData.value.user_id,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchWithdrawJob(payload)
 

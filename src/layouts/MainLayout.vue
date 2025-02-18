@@ -72,6 +72,7 @@
 import { onMounted, ref, provide, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
+import moment from 'moment'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useAlertPopup } from '@/composables/useAlertPopup'
 import AlertPopup from '@/components/AlertPopup.vue'
@@ -185,6 +186,11 @@ const getUniqueListByKey = (arr, key) => {
   )
 }
 provide('get-uniqure-list-by-key', getUniqueListByKey)
+const currentIsoDate = () => {
+  const timezoneAwareDateIso = moment().format()
+  return timezoneAwareDateIso
+}
+provide('current-iso-date', currentIsoDate)
 const formatDateTime = (dateTime) => {
   if (!dateTime) {
     return {

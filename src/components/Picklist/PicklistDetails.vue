@@ -486,6 +486,7 @@ const showPicklistItemDetailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
+const currentIsoDate = inject('current-iso-date')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
@@ -575,7 +576,7 @@ const executePicklistJob = async () => {
       id: picklistJob.value.id,
       status: 'Running',
       user_id: picklistJob.value.user_id ? picklistJob.value.user_id : userData.value.user_id,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchPicklistJob(payload)
 
@@ -604,7 +605,7 @@ const updatePicklistJob = async () => {
     const payload = {
       id: picklistJob.value.id,
       user_id: picklistJob.value.user_id,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchPicklistJob(payload)
 
@@ -629,7 +630,7 @@ const updatePicklistJobStatus = async (status) => {
     const payload = {
       id: picklistJob.value.id,
       status,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchPicklistJob(payload)
 
@@ -691,7 +692,7 @@ const completePicklistJob = async (printBool) => {
     const payload = {
       id: picklistJob.value.id,
       status: 'Completed',
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchPicklistJob(payload)
 
@@ -758,7 +759,7 @@ const updatePicklistItem = async (barcode_value) => {
     const payload = {
       id: picklistJob.value.id,
       request_id: pickListItemToUpdate.id,
-      run_timestamp: new Date().toISOString(),
+      run_timestamp: currentIsoDate(),
       status: 'Out'
     }
     await patchPicklistJobItemScanned(payload)

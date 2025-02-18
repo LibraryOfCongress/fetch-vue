@@ -569,6 +569,7 @@ const historyModal = ref(null)
 const showAuditTrailModal = ref(false)
 
 // Logic
+const currentIsoDate = inject('current-iso-date')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
 const handleAlert = inject('handle-alert')
@@ -716,7 +717,7 @@ const executeShelvingJob = async () => {
       user_id: shelvingJob.value.user_id
         ? shelvingJob.value.user_id
         : userData.value.user_id,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchShelvingJob(payload)
 
@@ -753,7 +754,7 @@ const updateShelvingJobStatus = async (status) => {
     const payload = {
       id: route.params.jobId,
       status,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
 
     await patchShelvingJob(payload)
@@ -820,7 +821,7 @@ const completeShelvingJob = async (printBool) => {
     const payload = {
       id: route.params.jobId,
       status: 'Completed',
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchShelvingJob(payload)
 
