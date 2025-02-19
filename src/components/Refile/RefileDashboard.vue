@@ -408,17 +408,17 @@ const refileTableFilters = computed(() => {
   return tablesFilters
 })
 const queueTableVisibleColumns = ref([
-  'item_location',
+  'location',
   'container_type',
   'media_type',
-  'barcode',
+  'barcode_value',
   'owner',
   'size_class',
   'create_dt'
 ])
 const queueTableColumns = ref([
   {
-    name: 'item_location',
+    name: 'location',
     field: row => `${row.module_number}-${row.aisle_number}-${row.side_orientation == 'Right' ? 'R' : row.side_orientation == 'Left' ? 'L' : row.side_orientation}-${row.ladder_number}-${row.shelf_number}-${row.shelf_position_number}`,
     label: 'Item Location',
     align: 'left',
@@ -439,7 +439,7 @@ const queueTableColumns = ref([
     sortable: true
   },
   {
-    name: 'barcode',
+    name: 'barcode_value',
     field: row => row.barcode_value,
     label: 'Item Barcode',
     align: 'left',
@@ -540,8 +540,8 @@ onBeforeMount(() => {
       'user_id'
     ]
     queueTableVisibleColumns.value = [
-      'item_location',
-      'barcode'
+      'location',
+      'barcode_value'
     ]
   }
 })
