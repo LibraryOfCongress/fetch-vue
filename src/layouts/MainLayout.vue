@@ -199,6 +199,12 @@ const formatDateTime = (dateTime) => {
       dateTime: ''
     }
   }
+
+  //check if the passed in dateTime has missing timezone offset or Z in the ISO string add the z if not
+  if (dateTime && /([zZ]|([+-]\d{2}:?\d{2}))$/.test(dateTime) == false) {
+    dateTime + 'Z'
+  }
+
   const localTimeFormat = new Date(dateTime).toLocaleString()
   const splitDateTime = localTimeFormat.split(',')
   return {
