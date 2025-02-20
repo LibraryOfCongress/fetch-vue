@@ -251,7 +251,8 @@
             option-label="id"
             :placeholder="'Select Refile Job'"
             aria-label="refileJobSelect"
-            @focus="getOptions('refileJobs', { queue: true })"
+            :loading="appActionIsLoadingData"
+            @focus="loadRefileJobOptions()"
           />
         </div>
       </q-card-section>
@@ -592,6 +593,26 @@ const loadRefileJobs = async (qParams) => {
     })
   } finally {
     appIsLoadingData.value = false
+  }
+}
+const loadRefileJobOptions = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    // only load refile jobs with a created or paused status
+    await getOptions('refileJobs', {
+      status: [
+        'Created',
+        'Paused'
+      ]
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = false
   }
 }
 const loadRefileQueueByBuilding = async () => {
