@@ -6,12 +6,13 @@
           ref="requestTableComponent"
           :table-columns="requestDisplayType == 'request_view' ? requestTableColumns : requestBatchTableColumns"
           :table-visible-columns="requestDisplayType == 'request_view' ? requestTableVisibleColumns : requestBatchTableVisibleColumns"
-          :filter-options="requestDisplayType == 'request_view' ? requestTableFilters : requestBatchTableFilters"
+          :filter-options="showCreatePickList || showAddPickList ? [] : requestDisplayType == 'request_view' ? requestTableFilters : requestBatchTableFilters"
           :table-data="requestJobList"
           :enable-table-reorder="false"
           :enable-selection="showCreatePickList || showAddPickList"
           :heading-row-class="'q-mb-xs-md q-mb-md-xl'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :heading-rearrange-class="showCreatePickList || showAddPickList ? 'q-ml-auto' : null"
           :enable-pagination="true"
           :pagination-total="requestJobListTotal"
           :pagination-loading="appIsLoadingData"
@@ -192,9 +193,6 @@
               {{ value }}
             </span>
             <span v-else-if="colName == 'create_dt'">
-              {{ formatDateTime(value).date }}
-            </span>
-            <span v-else-if="colName == 'import_dt'">
               {{ formatDateTime(value).date }}
             </span>
           </template>
@@ -565,8 +563,8 @@ const requestBatchTableVisibleColumns = ref([
   'file_type',
   'request_count',
   'status',
-  'uploaded_by',
-  'import_dt'
+  'user_id',
+  'create_dt'
 ])
 const requestBatchTableColumns = ref([
   {
@@ -591,14 +589,14 @@ const requestBatchTableColumns = ref([
     sortable: true
   },
   {
-    name: 'uploaded_by',
+    name: 'user_id',
     field: row => row.user?.email,
     label: 'Uploaded By',
     align: 'left',
     sortable: true
   },
   {
-    name: 'import_dt',
+    name: 'create_dt',
     field: 'create_dt',
     label: 'Date Imported',
     align: 'left',
@@ -610,18 +608,6 @@ const requestBatchTableFilters =  ref([
     field: 'status',
     label: 'Status',
     options: [
-      {
-        text: 'Created',
-        value: false
-      },
-      {
-        text: 'Pick List',
-        value: false
-      },
-      {
-        text: 'On Hold',
-        value: false
-      },
       {
         text: 'Completed',
         value: false
@@ -660,7 +646,7 @@ onBeforeMount(() => {
       'file_type',
       'request_count',
       'status',
-      'import_dt'
+      'create_dt'
     ]
   }
 })

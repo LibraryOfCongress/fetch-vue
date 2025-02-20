@@ -477,7 +477,7 @@ const queueTableFilters =  ref([
         value: false
       },
       {
-        text: 'Non Tray',
+        text: 'Non-Tray',
         value: false
       }
     ]
