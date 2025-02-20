@@ -361,7 +361,6 @@ const {
 } = storeToRefs(useOptionStore())
 const {
   resetRequestJob,
-  resetRequestStore,
   getRequestJobList,
   getRequestJob,
   getRequestBatchJobList,
@@ -632,7 +631,6 @@ const getItemLocation = inject('get-item-location')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 onBeforeMount(() => {
-  resetRequestStore()
   loadRequestJobs()
 
   if (currentScreenSize.value == 'xs') {
