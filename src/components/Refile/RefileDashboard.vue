@@ -343,7 +343,7 @@ const refileTableVisibleColumns = ref([
   'id',
   'item_count',
   'shelved_count',
-  'user_id',
+  'assigned_user_id',
   'create_dt',
   'last_transition'
 ])
@@ -370,7 +370,7 @@ const refileTableColumns = ref([
     sortable: true
   },
   {
-    name: 'user_id',
+    name: 'assigned_user_id',
     field: row => row.assigned_user ? `${row.assigned_user?.first_name} ${row.assigned_user?.last_name}` : '',
     label: 'Assigned User',
     align: 'left',
@@ -538,7 +538,7 @@ onBeforeMount(() => {
       'id',
       'item_count',
       'shelved_count',
-      'user_id'
+      'assigned_user_id'
     ]
     queueTableVisibleColumns.value = [
       'location',

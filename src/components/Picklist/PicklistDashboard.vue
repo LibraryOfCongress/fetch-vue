@@ -45,7 +45,7 @@
             <span v-else-if="colName == 'create_dt'">
               {{ formatDateTime(value).date }}
             </span>
-            <span v-else-if="colName == 'complete_dt'">
+            <span v-else-if="colName == 'last_transition'">
               {{ formatDateTime(value).date }}
             </span>
           </template>
@@ -95,7 +95,7 @@ const picklistTableVisibleColumns = ref([
   'status',
   'user_id',
   'create_dt',
-  'complete_dt'
+  'last_transition'
 ])
 const picklistTableColumns = ref([
   {
@@ -141,7 +141,7 @@ const picklistTableColumns = ref([
     sortable: true
   },
   {
-    name: 'complete_dt',
+    name: 'last_transition',
     field: 'last_transition',
     label: 'Last Updated',
     align: 'left',
