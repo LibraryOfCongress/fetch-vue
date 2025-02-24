@@ -16,7 +16,13 @@ export const usePicklistStore = defineStore('picklist-store', {
       status: null,
       requests: []
     },
-    originalPicklistJob: null
+    originalPicklistJob: null,
+    picklistItem: {
+      id: null,
+      barcode: {
+        value: null
+      }
+    }
   }),
   getters: {
     picklistItems: (state) => {
@@ -102,6 +108,18 @@ export const usePicklistStore = defineStore('picklist-store', {
       } catch (error) {
         throw error
       }
+    },
+    resetPicklistItem () {
+      this.picklistItem = {
+        id: null,
+        barcode: {
+          value: null
+        }
+      }
+    },
+    async getPicklistJobItem (itemId) {
+      //find the item with the matching barcode_value and set the data as the picklistJobItem
+      this.picklistItem = this.picklistJob.requests.find(picklistRequest => picklistRequest?.item?.barcode.value == itemId || picklistRequest.non_tray_item?.barcode.value == itemId)
     },
     async patchPicklistJobItem (payload) {
       try {

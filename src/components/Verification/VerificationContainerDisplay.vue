@@ -718,6 +718,7 @@ const renderIsEditMode = computed(() => {
 const handleAlert = inject('handle-alert')
 const audioAlert = inject('audio-alert')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
+const currentIsoDate = inject('current-iso-date')
 
 watch(route, () => {
   if (!route.params.containerId) {
@@ -1057,7 +1058,7 @@ const updateVerificationJobStatus = async (status) => {
     const payload = {
       id: verificationJob.value.id,
       status,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchVerificationJob(payload)
 
@@ -1080,7 +1081,7 @@ const completeVerificationJob = async () => {
     const payload = {
       id: verificationJob.value.id,
       status: 'Completed',
-      run_timestamp: new Date().toISOString(),
+      run_timestamp: currentIsoDate(),
       user_id: userData.value.user_id
     }
     await patchVerificationJob(payload)

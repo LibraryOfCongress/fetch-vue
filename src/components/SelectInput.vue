@@ -22,10 +22,13 @@
     :display-value="multiple ? renderMultiSelectDisplayValues() : undefined"
     :placeholder="placeholder"
     :disable="disabled"
-    :loading="optionsLoading"
+    :loading="loading || scrollLoading"
     @virtual-scroll="loadMoreOptions"
   >
-    <template #no-option>
+    <template
+      v-if="!loading"
+      #no-option
+    >
       <slot name="no-option">
         <q-item>
           <q-item-section>
@@ -89,6 +92,14 @@ const mainProps = defineProps({
     type: String,
     default: ''
   },
+  optionQuery: {
+    type: Object,
+    default () {
+      return {
+        size: 100
+      }
+    }
+  },
   optionValue: {
     type: String,
     default: ''
@@ -117,6 +128,10 @@ const mainProps = defineProps({
     type: Boolean,
     default: true
   },
+  loading: {
+    type: Boolean,
+    default: false
+  },
   disabled: {
     type: Boolean,
     default: false
@@ -137,7 +152,7 @@ const { optionsTotal } = storeToRefs(useOptionStore())
 const selectInputComponent = ref(null)
 const selectInputFilterValue = ref('')
 const localOptions = ref(mainProps.options)
-const optionsLoading = ref(false)
+const scrollLoading = ref(false)
 const lastOptionsPage = computed(() => {
   // divide total local options by apiPageSizeDefault to get our last page value
   return Math.ceil(optionsTotal.value / 50)
@@ -166,7 +181,7 @@ const filterOptions = async (val, update) => {
   // if there is an optionType then we need to get a the intial list of options from the api based on the optionType passed in
   // the passed in optionType should match an http endpoint
   if (mainProps.optionType !== '' && localOptions.value.length == 0) {
-    await getOptions(mainProps.optionType)
+    await getOptions(mainProps.optionType, mainProps.optionQuery)
   }
 
   update(() => {
@@ -193,14 +208,17 @@ const filterOptions = async (val, update) => {
 const loadMoreOptions = async ({ to, ref }) => {
   const lastIndex = localOptions.value.length - 1
   // only load more options if were at the bottom of the list, not on the last page and not trying to filter search
-  if (!optionsLoading.value && to === lastIndex && nextOptionsPage.value < lastOptionsPage.value && selectInputFilterValue.value == '') {
-    optionsLoading.value = true
-    await getOptions(mainProps.optionType, { page: nextOptionsPage.value }, true)
+  if (!scrollLoading.value && to === lastIndex && nextOptionsPage.value < lastOptionsPage.value && selectInputFilterValue.value == '') {
+    scrollLoading.value = true
+    await getOptions(mainProps.optionType, {
+      ...mainProps.optionQuery,
+      page: nextOptionsPage.value
+    }, true)
 
     nextOptionsPage.value++
     // calls and internal qSelect function that handles refreshing the list with the updating options at the last index position
     ref.refresh()
-    optionsLoading.value = false
+    scrollLoading.value = false
   }
 }
 const renderLabel = (opt) => {

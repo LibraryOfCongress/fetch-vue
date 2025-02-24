@@ -174,7 +174,7 @@ export const useVerificationStore = defineStore('verification-store', {
       try {
         //pass an update to verification job to track which user removed the tray item before we delete it from the system
         await Promise.all(barcodeItemList.map(item => {
-          return this.$api.patch(`${inventoryServiceApi.verificationJobs}${item.verification_job_id}/remove`, {
+          return this.$api.patch(`${inventoryServiceApi.verificationJobs}${this.verificationJob.id}/remove`, {
             barcode_value: item.barcode.value,
             user_id: item.user_id
           })
@@ -248,7 +248,7 @@ export const useVerificationStore = defineStore('verification-store', {
       try {
         //pass an update to verification job to track which user removed the nontray item before we delete it from the system
         await Promise.all(barcodeItemList.map(item => {
-          return this.$api.patch(`${inventoryServiceApi.verificationJobs}${item.verification_job_id}/remove`, {
+          return this.$api.patch(`${inventoryServiceApi.verificationJobs}${this.verificationJob.id}/remove`, {
             barcode_value: item.barcode.value,
             user_id: item.user_id
           })

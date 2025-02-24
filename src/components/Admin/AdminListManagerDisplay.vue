@@ -42,7 +42,7 @@
             </div>
           </template>
 
-          <template #table-td="{ colName, props, value }">
+          <template #table-td="{ colName, props }">
             <span
               v-if="colName == 'actions'"
             >
@@ -50,22 +50,6 @@
                 :options="generateTableOptionsMenu(props.row)"
                 class=""
                 @click="handleOptionMenu($event, props.row)"
-              />
-            </span>
-            <span
-              v-if="listType == 'size-class' && colName == 'owner'"
-              class=""
-            >
-              {{ renderSizeClassOwners(value, props.row.showMoreOwners) }}
-              <q-btn
-                v-if="value.length > 4"
-                dense
-                flat
-                no-caps
-                color="accent"
-                :label="props.row.showMoreOwners ? 'Show Less' : 'Show More'"
-                class="btn-no-wrap text-body2 q-ml-sm-sm"
-                @click="props.row.showMoreOwners = !props.row.showMoreOwners"
               />
             </span>
           </template>
@@ -245,25 +229,6 @@ onBeforeMount(() => {
   generateListTableInfo()
 })
 
-const renderSizeClassOwners = (rowOwnerArray, showFullList = false) => {
-  let ownerList = []
-  if (rowOwnerArray) {
-    ownerList = rowOwnerArray.map(o => o.name)
-  }
-
-  // if we have more than 4 owners display the first 4 and a + # more label
-  // if less than 4 just show all 4
-  if (ownerList.length > 4 && !showFullList) {
-    return `${ownerList.splice(0, 4).join(', ')} + ${rowOwnerArray.length - 4} more`
-  } else if (ownerList.length > 4 && showFullList) {
-    return ownerList.join(', ')
-  } else if (ownerList.length <= 4) {
-    return ownerList.join(', ')
-  } else {
-    return ''
-  }
-}
-
 const handleOptionMenu = async (option, rowData) => {
   // load any options info that will be needed in our modal popup
   if (mainProps.listType == 'size-class') {
@@ -387,13 +352,6 @@ const generateListTableInfo = () => {
           label: 'Height (in)',
           align: 'left',
           sortable: true
-        },
-        {
-          name: 'owner',
-          field: 'owners',
-          label: 'Owner(s)',
-          align: 'left',
-          sortable: true
         }
       ]
       listTableVisibleColumns.value = [
@@ -402,8 +360,7 @@ const generateListTableInfo = () => {
         'short_name',
         'width',
         'depth',
-        'height',
-        'owner'
+        'height'
       ]
       break
     case 'media-type':
@@ -470,7 +427,7 @@ const generateListTableInfo = () => {
           sortable: true
         },
         {
-          name: 'parent_owner',
+          name: 'parent_owner_id',
           field: row => row.parent_owner?.name,
           label: 'Parent Owner',
           align: 'left',
@@ -487,7 +444,7 @@ const generateListTableInfo = () => {
       listTableVisibleColumns.value = [
         'actions',
         'name',
-        'parent_owner',
+        'parent_owner_id',
         'owner_tier_id'
       ]
       break
@@ -504,7 +461,19 @@ const loadListData = async (qParams) => {
     } else if (mainProps.listType == 'media-type') {
       await getOptions('mediaTypes', qParams)
     } else if (mainProps.listType == 'shelf-type') {
+      //TEMP loop the shelf types until we get all shelf type data needed for the page display
       await getOptions('shelfTypes', qParams)
+      if (optionsTotal.value > 50) {
+        let page = 2
+        let totalPages = Math.ceil(optionsTotal.value/50)
+        while (page <= totalPages) {
+          await getOptions('shelfTypes', {
+            ...qParams,
+            page
+          }, true)
+          page++
+        }
+      }
     } else {
       await getOptions('sizeClass', qParams)
     }

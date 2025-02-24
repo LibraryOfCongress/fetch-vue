@@ -11,7 +11,7 @@
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
           :heading-rearrange-class="'q-mr-xs-auto q-mr-sm-none q-ml-sm-auto'"
-          :enable-pagination="mainProps.locationType == 'buildings' ? true : false"
+          :enable-pagination="mainProps.locationType == 'buildings' || mainProps.locationType == 'shelves' ? true : false"
           :pagination-total="locationDataTotal"
           :pagination-loading="appIsLoadingData"
           @update-pagination="loadLocationData($event)"
@@ -107,7 +107,8 @@ const {
   getModuleDetails,
   getAisleDetails,
   getSideDetails,
-  getLadderDetails
+  getLadderDetails,
+  getShelveList
 } = useBuildingStore()
 const {
   buildings,
@@ -116,6 +117,8 @@ const {
   aisleDetails,
   sideDetails,
   ladderDetails,
+  shelves,
+  shelvesTotal,
   buildingsTotal
 } = storeToRefs(useBuildingStore())
 const { getOptions } = useOptionStore()
@@ -138,7 +141,7 @@ const locationData = computed(() => {
       tableData = sideDetails.value.ladders
       break
     case 'shelves':
-      tableData = ladderDetails.value.shelves
+      tableData = shelves.value
       break
     default:
       break
@@ -262,7 +265,7 @@ const generateLocationTableInfo = () => {
           required: true
         },
         {
-          name: 'building',
+          name: 'name',
           field: 'name',
           label: 'Building',
           align: 'left',
@@ -285,7 +288,7 @@ const generateLocationTableInfo = () => {
       ]
       locationTableVisibleColumns.value = [
         'actions',
-        'building',
+        'name',
         'create_dt',
         'update_dt'
       ]
@@ -441,21 +444,21 @@ const generateLocationTableInfo = () => {
           sortable: true
         },
         {
-          name: 'shelf_width',
+          name: 'width',
           field: 'width',
           label: 'Shelf Width',
           align: 'left',
           sortable: true
         },
         {
-          name: 'shelf_height',
+          name: 'height',
           field: 'height',
           label: 'Shelf Height',
           align: 'left',
           sortable: true
         },
         {
-          name: 'shelf_depth',
+          name: 'depth',
           field: 'depth',
           label: 'Shelf Depth',
           align: 'left',
@@ -490,7 +493,7 @@ const generateLocationTableInfo = () => {
           sortable: true
         },
         {
-          name: 'shelf_barcode',
+          name: 'barcode_value',
           field: row => row.barcode?.value,
           label: 'Shelf Barcode',
           align: 'left',
@@ -507,14 +510,14 @@ const generateLocationTableInfo = () => {
       locationTableVisibleColumns.value = [
         'actions',
         'shelf_number',
-        'shelf_width',
-        'shelf_height',
-        'shelf_depth',
+        'width',
+        'height',
+        'depth',
         'size_class',
         'shelf_type',
         'container_type',
         'owner',
-        'shelf_barcode',
+        'barcode_value',
         'sort_priority'
       ]
       break
@@ -544,11 +547,13 @@ const loadLocationData = async (qParams) => {
         break
       case 'aisles':
         if (!moduleDetails.value.id) {
+          await getBuildingDetails(route.params.buildingId)
           await getModuleDetails(route.params.moduleId)
         }
         break
       case 'ladders':
         if (!sideDetails.value.id) {
+          await getBuildingDetails(route.params.buildingId)
           await getModuleDetails(route.params.moduleId)
           await getAisleDetails(route.params.aisleId)
           await getSideDetails(route.params.sideId)
@@ -556,11 +561,25 @@ const loadLocationData = async (qParams) => {
         break
       case 'shelves':
         if (!ladderDetails.value.id) {
+          await getBuildingDetails(route.params.buildingId)
           await getModuleDetails(route.params.moduleId)
           await getAisleDetails(route.params.aisleId)
           await getSideDetails(route.params.sideId)
           await getLadderDetails(route.params.ladderId)
         }
+
+        // load the shelves via the list endpoint filtered by building, module, aisle, side and ladder
+        await getShelveList({
+          ...qParams,
+          building_id: route.params.buildingId,
+          module_id: route.params.moduleId,
+          aisle_id: route.params.aisleId,
+          side_id: route.params.sideId,
+          ladder_id: route.params.ladderId
+        })
+
+        // set the location total for pagination tracking
+        locationDataTotal.value = shelvesTotal.value
         break
       default:
         break

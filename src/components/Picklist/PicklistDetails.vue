@@ -74,7 +74,19 @@
           <label
             class="info-display-details-label-2 text-h6"
           >
-            Date Created
+            # of Items:
+          </label>
+          <p class="text-body1">
+            {{ picklistJob.request_count }}
+          </p>
+        </div>
+      </div>
+      <div class="col-xs-6 col-sm-6 col-md-grow">
+        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+          <label
+            class="info-display-details-label-2 text-h6"
+          >
+            Date Created:
           </label>
           <p class="text-body1">
             {{ formatDateTime(picklistJob.create_dt).date }}
@@ -86,7 +98,7 @@
           <label
             class="info-display-details-label-2 text-h6"
           >
-            Status
+            Status:
           </label>
           <p
             class="text-body1 outline"
@@ -194,6 +206,7 @@
         :highlight-row-class="'justify-end bg-color-green-light'"
         :highlight-row-key="'status'"
         :highlight-row-value="'Out'"
+        @selected-table-row="loadPicklistItem(renderItemBarcodeDisplay($event.item ? $event.item : $event.non_tray_item))"
       >
         <template #heading-row>
           <div class="col-xs-7 col-sm-5 q-mb-md-sm">
@@ -290,6 +303,12 @@
     </template>
   </PopupModal>
 
+  <!-- picklist item detail modal -->
+  <PicklistItemDetailModal
+    v-if="showPicklistItemDetailModal"
+    @hide="showPicklistItemDetailModal = false"
+  />
+
   <!-- print component: picklist job report -->
   <PicklistBatchSheet
     ref="batchSheetComponent"
@@ -327,6 +346,7 @@ import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import PicklistBatchSheet from '@/components/Picklist/PicklistBatchSheet.vue'
 import AuditTrail from '@/components/AuditTrail.vue'
+import PicklistItemDetailModal from '@/components/Picklist/PicklistItemDetailModal.vue'
 
 const router = useRouter()
 
@@ -353,7 +373,8 @@ const {
   patchPicklistJob,
   deletePicklistJob,
   patchPicklistJobItemScanned,
-  deletePicklistJobItem
+  deletePicklistJobItem,
+  getPicklistJobItem
 } = usePicklistStore()
 const {
   picklistJob,
@@ -461,9 +482,11 @@ const itemTableFilters = computed(() => {
 const showConfirmationModal = ref(null)
 const historyModal = ref(null)
 const showAuditTrailModal = ref(false)
+const showPicklistItemDetailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
+const currentIsoDate = inject('current-iso-date')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
@@ -553,7 +576,7 @@ const executePicklistJob = async () => {
       id: picklistJob.value.id,
       status: 'Running',
       user_id: picklistJob.value.user_id ? picklistJob.value.user_id : userData.value.user_id,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchPicklistJob(payload)
 
@@ -582,7 +605,7 @@ const updatePicklistJob = async () => {
     const payload = {
       id: picklistJob.value.id,
       user_id: picklistJob.value.user_id,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchPicklistJob(payload)
 
@@ -607,7 +630,7 @@ const updatePicklistJobStatus = async (status) => {
     const payload = {
       id: picklistJob.value.id,
       status,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchPicklistJob(payload)
 
@@ -669,7 +692,7 @@ const completePicklistJob = async (printBool) => {
     const payload = {
       id: picklistJob.value.id,
       status: 'Completed',
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchPicklistJob(payload)
 
@@ -736,7 +759,7 @@ const updatePicklistItem = async (barcode_value) => {
     const payload = {
       id: picklistJob.value.id,
       request_id: pickListItemToUpdate.id,
-      run_timestamp: new Date().toISOString(),
+      run_timestamp: currentIsoDate(),
       status: 'Out'
     }
     await patchPicklistJobItemScanned(payload)
@@ -755,6 +778,11 @@ const updatePicklistItem = async (barcode_value) => {
       autoClose: true
     })
   }
+}
+const loadPicklistItem = (barcode_value) => {
+  // since we already have all the items data we just need to set the refileItem from the refileJob items directly
+  getPicklistJobItem(barcode_value)
+  showPicklistItemDetailModal.value = true
 }
 </script>
 

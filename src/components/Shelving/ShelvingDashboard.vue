@@ -123,7 +123,7 @@
               {{ value }}
             </span>
             <span
-              v-else-if="colName == 'containers'"
+              v-else-if="colName == 'container_count'"
               class="outline text-nowrap"
             >
               {{ value }} Containers
@@ -442,7 +442,6 @@ const {
   getModuleDetails,
   getAisleDetails,
   getSideDetails,
-  getLadderDetails,
   resetBuildingStore,
   resetBuildingChildren,
   resetModuleChildren,
@@ -476,7 +475,7 @@ const { userData } = storeToRefs(useUserStore())
 const createShelvingJobModal = ref(null)
 const shelfTableVisibleColumns = ref([
   'id',
-  'containers',
+  'container_count',
   'status',
   'user_id',
   'create_dt',
@@ -492,7 +491,7 @@ const shelfTableColumns = ref([
     order: 0
   },
   {
-    name: 'containers',
+    name: 'container_count',
     field: row => (row.tray_count + row.non_tray_item_count),
     label: '# of Containers in Job',
     align: 'left',
@@ -541,15 +540,15 @@ const shelfTableFilters = computed(() => {
       options: [
         {
           text: 'Created',
-          value: false
+          value: true
         },
         {
           text: 'Paused',
-          value: false
+          value: true
         },
         {
           text: 'Running',
-          value: false
+          value: true
         },
         {
           text: 'Completed',
@@ -637,7 +636,6 @@ const handleShelvingJobFormChange = async (valueType) => {
       resetSideChildren()
       return
     case 'Ladder':
-      await getLadderDetails(shelvingJob.value.ladder_id)
       return
   }
 }
@@ -647,7 +645,7 @@ const loadShelvingJobs = async (qParams) => {
     appIsLoadingData.value = true
     await getShelvingJobList({
       ...qParams,
-      queue: true,
+      status: shelfTableFilters.value.find(fltr => fltr.field == 'status').options.flatMap(opt => opt.value == true ? opt.text : []),
       user_id: checkUserPermission('can_view_all_shelving_jobs') ? null : userData.value.user_id
     })
   } catch (error) {

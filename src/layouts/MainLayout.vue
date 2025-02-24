@@ -19,7 +19,7 @@
         name="alert-notification"
         tag="div"
         class="alert-notification"
-        :style="calculateAlertContainerWidth"
+        :style="calcAlertWidthPlusScrollOffset"
       >
         <AlertPopup
           v-for="(item, i) in alerts"
@@ -72,6 +72,7 @@
 import { onMounted, ref, provide, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
+import moment from 'moment'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useAlertPopup } from '@/composables/useAlertPopup'
 import AlertPopup from '@/components/AlertPopup.vue'
@@ -90,10 +91,11 @@ const breadCrumbComponent = ref(null)
 const appInstallPrompt = ref(null)
 const showAppInstallBanner = ref(false)
 const main = ref(null)
-const calculateAlertContainerWidth = computed(() => {
+const calcAlertWidthPlusScrollOffset = computed(() => {
   // get the offset of the main qlayout prop and assign the calculated width for the alerts container
+  // get the scroll position of the main qlayout prop and assign the calculated top spacing for the alerts container
   if (main.value) {
-    return `width: calc(100% - ${main.value.$.provides._q_l_.left.offset}px);`
+    return `width: calc(100% - ${main.value.$.provides._q_l_.left.offset}px); top: ${main.value.$.provides._q_l_.scroll.value.position + 50}px`
   } else {
     return `width: calc(100% - ${300}px);`
   }
@@ -184,6 +186,11 @@ const getUniqueListByKey = (arr, key) => {
   )
 }
 provide('get-uniqure-list-by-key', getUniqueListByKey)
+const currentIsoDate = () => {
+  const timezoneAwareDateIso = moment().format()
+  return timezoneAwareDateIso
+}
+provide('current-iso-date', currentIsoDate)
 const formatDateTime = (dateTime) => {
   if (!dateTime) {
     return {
@@ -192,6 +199,12 @@ const formatDateTime = (dateTime) => {
       dateTime: ''
     }
   }
+
+  //check if the passed in dateTime has missing timezone offset or Z in the ISO string add the z if not
+  if (dateTime && /([zZ]|([+-]\d{2}:?\d{2}))$/.test(dateTime) == false) {
+    dateTime + 'Z'
+  }
+
   const localTimeFormat = new Date(dateTime).toLocaleString()
   const splitDateTime = localTimeFormat.split(',')
   return {
@@ -252,6 +265,20 @@ const renderItemBarcodeDisplay = (itemData) => {
   }
 }
 provide('render-item-barcode-display', renderItemBarcodeDisplay)
+const renderWithdrawnTrayBarcode = (itemData) => {
+  // The withdrawn_loc_bcodes are in the form xxxx-yyyy or xxxx
+  // Where xxxx is the shelf barcode and yyyy is the tray
+  const barcodes = itemData?.withdrawn_loc_bcodes.split('-')
+  return barcodes[1] ?? ''
+}
+provide('render-withdrawn-tray-barcode', renderWithdrawnTrayBarcode)
+const renderWithdrawnShelfBarcode = (itemData) => {
+  // The withdrawn_loc_bcodes are in the form xxxx-yyyy or xxxx
+  // Where xxxx is the shelf barcode and yyyy is the tray
+  const barcodes = itemData?.withdrawn_loc_bcodes.split('-')
+  return barcodes[0] ?? ''
+}
+provide('render-withdrawn-shelf-barcode', renderWithdrawnShelfBarcode)
 </script>
 
 <style lang="scss" scoped>

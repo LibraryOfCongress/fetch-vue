@@ -4,6 +4,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 export const useBuildingStore = defineStore('building-store', {
   state: () => ({
     buildingsTotal: 0,
+    shelvesTotal: 0,
     buildings: [],
     modules: [], //TODO setup endpoint to get list of modules filtered by building id
     aisles: [], //TODO setup endpoint to get list of aisles filtered by building id, module id
@@ -89,6 +90,7 @@ export const useBuildingStore = defineStore('building-store', {
       this.sideDetails = {}
       this.ladderDetails = {}
       this.shelfDetails = {}
+      this.shelves = []
       this.shelfPositions = []
     },
     resetModuleChildren () {
@@ -97,6 +99,7 @@ export const useBuildingStore = defineStore('building-store', {
       this.sideDetails = {}
       this.ladderDetails = {}
       this.shelfDetails = {}
+      this.shelves = []
       this.shelfPositions = []
     },
     resetAisleChildren () {
@@ -104,17 +107,20 @@ export const useBuildingStore = defineStore('building-store', {
       this.sideDetails = {}
       this.ladderDetails = {}
       this.shelfDetails = {}
+      this.shelves = []
       this.shelfPositions = []
     },
     resetSideChildren () {
       // clears state for ladder options downward since user will need to select an ladder next to populate the rest of the data
       this.ladderDetails = {}
       this.shelfDetails = {}
+      this.shelves = []
       this.shelfPositions = []
     },
     resetLadderChildren () {
       // clears state for shelf options downward since user will need to select an shelf next to populate the rest of the data
       this.shelfDetails = {}
+      this.shelves = []
       this.shelfPositions = []
     },
     async getBuildingsList (qParams) {
@@ -130,7 +136,7 @@ export const useBuildingStore = defineStore('building-store', {
         // keep track of response total for pagination
         this.buildingsTotal = res.data.total
       } catch (error) {
-        return error
+        throw error
       }
     },
     async getBuildingDetails (id) {
@@ -347,7 +353,13 @@ export const useBuildingStore = defineStore('building-store', {
           side_orientation_id: 2
         })
       } catch (error) {
-        throw error
+        if (error.response.status == 422 && error.response?.data?.detail.includes('No aisle_number entity')) {
+          // if we get a 422 error related to the number passed in not existing create that number and re run the aisle creation
+          await this.postAisleNumber(payload.aisle_number)
+          await this.postAisle(payload)
+        } else {
+          throw error
+        }
       }
     },
     async patchAisle (payload) {
@@ -359,6 +371,14 @@ export const useBuildingStore = defineStore('building-store', {
           ...res.data,
           aisle_number: { number: payload.aisle_number }
         }
+      } catch (error) {
+        throw error
+      }
+    },
+    async postAisleNumber (aisleNumber) {
+      try {
+        // adds a new aisle number to the db to be utilized in aisle creation
+        await this.$api.post(inventoryServiceApi.aislesNumbers, { number: aisleNumber })
       } catch (error) {
         throw error
       }
@@ -379,9 +399,9 @@ export const useBuildingStore = defineStore('building-store', {
         throw error
       }
     },
-    async getLadderDetails (id, qParams) {
+    async getLadderDetails (id) {
       try {
-        const res = await this.$api.get(`${inventoryServiceApi.ladders}${id}`, { params: { ...qParams } })
+        const res = await this.$api.get(`${inventoryServiceApi.ladders}${id}`)
         this.ladderDetails = res.data
       } catch (error) {
         throw error
@@ -416,6 +436,22 @@ export const useBuildingStore = defineStore('building-store', {
         throw error
       }
     },
+    async getShelveList (qParams) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.shelves}`, {
+          params: {
+            size: this.apiPageSizeDefault,
+            ...qParams
+          }
+        })
+        this.shelves = res.data.items
+
+        // keep track of response total for pagination
+        this.shelvesTotal = res.data.total
+      } catch (error) {
+        throw error
+      }
+    },
     async getShelfDetails (id) {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.shelves}${id}`)
@@ -428,13 +464,13 @@ export const useBuildingStore = defineStore('building-store', {
       try {
         const res = await this.$api.post(inventoryServiceApi.shelves, payload)
 
-        // add the newly added shelve to the top of the ladderDetail shelves array
-        this.ladderDetails.shelves = [
+        // add the newly added shelve to the top of the shelves list
+        this.shelves = [
           {
             ...res.data,
             shelf_number: { number: payload.shelf_number }
           },
-          ...this.ladderDetails.shelves
+          ...this.shelves
         ]
       } catch (error) {
         throw error
@@ -445,7 +481,7 @@ export const useBuildingStore = defineStore('building-store', {
         const res = await this.$api.patch(`${inventoryServiceApi.shelves}${payload.id}`, payload)
 
         // update the specific shelve with the response info
-        this.ladderDetails.shelves[this.ladderDetails.shelves.findIndex(s => s.id == payload.id)] = {
+        this.shelves[this.shelves.findIndex(s => s.id == payload.id)] = {
           ...res.data,
           shelf_number: { number: payload.shelf_number }
         }

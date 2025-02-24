@@ -183,11 +183,11 @@ const emit = defineEmits([
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
-  owners,
   sizeClass,
   shelfTypes,
   ownersTiers,
-  parentOwnerOptions
+  parentOwnerOptions,
+  optionsTotal
 } = storeToRefs(useOptionStore())
 const {
   getParentOwnerOptions,
@@ -200,7 +200,8 @@ const {
   patchMediaType,
   postShelfType,
   patchShelfType,
-  deleteShelfType
+  deleteShelfType,
+  getOptions
 } = useOptionStore()
 
 // Local Data
@@ -210,7 +211,7 @@ const titleCaseListType = computed(() => {
   return title.join(' ')
 })
 const listModal = ref(null)
-const inputFields = ref(null)
+const inputFields = ref([])
 const inputForm = ref({})
 const inputFormOriginal = ref({})
 const isInputFormValid = computed(() => {
@@ -244,7 +245,7 @@ onBeforeMount(() => {
   generateListModal()
 })
 
-const generateListModal = () => {
+const generateListModal = async () => {
   // creates the modal fields needed based on the listType
   switch (mainProps.listType) {
     case 'size-class':
@@ -253,8 +254,7 @@ const generateListModal = () => {
         short_name: mainProps.listData.short_name ?? '',
         width: mainProps.listData.width ?? '',
         depth: mainProps.listData.depth ?? '',
-        height: mainProps.listData.height ?? '',
-        owner_ids: mainProps.listData.owners ? mainProps.listData.owners.map(o => o.id) : null
+        height: mainProps.listData.height ?? ''
       }
       // create a copy of our input form
       inputFormOriginal.value = { ...toRaw(inputForm.value) }
@@ -284,14 +284,6 @@ const generateListModal = () => {
           field: 'height',
           label: 'Height (in)',
           required: true
-        },
-        {
-          field: 'owner_ids',
-          label: 'Owner(s)',
-          options: owners,
-          optionType: 'owners',
-          required: false,
-          allowMultiple: true
         }
       ]
       break
@@ -356,6 +348,20 @@ const generateListModal = () => {
       // create a copy of our input form
       inputFormOriginal.value = { ...toRaw(inputForm.value) }
 
+      //TEMP loop the shelf type size class options until we get all size class data needed for the modal
+      await getOptions('sizeClass', { size: 50 })
+      if (optionsTotal.value > 50) {
+        let page = 2
+        let totalPages = Math.ceil(optionsTotal.value/50)
+        while (page <= totalPages) {
+          await getOptions('sizeClass', {
+            size: 50,
+            page
+          }, true)
+          page++
+        }
+      }
+
       inputFields.value = [
         {
           field: 'type',
@@ -366,7 +372,6 @@ const generateListModal = () => {
           field: 'size_class_ids',
           label: 'Size Class',
           options: sizeClass,
-          optionType: 'sizeClass',
           required: true,
           allowMultiple: true
         }
