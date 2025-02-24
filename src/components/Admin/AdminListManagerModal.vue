@@ -183,7 +183,6 @@ const emit = defineEmits([
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
-  owners,
   sizeClass,
   shelfTypes,
   ownersTiers,
@@ -255,8 +254,7 @@ const generateListModal = async () => {
         short_name: mainProps.listData.short_name ?? '',
         width: mainProps.listData.width ?? '',
         depth: mainProps.listData.depth ?? '',
-        height: mainProps.listData.height ?? '',
-        owner_ids: mainProps.listData.owners ? mainProps.listData.owners.map(o => o.id) : null
+        height: mainProps.listData.height ?? ''
       }
       // create a copy of our input form
       inputFormOriginal.value = { ...toRaw(inputForm.value) }
@@ -286,14 +284,6 @@ const generateListModal = async () => {
           field: 'height',
           label: 'Height (in)',
           required: true
-        },
-        {
-          field: 'owner_ids',
-          label: 'Owner(s)',
-          options: owners,
-          optionType: 'owners',
-          required: false,
-          allowMultiple: true
         }
       ]
       break

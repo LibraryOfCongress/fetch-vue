@@ -146,15 +146,15 @@ const withdrawTableFilters =  ref([
     options: [
       {
         text: 'Created',
-        value: false
+        value: true
       },
       {
         text: 'Paused',
-        value: false
+        value: true
       },
       {
         text: 'Running',
-        value: false
+        value: true
       },
       {
         text: 'Completed',
@@ -186,7 +186,7 @@ const loadWithdrawJobs = async (qParams) => {
     appIsLoadingData.value = true
     await getWithdrawJobList({
       ...qParams,
-      queue: true
+      status: withdrawTableFilters.value.find(fltr => fltr.field == 'status').options.flatMap(opt => opt.value == true ? opt.text : [])
     })
   } catch (error) {
     handleAlert({

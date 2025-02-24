@@ -5,11 +5,10 @@
         <EssentialTable
           :table-columns="searchResultsTableColumns"
           :table-visible-columns="searchResultsTableVisibleColumns"
-          :filter-options="searchResultsTableFilters"
           :table-data="searchResults"
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
-          :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :heading-rearrange-class="'q-ml-auto'"
           :enable-pagination="true"
           :pagination-total="searchResultsTotal"
           :pagination-loading="appIsLoadingData"
@@ -88,27 +87,6 @@ const { appIsLoadingData } = storeToRefs(useGlobalStore())
 const toggleSearchTab = ref(null)
 const searchResultsTableVisibleColumns = ref([])
 const searchResultsTableColumns = ref([])
-// TODO need to figure out how filtering will work
-const searchResultsTableFilters =  ref([
-  {
-    field: 'status',
-    label: 'Status',
-    options: [
-      {
-        text: 'Created',
-        value: false
-      },
-      {
-        text: 'Paused',
-        value: false
-      },
-      {
-        text: 'Completed',
-        value: false
-      }
-    ]
-  }
-])
 
 // Logic
 const formatDateTime = inject('format-date-time')
@@ -172,7 +150,7 @@ const generateSearchTableFields = () => {
           classes: row => row.withdrawn_barcode_id ? 'q-td--no-hover' : ''
         },
         {
-          name: 'barcode',
+          name: 'barcode_value',
           field: row => renderItemBarcodeDisplay(row),
           label: 'Item Barcode',
           align: 'left',
@@ -186,7 +164,7 @@ const generateSearchTableFields = () => {
         'owner',
         'size_class',
         'media_type',
-        'barcode'
+        'barcode_value'
       ]
       if (currentScreenSize.value == 'xs') {
         searchResultsTableVisibleColumns.value = [
@@ -194,7 +172,7 @@ const generateSearchTableFields = () => {
           'status',
           'size_class',
           'media_type',
-          'barcode'
+          'barcode_value'
         ]
       }
       break
@@ -229,7 +207,7 @@ const generateSearchTableFields = () => {
           sortable: true
         },
         {
-          name: 'barcode',
+          name: 'barcode_value',
           field: row => renderItemBarcodeDisplay(row),
           label: 'Tray Barcode',
           align: 'left',
@@ -241,28 +219,28 @@ const generateSearchTableFields = () => {
         'owner',
         'size_class',
         'media_type',
-        'barcode'
+        'barcode_value'
       ]
       if (currentScreenSize.value == 'xs') {
         searchResultsTableVisibleColumns.value = [
           'accession_dt',
           'size_class',
           'media_type',
-          'barcode'
+          'barcode_value'
         ]
       }
       break
     case 'Shelf':
       searchResultsTableColumns.value = [
         {
-          name: 'barcode',
+          name: 'barcode_value',
           field: row => renderItemBarcodeDisplay(row),
           label: 'Shelf Barcode',
           align: 'left',
           sortable: true
         },
         {
-          name: 'shelf_location',
+          name: 'location',
           field: 'location',
           label: 'Shelf Location',
           align: 'left',
@@ -284,8 +262,8 @@ const generateSearchTableFields = () => {
         }
       ]
       searchResultsTableVisibleColumns.value = [
-        'barcode',
-        'shelf_location',
+        'barcode_value',
+        'location',
         'owner',
         'size_class'
       ]
@@ -300,7 +278,7 @@ const generateSearchTableFields = () => {
           sortable: true
         },
         {
-          name: 'job_id',
+          name: 'workflow_id',
           field: 'workflow_id',
           label: 'Job Number',
           align: 'left',
@@ -314,7 +292,7 @@ const generateSearchTableFields = () => {
           sortable: true
         },
         {
-          name: 'created_by',
+          name: 'created_by_id',
           field: row => renderUserName(row.created_by),
           label: 'Created By',
           align: 'left',
@@ -330,15 +308,15 @@ const generateSearchTableFields = () => {
       ]
       searchResultsTableVisibleColumns.value = [
         'create_dt',
-        'job_id',
+        'workflow_id',
         'status',
-        'created_by',
+        'created_by_id',
         'user_id'
       ]
       if (currentScreenSize.value == 'xs') {
         searchResultsTableVisibleColumns.value = [
           'create_dt',
-          'job_id',
+          'workflow_id',
           'status',
           'user_id'
         ]
@@ -354,7 +332,7 @@ const generateSearchTableFields = () => {
           sortable: true
         },
         {
-          name: 'job_id',
+          name: 'workflow_id',
           field: 'workflow_id',
           label: 'Job Number',
           align: 'left',
@@ -368,7 +346,7 @@ const generateSearchTableFields = () => {
           sortable: true
         },
         {
-          name: 'created_by',
+          name: 'created_by_id',
           field: row => renderUserName(row.created_by),
           label: 'Created By',
           align: 'left',
@@ -384,15 +362,15 @@ const generateSearchTableFields = () => {
       ]
       searchResultsTableVisibleColumns.value = [
         'create_dt',
-        'job_id',
+        'workflow_id',
         'status',
-        'created_by',
+        'created_by_id',
         'user_id'
       ]
       if (currentScreenSize.value == 'xs') {
         searchResultsTableVisibleColumns.value = [
           'create_dt',
-          'job_id',
+          'workflow_id',
           'status',
           'user_id'
         ]
@@ -408,7 +386,7 @@ const generateSearchTableFields = () => {
           sortable: true
         },
         {
-          name: 'job_id',
+          name: 'id',
           field: 'id',
           label: 'Request ID #',
           align: 'left',
@@ -424,13 +402,13 @@ const generateSearchTableFields = () => {
       ]
       searchResultsTableVisibleColumns.value = [
         'create_dt',
-        'job_id',
+        'id',
         'requestor_name'
       ]
       if (currentScreenSize.value == 'xs') {
         searchResultsTableVisibleColumns.value = [
           'create_dt',
-          'job_id',
+          'id',
           'requestor_name'
         ]
       }
@@ -445,7 +423,7 @@ const generateSearchTableFields = () => {
           sortable: true
         },
         {
-          name: 'job_id',
+          name: 'id',
           field: 'id',
           label: 'Job Number',
           align: 'left',
@@ -459,14 +437,14 @@ const generateSearchTableFields = () => {
           sortable: true
         },
         {
-          name: 'created_by',
+          name: 'created_by_id',
           field: row => renderUserName(row.created_by),
           label: 'Created By',
           align: 'left',
           sortable: true
         },
         {
-          name: 'assigned_user',
+          name: 'assigned_user_id',
           field: row => renderUserName(row.assigned_user),
           label: 'Completed By',
           align: 'left',
@@ -475,17 +453,17 @@ const generateSearchTableFields = () => {
       ]
       searchResultsTableVisibleColumns.value = [
         'create_dt',
-        'job_id',
+        'id',
         'status',
-        'created_by',
-        'assigned_user'
+        'created_by_id',
+        'assigned_user_id'
       ]
       if (currentScreenSize.value == 'xs') {
         searchResultsTableVisibleColumns.value = [
           'create_dt',
-          'job_id',
+          'id',
           'status',
-          'assigned_user'
+          'assigned_user_id'
         ]
       }
       break
@@ -499,7 +477,7 @@ const generateSearchTableFields = () => {
           sortable: true
         },
         {
-          name: 'job_id',
+          name: 'id',
           field: 'id',
           label: 'Job Number',
           align: 'left',
@@ -513,14 +491,14 @@ const generateSearchTableFields = () => {
           sortable: true
         },
         {
-          name: 'created_by',
+          name: 'created_by_id',
           field: row => renderUserName(row.created_by),
           label: 'Created By',
           align: 'left',
           sortable: true
         },
         {
-          name: 'assigned_user',
+          name: 'assigned_user_id',
           field: row => renderUserName(row.assigned_user),
           label: 'Completed By',
           align: 'left',
@@ -529,17 +507,17 @@ const generateSearchTableFields = () => {
       ]
       searchResultsTableVisibleColumns.value = [
         'create_dt',
-        'job_id',
+        'id',
         'status',
-        'created_by',
-        'assigned_user'
+        'created_by_id',
+        'assigned_user_id'
       ]
       if (currentScreenSize.value == 'xs') {
         searchResultsTableVisibleColumns.value = [
           'create_dt',
-          'job_id',
+          'id',
           'status',
-          'assigned_user'
+          'assigned_user_id'
         ]
       }
       break
@@ -553,7 +531,7 @@ const generateSearchTableFields = () => {
           sortable: true
         },
         {
-          name: 'job_id',
+          name: 'id',
           field: 'id',
           label: 'Job Number',
           align: 'left',
@@ -567,7 +545,7 @@ const generateSearchTableFields = () => {
           sortable: true
         },
         {
-          name: 'created_by',
+          name: 'created_by_id',
           field: row => renderUserName(row.created_by),
           label: 'Created By',
           align: 'left',
@@ -583,15 +561,15 @@ const generateSearchTableFields = () => {
       ]
       searchResultsTableVisibleColumns.value = [
         'create_dt',
-        'job_id',
+        'id',
         'status',
-        'created_by',
+        'created_by_id',
         'user_id'
       ]
       if (currentScreenSize.value == 'xs') {
         searchResultsTableVisibleColumns.value = [
           'create_dt',
-          'job_id',
+          'id',
           'status',
           'user_id'
         ]

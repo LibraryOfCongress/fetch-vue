@@ -6,21 +6,23 @@
   >
     <LoadingOverlay />
 
-    <VerificationDashboard v-if="!route.params.jobId" />
-
-    <VerificationContainerDisplay
-      v-if="route.params.jobId"
-      ref="verificationContainerComponent"
-    />
+    <template v-if="!pageInitLoading">
+      <VerificationDashboard v-if="!route.params.jobId" />
+      <VerificationContainerDisplay
+        v-if="route.params.jobId"
+        ref="verificationContainerComponent"
+      />
+    </template>
   </q-page>
 </template>
 
 <script setup>
-import { onBeforeMount, inject } from 'vue'
+import { onMounted, inject } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useVerificationStore } from 'src/stores/verification-store'
 import { useOptionStore } from '@/stores/option-store'
+import { useGlobalStore } from '@/stores/global-store'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import VerificationDashboard from '@/components/Verification/VerificationDashboard.vue'
 import VerificationContainerDisplay from '@/components/Verification/VerificationContainerDisplay.vue'
@@ -35,11 +37,13 @@ const {
 } = useVerificationStore()
 const { verificationJob } = storeToRefs(useVerificationStore())
 const { getOptions } = useOptionStore()
+const { pageInitLoading } = storeToRefs(useGlobalStore())
 
 // Logic
 const handlePageOffset = inject('handle-page-offset')
 
-onBeforeMount( async () => {
+onMounted( async () => {
+  pageInitLoading.value = true
   // load any options info that will be needed in verification
   await Promise.all([
     getOptions('owners'),
@@ -59,5 +63,6 @@ onBeforeMount( async () => {
       await getVerificationNonTrayItem(route.params.containerId)
     }
   }
+  pageInitLoading.value = false
 })
 </script>

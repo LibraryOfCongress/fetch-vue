@@ -177,6 +177,13 @@
             >
               {{ value }}
             </span>
+            <span
+              v-else-if="colName == 'status'"
+              class="outline text-nowrap"
+              :class="value == 'Completed' || value == 'Created' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-warning' : value == 'New' ? 'text-highlight-accent' : null "
+            >
+              {{ value }}
+            </span>
             <span v-else-if="colName == 'create_dt'">
               {{ formatDateTime(value).date }}
             </span>
@@ -251,7 +258,8 @@
             option-label="id"
             :placeholder="'Select Refile Job'"
             aria-label="refileJobSelect"
-            @focus="getOptions('refileJobs', { queue: true })"
+            :loading="appActionIsLoadingData"
+            @focus="loadRefileJobOptions()"
           />
         </div>
       </q-card-section>
@@ -311,7 +319,10 @@ const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore(
 const {
   buildings,
   refileJobs,
-  users
+  users,
+  mediaTypes,
+  owners,
+  sizeClass
 } = storeToRefs(useOptionStore())
 const { getOptions } = useOptionStore()
 const {
@@ -337,9 +348,10 @@ const refileJobMenuState = ref(false)
 const refileTableComponent = ref(null)
 const refileTableVisibleColumns = ref([
   'id',
-  'items_count',
+  'item_count',
   'shelved_count',
-  'user',
+  'status',
+  'assigned_user_id',
   'create_dt',
   'last_transition'
 ])
@@ -352,7 +364,7 @@ const refileTableColumns = ref([
     sortable: true
   },
   {
-    name: 'items_count',
+    name: 'item_count',
     field: row => (row.item_count + row.non_tray_item_count),
     label: '# of Items',
     align: 'left',
@@ -360,13 +372,20 @@ const refileTableColumns = ref([
   },
   {
     name: 'shelved_count',
-    field: row => (row.item_shelved_refiled_count + row.non_tray_item_shelved_refiled_count),
+    field: row => (row.item_shelved_refiled_count + row.container_shelved_refiled_count),
     label: '# of Items Shelved',
     align: 'left',
     sortable: true
   },
   {
-    name: 'user',
+    name: 'status',
+    field: 'status',
+    label: 'Status',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'assigned_user_id',
     field: row => row.assigned_user ? `${row.assigned_user?.first_name} ${row.assigned_user?.last_name}` : '',
     label: 'Assigned User',
     align: 'left',
@@ -391,8 +410,31 @@ const refileTableFilters = computed(() => {
   let tablesFilters = []
   tablesFilters = [
     {
+      field: 'status',
+      label: 'Status',
+      options: [
+        {
+          text: 'Created',
+          value: true
+        },
+        {
+          text: 'Paused',
+          value: true
+        },
+        {
+          text: 'Running',
+          value: true
+        },
+        {
+          text: 'Completed',
+          value: false
+        }
+      ]
+    },
+    {
       field: row => row.assigned_user ? `${row.assigned_user?.first_name} ${row.assigned_user?.last_name}` : '',
       label: 'Assigned User',
+      apiField: 'assigned_user',
       options: users.value.map(usr => {
         return {
           text: `${usr.first_name} ${usr.last_name}`,
@@ -404,17 +446,17 @@ const refileTableFilters = computed(() => {
   return tablesFilters
 })
 const queueTableVisibleColumns = ref([
-  'item_location',
+  'location',
   'container_type',
   'media_type',
-  'barcode',
+  'barcode_value',
   'owner',
   'size_class',
   'create_dt'
 ])
 const queueTableColumns = ref([
   {
-    name: 'item_location',
+    name: 'location',
     field: row => `${row.module_number}-${row.aisle_number}-${row.side_orientation == 'Right' ? 'R' : row.side_orientation == 'Left' ? 'L' : row.side_orientation}-${row.ladder_number}-${row.shelf_number}-${row.shelf_position_number}`,
     label: 'Item Location',
     align: 'left',
@@ -435,7 +477,7 @@ const queueTableColumns = ref([
     sortable: true
   },
   {
-    name: 'barcode',
+    name: 'barcode_value',
     field: row => row.barcode_value,
     label: 'Item Barcode',
     align: 'left',
@@ -473,10 +515,40 @@ const queueTableFilters =  ref([
         value: false
       },
       {
-        text: 'Non Tray',
+        text: 'Non-Tray',
         value: false
       }
     ]
+  },
+  {
+    field: 'media_type',
+    label: 'Media Type',
+    options: mediaTypes.value.map(m => {
+      return {
+        text: m.name,
+        value: false
+      }
+    })
+  },
+  {
+    field: 'owner',
+    label: 'Owner',
+    options: owners.value.map(o => {
+      return {
+        text: o.name,
+        value: false
+      }
+    })
+  },
+  {
+    field: 'size_class',
+    label: 'Size Class',
+    options: sizeClass.value.map(s => {
+      return {
+        text: s.name,
+        value: false
+      }
+    })
   }
 ])
 const refileDisplayType = ref('refile_job')
@@ -501,13 +573,13 @@ onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
     refileTableVisibleColumns.value = [
       'id',
-      'items_count',
+      'item_count',
       'shelved_count',
-      'user'
+      'assigned_user_id'
     ]
     queueTableVisibleColumns.value = [
-      'item_location',
-      'barcode'
+      'location',
+      'barcode_value'
     ]
   }
 })
@@ -544,7 +616,7 @@ const loadRefileJobs = async (qParams) => {
     if (refileDisplayType.value == 'refile_job') {
       await getRefileJobList({
         ...qParams,
-        queue: true,
+        status: refileTableFilters.value.find(fltr => fltr.field == 'status').options.flatMap(opt => opt.value == true ? opt.text : []),
         user_id: checkUserPermission('can_view_all_refile_jobs') ? null : userData.value.user_id
       })
     } else {
@@ -558,6 +630,26 @@ const loadRefileJobs = async (qParams) => {
     })
   } finally {
     appIsLoadingData.value = false
+  }
+}
+const loadRefileJobOptions = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    // only load refile jobs with a created or paused status
+    await getOptions('refileJobs', {
+      status: [
+        'Created',
+        'Paused'
+      ]
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = false
   }
 }
 const loadRefileQueueByBuilding = async () => {

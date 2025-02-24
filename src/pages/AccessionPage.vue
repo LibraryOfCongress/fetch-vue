@@ -6,17 +6,19 @@
   >
     <LoadingOverlay />
 
-    <AccessionDashboard v-if="!route.params.jobId" />
-
-    <AccessionContainerDisplay v-if="route.params.jobId" />
+    <template v-if="!pageInitLoading">
+      <AccessionDashboard v-if="!route.params.jobId" />
+      <AccessionContainerDisplay v-if="route.params.jobId" />
+    </template>
   </q-page>
 </template>
 
 <script setup>
-import { onBeforeMount, inject } from 'vue'
+import { onMounted, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAccessionStore } from 'src/stores/accession-store'
+import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import AccessionDashboard from '@/components/Accession/AccessionDashboard.vue'
@@ -33,12 +35,14 @@ const {
 } = useAccessionStore()
 const { accessionJob } = storeToRefs(useAccessionStore())
 const { getOptions } = useOptionStore()
+const { pageInitLoading } = storeToRefs(useGlobalStore())
 
 // Logic
 const handlePageOffset = inject('handle-page-offset')
 const handleAlert = inject('handle-alert')
 
-onBeforeMount( async () => {
+onMounted( async () => {
+  pageInitLoading.value = true
   // load any options info that will be needed in accession
   await Promise.all([
     getOptions('owners'),
@@ -81,5 +85,6 @@ onBeforeMount( async () => {
       })
     }
   }
+  pageInitLoading.value = false
 })
 </script>
