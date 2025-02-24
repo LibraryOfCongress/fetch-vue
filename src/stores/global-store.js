@@ -8,6 +8,7 @@ export const useGlobalStore = defineStore('global-store', {
     appTableIsLoadingData: false,
     appPendingSync: false,
     appSyncGuard: null,
-    appRouteGuard: null
+    appRouteGuard: null,
+    pageInitLoading: false
   })
 })

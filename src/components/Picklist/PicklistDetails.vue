@@ -74,7 +74,7 @@
           <label
             class="info-display-details-label-2 text-h6"
           >
-            # of Items
+            # of Items:
           </label>
           <p class="text-body1">
             {{ picklistJob.request_count }}
@@ -86,7 +86,7 @@
           <label
             class="info-display-details-label-2 text-h6"
           >
-            Date Created
+            Date Created:
           </label>
           <p class="text-body1">
             {{ formatDateTime(picklistJob.create_dt).date }}
@@ -98,7 +98,7 @@
           <label
             class="info-display-details-label-2 text-h6"
           >
-            Status
+            Status:
           </label>
           <p
             class="text-body1 outline"

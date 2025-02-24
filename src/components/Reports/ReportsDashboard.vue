@@ -8,7 +8,7 @@
       </div>
     </div>
 
-    <div class="row q-mb-xs-md">
+    <div class="row q-mb-xs-lg q-mb-sm-md">
       <div class="col-auto">
         <SelectInput
           v-model="reportType"
@@ -40,11 +40,10 @@
         <EssentialTable
           :table-columns="generatedTableColumns"
           :table-visible-columns="generatedTableVisibleColumns"
-          :filter-options="generatedTableFilters"
           :table-data="reportData"
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
-          :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :heading-rearrange-class="'q-ml-auto'"
           :enable-pagination="true"
           :pagination-total="reportDataTotal"
           :pagination-loading="appIsLoadingData"
@@ -168,26 +167,6 @@ const { downloadReport } = useReportsStore()
 const formatDateTime = inject('format-date-time')
 const generatedTableVisibleColumns = ref([])
 const generatedTableColumns = ref([])
-const generatedTableFilters =  ref([
-  {
-    field: 'status',
-    label: 'Status',
-    options: [
-      {
-        text: 'Created',
-        value: false
-      },
-      {
-        text: 'Paused',
-        value: false
-      },
-      {
-        text: 'Completed',
-        value: false
-      }
-    ]
-  }
-])
 const showReportModal = ref(false)
 const reportFormHistory = ref(null)
 const reportType = ref(null)
@@ -371,7 +350,7 @@ const generateReportTableFields = () => {
     case 'Open Locations':
       generatedTableColumns.value = [
         {
-          name: 'shelf_location',
+          name: 'location',
           field: 'location',
           label: 'Shelf Location',
           align: 'left',
@@ -421,7 +400,7 @@ const generateReportTableFields = () => {
         }
       ]
       generatedTableVisibleColumns.value = [
-        'shelf_location',
+        'location',
         'owner',
         'size_class',
         'height',
@@ -501,7 +480,7 @@ const generateReportTableFields = () => {
           sortable: true
         },
         {
-          name: 'barcode',
+          name: 'barcode_value',
           field: row => row.tray ? row.tray?.barcode?.value : row.non_tray_item?.barcode?.value,
           label: 'Tray / Non-Tray Barcode',
           align: 'left',
@@ -546,7 +525,7 @@ const generateReportTableFields = () => {
       generatedTableVisibleColumns.value = [
         'shelving_job_id',
         'assigned_user',
-        'barcode',
+        'barcode_value',
         'size_class',
         'owner',
         'assigned_location',

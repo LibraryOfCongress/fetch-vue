@@ -136,7 +136,7 @@ export const useBuildingStore = defineStore('building-store', {
         // keep track of response total for pagination
         this.buildingsTotal = res.data.total
       } catch (error) {
-        return error
+        throw error
       }
     },
     async getBuildingDetails (id) {
@@ -449,7 +449,7 @@ export const useBuildingStore = defineStore('building-store', {
         // keep track of response total for pagination
         this.shelvesTotal = res.data.total
       } catch (error) {
-        return error
+        throw error
       }
     },
     async getShelfDetails (id) {

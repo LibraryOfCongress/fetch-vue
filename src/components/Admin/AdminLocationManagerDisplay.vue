@@ -265,7 +265,7 @@ const generateLocationTableInfo = () => {
           required: true
         },
         {
-          name: 'building',
+          name: 'name',
           field: 'name',
           label: 'Building',
           align: 'left',
@@ -288,7 +288,7 @@ const generateLocationTableInfo = () => {
       ]
       locationTableVisibleColumns.value = [
         'actions',
-        'building',
+        'name',
         'create_dt',
         'update_dt'
       ]
@@ -444,21 +444,21 @@ const generateLocationTableInfo = () => {
           sortable: true
         },
         {
-          name: 'shelf_width',
+          name: 'width',
           field: 'width',
           label: 'Shelf Width',
           align: 'left',
           sortable: true
         },
         {
-          name: 'shelf_height',
+          name: 'height',
           field: 'height',
           label: 'Shelf Height',
           align: 'left',
           sortable: true
         },
         {
-          name: 'shelf_depth',
+          name: 'depth',
           field: 'depth',
           label: 'Shelf Depth',
           align: 'left',
@@ -493,7 +493,7 @@ const generateLocationTableInfo = () => {
           sortable: true
         },
         {
-          name: 'shelf_barcode',
+          name: 'barcode_value',
           field: row => row.barcode?.value,
           label: 'Shelf Barcode',
           align: 'left',
@@ -510,14 +510,14 @@ const generateLocationTableInfo = () => {
       locationTableVisibleColumns.value = [
         'actions',
         'shelf_number',
-        'shelf_width',
-        'shelf_height',
-        'shelf_depth',
+        'width',
+        'height',
+        'depth',
         'size_class',
         'shelf_type',
         'container_type',
         'owner',
-        'shelf_barcode',
+        'barcode_value',
         'sort_priority'
       ]
       break

@@ -306,15 +306,15 @@ const accessionTableFilters =  ref([
     options: [
       {
         text: 'Created',
-        value: false
+        value: true
       },
       {
         text: 'Paused',
-        value: false
+        value: true
       },
       {
         text: 'Running',
-        value: false
+        value: true
       },
       {
         text: 'Completed',
@@ -362,7 +362,7 @@ const loadAccessionJobs = async (qParams) => {
     appIsLoadingData.value = true
     await getAccessionJobList({
       ...qParams,
-      queue: true
+      status: accessionTableFilters.value.find(fltr => fltr.field == 'status').options.flatMap(opt => opt.value == true ? opt.text : [])
     })
   } catch (error) {
     handleAlert({

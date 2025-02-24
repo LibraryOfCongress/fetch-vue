@@ -6,15 +6,17 @@
   >
     <LoadingOverlay />
 
-    <ShelvingDashboard v-if="route.name == 'shelving' && !route.params.jobId" />
-    <ShelvingJobDetails v-else-if="route.name == 'shelving' && route.params.jobId" />
-    <ShelvingJobDirectToShelf v-else-if="!appIsLoadingData && route.name == 'shelving-dts' && route.params.jobId" />
-    <ShelvingMove v-else-if="route.name == 'shelving-move' && route.params.type" />
+    <template v-if="!pageInitLoading">
+      <ShelvingDashboard v-if="route.name == 'shelving' && !route.params.jobId" />
+      <ShelvingJobDetails v-else-if="route.name == 'shelving' && route.params.jobId" />
+      <ShelvingJobDirectToShelf v-else-if="route.name == 'shelving-dts' && route.params.jobId" />
+      <ShelvingMove v-else-if="route.name == 'shelving-move' && route.params.type" />
+    </template>
   </q-page>
 </template>
 
 <script setup>
-import { inject, onBeforeMount } from 'vue'
+import { inject, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useShelvingStore } from '@/stores/shelving-store'
@@ -30,14 +32,14 @@ const route = useRoute()
 
 // Store Data
 const { getShelvingJob, getDirectShelvingJob } = useShelvingStore()
-const { appIsLoadingData } = storeToRefs(useGlobalStore())
+const { pageInitLoading } = storeToRefs(useGlobalStore())
 const { getOptions } = useOptionStore()
 
 // Logic
 const handlePageOffset = inject('handle-page-offset')
 
-onBeforeMount( async () => {
-  appIsLoadingData.value = true
+onMounted( async () => {
+  pageInitLoading.value = true
 
   // load any options info that will be needed on the shelving page
   await Promise.all([getOptions('users')])
@@ -49,7 +51,7 @@ onBeforeMount( async () => {
     // only load the direct shelving job page after dts data is retrieved since the store data is slightly different from whats returned from api
     await getDirectShelvingJob(route.params.jobId)
   }
-  appIsLoadingData.value = false
+  pageInitLoading.value = false
 })
 </script>
 <style lang="scss" scoped>

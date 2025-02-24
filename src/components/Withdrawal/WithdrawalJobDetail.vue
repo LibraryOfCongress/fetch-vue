@@ -6,6 +6,7 @@
           :options="[
             { text: 'Edit', disabled: editJob || withdrawJob.status == 'Completed' },
             { text: 'Delete Job', optionClass: 'text-negative', disabled: editJob || withdrawJob.status == 'Completed' || withdrawJobItems.some(itm => itm.status == 'Withdrawn')},
+            { text: 'Print Job' },
             { text: 'View History' }
           ]"
           class="q-mr-xs"
@@ -341,10 +342,23 @@
           no-caps
           unelevated
           color="accent"
-          label="Withdraw Items"
-          class="text-body1 full-width"
+          label="Withdraw & Print"
+          class="btn-no-wrap text-body1 full-width"
           :loading="appActionIsLoadingData"
-          @click="completeWithdrawJob(); hideModal();"
+          @click="completeWithdrawJob('withdrawAndPrint'); hideModal();"
+        />
+
+        <q-space class="q-mx-xs" />
+
+        <q-btn
+          v-if="showConfirmationModal == 'CompleteJob'"
+          no-caps
+          unelevated
+          color="accent"
+          label="Withdraw Items"
+          class="btn-no-wrap text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="completeWithdrawJob('withdraw'); hideModal();"
         />
         <q-btn
           v-else
@@ -375,6 +389,12 @@
     @hide="showAddItemModal = null"
   />
 
+  <!-- Print detail -->
+  <WithdrawalBatchSheet
+    ref="batchSheetComponent"
+    :withdrawal-job-details="withdrawJob"
+  />
+
   <!-- audit trail modal -->
   <AuditTrail
     v-if="showAuditTrailModal"
@@ -402,6 +422,7 @@ import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import WithdrawalJobAddItemModal from '@/components/Withdrawal/WithdrawalJobAddItemModal.vue'
 import AuditTrail from '@/components/AuditTrail.vue'
+import WithdrawalBatchSheet from '@/components/Withdrawal/WithdrawalBatchSheet.vue'
 
 const router = useRouter()
 
@@ -427,6 +448,7 @@ const {
 } = storeToRefs(useWithdrawalStore())
 
 // Local Data
+const batchSheetComponent = ref(null)
 const withdrawItemsMenuState = ref(false)
 const editJob = ref(false)
 const itemTableVisibleColumns = ref([
@@ -448,14 +470,14 @@ const itemTableColumns = ref([
   },
   {
     name: 'shelf_barcode',
-    field: row => row.tray ? row.tray?.shelf_position?.shelf?.barcode?.value : row.shelf_position?.shelf?.barcode?.value,
+    field: row => row.status === 'Withdrawn' ? renderWithdrawnShelfBarcode(row) : (row.tray ? row.tray?.shelf_position?.shelf?.barcode?.value : row.shelf_position?.shelf?.barcode?.value),
     label: 'Shelf Barcode',
     align: 'left',
     sortable: true
   },
   {
     name: 'tray_barcode',
-    field: row => renderItemBarcodeDisplay(row.tray),
+    field: row => row.status === 'Withdrawn' ? renderWithdrawnTrayBarcode(row) : renderItemBarcodeDisplay(row.tray),
     label: 'Tray Barcode',
     align: 'left',
     sortable: true
@@ -519,14 +541,14 @@ const trayTableColumns = ref([
   },
   {
     name: 'shelf_barcode',
-    field: row => row.shelf_position?.shelf?.barcode?.value,
+    field: row => row.status === 'Withdrawn' ? renderWithdrawnShelfBarcode(row) : row.shelf_position?.shelf?.barcode?.value,
     label: 'Shelf Barcode',
     align: 'left',
     sortable: true
   },
   {
     name: 'tray_barcode',
-    field: row => renderItemBarcodeDisplay(row),
+    field: row => row.status === 'Withdrawn' ? renderWithdrawnTrayBarcode(row) : renderItemBarcodeDisplay(row),
     label: 'Tray Barcode',
     align: 'left',
     sortable: true
@@ -567,6 +589,8 @@ const handleAlert = inject('handle-alert')
 const currentIsoDate = inject('current-iso-date')
 const formatDateTime = inject('format-date-time')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
+const renderWithdrawnTrayBarcode = inject('render-withdrawn-tray-barcode')
+const renderWithdrawnShelfBarcode = inject('render-withdrawn-shelf-barcode')
 const getUniqueListByKey = inject('get-uniqure-list-by-key')
 
 onBeforeMount(() => {
@@ -591,6 +615,9 @@ const handleOptionMenu = async (action, rowData) => {
       return
     case 'Remove Item':
       removeWithdrawItems([rowData.barcode.value])
+      return
+    case 'Print Job':
+      batchSheetComponent.value.printBatchReport()
       return
     case 'View History':
       showAuditTrailModal.value = 'withdraw_jobs'
@@ -655,7 +682,7 @@ const cancelWithdrawJob = async () => {
     appIsLoadingData.value = false
   }
 }
-const completeWithdrawJob = async () => {
+const completeWithdrawJob = async (withdrawType) => {
   try {
     // check if an associated picklist exists and make sure it is completed
     if (withdrawJob.value.pick_list && withdrawJob.value.pick_list.status !== 'Completed') {
@@ -678,9 +705,15 @@ const completeWithdrawJob = async () => {
 
     handleAlert({
       type: 'success',
-      text: 'All items have been successfuly withdrawn, the job has been completed.',
+      text: 'All items have been successfully withdrawn, the job has been completed.',
       autoClose: true
     })
+
+    // If the user has selected complete and print, let's print!
+    if (withdrawType && withdrawType === 'withdrawAndPrint') {
+      batchSheetComponent.value.printBatchReport()
+    }
+
   } catch (error) {
     handleAlert({
       type: 'error',
