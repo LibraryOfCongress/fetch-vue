@@ -177,6 +177,13 @@
             >
               {{ value }}
             </span>
+            <span
+              v-else-if="colName == 'status'"
+              class="outline text-nowrap"
+              :class="value == 'Completed' || value == 'Created' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-warning' : value == 'New' ? 'text-highlight-accent' : null "
+            >
+              {{ value }}
+            </span>
             <span v-else-if="colName == 'create_dt'">
               {{ formatDateTime(value).date }}
             </span>
@@ -343,6 +350,7 @@ const refileTableVisibleColumns = ref([
   'id',
   'item_count',
   'shelved_count',
+  'status',
   'assigned_user_id',
   'create_dt',
   'last_transition'
@@ -366,6 +374,13 @@ const refileTableColumns = ref([
     name: 'shelved_count',
     field: row => (row.item_shelved_refiled_count + row.container_shelved_refiled_count),
     label: '# of Items Shelved',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'status',
+    field: 'status',
+    label: 'Status',
     align: 'left',
     sortable: true
   },
@@ -394,6 +409,28 @@ const refileTableColumns = ref([
 const refileTableFilters = computed(() => {
   let tablesFilters = []
   tablesFilters = [
+    {
+      field: 'status',
+      label: 'Status',
+      options: [
+        {
+          text: 'Created',
+          value: true
+        },
+        {
+          text: 'Paused',
+          value: true
+        },
+        {
+          text: 'Running',
+          value: true
+        },
+        {
+          text: 'Completed',
+          value: false
+        }
+      ]
+    },
     {
       field: row => row.assigned_user ? `${row.assigned_user?.first_name} ${row.assigned_user?.last_name}` : '',
       label: 'Assigned User',
@@ -579,7 +616,7 @@ const loadRefileJobs = async (qParams) => {
     if (refileDisplayType.value == 'refile_job') {
       await getRefileJobList({
         ...qParams,
-        queue: true,
+        status: refileTableFilters.value.find(fltr => fltr.field == 'status').options.flatMap(opt => opt.value == true ? opt.text : []),
         user_id: checkUserPermission('can_view_all_refile_jobs') ? null : userData.value.user_id
       })
     } else {
