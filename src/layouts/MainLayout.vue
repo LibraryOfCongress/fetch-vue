@@ -72,6 +72,7 @@
 import { onMounted, ref, provide, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
+import moment from 'moment'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useAlertPopup } from '@/composables/useAlertPopup'
 import AlertPopup from '@/components/AlertPopup.vue'
@@ -185,6 +186,11 @@ const getUniqueListByKey = (arr, key) => {
   )
 }
 provide('get-uniqure-list-by-key', getUniqueListByKey)
+const currentIsoDate = () => {
+  const timezoneAwareDateIso = moment().format()
+  return timezoneAwareDateIso
+}
+provide('current-iso-date', currentIsoDate)
 const formatDateTime = (dateTime) => {
   if (!dateTime) {
     return {
@@ -193,6 +199,12 @@ const formatDateTime = (dateTime) => {
       dateTime: ''
     }
   }
+
+  //check if the passed in dateTime has missing timezone offset or Z in the ISO string add the z if not
+  if (dateTime && /([zZ]|([+-]\d{2}:?\d{2}))$/.test(dateTime) == false) {
+    dateTime + 'Z'
+  }
+
   const localTimeFormat = new Date(dateTime).toLocaleString()
   const splitDateTime = localTimeFormat.split(',')
   return {

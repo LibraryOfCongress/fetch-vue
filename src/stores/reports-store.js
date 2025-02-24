@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import moment from 'moment'
 import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useReportsStore = defineStore('reports-store', {
@@ -57,8 +58,7 @@ export const useReportsStore = defineStore('reports-store', {
           const url = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
 
           // Get the current date and time and format as YYYY_MM_DD_HH_MM_SS
-          const formattedDate = new Date().toISOString().slice(0, 19).replace(/[-T:]/g, '_')
-
+          const formattedDate = moment().format().slice(0, 19).replace(/[-T:]/g, '_')
           const link = document.createElement('a')
           link.href = url
           link.download = `${reportType}_${formattedDate}.csv`

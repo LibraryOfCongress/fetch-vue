@@ -312,6 +312,7 @@ const shelfTableVisibleColumns = ref([
 const showScanContainerModal = ref(false)
 
 // Logic
+const currentIsoDate = inject('current-iso-date')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
 const handleAlert = inject('handle-alert')
@@ -401,7 +402,7 @@ const assignContainerLocation = async () => {
       container_barcode_value: shelvingJobContainer.value.barcode.value,
       shelf_barcode_value: directToShelfJob.value.shelf_barcode.value,
       shelf_position_number: parseInt(shelvingJobContainer.value.shelf_position_number),
-      shelved_dt: new Date().toISOString(),
+      shelved_dt: currentIsoDate(),
       scanned_for_shelving: true
     }
     await postDirectShelvingJobContainer(payload)
@@ -449,7 +450,7 @@ const completeDirectToShelfJob = async () => {
     const payload = {
       id: directToShelfJob.value.id,
       status: 'Completed',
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchDirectShelvingJob(payload)
 

@@ -449,6 +449,7 @@ const showAuditTrailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
+const currentIsoDate = inject('current-iso-date')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
@@ -538,7 +539,7 @@ const executeRefileJob = async () => {
       id: refileJob.value.id,
       status: 'Running',
       assigned_user_id: refileJob.value.assigned_user_id ? refileJob.value.assigned_user_id : userData.value.user_id,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchRefileJob(payload)
 
@@ -567,7 +568,7 @@ const updateRefileJob = async () => {
     const payload = {
       id: refileJob.value.id,
       assigned_user_id: refileJob.value.assigned_user_id,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchRefileJob(payload)
 
@@ -592,7 +593,7 @@ const updateRefileJobStatus = async (status) => {
     const payload = {
       id: refileJob.value.id,
       status,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchRefileJob(payload)
 
@@ -654,7 +655,7 @@ const completeRefileJob = async () => {
     const payload = {
       id: refileJob.value.id,
       status: 'Completed',
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchRefileJob(payload)
 

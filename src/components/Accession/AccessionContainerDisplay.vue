@@ -578,6 +578,7 @@ const renderIsEditMode = computed(() => {
 
 // Logic
 const handleAlert = inject('handle-alert')
+const currentIsoDate = inject('current-iso-date')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 watch(route, () => {
@@ -686,21 +687,15 @@ const addContainerItem = async () => {
   try {
     const currentDate = new Date()
     if (accessionJob.value.trayed) {
-      // TODO: Remove this hardcoded item data since it will mostly come from folio
       const payload = {
         accession_dt: currentDate,
         accession_job_id: accessionJob.value.id,
-        arbitrary_data: 'Signed copy',
         barcode_id: barcodeDetails.value.id,
-        condition: 'Good',
         media_type_id: accessionContainer.value.media_type_id,
         scanned_for_accession: true,
         size_class_id: accessionContainer.value.size_class_id,
         status: 'In',
-        title: 'Lord of The Ringss',
-        tray_id: accessionContainer.value.id,
-        volume: 'I',
-        withdrawal_dt: currentDate
+        tray_id: accessionContainer.value.id
       }
       await postAccessionTrayItem(payload)
     } else {
@@ -872,7 +867,7 @@ const updateAccessionJobStatus = async (status) => {
     const payload = {
       id: accessionJob.value.id,
       status,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
 
     await patchAccessionJob(payload)
@@ -907,7 +902,7 @@ const completeAccessionJob = async () => {
     const payload = {
       id: accessionJob.value.id,
       status: 'Completed',
-      run_timestamp: new Date().toISOString(),
+      run_timestamp: currentIsoDate(),
       user_id: userData.value.user_id
     }
     await patchAccessionJob(payload)
