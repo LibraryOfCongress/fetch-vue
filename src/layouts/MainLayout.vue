@@ -265,6 +265,20 @@ const renderItemBarcodeDisplay = (itemData) => {
   }
 }
 provide('render-item-barcode-display', renderItemBarcodeDisplay)
+const renderWithdrawnTrayBarcode = (itemData) => {
+  // The withdrawn_loc_bcodes are in the form xxxx-yyyy or xxxx
+  // Where xxxx is the shelf barcode and yyyy is the tray
+  const barcodes = itemData?.withdrawn_loc_bcodes.split('-')
+  return barcodes[1] ?? ''
+}
+provide('render-withdrawn-tray-barcode', renderWithdrawnTrayBarcode)
+const renderWithdrawnShelfBarcode = (itemData) => {
+  // The withdrawn_loc_bcodes are in the form xxxx-yyyy or xxxx
+  // Where xxxx is the shelf barcode and yyyy is the tray
+  const barcodes = itemData?.withdrawn_loc_bcodes.split('-')
+  return barcodes[0] ?? ''
+}
+provide('render-withdrawn-shelf-barcode', renderWithdrawnShelfBarcode)
 </script>
 
 <style lang="scss" scoped>
