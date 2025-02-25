@@ -279,6 +279,10 @@ const renderWithdrawnShelfBarcode = (itemData) => {
   return barcodes[0] ?? ''
 }
 provide('render-withdrawn-shelf-barcode', renderWithdrawnShelfBarcode)
+const renderWithdrawnItemLocation = (itemData) => {
+  return itemData.status === 'Withdrawn' ? itemData?.withdrawn_location : (itemData.tray ? itemData?.tray?.shelf_position?.location : itemData?.shelf_position?.location)
+}
+provide('render-withdrawn-item-location', renderWithdrawnItemLocation)
 </script>
 
 <style lang="scss" scoped>
