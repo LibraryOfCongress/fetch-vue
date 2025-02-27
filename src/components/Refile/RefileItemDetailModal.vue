@@ -243,7 +243,12 @@ const updateTrayItemAsRefiled = async () => {
     refileJob.value.items[refileJob.value.items.findIndex(itm => itm.id == payload.item_id)].status = payload.status
 
     // also directly update the refile tray item in the refile_job_items array
-    refileJob.value.refile_job_items[refileJob.value.refile_job_items.findIndex(itm => itm.barcode.value == refileItem.value.barcode.value)].status = payload.status
+    const refileJobItemIndex = refileJob.value.refile_job_items.findIndex(itm => itm.barcode.value == refileItem.value.barcode.value)
+    const refileJobItemByIndex = refileJob.value.refile_job_items[refileJobItemIndex]
+    refileJobItemByIndex.status = payload.status
+    // move the item to bottom of the list
+    refileJob.value.refile_job_items.splice(refileJobItemIndex, 1)
+    refileJob.value.refile_job_items.push(refileJobItemByIndex)
 
     // update the stored refileJob since the container will get changed at the job requests level
     addDataToIndexDb('refileStore', 'refileJob', JSON.parse(JSON.stringify(refileJob.value)))
@@ -276,8 +281,13 @@ const updateNonTrayItemAsRefiled = async () => {
     // directly update the refile non tray item in the refile job items
     refileJob.value.non_tray_items[refileJob.value.non_tray_items.findIndex(itm => itm.id == payload.non_tray_item_id)].status = payload.status
 
-    // also directly update the refile tray item in the refile_job_items array
-    refileJob.value.refile_job_items[refileJob.value.refile_job_items.findIndex(itm => itm.barcode.value == refileItem.value.barcode.value)].status = payload.status
+    // also directly update the refile non tray item in the refile_job_items array
+    const refileJobItemIndex = refileJob.value.refile_job_items.findIndex(itm => itm.barcode.value == refileItem.value.barcode.value)
+    const refileJobItemByIndex = refileJob.value.refile_job_items[refileJobItemIndex]
+    refileJobItemByIndex.status = payload.status
+    // move the item to bottom of the list
+    refileJob.value.refile_job_items.splice(refileJobItemIndex, 1)
+    refileJob.value.refile_job_items.push(refileJobItemByIndex)
 
     // update the stored refileJob since the container will get changed at the job requests level
     addDataToIndexDb('refileStore', 'refileJob', JSON.parse(JSON.stringify(refileJob.value)))
