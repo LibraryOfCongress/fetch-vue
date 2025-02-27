@@ -17,12 +17,16 @@
           </label>
           <SelectInput
             v-model="locationForm.module_id"
-            :options="renderBuildingModules"
+            :options="modules"
+            option-type="modules"
+            :option-query="{
+              building_id: locationForm.building_id
+            }"
             option-value="id"
             option-label="module_number"
             :placeholder="'Select Module'"
             :clearable="false"
-            :disabled="renderBuildingModules.length == 0"
+            :disabled="!locationForm.building_id"
             @update:model-value="handleLocationFormChange('Module')"
             aria-label="moduleSelect"
           />
@@ -37,12 +41,17 @@
             </label>
             <SelectInput
               v-model="locationForm.aisle_id"
-              :options="renderBuildingOrModuleAisles"
+              :options="aisles"
+              option-type="aisles"
+              :option-query="{
+                building_id: locationForm.building_id,
+                module_id: locationForm.module_id
+              }"
               option-value="id"
               :option-label="opt => opt.aisle_number.number"
               :placeholder="'Select Aisle'"
               :clearable="false"
-              :disabled="renderBuildingOrModuleAisles.length == 0"
+              :disabled="!locationForm.module_id"
               @update:model-value="handleLocationFormChange('Aisle')"
               aria-label="aisleSelect"
             />
@@ -57,10 +66,10 @@
             </label>
             <ToggleButtonInput
               v-model="locationForm.side_id"
-              :options="renderAisleSides"
+              :options="sides"
               option-value="id"
               option-label="side_orientation.name"
-              :disabled="!renderAisleSides[0].id"
+              :disabled="!locationForm.aisle_id"
               @update:model-value="handleLocationFormChange('Side')"
             />
           </div>
@@ -74,12 +83,19 @@
           </label>
           <SelectInput
             v-model="locationForm.ladder_id"
-            :options="renderSideLadders"
+            :options="ladders"
+            option-type="ladders"
+            :option-query="{
+              building_id: locationForm.building_id,
+              module_id: locationForm.module_id,
+              aisle_id: locationForm.aisle_id,
+              side_id: locationForm.side_id
+            }"
             option-value="id"
             :option-label="opt => opt.ladder_number.number"
             :placeholder="'Select Ladder'"
             :clearable="false"
-            :disabled="renderSideLadders.length == 0"
+            :disabled="!locationForm.side_id"
             @update:model-value="handleLocationFormChange('Ladder')"
             aria-label="ladderSelect"
           />
@@ -97,11 +113,21 @@
             <SelectInput
               v-model="locationForm.shelf_id"
               :options="shelves"
+              option-type="shelves"
+              :option-query="{
+                building_id: locationForm.building_id,
+                module_id: locationForm.module_id,
+                aisle_id: locationForm.aisle_id,
+                side_id: locationForm.side_id,
+                ladder_id: locationForm.ladder_id,
+                owner_id: mainProps.shelvingItem.owner.id,
+                size_class_id: mainProps.shelvingItem.size_class.id
+              }"
               option-value="id"
               :option-label="opt => opt.shelf_number.number"
               :placeholder="'Select Shelf'"
               :clearable="false"
-              :disabled="shelves.length == 0"
+              :disabled="!locationForm.ladder_id"
               @update:model-value="handleLocationFormChange('Shelf')"
               aria-label="shelfSelect"
             >
@@ -129,12 +155,17 @@
             </label>
             <SelectInput
               v-model="locationForm.shelf_position_id"
-              :options="shelfPositions"
+              :options="shelvesPositions"
+              option-type="shelvesPositions"
+              :option-query="{
+                shelf_id: locationForm.shelf_id,
+                empty: true
+              }"
               option-value="id"
               :option-label="opt => opt.shelf_position_number.number"
               :placeholder="'Select Shelf Position'"
               :clearable="false"
-              :disabled="shelfPositions.length == 0"
+              :disabled="!locationForm.shelf_id"
               aria-label="shelfPositionSelect"
             />
           </div>
@@ -201,6 +232,7 @@ import { ref, inject, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
+import { useOptionStore } from '@/stores/option-store'
 import { useBuildingStore } from '@/stores/building-store'
 import { useShelvingStore } from '@/stores/shelving-store'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
@@ -237,30 +269,26 @@ const { addDataToIndexDb } = useIndexDbHandler()
 // Store Data
 const { appActionIsLoadingData, appIsOffline } = storeToRefs(useGlobalStore())
 const {
-  getModuleDetails,
-  getAisleDetails,
-  getSideDetails,
-  getShelveList,
-  getShelfPositionsList,
+  modules,
+  aisles,
+  ladders,
+  sides,
+  shelves,
+  shelvesPositions
+} = storeToRefs(useOptionStore())
+const {
   resetModuleChildren,
   resetAisleChildren,
   resetSideChildren,
   resetLadderChildren
 } = useBuildingStore()
-const {
-  renderBuildingModules,
-  renderBuildingOrModuleAisles,
-  renderAisleSides,
-  renderSideLadders,
-  shelves,
-  shelfPositions
-} = storeToRefs(useBuildingStore())
 const { postShelvingJobContainer, resetShelvingJobContainer } = useShelvingStore()
 const { shelvingJob } = storeToRefs(useShelvingStore())
 
 // Local Data
 const locationForm = ref({
   id: null,
+  building_id: null,
   module_id: null,
   aisle_id: null,
   side_id: 1,
@@ -289,6 +317,7 @@ onMounted(() => {
   if (mainProps.shelvingItem.id) {
     const itemLocationIdList = mainProps.shelvingItem.shelf_position?.internal_location?.split('-')
     locationForm.value.id = mainProps.shelvingItem.id
+    locationForm.value.building_id = parseInt(itemLocationIdList[0])
     locationForm.value.module_id = parseInt(itemLocationIdList[1])
     locationForm.value.aisle_id = parseInt(itemLocationIdList[2])
     locationForm.value.side_id = parseInt(itemLocationIdList[3])
@@ -309,50 +338,33 @@ const handleLocationFormChange = async (valueType) => {
   // reset the form depending on the edited form field type and clear any related building state as needed
   switch (valueType) {
     case 'Module':
-      await getModuleDetails(locationForm.value.module_id)
+      // clear state for aisle options downward since user needs to select an aisle next to populate the rest of the data
+      resetModuleChildren()
       locationForm.value.aisle_id = null
       locationForm.value.side_id = null
       locationForm.value.ladder_id = null
       locationForm.value.shelf_id = null
       locationForm.value.shelf_position_id = null
-
-      // clear state for aisle options downward since user needs to select an aisle next to populate the rest of the data
-      resetModuleChildren()
       return
     case 'Aisle':
-      await getAisleDetails(locationForm.value.aisle_id)
+      resetAisleChildren()
       locationForm.value.side_id = null
       locationForm.value.ladder_id = null
       locationForm.value.shelf_id = null
       locationForm.value.shelf_position_id = null
-
-      resetAisleChildren()
       return
     case 'Side':
-      await getSideDetails(locationForm.value.side_id)
+      resetSideChildren()
       locationForm.value.ladder_id = null
       locationForm.value.shelf_id = null
       locationForm.value.shelf_position_id = null
-
-      resetSideChildren()
       return
     case 'Ladder':
       resetLadderChildren()
-
-      await getShelveList({
-        building_id: shelvingJob.value.building_id,
-        module_id: locationForm.value.module_id,
-        aisle_id: locationForm.value.aisle_id,
-        side_id: locationForm.value.side_id,
-        ladder_id: locationForm.value.ladder_id,
-        owner_id: mainProps.shelvingItem.owner.id,
-        size_class_id: mainProps.shelvingItem.size_class.id
-      })
       locationForm.value.shelf_id = null
       locationForm.value.shelf_position_id = null
       return
     case 'Shelf':
-      await getShelfPositionsList(locationForm.value.shelf_id, true)
       locationForm.value.shelf_position_id = null
       return
   }
@@ -360,6 +372,7 @@ const handleLocationFormChange = async (valueType) => {
 const resetLocationForm = () => {
   locationForm.value = {
     id: null,
+    building_id: null,
     module_id: null,
     aisle_id: null,
     side_id: '',
@@ -392,7 +405,7 @@ const submitLocationForm = async () => {
         job_id: route.params.jobId,
         container_id: locationForm.value.id,
         trayed: locationForm.value.trayed,
-        shelf_position_number: shelfPositions.value.find(shelf_pos => shelf_pos.id == locationForm.value.shelf_position_id)?.shelf_position_number?.number,
+        shelf_position_number: shelvesPositions.value.find(shelf_pos => shelf_pos.id == locationForm.value.shelf_position_id)?.shelf_position_number?.number,
         shelf_id: locationForm.value.shelf_id,
         shelved_dt: currentIsoDate()
       }

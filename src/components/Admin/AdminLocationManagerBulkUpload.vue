@@ -66,12 +66,16 @@
             </label>
             <SelectInput
               v-model="bulkUploadLocationForm.module_id"
-              :options="renderBuildingModules"
+              :options="modules"
+              option-type="modules"
+              :option-query="{
+                building_id: bulkUploadLocationForm.building_id
+              }"
               option-value="id"
               option-label="module_number"
               :placeholder="'Select Module'"
               :clearable="false"
-              :disabled="renderBuildingModules.length == 0"
+              :disabled="!bulkUploadLocationForm.building_id"
               @update:model-value="handleLocationFormChange('Module')"
               aria-label="moduleSelect"
             />
@@ -87,12 +91,17 @@
             </label>
             <SelectInput
               v-model="bulkUploadLocationForm.aisle_id"
-              :options="renderBuildingOrModuleAisles"
+              :options="aisles"
+              option-type="aisles"
+              :option-query="{
+                building_id: bulkUploadLocationForm.building_id,
+                module_id: bulkUploadLocationForm.module_id
+              }"
               option-value="id"
               :option-label="opt => opt.aisle_number.number"
               :placeholder="'Select Aisle'"
               :clearable="false"
-              :disabled="renderBuildingOrModuleAisles.length == 0"
+              :disabled="!bulkUploadLocationForm.module_id"
               @update:model-value="handleLocationFormChange('Aisle')"
               aria-label="aisleSelect"
             />
@@ -107,10 +116,10 @@
             </label>
             <ToggleButtonInput
               v-model="bulkUploadLocationForm.side_id"
-              :options="renderAisleSides"
+              :options="sides"
               option-value="id"
               option-label="side_orientation.name"
-              :disabled="!renderAisleSides[0].id"
+              :disabled="!bulkUploadLocationForm.aisle_id"
               @update:model-value="handleLocationFormChange('Side')"
             />
           </div>
@@ -163,22 +172,20 @@ const emit = defineEmits(['hide'])
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
-const { buildings } = storeToRefs(useOptionStore())
+const {
+  buildings,
+  modules,
+  aisles
+} = storeToRefs(useOptionStore())
 const {
   postBulkLocation,
-  getBuildingDetails,
-  getModuleDetails,
-  getAisleDetails,
+  getSideList,
   resetBuildingStore,
   resetBuildingChildren,
   resetModuleChildren,
   resetAisleChildren
 } = useBuildingStore()
-const {
-  renderBuildingModules,
-  renderBuildingOrModuleAisles,
-  renderAisleSides
-} = storeToRefs(useBuildingStore())
+const { sides } = storeToRefs(useBuildingStore())
 
 // Local Data
 const bulkUploadLocationModal = ref(null)
@@ -222,22 +229,25 @@ const handleLocationFormChange = async (valueType) => {
   // reset the report form depending on the edited form field type
   switch (valueType) {
     case 'Building':
-      await getBuildingDetails(bulkUploadLocationForm.value.building_id)
+      resetBuildingChildren()
       bulkUploadLocationForm.value.module_id = null
       bulkUploadLocationForm.value.aisle_id = null
       bulkUploadLocationForm.value.side_id = null
-      resetBuildingChildren()
       return
     case 'Module':
-      await getModuleDetails(bulkUploadLocationForm.value.module_id)
+      resetModuleChildren()
       bulkUploadLocationForm.value.aisle_id = null
       bulkUploadLocationForm.value.side_id = null
-      resetModuleChildren()
       return
     case 'Aisle':
-      await getAisleDetails(bulkUploadLocationForm.value.aisle_id)
-      bulkUploadLocationForm.value.side_id = null
       resetAisleChildren()
+      // get sides since sides are toggle buttons and not dynamically loaded from a options select input
+      await getSideList({
+        building_id: bulkUploadLocationForm.value.building_id,
+        module_id: bulkUploadLocationForm.value.module_id,
+        aisle_id: bulkUploadLocationForm.value.aisle_id
+      })
+      bulkUploadLocationForm.value.side_id = null
       return
     default:
       return
