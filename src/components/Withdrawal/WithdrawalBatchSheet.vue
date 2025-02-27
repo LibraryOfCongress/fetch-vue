@@ -14,7 +14,7 @@
 
         <section>
           <p class="text-bold q-mb-sm">
-            Withdrawal Job Created Date: {{ formatDateTime(withdrawalJobDetails.create_dt).date }}
+            Withdrawal Job Completed Date: {{ withdrawalJobDetails.status === 'Completed' ? formatDateTime(withdrawalJobDetails.last_transition).date : '' }}
           </p>
           <p class="text-bold">
             Withdrawal Job User:
