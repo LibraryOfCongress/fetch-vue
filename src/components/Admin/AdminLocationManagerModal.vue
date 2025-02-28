@@ -76,6 +76,7 @@
                   :option-label="field.field == 'container_type_id' || field.field == 'shelf_type_id' ? 'type' : 'name'"
                   :placeholder="`Select ${field.label}`"
                   :disabled="field.disabled"
+                  :clearable="!field.required"
                   @update:model-value="handleLocationFormChange(field.label)"
                   :aria-label="`${field.field}Select`"
                 />
@@ -148,7 +149,8 @@ const mainProps = defineProps({
 // Emits
 const emit = defineEmits([
   'hide',
-  'submit'
+  'submit',
+  'newLocationAdded'
 ])
 
 // Composables
@@ -208,159 +210,159 @@ onBeforeMount(() => {
 const handleLocationFormChange = async (labelType) => {
   // reset the form depending on the edited form field type
   switch (labelType) {
-  case 'Container Size':
-    if (locationForm.value.shelf_type_id) {
-      locationForm.value.shelf_type_id = null
-    }
-    return
+    case 'Container Size':
+      if (locationForm.value.shelf_type_id) {
+        locationForm.value.shelf_type_id = null
+      }
+      return
   }
 }
 
 const generateLocationModal = () => {
   // creates the modal fields needed based on the locationType
   switch (mainProps.locationType) {
-  case 'buildings':
-    locationForm.value = {
-      name: mainProps.locationData.name ?? ''
-    }
-    locationFields.value = [
-      {
-        field: 'name',
-        label: 'Building Name',
-        required: true
+    case 'buildings':
+      locationForm.value = {
+        name: mainProps.locationData.name ?? ''
       }
-    ]
-    break
-  case 'modules':
-    locationForm.value = {
-      building_id: route.params.buildingId,
-      module_number: mainProps.locationData.module_number ?? ''
-    }
-    locationFields.value = [
-      {
-        field: 'module_number',
-        label: 'Module Number',
-        required: true
+      locationFields.value = [
+        {
+          field: 'name',
+          label: 'Building Name',
+          required: true
+        }
+      ]
+      break
+    case 'modules':
+      locationForm.value = {
+        building_id: route.params.buildingId,
+        module_number: mainProps.locationData.module_number ?? ''
       }
-    ]
-    break
-  case 'aisles':
-    locationForm.value = {
-      module_id: route.params.moduleId,
-      sort_priority: mainProps.locationData.sort_priority ?? null,
-      aisle_number: mainProps.locationData.aisle_number?.number ?? ''
-    }
-    locationFields.value = [
-      {
-        field: 'aisle_number',
-        label: 'Aisle Number',
-        required: true,
-        disabled: mainProps.actionType == 'Edit'
-      },
-      {
-        field: 'sort_priority',
-        label: 'Aisle Priority'
+      locationFields.value = [
+        {
+          field: 'module_number',
+          label: 'Module Number',
+          required: true
+        }
+      ]
+      break
+    case 'aisles':
+      locationForm.value = {
+        module_id: route.params.moduleId,
+        sort_priority: mainProps.locationData.sort_priority ?? null,
+        aisle_number: mainProps.locationData.aisle_number?.number ?? ''
       }
-    ]
-    break
-  case 'ladders':
-    locationForm.value = {
-      side_id: route.params.sideId,
-      sort_priority: mainProps.locationData.sort_priority ?? null,
-      ladder_number: mainProps.locationData.ladder_number?.number ?? ''
-    }
-    locationFields.value = [
-      {
-        field: 'ladder_number',
-        label: 'Ladder Number',
-        required: true,
-        disabled: mainProps.actionType == 'Edit'
-      },
-      {
-        field: 'sort_priority',
-        label: 'Ladder Priority'
+      locationFields.value = [
+        {
+          field: 'aisle_number',
+          label: 'Aisle Number',
+          required: true,
+          disabled: mainProps.actionType == 'Edit'
+        },
+        {
+          field: 'sort_priority',
+          label: 'Aisle Priority'
+        }
+      ]
+      break
+    case 'ladders':
+      locationForm.value = {
+        side_id: route.params.sideId,
+        sort_priority: mainProps.locationData.sort_priority ?? null,
+        ladder_number: mainProps.locationData.ladder_number?.number ?? ''
       }
-    ]
-    break
-  case 'shelves':
-    locationForm.value = {
-      ladder_id: route.params.ladderId,
-      owner_id: mainProps.locationData.owner?.id ?? null,
-      size_class_id: mainProps.locationData.shelf_type?.size_class_id ?? null,
-      shelf_type_id: mainProps.locationData.shelf_type?.id ?? null,
-      container_type_id: mainProps.locationData.container_type?.id ?? null,
-      width: mainProps.locationData.width ?? '',
-      depth: mainProps.locationData.depth ?? '',
-      height: mainProps.locationData.height ?? '',
-      barcode_value: mainProps.locationData.barcode?.value ?? '',
-      sort_priority: mainProps.locationData.sort_priority ?? null,
-      shelf_number: mainProps.locationData.shelf_number?.number ?? ''
-    },
-    locationFields.value = [
-      {
-        field: 'owner_id',
-        label: 'Owner',
-        options: owners,
-        optionType: 'owners',
-        required: true
+      locationFields.value = [
+        {
+          field: 'ladder_number',
+          label: 'Ladder Number',
+          required: true,
+          disabled: mainProps.actionType == 'Edit'
+        },
+        {
+          field: 'sort_priority',
+          label: 'Ladder Priority'
+        }
+      ]
+      break
+    case 'shelves':
+      locationForm.value = {
+        ladder_id: route.params.ladderId,
+        owner_id: mainProps.locationData.owner?.id ?? null,
+        size_class_id: mainProps.locationData.shelf_type?.size_class_id ?? null,
+        shelf_type_id: mainProps.locationData.shelf_type?.id ?? null,
+        container_type_id: mainProps.locationData.container_type?.id ?? null,
+        width: mainProps.locationData.width ?? '',
+        depth: mainProps.locationData.depth ?? '',
+        height: mainProps.locationData.height ?? '',
+        barcode_value: mainProps.locationData.barcode?.value ?? '',
+        sort_priority: mainProps.locationData.sort_priority ?? null,
+        shelf_number: mainProps.locationData.shelf_number?.number ?? ''
       },
-      {
-        field: 'size_class_id',
-        label: 'Container Size',
-        options: sizeClass,
-        optionType: 'sizeClass',
-        required: true
-      },
-      {
-        field: 'shelf_type_id',
-        label: 'Shelf Type',
-        options: filteredShelfTypes,
-        optionType: 'shelfTypes',
-        required: true,
-        disabled: disableShelfType
-      },
-      {
-        field: 'container_type_id',
-        label: 'Container Type',
-        options: containerTypes,
-        optionType: 'containerTypes',
-        required: true
-      },
-      {
-        field: 'barcode_value',
-        label: 'Shelf Barcode',
-        disabled: mainProps.actionType == 'Edit',
-        required: true
-      },
-      {
-        field: 'shelf_number',
-        label: 'Shelf Number',
-        disabled: mainProps.actionType == 'Edit',
-        required: true
-      },
-      {
-        field: 'sort_priority',
-        label: 'Shelf Priority'
-      },
-      {
-        field: 'width',
-        label: 'Width (in)',
-        required: true
-      },
-      {
-        field: 'depth',
-        label: 'Depth (in)',
-        required: true
-      },
-      {
-        field: 'height',
-        label: 'Height (in)',
-        required: true
-      }
-    ]
-    break
-  default:
-    break
+      locationFields.value = [
+        {
+          field: 'owner_id',
+          label: 'Owner',
+          options: owners,
+          optionType: 'owners',
+          required: true
+        },
+        {
+          field: 'size_class_id',
+          label: 'Container Size',
+          options: sizeClass,
+          optionType: 'sizeClass',
+          required: true
+        },
+        {
+          field: 'shelf_type_id',
+          label: 'Shelf Type',
+          options: filteredShelfTypes,
+          optionType: 'shelfTypes',
+          required: true,
+          disabled: disableShelfType
+        },
+        {
+          field: 'container_type_id',
+          label: 'Container Type',
+          options: containerTypes,
+          optionType: 'containerTypes',
+          required: true
+        },
+        {
+          field: 'barcode_value',
+          label: 'Shelf Barcode',
+          disabled: mainProps.actionType == 'Edit' && mainProps.locationData.barcode?.value ? true : false,
+          required: true
+        },
+        {
+          field: 'shelf_number',
+          label: 'Shelf Number',
+          disabled: mainProps.actionType == 'Edit',
+          required: true
+        },
+        {
+          field: 'sort_priority',
+          label: 'Shelf Priority'
+        },
+        {
+          field: 'width',
+          label: 'Width (in)',
+          required: true
+        },
+        {
+          field: 'depth',
+          label: 'Depth (in)',
+          required: true
+        },
+        {
+          field: 'height',
+          label: 'Height (in)',
+          required: true
+        }
+      ]
+      break
+    default:
+      break
   }
 }
 
@@ -370,37 +372,37 @@ const addNewLocationType = async () => {
     // send api request to add a new location by the locationType
     const payload = locationForm.value
     switch (mainProps.locationType) {
-    case 'buildings':
-      await postBuilding(payload)
-      break
-    case 'modules':
-      await postModule(payload)
-      break
-    case 'aisles':
-      await postAisle(payload)
-      break
-    case 'ladders':
-      await postLadder(payload)
-      break
-    case 'shelves':
-      // if payload includes a shelf barcode validate it and create the shelf barcode
-      if (payload.barcode_value !== '') {
-        const res = await verifyBarcode(payload.barcode_value, 'Shelf')
-        if (res == 'barcode_exists') {
+      case 'buildings':
+        await postBuilding(payload)
+        break
+      case 'modules':
+        await postModule(payload)
+        break
+      case 'aisles':
+        await postAisle(payload)
+        break
+      case 'ladders':
+        await postLadder(payload)
+        break
+      case 'shelves':
+        // if payload includes a shelf barcode validate it and create the shelf barcode
+        if (payload.barcode_value !== '') {
+          const res = await verifyBarcode(payload.barcode_value, 'Shelf', true)
+          if (res == 'barcode_exists') {
           // if the inputed shelf barcode exists throw an error since shelf barcode has to be new when adding new shelves
-          handleAlert({
-            type: 'error',
-            text: 'The shelf barcode inputed already exists. Please try again.',
-            autoClose: true
-          })
-          return
+            handleAlert({
+              type: 'error',
+              text: 'The shelf barcode inputed already exists. Please try again.',
+              autoClose: true
+            })
+            return
+          }
+          payload.barcode_id = barcodeDetails.value.id
         }
-        payload.barcode_id = barcodeDetails.value.id
-      }
-      await postShelve(payload)
-      break
-    default:
-      break
+        await postShelve(payload)
+        break
+      default:
+        break
     }
 
     handleAlert({
@@ -415,6 +417,9 @@ const addNewLocationType = async () => {
       autoClose: true
     })
   } finally {
+    // emit to parent that we added a new location option
+    emit('newLocationAdded')
+
     appActionIsLoadingData.value = false
     locationModal.value.hideModal()
   }
@@ -429,27 +434,42 @@ const updateLocationType = async () => {
       ...locationForm.value
     }
     switch (mainProps.locationType) {
-    case 'buildings':
-      await patchBuilding(payload)
-      break
-    case 'modules':
-      await patchModule(payload)
-      break
-    case 'aisles':
-      await patchAisle(payload)
-      break
-    case 'ladders':
-      await patchLadder(payload)
-      break
-    case 'shelves':
-      // convert empty payload value for sort priority to be null since backend expects int values only
-      if (payload.sort_priority == '') {
-        payload.sort_priority = null
-      }
-      await patchShelve(payload)
-      break
-    default:
-      break
+      case 'buildings':
+        await patchBuilding(payload)
+        break
+      case 'modules':
+        await patchModule(payload)
+        break
+      case 'aisles':
+        await patchAisle(payload)
+        break
+      case 'ladders':
+        await patchLadder(payload)
+        break
+      case 'shelves':
+        // if payload includes a shelf barcode validate it and create the shelf barcode (this only occurs when a user bulk uploads a shelf without a barcode)
+        if (!mainProps.locationData.barcode?.value) {
+          const res = await verifyBarcode(payload.barcode_value, 'Shelf', true)
+          if (res == 'barcode_exists') {
+            // if the inputed shelf barcode exists throw an error since shelf barcode has to be new when adding new shelves
+            handleAlert({
+              type: 'error',
+              text: 'The shelf barcode inputed already exists. Please try again.',
+              autoClose: true
+            })
+            return
+          }
+          payload.barcode_id = barcodeDetails.value.id
+        }
+
+        // convert empty payload value for sort priority to be null since backend expects int values only
+        if (payload.sort_priority == '') {
+          payload.sort_priority = null
+        }
+        await patchShelve(payload)
+        break
+      default:
+        break
     }
 
     handleAlert({

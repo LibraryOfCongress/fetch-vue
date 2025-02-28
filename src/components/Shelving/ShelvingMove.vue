@@ -507,9 +507,9 @@ const neverShowContainerNote = () => {
 
 const handleOptionMenu = (action, rowData) => {
   switch (action.text) {
-  case 'Remove From Transfer':
-    removeTransferContainer(rowData.barcode.value)
-    return
+    case 'Remove From Transfer':
+      removeTransferContainer(rowData.barcode.value)
+      return
   }
 }
 
@@ -804,7 +804,7 @@ const completeMoveShelfLocations = async () => {
           autoClose: true
         })
       } else {
-        //TODO change this to return a single error listing the number of errors and link a move discrepencty report when that feature is added.
+        //TODO change this to return a single error listing the number of errors and link a move discrepancy report when that feature is added.
         //REMOVE TEMPORARY FIX - since there is no move descrepency report yet we just display error alerts for now
         handleAlert({
           type: 'error',
@@ -849,7 +849,7 @@ const completeMoveTrayItem = async () => {
       })
     )
 
-    // loop through the responses and display the transfer success/failures and link the move descrepency report if needed
+    // loop through the responses and display the transfer success/failures and link the move dependency report if needed
     for (const res of responses) {
       if (res.status == 200) {
         handleAlert({
@@ -858,8 +858,8 @@ const completeMoveTrayItem = async () => {
           autoClose: true
         })
       } else {
-        //TODO change this to return a single error listing the number of errors and link a move discrepencty report when that feature is added.
-        //REMOVE TEMPORARY FIX - since there is no move descrepency report yet we just display error alerts for now
+        //TODO change this to return a single error listing the number of errors and link a move discrepancy report when that feature is added.
+        //REMOVE TEMPORARY FIX - since there is no move dependency report yet we just display error alerts for now
         handleAlert({
           type: 'error',
           text: res,

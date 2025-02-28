@@ -6,12 +6,17 @@
           ref="requestTableComponent"
           :table-columns="requestDisplayType == 'request_view' ? requestTableColumns : requestBatchTableColumns"
           :table-visible-columns="requestDisplayType == 'request_view' ? requestTableVisibleColumns : requestBatchTableVisibleColumns"
-          :filter-options="requestDisplayType == 'request_view' ? requestTableFilters : requestBatchTableFilters"
+          :filter-options="showCreatePickList || showAddPickList ? [] : requestDisplayType == 'request_view' ? requestTableFilters : requestBatchTableFilters"
           :table-data="requestJobList"
           :enable-table-reorder="false"
           :enable-selection="showCreatePickList || showAddPickList"
           :heading-row-class="'q-mb-xs-md q-mb-md-xl'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :heading-rearrange-class="showCreatePickList || showAddPickList ? 'q-ml-auto' : null"
+          :enable-pagination="true"
+          :pagination-total="requestJobListTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadRequestJobs($event)"
           @selected-table-row="loadRequestJob($event.id)"
           @selected-data="selectedRequestItems = $event"
         >
@@ -146,7 +151,7 @@
                   outline
                   label="Cancel"
                   class="btn-no-wrap text-body1 q-ml-xs full-height"
-                  @click="resetPickListForm(); getRequestJobList();"
+                  @click="resetPickListForm(); getRequestJobList({ queue: true });"
                 />
               </div>
             </div>
@@ -161,7 +166,7 @@
               :button-two-color="'black'"
               :button-two-label="'Cancel'"
               :button-two-outline="true"
-              @button-two-click="resetPickListForm(); getRequestJobList();"
+              @button-two-click="resetPickListForm(); getRequestJobList({ queue: true });"
             />
           </template>
 
@@ -188,9 +193,6 @@
               {{ value }}
             </span>
             <span v-else-if="colName == 'create_dt'">
-              {{ formatDateTime(value).date }}
-            </span>
-            <span v-else-if="colName == 'import_dt'">
               {{ formatDateTime(value).date }}
             </span>
           </template>
@@ -265,12 +267,30 @@
             <SelectInput
               v-model="addToPickListJob"
               :options="picklists"
-              option-type="picklists"
               option-value="id"
               option-label="id"
               :placeholder="'Select Pick List Job'"
               aria-label="picklistJobSelect"
-            />
+              :loading="appActionIsLoadingData"
+              @focus="loadPicklistJobs"
+            >
+              <template #option="{ itemProps, opt, selected, toggleOption }">
+                <q-item v-bind="itemProps">
+                  <q-item-section>
+                    <q-item-label class="text-body1">
+                      <span>Job #: {{ opt.id }}</span>
+                      <span class="text-secondary"> - {{ opt.request_count }} Items ({{ formatDateTime(opt.create_dt).date }})</span>
+                    </q-item-label>
+                  </q-item-section>
+                  <q-item-section side>
+                    <q-checkbox
+                      :model-value="selected"
+                      @update:model-value="toggleOption(opt)"
+                    />
+                  </q-item-section>
+                </q-item>
+              </template>
+            </SelectInput>
           </div>
         </q-card-section>
       </template>
@@ -304,7 +324,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, inject, watch } from 'vue'
+import { onBeforeMount, ref, reactive, inject, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
@@ -331,16 +351,26 @@ const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
-const { buildings, picklists } = storeToRefs(useOptionStore())
+const { getOptions } = useOptionStore()
+const {
+  buildings,
+  picklists,
+  mediaTypes,
+  requestsPriorities,
+  requestsLocations
+} = storeToRefs(useOptionStore())
 const {
   resetRequestJob,
-  resetRequestStore,
   getRequestJobList,
   getRequestJob,
   getRequestBatchJobList,
   getRequestBatchJob
 } = useRequestStore()
-const { requestJobList, requestJob } = storeToRefs(useRequestStore())
+const {
+  requestJobList,
+  requestJobListTotal,
+  requestJob
+} = storeToRefs(useRequestStore())
 const { postPicklistJob, patchPicklistJobItem } = usePicklistStore()
 const { picklistJob } = storeToRefs(usePicklistStore())
 const { userData } = storeToRefs(useUserStore())
@@ -351,14 +381,14 @@ const requestTableComponent = ref(null)
 const requestTableVisibleColumns = ref([
   'id',
   'request_type',
-  'barcode',
+  'barcode_value',
   'external_request_id',
-  'building',
+  'building_name',
   'requestor_name',
   'status',
   'priority',
   'media_type',
-  'item_location',
+  'location',
   'delivery_location',
   'create_dt'
 ])
@@ -378,8 +408,8 @@ const requestTableColumns = ref([
     sortable: true
   },
   {
-    name: 'barcode',
-    field: row => row.item ? row.item?.barcode?.value : row.non_tray_item?.barcode?.value,
+    name: 'barcode_value',
+    field: row => row.item ? renderItemBarcodeDisplay(row.item) : renderItemBarcodeDisplay(row.non_tray_item),
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -392,7 +422,7 @@ const requestTableColumns = ref([
     sortable: true
   },
   {
-    name: 'building',
+    name: 'building_name',
     field: row => row.building?.name,
     label: 'Building',
     align: 'left',
@@ -427,7 +457,7 @@ const requestTableColumns = ref([
     sortable: true
   },
   {
-    name: 'item_location',
+    name: 'location',
     field: row => row.item ? getItemLocation(row.item.tray) : getItemLocation(row.non_tray_item),
     label: 'Item Location',
     align: 'left',
@@ -448,39 +478,96 @@ const requestTableColumns = ref([
     sortable: true
   }
 ])
-const requestTableFilters =  ref([
+const requestTableFilters =  reactive([
   {
-    field: 'status',
+    field: row => row.request_type?.type,
+    label: 'Request Type',
+    apiField: 'request_type',
     options: [
       {
-        text: 'Created',
+        text: 'General Delivery',
         value: false
       },
       {
-        text: 'Paused',
+        text: 'ILL (InterLibrary Loan)',
         value: false
       },
       {
-        text: 'On Hold',
-        value: false
-      },
-      {
-        text: 'Completed',
+        text: 'Scan and Deliver',
         value: false
       }
     ]
+  },
+  {
+    field: row => row.building?.name,
+    label: 'Building',
+    apiField: 'building_name',
+    options: buildings.value.map(b => {
+      return {
+        text: b.name,
+        value: false
+      }
+    })
+  },
+  {
+    field: row => row.item ? row.item?.status : row.non_tray_item?.status,
+    label: 'Status',
+    apiField: 'status',
+    options: [
+      {
+        text: 'PickList',
+        value: false
+      },
+      {
+        text: 'Requested',
+        value: false
+      }
+    ]
+  },
+  {
+    field: row => row.priority?.value,
+    label: 'Priority',
+    apiField: 'priority',
+    options: requestsPriorities.value.map(p => {
+      return {
+        text: p.value,
+        value: false
+      }
+    })
+  },
+  {
+    field: row => row.item ? row.item?.media_type?.name : row.non_tray_item?.media_type?.name,
+    label: 'Media Type',
+    apiField: 'media_type',
+    options: mediaTypes.value.map(m => {
+      return {
+        text: m.name,
+        value: false
+      }
+    })
+  },
+  {
+    field: row => row.delivery_location?.name,
+    label: 'Delivery Location',
+    apiField: 'delivery_location',
+    options: requestsLocations.value.map(dl => {
+      return {
+        text: dl.name,
+        value: false
+      }
+    })
   }
 ])
 const requestBatchTableVisibleColumns = ref([
-  'import_source',
+  'file_type',
   'request_count',
   'status',
-  'uploaded_by',
-  'import_dt'
+  'user_id',
+  'create_dt'
 ])
 const requestBatchTableColumns = ref([
   {
-    name: 'import_source',
+    name: 'file_type',
     field: 'file_type',
     label: 'Import Source',
     align: 'left',
@@ -501,14 +588,14 @@ const requestBatchTableColumns = ref([
     sortable: true
   },
   {
-    name: 'uploaded_by',
+    name: 'user_id',
     field: row => row.user?.email,
     label: 'Uploaded By',
     align: 'left',
     sortable: true
   },
   {
-    name: 'import_dt',
+    name: 'create_dt',
     field: 'create_dt',
     label: 'Date Imported',
     align: 'left',
@@ -518,19 +605,8 @@ const requestBatchTableColumns = ref([
 const requestBatchTableFilters =  ref([
   {
     field: 'status',
+    label: 'Status',
     options: [
-      {
-        text: 'Created',
-        value: false
-      },
-      {
-        text: 'Pick List',
-        value: false
-      },
-      {
-        text: 'On Hold',
-        value: false
-      },
       {
         text: 'Completed',
         value: false
@@ -552,23 +628,23 @@ const filterRequestsByBuilding = ref(null)
 const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 onBeforeMount(() => {
-  resetRequestStore()
   loadRequestJobs()
 
   if (currentScreenSize.value == 'xs') {
     requestTableVisibleColumns.value = [
       'id',
       'request_type',
-      'barcode',
+      'barcode_value',
       'requestor_name'
     ]
     requestBatchTableVisibleColumns.value = [
-      'import_source',
+      'file_type',
       'request_count',
       'status',
-      'import_dt'
+      'create_dt'
     ]
   }
 })
@@ -601,13 +677,16 @@ const resetRequestOverlay = () => {
   })
 }
 
-const loadRequestJobs = async () => {
+const loadRequestJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
     if (requestDisplayType.value == 'request_view') {
-      await getRequestJobList({ queue: true })
+      await getRequestJobList({
+        ...qParams,
+        queue: true
+      })
     } else {
-      await getRequestBatchJobList()
+      await getRequestBatchJobList({ ...qParams })
     }
   } catch (error) {
     handleAlert({
@@ -624,7 +703,10 @@ const loadRequestJobsByBuilding = async () => {
     appActionIsLoadingData.value = true
     // this function only gets called during the creation/add picklist workflow
     if (requestDisplayType.value == 'request_view') {
-      await getRequestJobList({ building_id: filterRequestsByBuilding.value, unassociated_pick_list: true })
+      await getRequestJobList({
+        building_id: filterRequestsByBuilding.value,
+        unassociated_pick_list: true
+      })
     } else {
       await getRequestBatchJobList({ building_id: filterRequestsByBuilding.value })
     }
@@ -675,6 +757,26 @@ const loadRequestJob = async (id) => {
     })
   } finally {
     appIsLoadingData.value = false
+  }
+}
+const loadPicklistJobs = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    // only load picklist jobs with a created or paused status
+    await getOptions('picklists', {
+      status: [
+        'Created',
+        'Paused'
+      ]
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = false
   }
 }
 const createPickListJob = async () => {

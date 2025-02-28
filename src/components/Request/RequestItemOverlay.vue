@@ -25,7 +25,7 @@
 
       <q-card-section>
         <BarcodeBox
-          :barcode="itemData.item ? itemData.item.barcode.value : itemData.non_tray_item.barcode.value"
+          :barcode="renderItemBarcodeDisplay(itemData.item ? itemData.item : itemData.non_tray_item)"
         />
       </q-card-section>
 
@@ -41,7 +41,7 @@
             Barcode:
           </label>
           <p class="request-item-details-text">
-            {{ itemData.item ? itemData.item.barcode.value : itemData.non_tray_item.barcode.value }}
+            {{ renderItemBarcodeDisplay(itemData.item ? itemData.item : itemData.non_tray_item) }}
           </p>
         </div>
 
@@ -105,7 +105,7 @@
 
         <div class="request-item-details">
           <p class="request-item-details-text outline">
-            {{ itemData.item ? itemData.item.owner.name : itemData.non_tray_item.owner.name }}
+            {{ itemData.item ? itemData.item.owner?.name : itemData.non_tray_item.owner?.name }}
           </p>
         </div>
       </q-card-section>
@@ -208,6 +208,7 @@ const { currentScreenSize } = useCurrentScreenSize()
 // Logic
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 const renderItemBuilding = (itemData) => {
   let building = ''

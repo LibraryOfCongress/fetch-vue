@@ -128,12 +128,19 @@
               </label>
               <SelectInput
                 v-model="searchForm.shelf_id"
-                :options="renderLadderShelves"
+                :options="shelves"
                 option-value="id"
+                option-type="shelves"
+                :option-query="{
+                  building_id: searchForm.building_id,
+                  module_id: searchForm.module_id,
+                  aisle_id: searchForm.aisle_id,
+                  side_id: searchForm.side_id,
+                  ladder_id: searchForm.ladder_id
+                }"
                 :option-label="opt => opt.shelf_number.number"
                 :placeholder="'Select Shelf'"
-                :disabled="renderLadderShelves.length == 0"
-                @update:model-value="handleLocationFormChange('Shelf')"
+                :disabled="!searchForm.ladder_id"
                 aria-label="shelfSelect"
               />
             </div>
@@ -334,6 +341,7 @@ const emit = defineEmits(['hide'])
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   buildings,
+  shelves,
   owners,
   sizeClass,
   mediaTypes,
@@ -355,8 +363,7 @@ const {
   renderBuildingModules,
   renderBuildingOrModuleAisles,
   renderAisleSides,
-  renderSideLadders,
-  renderLadderShelves
+  renderSideLadders
 } = storeToRefs(useBuildingStore())
 const { getAdvancedSearchResults } = useSearchStore()
 
@@ -379,208 +386,208 @@ watch(() => mainProps.searchType, () => {
 const handleLocationFormChange = async (valueType) => {
   // reset the report form depending on the edited form field type
   switch (valueType) {
-  case 'Building':
-    await getBuildingDetails(searchForm.value.building_id)
-    searchForm.value.module_id = null
-    searchForm.value.aisle_id = null
-    searchForm.value.side_id = null
-    searchForm.value.ladder_id = null
-    searchForm.value.shelf_id = null
-    resetBuildingChildren()
-    return
-  case 'Module':
-    await getModuleDetails(searchForm.value.module_id)
-    searchForm.value.aisle_id = null
-    searchForm.value.side_id = null
-    searchForm.value.ladder_id = null
-    searchForm.value.shelf_id = null
-    resetModuleChildren()
-    return
-  case 'Aisle':
-    await getAisleDetails(searchForm.value.aisle_id)
-    searchForm.value.side_id = null
-    searchForm.value.ladder_id = null
-    searchForm.value.shelf_id = null
-    resetAisleChildren()
-    return
-  case 'Side':
-    await getSideDetails(searchForm.value.side_id)
-    searchForm.value.ladder_id = null
-    searchForm.value.shelf_id = null
-    resetSideChildren()
-    return
-  case 'Ladder':
-    await getLadderDetails(searchForm.value.ladder_id)
-    searchForm.value.shelf_id = null
-    return
+    case 'Building':
+      await getBuildingDetails(searchForm.value.building_id)
+      searchForm.value.module_id = null
+      searchForm.value.aisle_id = null
+      searchForm.value.side_id = null
+      searchForm.value.ladder_id = null
+      searchForm.value.shelf_id = null
+      resetBuildingChildren()
+      return
+    case 'Module':
+      await getModuleDetails(searchForm.value.module_id)
+      searchForm.value.aisle_id = null
+      searchForm.value.side_id = null
+      searchForm.value.ladder_id = null
+      searchForm.value.shelf_id = null
+      resetModuleChildren()
+      return
+    case 'Aisle':
+      await getAisleDetails(searchForm.value.aisle_id)
+      searchForm.value.side_id = null
+      searchForm.value.ladder_id = null
+      searchForm.value.shelf_id = null
+      resetAisleChildren()
+      return
+    case 'Side':
+      await getSideDetails(searchForm.value.side_id)
+      searchForm.value.ladder_id = null
+      searchForm.value.shelf_id = null
+      resetSideChildren()
+      return
+    case 'Ladder':
+      await getLadderDetails(searchForm.value.ladder_id)
+      searchForm.value.shelf_id = null
+      return
   }
 }
 
 const generateSearchModal = () => {
   // creates the advanced search modal params needed based on the selected search type
   switch (mainProps.searchType) {
-  case 'Item':
-    searchForm.value = {
-      from_dt: null,
-      to_dt: null,
-      owner_id: null,
-      status: '',
-      size_class_id: null,
-      media_type_id: null
-    }
-    searchParams.value = [
-      {
-        query: 'from_dt',
-        label: 'Accession Date (From)'
-      },
-      {
-        query: 'to_dt',
-        label: 'Accession Date Date (To)'
-      },
-      {
-        query: 'owner_id',
-        label: 'Owner',
-        options: owners,
-        optionType: 'owners'
-      },
-      {
-        query: 'status',
-        label: 'Status',
-        options: [
-          'In',
-          'Out',
-          'Requested',
-          'Withdrawn'
-        ],
-        optionType: ''
-      },
-      {
-        query: 'size_class_id',
-        label: 'Size Class',
-        options: sizeClass,
-        optionType: 'sizeClass'
-      },
-      {
-        query: 'media_type_id',
-        label: 'Media Type',
-        options: mediaTypes,
-        optionType: 'mediaTypes'
+    case 'Item':
+      searchForm.value = {
+        from_dt: null,
+        to_dt: null,
+        owner_id: null,
+        status: '',
+        size_class_id: null,
+        media_type_id: null
       }
-    ]
-    break
-  case 'Tray':
-    searchForm.value = {
-      from_dt: null,
-      to_dt: null,
-      owner_id: null,
-      size_class_id: null,
-      media_type_id: null
-    }
-    searchParams.value = [
-      {
-        query: 'from_dt',
-        label: 'Accession Date Date (From)'
-      },
-      {
-        query: 'to_dt',
-        label: 'Accession Date Date (To)'
-      },
-      {
-        query: 'owner_id',
-        label: 'Owner',
-        options: owners,
-        optionType: 'owners'
-      },
-      {
-        query: 'size_class_id',
-        label: 'Size Class',
-        options: sizeClass,
-        optionType: 'sizeClass'
-      },
-      {
-        query: 'media_type_id',
-        label: 'Media Type',
-        options: mediaTypes,
-        optionType: 'mediaTypes'
+      searchParams.value = [
+        {
+          query: 'from_dt',
+          label: 'Accession Date (From)'
+        },
+        {
+          query: 'to_dt',
+          label: 'Accession Date (To)'
+        },
+        {
+          query: 'owner_id',
+          label: 'Owner',
+          options: owners,
+          optionType: 'owners'
+        },
+        {
+          query: 'status',
+          label: 'Status',
+          options: [
+            'In',
+            'Out',
+            'Requested',
+            'Withdrawn'
+          ],
+          optionType: ''
+        },
+        {
+          query: 'size_class_id',
+          label: 'Size Class',
+          options: sizeClass,
+          optionType: 'sizeClass'
+        },
+        {
+          query: 'media_type_id',
+          label: 'Media Type',
+          options: mediaTypes,
+          optionType: 'mediaTypes'
+        }
+      ]
+      break
+    case 'Tray':
+      searchForm.value = {
+        from_dt: null,
+        to_dt: null,
+        owner_id: null,
+        size_class_id: null,
+        media_type_id: null
       }
-    ]
-    break
-  case 'Shelf':
-    searchForm.value = {
-      building_id: null,
-      module_id: null,
-      aisle_id: null,
-      side_id: null,
-      ladder_id: null,
-      shelf_id: null,
-      owner_id: null,
-      size_class_id: null
-    }
-    break
-  case 'Request':
-    searchForm.value = {
-      from_dt: null,
-      to_dt: null,
-      requestor_name: ''
-    }
-    searchParams.value = [
-      {
-        query: 'from_dt',
-        label: 'Created Date (From)'
-      },
-      {
-        query: 'to_dt',
-        label: 'Created Date (To)'
-      },
-      {
-        query: 'requestor_name',
-        label: 'Requested By'
+      searchParams.value = [
+        {
+          query: 'from_dt',
+          label: 'Accession Date (From)'
+        },
+        {
+          query: 'to_dt',
+          label: 'Accession Date (To)'
+        },
+        {
+          query: 'owner_id',
+          label: 'Owner',
+          options: owners,
+          optionType: 'owners'
+        },
+        {
+          query: 'size_class_id',
+          label: 'Size Class',
+          options: sizeClass,
+          optionType: 'sizeClass'
+        },
+        {
+          query: 'media_type_id',
+          label: 'Media Type',
+          options: mediaTypes,
+          optionType: 'mediaTypes'
+        }
+      ]
+      break
+    case 'Shelf':
+      searchForm.value = {
+        building_id: null,
+        module_id: null,
+        aisle_id: null,
+        side_id: null,
+        ladder_id: null,
+        shelf_id: null,
+        owner_id: null,
+        size_class_id: null
       }
-    ]
-    break
-  default:
-    searchForm.value = {
-      from_dt: null,
-      to_dt: null,
-      status: null,
-      created_by_id: null,
-      user_id: null
-    }
-    searchParams.value = [
-      {
-        query: 'from_dt',
-        label: 'Created Date (From)'
-      },
-      {
-        query: 'to_dt',
-        label: 'Created Date (To)'
-      },
-      {
-        query: 'status',
-        label: 'Status',
-        options: [
-          'Created',
-          'Paused',
-          'Running',
-          'Cancelled',
-          'Completed'
-        ],
-        optionType: ''
-      },
-      {
-        query: 'created_by_id',
-        label: 'Created By',
-        options: users,
-        optionType: 'users'
-      },
-      {
-        query: 'user_id',
-        label: 'Completed By',
-        options: users,
-        optionType: 'users'
+      break
+    case 'Request':
+      searchForm.value = {
+        from_dt: null,
+        to_dt: null,
+        requestor_name: ''
       }
-    ]
-    break
+      searchParams.value = [
+        {
+          query: 'from_dt',
+          label: 'Created Date (From)'
+        },
+        {
+          query: 'to_dt',
+          label: 'Created Date (To)'
+        },
+        {
+          query: 'requestor_name',
+          label: 'Requested By'
+        }
+      ]
+      break
+    default:
+      searchForm.value = {
+        from_dt: null,
+        to_dt: null,
+        status: null,
+        created_by_id: null,
+        user_id: null
+      }
+      searchParams.value = [
+        {
+          query: 'from_dt',
+          label: 'Created Date (From)'
+        },
+        {
+          query: 'to_dt',
+          label: 'Created Date (To)'
+        },
+        {
+          query: 'status',
+          label: 'Status',
+          options: [
+            'Created',
+            'Paused',
+            'Running',
+            'Cancelled',
+            'Completed'
+          ],
+          optionType: ''
+        },
+        {
+          query: 'created_by_id',
+          label: 'Created By',
+          options: users,
+          optionType: 'users'
+        },
+        {
+          query: 'user_id',
+          label: 'Completed By',
+          options: users,
+          optionType: 'users'
+        }
+      ]
+      break
   }
 }
 
@@ -619,7 +626,8 @@ const executeAdvancedSearch = async () => {
       name: 'search-results',
       params: {
         searchType: mainProps.searchType
-      }
+      },
+      query: queryParams
     })
   } catch (error) {
     handleAlert({

@@ -115,7 +115,7 @@
         :table-columns="shelfTableColumns"
         :table-visible-columns="shelfTableVisibleColumns"
         :table-data="shelvingJobContainers"
-        :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
+        :heading-row-class="'justify-end q-mb-lg q-px-xs-sm q-px-sm-md'"
         :highlight-row-class="'bg-color-green-light'"
         :highlight-row-key="'scanned_for_shelving'"
         :highlight-row-value="true"
@@ -164,7 +164,7 @@
       <q-card-section class="row q-pb-sm">
         <div class="col-12">
           <BarcodeBox
-            :barcode="shelvingJobContainer.barcode.value"
+            :barcode="renderItemBarcodeDisplay(shelvingJobContainer)"
             :min-height="'5rem'"
           />
         </div>
@@ -267,7 +267,7 @@ const {
 const shelfTableColumns = ref([
   {
     name: 'barcode',
-    field: row => row.barcode.value,
+    field: row => renderItemBarcodeDisplay(row),
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -312,9 +312,11 @@ const shelfTableVisibleColumns = ref([
 const showScanContainerModal = ref(false)
 
 // Logic
+const currentIsoDate = inject('current-iso-date')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
 const handleAlert = inject('handle-alert')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
@@ -329,7 +331,7 @@ onBeforeMount(() => {
 
 onMounted(async () => {
   // when user is online and loads a job we store the current shelving job data in indexdb for reference offline
-  if (!appIsOffline.value) {
+  if (!appIsOffline.value && !appPendingSync.value) {
     await nextTick()
     addDataToIndexDb('shelvingStore', 'directToShelfJob', JSON.parse(JSON.stringify(directToShelfJob.value)))
   } else {
@@ -400,6 +402,7 @@ const assignContainerLocation = async () => {
       container_barcode_value: shelvingJobContainer.value.barcode.value,
       shelf_barcode_value: directToShelfJob.value.shelf_barcode.value,
       shelf_position_number: parseInt(shelvingJobContainer.value.shelf_position_number),
+      shelved_dt: currentIsoDate(),
       scanned_for_shelving: true
     }
     await postDirectShelvingJobContainer(payload)
@@ -447,7 +450,7 @@ const completeDirectToShelfJob = async () => {
     const payload = {
       id: directToShelfJob.value.id,
       status: 'Completed',
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchDirectShelvingJob(payload)
 

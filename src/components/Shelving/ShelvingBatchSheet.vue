@@ -14,7 +14,10 @@
 
         <section>
           <p class="text-bold q-mb-sm">
-            Shelving Job Completed Date: {{ shelvingJobDetails.status == 'Completed' ? formatDateTime(shelvingJobDetails.last_transition).date : '' }}
+            Shelving Job Completed Date/Time: {{ shelvingJobDetails.status == 'Completed' ? formatDateTime(shelvingJobDetails.last_transition).dateTime : '' }}
+          </p>
+          <p class="text-bold q-mb-sm">
+            Shelving Job Created Date/Time: {{ formatDateTime(shelvingJobDetails.create_dt).dateTime }}
           </p>
           <p class="text-bold">
             Shelving Job User: {{ shelvingJobDetails.user ? `${shelvingJobDetails.user.first_name} ${shelvingJobDetails.user.last_name}` : 'No Assignee' }}
@@ -60,7 +63,7 @@
                 v-for="containers in shelvingJobDetails.trays"
                 :key="containers.id"
               >
-                <td>{{ containers.barcode?.value }}</td>
+                <td>{{ renderItemBarcodeDisplay(containers) }}</td>
                 <td>{{ containers.shelf_position?.location?.split('-')[1] }}</td>
                 <td>{{ containers.shelf_position?.location?.split('-')[2] }}</td>
                 <td>{{ containers.shelf_position?.location?.split('-')[3] }}</td>
@@ -72,7 +75,7 @@
                 v-for="containers in shelvingJobDetails.non_tray_items"
                 :key="containers.id"
               >
-                <td>{{ containers.barcode?.value }}</td>
+                <td>{{ renderItemBarcodeDisplay(containers) }}</td>
                 <td>{{ containers.shelf_position?.location?.split('-')[1] }}</td>
                 <td>{{ containers.shelf_position?.location?.split('-')[2] }}</td>
                 <td>{{ containers.shelf_position?.location?.split('-')[3] }}</td>
@@ -104,6 +107,7 @@ const printTemplate = ref(null)
 
 // Logic
 const formatDateTime = inject('format-date-time')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 const printBatchReport = () => {
   printTemplate.value.print()

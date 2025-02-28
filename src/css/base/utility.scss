@@ -72,6 +72,10 @@ $color-map: (
   padding: 1px 5px;
 }
 
+.underline {
+  border-bottom: 1px solid $color-gray;
+}
+
 .disabled, [disabled] {
   opacity: 0.61 !important;
 }

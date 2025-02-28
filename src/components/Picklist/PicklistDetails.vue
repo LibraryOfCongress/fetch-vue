@@ -5,8 +5,9 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit', hidden: !checkUserPermission('can_assign_and_reassign_picklist_job'), disabled: appIsOffline || editJob || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' },
-            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_picklist_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed' || picklistItems.some(itm => itm.status !== 'Requested')},
-            { text: 'Print Job' }
+            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_picklist_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || picklistJob.status == 'Completed' || picklistItems.some(itm => itm.status !== 'PickList')},
+            { text: 'Print Job' },
+            { text: 'View History' }
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
@@ -73,7 +74,19 @@
           <label
             class="info-display-details-label-2 text-h6"
           >
-            Date Created
+            # of Items:
+          </label>
+          <p class="text-body1">
+            {{ picklistJob.request_count }}
+          </p>
+        </div>
+      </div>
+      <div class="col-xs-6 col-sm-6 col-md-grow">
+        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
+          <label
+            class="info-display-details-label-2 text-h6"
+          >
+            Date Created:
           </label>
           <p class="text-body1">
             {{ formatDateTime(picklistJob.create_dt).date }}
@@ -85,7 +98,7 @@
           <label
             class="info-display-details-label-2 text-h6"
           >
-            Status
+            Status:
           </label>
           <p
             class="text-body1 outline"
@@ -190,9 +203,10 @@
         :enable-selection="false"
         :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
-        :highlight-row-class="'bg-color-green-light'"
+        :highlight-row-class="'justify-end bg-color-green-light'"
         :highlight-row-key="'status'"
         :highlight-row-value="'Out'"
+        @selected-table-row="loadPicklistItem(renderItemBarcodeDisplay($event.item ? $event.item : $event.non_tray_item))"
       >
         <template #heading-row>
           <div class="col-xs-7 col-sm-5 q-mb-md-sm">
@@ -207,7 +221,7 @@
             v-if="colName == 'actions'"
           >
             <MoreOptionsMenu
-              :options="[{ text: 'Revert Item to Queue', disabled: props.row.status !== 'Requested' || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' || !checkUserPermission('can_edit_picklist_job')}]"
+              :options="[{ text: 'Revert Item to Queue', disabled: props.row.status !== 'PickList' || picklistJob.status == 'Paused' || picklistJob.status == 'Completed' || !checkUserPermission('can_edit_picklist_job')}]"
               class=""
               @click="handleOptionMenu($event, props.row)"
             />
@@ -215,11 +229,11 @@
           <span
             v-else-if="colName == 'status'"
             class="text-bold text-nowrap"
-            :class="value !== 'Requested' ? 'text-positive' : ''"
+            :class="value !== 'PickList' ? 'text-positive' : ''"
           >
-            {{ value !== 'Requested' ? 'Retrieved' : '' }}
+            {{ value !== 'PickList' ? 'Retrieved' : '' }}
             <q-icon
-              v-if="value !== 'Requested'"
+              v-if="value !== 'PickList'"
               name="mdi-check-circle"
               color="positive"
               size="25px"
@@ -289,16 +303,31 @@
     </template>
   </PopupModal>
 
+  <!-- picklist item detail modal -->
+  <PicklistItemDetailModal
+    v-if="showPicklistItemDetailModal"
+    @hide="showPicklistItemDetailModal = false"
+  />
+
   <!-- print component: picklist job report -->
   <PicklistBatchSheet
     ref="batchSheetComponent"
     :picklist-job-details="picklistJob"
     :picklist-job-items="picklistItems"
   />
+
+  <!-- audit trail modal -->
+  <AuditTrail
+    v-if="showAuditTrailModal"
+    ref="historyModal"
+    @reset="showAuditTrailModal = null"
+    :job-type="showAuditTrailModal"
+    :job-id="picklistJob.id"
+  />
 </template>
 
 <script setup>
-import { onBeforeMount, onMounted, ref, inject, toRaw, watch } from 'vue'
+import { onBeforeMount, onMounted, ref, computed, inject, toRaw, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -316,6 +345,8 @@ import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import PicklistBatchSheet from '@/components/Picklist/PicklistBatchSheet.vue'
+import AuditTrail from '@/components/AuditTrail.vue'
+import PicklistItemDetailModal from '@/components/Picklist/PicklistItemDetailModal.vue'
 
 const router = useRouter()
 
@@ -342,7 +373,8 @@ const {
   patchPicklistJob,
   deletePicklistJob,
   patchPicklistJobItemScanned,
-  deletePicklistJobItem
+  deletePicklistJobItem,
+  getPicklistJobItem
 } = usePicklistStore()
 const {
   picklistJob,
@@ -374,14 +406,14 @@ const itemTableColumns = ref([
   },
   {
     name: 'barcode',
-    field: row => row.item ? row.item?.barcode?.value : row.non_tray_item?.barcode?.value,
+    field: row => row.item ? renderItemBarcodeDisplay(row.item) : renderItemBarcodeDisplay(row.non_tray_item),
     label: 'Barcode',
     align: 'left',
     sortable: true
   },
   {
     name: 'tray_barcode',
-    field: row => row.item ? row.item?.tray?.barcode?.value : '',
+    field: row => row.item ? renderItemBarcodeDisplay(row.item?.tray) : '',
     label: 'Tray Barcode',
     align: 'left',
     sortable: true
@@ -417,27 +449,48 @@ const itemTableColumns = ref([
     headerStyle: 'max-width: 200px'
   }
 ])
-const itemTableFilters =  ref([
-  {
-    field: row => row.size_class.name,
-    options: [
+const itemTableFilters = computed(() => {
+  let tablesFilters = []
+  if (picklistItems.value.length > 0) {
+    tablesFilters = [
       {
-        text: 'C High',
-        value: false
+        field: row => row.item ? row.item?.owner?.name : row.non_tray_item?.owner?.name,
+        label: 'Owner',
+        // render options based on the passed in table data
+        // loop through all containers and return customized data set for table filtering and remove the duplicates
+        options: getUniqueListByKey(picklistItems.value.map(tableEntry => {
+          return {
+            text: tableEntry.item ? tableEntry.item?.owner?.name : tableEntry.non_tray_item?.owner?.name,
+            value: false
+          }
+        }), 'text')
       },
       {
-        text: 'C Low',
-        value: false
+        field: row => row.item ? row.item?.size_class?.name : row.non_tray_item?.size_class?.name,
+        label: 'Size Class',
+        options: getUniqueListByKey(picklistItems.value.map(tableEntry => {
+          return {
+            text: tableEntry.item ? tableEntry.item?.size_class?.name : tableEntry.non_tray_item?.size_class?.name,
+            value: false
+          }
+        }), 'text')
       }
     ]
   }
-])
+  return tablesFilters
+})
 const showConfirmationModal = ref(null)
+const historyModal = ref(null)
+const showAuditTrailModal = ref(false)
+const showPicklistItemDetailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
+const currentIsoDate = inject('current-iso-date')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
+const getUniqueListByKey = inject('get-uniqure-list-by-key')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
@@ -479,7 +532,7 @@ const triggerItemScan = (barcode_value) => {
       autoClose: true
     })
     return
-  } else if (picklistItems.value.some(itm => itm.item ? itm.item.barcode.value == barcode_value && itm.status !== 'Requested' : itm.non_tray_item.barcode.value == barcode_value && itm.status !== 'Requested')) {
+  } else if (picklistItems.value.some(itm => itm.item ? itm.item.barcode.value == barcode_value && itm.status !== 'PickList' : itm.non_tray_item.barcode.value == barcode_value && itm.status !== 'PickList')) {
     handleAlert({
       type: 'error',
       text: 'The scanned item has already been marked as retrieved.',
@@ -494,18 +547,21 @@ const triggerItemScan = (barcode_value) => {
 
 const handleOptionMenu = async (action, rowData) => {
   switch (action.text) {
-  case 'Edit':
-    editJob.value = true
-    return
-  case 'Delete Job':
-    showConfirmationModal.value = 'DeleteJob'
-    return
-  case 'Revert Item to Queue':
-    removePicklistItem(rowData.id)
-    return
-  case 'Print Job':
-    batchSheetComponent.value.printBatchReport()
-    return
+    case 'Edit':
+      editJob.value = true
+      return
+    case 'Delete Job':
+      showConfirmationModal.value = 'DeleteJob'
+      return
+    case 'Revert Item to Queue':
+      removePicklistItem(rowData.id)
+      return
+    case 'Print Job':
+      batchSheetComponent.value.printBatchReport()
+      return
+    case 'View History':
+      showAuditTrailModal.value = 'pick_lists'
+      return
   }
 }
 
@@ -520,7 +576,7 @@ const executePicklistJob = async () => {
       id: picklistJob.value.id,
       status: 'Running',
       user_id: picklistJob.value.user_id ? picklistJob.value.user_id : userData.value.user_id,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchPicklistJob(payload)
 
@@ -549,7 +605,7 @@ const updatePicklistJob = async () => {
     const payload = {
       id: picklistJob.value.id,
       user_id: picklistJob.value.user_id,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchPicklistJob(payload)
 
@@ -574,7 +630,7 @@ const updatePicklistJobStatus = async (status) => {
     const payload = {
       id: picklistJob.value.id,
       status,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchPicklistJob(payload)
 
@@ -636,7 +692,7 @@ const completePicklistJob = async (printBool) => {
     const payload = {
       id: picklistJob.value.id,
       status: 'Completed',
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchPicklistJob(payload)
 
@@ -703,13 +759,13 @@ const updatePicklistItem = async (barcode_value) => {
     const payload = {
       id: picklistJob.value.id,
       request_id: pickListItemToUpdate.id,
-      run_timestamp: new Date().toISOString(),
+      run_timestamp: currentIsoDate(),
       status: 'Out'
     }
     await patchPicklistJobItemScanned(payload)
 
     // update the item directly in the picklist job and set it to retrieved
-    pickListItemToUpdate.status = 'Out'
+    pickListItemToUpdate.item ? pickListItemToUpdate.item.status = 'Out' : pickListItemToUpdate.non_tray_item.status = 'Out'
     originalPicklistJob.value = { ...toRaw(picklistJob.value) }
 
     // store the current picklist job data in indexdb for reference offline whenever job is executed
@@ -722,6 +778,11 @@ const updatePicklistItem = async (barcode_value) => {
       autoClose: true
     })
   }
+}
+const loadPicklistItem = (barcode_value) => {
+  // since we already have all the items data we just need to set the refileItem from the refileJob items directly
+  getPicklistJobItem(barcode_value)
+  showPicklistItemDetailModal.value = true
 }
 </script>
 

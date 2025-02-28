@@ -5,7 +5,9 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit', hidden: !checkUserPermission('can_assign_and_reassign_refile_job'), disabled: appIsOffline || editJob || refileJob.status == 'Paused' || refileJob.status == 'Completed' },
-            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_refile_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed' || refileJob.refile_job_items.some(itm => itm.status == 'In')}
+            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_refile_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed' || (refileJob.refile_job_items && refileJob.refile_job_items.some(itm => itm.status == 'In'))},
+            { text: 'Print Job' },
+            { text: 'View History' }
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
@@ -56,7 +58,7 @@
             # of Items:
           </label>
           <p class="text-body1">
-            {{ refileJob.refile_job_items.length }}
+            {{ refileJob.refile_job_items ? refileJob.refile_job_items.length : 0 }}
           </p>
         </div>
       </div>
@@ -177,19 +179,19 @@
         :table-columns="itemTableColumns"
         :table-visible-columns="itemTableVisibleColumns"
         :filter-options="itemTableFilters"
-        :table-data="refileJob.refile_job_items"
+        :table-data="refileJob.refile_job_items ?? []"
         :row-key="'barcode'"
         :enable-table-reorder="false"
         :enable-selection="false"
         :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
-        :highlight-row-class="'bg-color-green-light'"
+        :highlight-row-class="'justify-end bg-color-green-light'"
         :highlight-row-key="'status'"
         :highlight-row-value="'In'"
-        @selected-table-row="loadRefileItem($event.barcode.value)"
+        @selected-table-row="loadRefileItem(renderItemBarcodeDisplay($event))"
       >
         <template #heading-row>
-          <div class="col-xs-7 col-sm-5 q-mb-md-sm">
+          <div class="col-xs-7 col-sm-5 q-mb-md-sm q-mr-auto">
             <h2 class="text-h4 text-bold">
               Items in Job:
             </h2>
@@ -273,10 +275,23 @@
     v-if="showRefileItemDetailModal"
     @hide="showRefileItemDetailModal = false"
   />
+  <RefileBatchSheet
+    ref="batchSheetComponent"
+    :refile-job-details="refileJob"
+  />
+
+  <!-- audit trail modal -->
+  <AuditTrail
+    v-if="showAuditTrailModal"
+    ref="historyModal"
+    @reset="showAuditTrailModal = null"
+    :job-type="showAuditTrailModal"
+    :job-id="refileJob.id"
+  />
 </template>
 
 <script setup>
-import { onBeforeMount, onMounted, ref, inject, toRaw, watch } from 'vue'
+import { onBeforeMount, onMounted, ref, computed, inject, toRaw, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -294,6 +309,8 @@ import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import RefileItemDetailModal from '@/components/Refile/RefileItemDetailModal.vue'
+import AuditTrail from '@/components/AuditTrail.vue'
+import RefileBatchSheet from '@/components/Refile/RefileBatchSheet.vue'
 
 const router = useRouter()
 
@@ -330,6 +347,7 @@ const {
 } = storeToRefs(useRefileStore())
 
 // Local Data
+const batchSheetComponent = ref(null)
 const editJob = ref(false)
 const itemTableVisibleColumns = ref([
   'actions',
@@ -358,14 +376,14 @@ const itemTableColumns = ref([
   },
   {
     name: 'tray_barcode',
-    field: row => row.tray?.barcode?.value,
+    field: row => renderItemBarcodeDisplay(row.tray),
     label: 'Tray Barcode',
     align: 'left',
     sortable: true
   },
   {
     name: 'barcode',
-    field: row => row.barcode?.value,
+    field: row => renderItemBarcodeDisplay(row),
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -394,28 +412,48 @@ const itemTableColumns = ref([
     headerStyle: 'max-width: 200px'
   }
 ])
-const itemTableFilters =  ref([
-  {
-    field: row => row.size_class.name,
-    options: [
+const itemTableFilters = computed(() => {
+  let tablesFilters = []
+  if (refileJob.value.refile_job_items && refileJob.value.refile_job_items.length > 0) {
+    tablesFilters = [
       {
-        text: 'C High',
-        value: false
+        field: row => row.owner?.name,
+        label: 'Owner',
+        // render options based on the passed in table data
+        // loop through all containers and return customized data set for table filtering and remove the duplicates
+        options: getUniqueListByKey(refileJob.value.refile_job_items.map(tableEntry => {
+          return {
+            text: tableEntry.owner?.name,
+            value: false
+          }
+        }), 'text')
       },
       {
-        text: 'C Low',
-        value: false
+        field: row => row.size_class?.name,
+        label: 'Size Class',
+        options: getUniqueListByKey(refileJob.value.refile_job_items.map(tableEntry => {
+          return {
+            text: tableEntry.size_class?.name,
+            value: false
+          }
+        }), 'text')
       }
     ]
   }
-])
+  return tablesFilters
+})
 const showConfirmationModal = ref(null)
 const showRefileItemDetailModal = ref(false)
+const historyModal = ref(null)
+const showAuditTrailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
+const currentIsoDate = inject('current-iso-date')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
+const getUniqueListByKey = inject('get-uniqure-list-by-key')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
@@ -450,14 +488,14 @@ watch(compiledBarCode, (barcode) => {
 })
 const triggerItemScan = (barcode_value) => {
   // check if the scanned barcode is in the item data and that the barcode hasnt been refiled already
-  if (!refileJob.value.refile_job_items.some(itm => itm.barcode.value == barcode_value)) {
+  if (!refileJob.value.refile_job_items?.some(itm => itm.barcode.value == barcode_value)) {
     handleAlert({
       type: 'error',
       text: 'The scanned item does not exist in this refile job. Please try again.',
       autoClose: true
     })
     return
-  } else if (refileJob.value.refile_job_items.some(itm => itm.barcode.value == barcode_value && itm.status !== 'Out')) {
+  } else if (refileJob.value.refile_job_items?.some(itm => itm.barcode.value == barcode_value && itm.status !== 'Out')) {
     handleAlert({
       type: 'error',
       text: 'The scanned item has already been marked as refiled.',
@@ -472,15 +510,21 @@ const triggerItemScan = (barcode_value) => {
 
 const handleOptionMenu = async (action, rowData) => {
   switch (action.text) {
-  case 'Edit':
-    editJob.value = true
-    return
-  case 'Delete Job':
-    showConfirmationModal.value = 'DeleteJob'
-    return
-  case 'Revert Item to Queue':
-    removeRefileItems([rowData.barcode.value])
-    return
+    case 'Edit':
+      editJob.value = true
+      return
+    case 'Delete Job':
+      showConfirmationModal.value = 'DeleteJob'
+      return
+    case 'Revert Item to Queue':
+      removeRefileItems([rowData.barcode.value])
+      return
+    case 'Print Job':
+      batchSheetComponent.value.printBatchReport()
+      return
+    case 'View History':
+      showAuditTrailModal.value = 'refile_jobs'
+      return
   }
 }
 
@@ -495,7 +539,7 @@ const executeRefileJob = async () => {
       id: refileJob.value.id,
       status: 'Running',
       assigned_user_id: refileJob.value.assigned_user_id ? refileJob.value.assigned_user_id : userData.value.user_id,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchRefileJob(payload)
 
@@ -524,7 +568,7 @@ const updateRefileJob = async () => {
     const payload = {
       id: refileJob.value.id,
       assigned_user_id: refileJob.value.assigned_user_id,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchRefileJob(payload)
 
@@ -549,7 +593,7 @@ const updateRefileJobStatus = async (status) => {
     const payload = {
       id: refileJob.value.id,
       status,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchRefileJob(payload)
 
@@ -611,7 +655,7 @@ const completeRefileJob = async () => {
     const payload = {
       id: refileJob.value.id,
       status: 'Completed',
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchRefileJob(payload)
 

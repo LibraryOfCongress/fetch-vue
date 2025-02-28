@@ -5,21 +5,38 @@
         <EssentialTable
           :table-columns="searchResultsTableColumns"
           :table-visible-columns="searchResultsTableVisibleColumns"
-          :filter-options="searchResultsTableFilters"
           :table-data="searchResults"
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
-          :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :heading-rearrange-class="'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="searchResultsTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadAdvancedSearch($event)"
           @selected-table-row="handleResultSelection($event)"
         >
           <template #heading-row>
             <div
-              class="col-xs-12 col-sm-auto col-md-12 col-lg-auto"
-              :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
+              class="col-12 q-mb-sm"
             >
               <h1 class="text-h4 text-bold">
                 Advanced Search
               </h1>
+            </div>
+
+            <div
+              v-if="route.params.searchType == 'Item' || route.params.searchType == 'TrayItem'"
+              class="col-xs-12 col-sm-auto col-md-auto q-mb-xs-md q-mb-sm-none"
+            >
+              <ToggleButtonInput
+                v-model="toggleSearchTab"
+                :options="[
+                  {label: 'Non-Tray Items', value: 'nonTrayItem'},
+                  {label: 'Tray Items', value: 'trayItem'}
+                ]"
+                @update:model-value="loadAdvancedSearch(advanceSearchHistory);"
+                class="text-no-wrap"
+              />
             </div>
           </template>
 
@@ -45,9 +62,11 @@
 import { onBeforeMount, ref, inject, watch } from 'vue'
 import { useRoute, useRouter  } from 'vue-router'
 import { useSearchStore } from '@/stores/search-store'
+import { useGlobalStore } from '@/stores/global-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialTable from '@/components/EssentialTable.vue'
+import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -57,37 +76,25 @@ const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const {
-  searchResults
+  searchResults,
+  searchResultsTotal,
+  advanceSearchHistory
 } = storeToRefs(useSearchStore())
+const { getAdvancedSearchResults } = useSearchStore()
+const { appIsLoadingData } = storeToRefs(useGlobalStore())
 
 // Local Data
+const toggleSearchTab = ref(null)
 const searchResultsTableVisibleColumns = ref([])
 const searchResultsTableColumns = ref([])
-// TODO need to figure out how filtering will work
-const searchResultsTableFilters =  ref([
-  {
-    field: 'status',
-    options: [
-      {
-        text: 'Created',
-        value: false
-      },
-      {
-        text: 'Paused',
-        value: false
-      },
-      {
-        text: 'Completed',
-        value: false
-      }
-    ]
-  }
-])
 
 // Logic
 const formatDateTime = inject('format-date-time')
+const handleAlert = inject('handle-alert')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 onBeforeMount(() => {
+  loadAdvancedSearch(route.query)
   generateSearchTableFields()
 })
 watch(route, () => {
@@ -97,468 +104,477 @@ watch(route, () => {
 const generateSearchTableFields = () => {
   // creates the search table fields needed based on the route searcType
   switch (route.params.searchType) {
-  case 'Item':
-    searchResultsTableColumns.value = [
-      {
-        name: 'accession_dt',
-        field: 'accession_dt',
-        label: 'Accession Date',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'status',
-        field: 'status',
-        label: 'Status',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'owner',
-        field: row => row.owner?.name,
-        label: 'Owner',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'size_class',
-        field: row => row.size_class?.name,
-        label: 'Size Class',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'media_type',
-        field: row => row.media_type?.name,
-        label: 'Media Type',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'barcode',
-        field: row => row.barcode?.value,
-        label: 'Item Barcode',
-        align: 'left',
-        sortable: true
-      }
-    ]
-    searchResultsTableVisibleColumns.value = [
-      'accession_dt',
-      'status',
-      'owner',
-      'size_class',
-      'media_type',
-      'barcode'
-    ]
-    if (currentScreenSize.value == 'xs') {
+    case 'Item':
+    case 'TrayItem':
+    // set the default tab for advance item search
+      toggleSearchTab.value = route.params.searchType == 'TrayItem' ? 'trayItem' : 'nonTrayItem'
+      searchResultsTableColumns.value = [
+        {
+          name: 'accession_dt',
+          field: 'accession_dt',
+          label: 'Accession Date',
+          align: 'left',
+          sortable: true,
+          classes: row => row.withdrawn_barcode_id ? 'q-td--no-hover' : ''
+        },
+        {
+          name: 'status',
+          field: 'status',
+          label: 'Status',
+          align: 'left',
+          sortable: true,
+          classes: row => row.withdrawn_barcode_id ? 'q-td--no-hover' : ''
+        },
+        {
+          name: 'owner',
+          field: row => row.owner?.name,
+          label: 'Owner',
+          align: 'left',
+          sortable: true,
+          classes: row => row.withdrawn_barcode_id ? 'q-td--no-hover' : ''
+        },
+        {
+          name: 'size_class',
+          field: row => row.size_class?.name,
+          label: 'Size Class',
+          align: 'left',
+          sortable: true,
+          classes: row => row.withdrawn_barcode_id ? 'q-td--no-hover' : ''
+        },
+        {
+          name: 'media_type',
+          field: row => row.media_type?.name,
+          label: 'Media Type',
+          align: 'left',
+          sortable: true,
+          classes: row => row.withdrawn_barcode_id ? 'q-td--no-hover' : ''
+        },
+        {
+          name: 'barcode_value',
+          field: row => renderItemBarcodeDisplay(row),
+          label: 'Item Barcode',
+          align: 'left',
+          sortable: true,
+          classes: row => row.withdrawn_barcode_id ? 'q-td--no-hover' : ''
+        }
+      ]
       searchResultsTableVisibleColumns.value = [
         'accession_dt',
         'status',
+        'owner',
         'size_class',
         'media_type',
-        'barcode'
+        'barcode_value'
       ]
-    }
-    break
-  case 'Tray':
-    searchResultsTableColumns.value = [
-      {
-        name: 'accession_dt',
-        field: 'accession_dt',
-        label: 'Accession Date',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'owner',
-        field: row => row.owner?.name,
-        label: 'Owner',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'size_class',
-        field: row => row.size_class?.name,
-        label: 'Size Class',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'media_type',
-        field: row => row.media_type?.name,
-        label: 'Media Type',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'barcode',
-        field: row => row.barcode?.value,
-        label: 'Tray Barcode',
-        align: 'left',
-        sortable: true
+      if (currentScreenSize.value == 'xs') {
+        searchResultsTableVisibleColumns.value = [
+          'accession_dt',
+          'status',
+          'size_class',
+          'media_type',
+          'barcode_value'
+        ]
       }
-    ]
-    searchResultsTableVisibleColumns.value = [
-      'accession_dt',
-      'owner',
-      'size_class',
-      'media_type',
-      'barcode'
-    ]
-    if (currentScreenSize.value == 'xs') {
+      break
+    case 'Tray':
+      searchResultsTableColumns.value = [
+        {
+          name: 'accession_dt',
+          field: 'accession_dt',
+          label: 'Accession Date',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'owner',
+          field: row => row.owner?.name,
+          label: 'Owner',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'size_class',
+          field: row => row.size_class?.name,
+          label: 'Size Class',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'media_type',
+          field: row => row.media_type?.name,
+          label: 'Media Type',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'barcode_value',
+          field: row => renderItemBarcodeDisplay(row),
+          label: 'Tray Barcode',
+          align: 'left',
+          sortable: true
+        }
+      ]
       searchResultsTableVisibleColumns.value = [
         'accession_dt',
+        'owner',
         'size_class',
         'media_type',
-        'barcode'
+        'barcode_value'
       ]
-    }
-    break
-  case 'Shelf':
-    searchResultsTableColumns.value = [
-      {
-        name: 'barcode',
-        field: row => row.barcode?.value,
-        label: 'Shelf Barcode',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'shelf_location',
-        field: 'location',
-        label: 'Shelf Location',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'owner',
-        field: row => row.owner?.name,
-        label: 'Owner',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'size_class',
-        field: row => row.shelf_type?.size_class?.name,
-        label: 'Size Class',
-        align: 'left',
-        sortable: true
+      if (currentScreenSize.value == 'xs') {
+        searchResultsTableVisibleColumns.value = [
+          'accession_dt',
+          'size_class',
+          'media_type',
+          'barcode_value'
+        ]
       }
-    ]
-    searchResultsTableVisibleColumns.value = [
-      'barcode',
-      'shelf_location',
-      'owner',
-      'size_class'
-    ]
-    break
-  case 'Accession':
-    searchResultsTableColumns.value = [
-      {
-        name: 'create_dt',
-        field: 'create_dt',
-        label: 'Create Date',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'job_id',
-        field: 'workflow_id',
-        label: 'Job Number',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'status',
-        field: 'status',
-        label: 'Status',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'created_by',
-        field: row => renderUserName(row.created_by),
-        label: 'Created By',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'user_id',
-        field: row => renderUserName(row.user),
-        label: 'Completed By',
-        align: 'left',
-        sortable: true
-      }
-    ]
-    searchResultsTableVisibleColumns.value = [
-      'create_dt',
-      'job_id',
-      'status',
-      'created_by',
-      'user_id'
-    ]
-    if (currentScreenSize.value == 'xs') {
+      break
+    case 'Shelf':
+      searchResultsTableColumns.value = [
+        {
+          name: 'barcode_value',
+          field: row => renderItemBarcodeDisplay(row),
+          label: 'Shelf Barcode',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'location',
+          field: 'location',
+          label: 'Shelf Location',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'owner',
+          field: row => row.owner?.name,
+          label: 'Owner',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'size_class',
+          field: row => row.shelf_type?.size_class?.name,
+          label: 'Size Class',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      searchResultsTableVisibleColumns.value = [
+        'barcode_value',
+        'location',
+        'owner',
+        'size_class'
+      ]
+      break
+    case 'Accession':
+      searchResultsTableColumns.value = [
+        {
+          name: 'create_dt',
+          field: 'create_dt',
+          label: 'Create Date',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'workflow_id',
+          field: 'workflow_id',
+          label: 'Job Number',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'status',
+          field: 'status',
+          label: 'Status',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'created_by_id',
+          field: row => renderUserName(row.created_by),
+          label: 'Created By',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'user_id',
+          field: row => renderUserName(row.user),
+          label: 'Completed By',
+          align: 'left',
+          sortable: true
+        }
+      ]
       searchResultsTableVisibleColumns.value = [
         'create_dt',
-        'job_id',
+        'workflow_id',
         'status',
+        'created_by_id',
         'user_id'
       ]
-    }
-    break
-  case 'Verification':
-    searchResultsTableColumns.value = [
-      {
-        name: 'create_dt',
-        field: 'create_dt',
-        label: 'Create Date',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'job_id',
-        field: 'workflow_id',
-        label: 'Job Number',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'status',
-        field: 'status',
-        label: 'Status',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'created_by',
-        field: row => renderUserName(row.created_by),
-        label: 'Created By',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'user_id',
-        field: row => renderUserName(row.user),
-        label: 'Completed By',
-        align: 'left',
-        sortable: true
+      if (currentScreenSize.value == 'xs') {
+        searchResultsTableVisibleColumns.value = [
+          'create_dt',
+          'workflow_id',
+          'status',
+          'user_id'
+        ]
       }
-    ]
-    searchResultsTableVisibleColumns.value = [
-      'create_dt',
-      'job_id',
-      'status',
-      'created_by',
-      'user_id'
-    ]
-    if (currentScreenSize.value == 'xs') {
+      break
+    case 'Verification':
+      searchResultsTableColumns.value = [
+        {
+          name: 'create_dt',
+          field: 'create_dt',
+          label: 'Create Date',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'workflow_id',
+          field: 'workflow_id',
+          label: 'Job Number',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'status',
+          field: 'status',
+          label: 'Status',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'created_by_id',
+          field: row => renderUserName(row.created_by),
+          label: 'Created By',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'user_id',
+          field: row => renderUserName(row.user),
+          label: 'Completed By',
+          align: 'left',
+          sortable: true
+        }
+      ]
       searchResultsTableVisibleColumns.value = [
         'create_dt',
-        'job_id',
+        'workflow_id',
         'status',
+        'created_by_id',
         'user_id'
       ]
-    }
-    break
-  case 'Request':
-    searchResultsTableColumns.value = [
-      {
-        name: 'create_dt',
-        field: 'create_dt',
-        label: 'Create Date',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'job_id',
-        field: 'id',
-        label: 'Request ID #',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'requestor_name',
-        field: 'requestor_name',
-        label: 'Requested By',
-        align: 'left',
-        sortable: true
+      if (currentScreenSize.value == 'xs') {
+        searchResultsTableVisibleColumns.value = [
+          'create_dt',
+          'workflow_id',
+          'status',
+          'user_id'
+        ]
       }
-    ]
-    searchResultsTableVisibleColumns.value = [
-      'create_dt',
-      'job_id',
-      'requestor_name'
-    ]
-    if (currentScreenSize.value == 'xs') {
+      break
+    case 'Request':
+      searchResultsTableColumns.value = [
+        {
+          name: 'create_dt',
+          field: 'create_dt',
+          label: 'Create Date',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'id',
+          field: 'id',
+          label: 'Request ID #',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'requestor_name',
+          field: 'requestor_name',
+          label: 'Requested By',
+          align: 'left',
+          sortable: true
+        }
+      ]
       searchResultsTableVisibleColumns.value = [
         'create_dt',
-        'job_id',
+        'id',
         'requestor_name'
       ]
-    }
-    break
-  case 'Refile':
-    searchResultsTableColumns.value = [
-      {
-        name: 'create_dt',
-        field: 'create_dt',
-        label: 'Create Date',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'job_id',
-        field: 'id',
-        label: 'Job Number',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'status',
-        field: 'status',
-        label: 'Status',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'created_by',
-        field: row => renderUserName(row.created_by),
-        label: 'Created By',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'assigned_user',
-        field: row => renderUserName(row.assigned_user),
-        label: 'Completed By',
-        align: 'left',
-        sortable: true
+      if (currentScreenSize.value == 'xs') {
+        searchResultsTableVisibleColumns.value = [
+          'create_dt',
+          'id',
+          'requestor_name'
+        ]
       }
-    ]
-    searchResultsTableVisibleColumns.value = [
-      'create_dt',
-      'job_id',
-      'status',
-      'created_by',
-      'assigned_user'
-    ]
-    if (currentScreenSize.value == 'xs') {
-      searchResultsTableVisibleColumns.value = [
-        'create_dt',
-        'job_id',
-        'status',
-        'assigned_user'
+      break
+    case 'Refile':
+      searchResultsTableColumns.value = [
+        {
+          name: 'create_dt',
+          field: 'create_dt',
+          label: 'Create Date',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'id',
+          field: 'id',
+          label: 'Job Number',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'status',
+          field: 'status',
+          label: 'Status',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'created_by_id',
+          field: row => renderUserName(row.created_by),
+          label: 'Created By',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'assigned_user_id',
+          field: row => renderUserName(row.assigned_user),
+          label: 'Completed By',
+          align: 'left',
+          sortable: true
+        }
       ]
-    }
-    break
-  case 'Withdraw':
-    searchResultsTableColumns.value = [
-      {
-        name: 'create_dt',
-        field: 'create_dt',
-        label: 'Create Date',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'job_id',
-        field: 'id',
-        label: 'Job Number',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'status',
-        field: 'status',
-        label: 'Status',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'created_by',
-        field: row => renderUserName(row.created_by),
-        label: 'Created By',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'assigned_user',
-        field: row => renderUserName(row.assigned_user),
-        label: 'Completed By',
-        align: 'left',
-        sortable: true
-      }
-    ]
-    searchResultsTableVisibleColumns.value = [
-      'create_dt',
-      'job_id',
-      'status',
-      'created_by',
-      'assigned_user'
-    ]
-    if (currentScreenSize.value == 'xs') {
       searchResultsTableVisibleColumns.value = [
         'create_dt',
-        'job_id',
+        'id',
         'status',
-        'assigned_user'
+        'created_by_id',
+        'assigned_user_id'
       ]
-    }
-    break
-  default:
-    searchResultsTableColumns.value = [
-      {
-        name: 'create_dt',
-        field: 'create_dt',
-        label: 'Create Date',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'job_id',
-        field: 'id',
-        label: 'Job Number',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'status',
-        field: 'status',
-        label: 'Status',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'created_by',
-        field: row => renderUserName(row.created_by),
-        label: 'Created By',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'user_id',
-        field: row => renderUserName(row.user),
-        label: 'Completed By',
-        align: 'left',
-        sortable: true
+      if (currentScreenSize.value == 'xs') {
+        searchResultsTableVisibleColumns.value = [
+          'create_dt',
+          'id',
+          'status',
+          'assigned_user_id'
+        ]
       }
-    ]
-    searchResultsTableVisibleColumns.value = [
-      'create_dt',
-      'job_id',
-      'status',
-      'created_by',
-      'user_id'
-    ]
-    if (currentScreenSize.value == 'xs') {
+      break
+    case 'Withdraw':
+      searchResultsTableColumns.value = [
+        {
+          name: 'create_dt',
+          field: 'create_dt',
+          label: 'Create Date',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'id',
+          field: 'id',
+          label: 'Job Number',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'status',
+          field: 'status',
+          label: 'Status',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'created_by_id',
+          field: row => renderUserName(row.created_by),
+          label: 'Created By',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'assigned_user_id',
+          field: row => renderUserName(row.assigned_user),
+          label: 'Completed By',
+          align: 'left',
+          sortable: true
+        }
+      ]
       searchResultsTableVisibleColumns.value = [
         'create_dt',
-        'job_id',
+        'id',
         'status',
+        'created_by_id',
+        'assigned_user_id'
+      ]
+      if (currentScreenSize.value == 'xs') {
+        searchResultsTableVisibleColumns.value = [
+          'create_dt',
+          'id',
+          'status',
+          'assigned_user_id'
+        ]
+      }
+      break
+    default:
+      searchResultsTableColumns.value = [
+        {
+          name: 'create_dt',
+          field: 'create_dt',
+          label: 'Create Date',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'id',
+          field: 'id',
+          label: 'Job Number',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'status',
+          field: 'status',
+          label: 'Status',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'created_by_id',
+          field: row => renderUserName(row.created_by),
+          label: 'Created By',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'user_id',
+          field: row => renderUserName(row.user),
+          label: 'Completed By',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      searchResultsTableVisibleColumns.value = [
+        'create_dt',
+        'id',
+        'status',
+        'created_by_id',
         'user_id'
       ]
-    }
-    break
+      if (currentScreenSize.value == 'xs') {
+        searchResultsTableVisibleColumns.value = [
+          'create_dt',
+          'id',
+          'status',
+          'user_id'
+        ]
+      }
+      break
   }
 }
 
@@ -572,73 +588,125 @@ const renderUserName = (userObj) => {
 
 const handleResultSelection = (rowData) => {
   switch (route.params.searchType) {
-  case 'Item':
-    console.log('routing to item detail page')
-    break
-  case 'Tray':
-    console.log('routing to tray detail page')
-    break
-  case 'Shelf':
-    console.log('routing to shelf detail page')
-    break
-  case 'Accession':
-    router.push({
-      name: 'accession',
-      params: {
-        jobId: rowData.workflow_id
+    case 'Item':
+    case 'TrayItem':
+      if (rowData.barcode) {
+        router.push({
+          name: 'record-management-items',
+          params: {
+            barcode: rowData.barcode.value
+          }
+        })
+      }
+      break
+    case 'Tray':
+      router.push({
+        name: 'record-management-tray',
+        params: {
+          barcode: rowData.barcode.value
+        }
+      })
+      break
+    case 'Shelf':
+      router.push({
+        name: 'record-management-shelf',
+        params: {
+          barcode: rowData.barcode.value
+        }
+      })
+      break
+    case 'Accession':
+      router.push({
+        name: 'accession',
+        params: {
+          jobId: rowData.workflow_id
+        }
+      })
+      break
+    case 'Verification':
+      router.push({
+        name: 'verification',
+        params: {
+          jobId: rowData.workflow_id
+        }
+      })
+      break
+    case 'Shelving':
+      router.push({
+        name: 'shelving',
+        params: {
+          jobId: rowData.id
+        }
+      })
+      break
+    case 'Request':
+      router.push({
+        name: 'request',
+        params: {
+          jobId: rowData.id
+        }
+      })
+      break
+    case 'Picklist':
+      router.push({
+        name: 'picklist',
+        params: {
+          jobId: rowData.id
+        }
+      })
+      break
+    case 'Refile':
+      router.push({
+        name: 'refile',
+        params: {
+          jobId: rowData.id
+        }
+      })
+      break
+    case 'Withdraw':
+      router.push({
+        name: 'withdrawal',
+        params: {
+          jobId: rowData.id
+        }
+      })
+      break
+    default:
+      break
+  }
+}
+
+const loadAdvancedSearch = async (qParams) => {
+  try {
+    appIsLoadingData.value = true
+    if (route.params.searchType == 'Item' || route.params.searchType == 'TrayItem') {
+      await router.replace({
+        params: {
+          searchType: toggleSearchTab.value == 'trayItem' ? 'TrayItem' : 'Item'
+        }
+      })
+    }
+
+    await getAdvancedSearchResults({
+      ...advanceSearchHistory.value,
+      ...qParams
+    }, route.params.searchType)
+
+    // update route queries to match new searches
+    router.replace({
+      query: {
+        ...advanceSearchHistory.value,
+        ...qParams
       }
     })
-    break
-  case 'Verification':
-    router.push({
-      name: 'verification',
-      params: {
-        jobId: rowData.workflow_id
-      }
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
     })
-    break
-  case 'Shelving':
-    router.push({
-      name: 'shelving',
-      params: {
-        jobId: rowData.id
-      }
-    })
-    break
-  case 'Request':
-    router.push({
-      name: 'request',
-      params: {
-        jobId: rowData.id
-      }
-    })
-    break
-  case 'Picklist':
-    router.push({
-      name: 'picklist',
-      params: {
-        jobId: rowData.id
-      }
-    })
-    break
-  case 'Refile':
-    router.push({
-      name: 'refile',
-      params: {
-        jobId: rowData.id
-      }
-    })
-    break
-  case 'Withdraw':
-    router.push({
-      name: 'withdrawal',
-      params: {
-        jobId: rowData.id
-      }
-    })
-    break
-  default:
-    break
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 </script>

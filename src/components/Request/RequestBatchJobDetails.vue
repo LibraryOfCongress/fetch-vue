@@ -72,14 +72,14 @@
         :table-data="requestItems"
         :enable-table-reorder="false"
         :enable-selection="showCreatePickList || showAddPickList"
-        :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
+        :heading-row-class="'justify-end q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
         @selected-table-row="selectedRequestItem = $event"
         @selected-data="selectedRequestItems = $event"
       >
         <template #heading-row>
           <div
-            class="col-xs-7 col-sm-5 q-mb-md-sm"
+            class="col-xs-7 col-sm-5 q-mb-md-sm q-mr-auto"
             :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
           >
             <h2 class="text-h4 text-bold">
@@ -255,11 +255,11 @@
           <SelectInput
             v-model="addToPickListJob"
             :options="picklists"
-            option-type="picklists"
             option-value="id"
             option-label="id"
             :placeholder="'Select Pick List Job'"
             aria-label="picklistJobSelect"
+            @focus="loadPicklistJobs"
           />
         </div>
       </q-card-section>
@@ -314,6 +314,7 @@ const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { getOptions } = useOptionStore()
 const { picklists } = storeToRefs(useOptionStore())
 const { requestBatchJob } = storeToRefs(useRequestStore())
 const { getRequestBatchJob } = useRequestStore()
@@ -353,7 +354,7 @@ const requestTableColumns = ref([
   },
   {
     name: 'barcode',
-    field: row => row.item ? row.item?.barcode?.value : row.non_tray_item?.barcode?.value,
+    field: row => row.item ? renderItemBarcodeDisplay(row.item) : renderItemBarcodeDisplay(row.non_tray_item),
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -415,43 +416,71 @@ const requestTableColumns = ref([
     sortable: true
   }
 ])
-const requestTableFilters =  ref([
-  {
-    field: 'status',
-    options: [
+const requestTableFilters = computed(() => {
+  let tablesFilters = []
+  if (requestItems.value && requestItems.value.length > 0) {
+    tablesFilters = [
       {
-        text: 'Created',
-        value: false
+        field: row => row.request_type?.type,
+        label: 'Request Type',
+        // render options based on the passed in table data
+        // loop through all containers and return customized data set for table filtering and remove the duplicates
+        options: getUniqueListByKey(requestItems.value.flatMap(tableEntry => {
+          // these fields are optional so we need to account for blank entries using flatMap
+          if (tableEntry.request_type?.type) {
+            return {
+              text: tableEntry.request_type.type,
+              value: false
+            }
+          } else {
+            return []
+          }
+        }), 'text')
       },
       {
-        text: 'Paused',
-        value: false
+        field: row => row.item ? row.item?.status : row.non_tray_item?.status,
+        label: 'Status',
+        options: getUniqueListByKey(requestItems.value.map(tableEntry => {
+          return {
+            text: tableEntry.item ? tableEntry.item.status : tableEntry.non_tray_item.status,
+            value: false
+          }
+        }), 'text')
       },
       {
-        text: 'On Hold',
-        value: false
+        field: row => row.priority?.value,
+        label: 'Priority',
+        options: getUniqueListByKey(requestItems.value.flatMap(tableEntry => {
+          // these fields are optional so we need to account for blank entries using flatMap
+          if (tableEntry.priority?.value) {
+            return {
+              text: tableEntry.priority.value,
+              value: false
+            }
+          } else {
+            return []
+          }
+        }), 'text')
       },
       {
-        text: 'Completed',
-        value: false
+        field: row => row.item ? row.item?.media_type?.name : row.non_tray_item?.media_type?.name,
+        label: 'Media Type',
+        options: getUniqueListByKey(requestItems.value.map(tableEntry => {
+          return {
+            text: tableEntry.item ? tableEntry.item?.media_type?.name : tableEntry.non_tray_item?.media_type?.name,
+            value: false
+          }
+        }), 'text')
       }
     ]
   }
-])
+  return tablesFilters
+})
 const requestItems = computed(() => {
   let requests = requestBatchJob.value.requests
-  if (showCreatePickList.value) {
+  if (showCreatePickList.value || showAddPickList.value) {
     // filter out any requests that already belong to a picklist
     requests = requests.filter(r => !r.pick_list_id)
-  } else if (showAddPickList.value) {
-    // filter out the requests that match the selected picklist job
-    requests = requests.filter(r => {
-      if (r.pick_list_id) {
-        return r.pick_list_id !== addToPickListJob.value
-      } else {
-        return true
-      }
-    })
   }
   return requests
 })
@@ -466,6 +495,8 @@ const selectedRequestItem = ref(null)
 const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
+const getUniqueListByKey = inject('get-uniqure-list-by-key')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
@@ -491,6 +522,17 @@ const clearTableSelection = () => {
   selectedRequestItems.value = []
 }
 
+const loadPicklistJobs = async () => {
+  try {
+    await getOptions('picklists', { queue: true })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  }
+}
 const createPickListJob = async () => {
   try {
     appActionIsLoadingData.value = true

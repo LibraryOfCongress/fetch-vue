@@ -10,6 +10,10 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="accessionJobListTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadAccessionJobs($event)"
           @selected-table-row="loadAccessionJob($event.workflow_id)"
         >
           <template #heading-row>
@@ -234,10 +238,12 @@ const {
   resetAccessionStore,
   postAccessionJob,
   getAccessionJobList,
-  getAccessionJob } = useAccessionStore()
+  getAccessionJob
+} = useAccessionStore()
 const {
   accessionJob,
-  accessionJobList
+  accessionJobList,
+  accessionJobListTotal
 } = storeToRefs(useAccessionStore())
 const {
   owners,
@@ -279,18 +285,39 @@ const accessionTableColumns = ref([
 ])
 const accessionTableFilters =  ref([
   {
+    field: 'trayed',
+    label: 'Job Type',
+    options: [
+      {
+        text: 'Trayed',
+        boolValue: true,
+        value: false
+      },
+      {
+        text: 'Non-Trayed',
+        boolValue: false,
+        value: false
+      }
+    ]
+  },
+  {
     field: 'status',
+    label: 'Status',
     options: [
       {
         text: 'Created',
-        value: false
+        value: true
       },
       {
         text: 'Paused',
-        value: false
+        value: true
       },
       {
         text: 'Running',
+        value: true
+      },
+      {
+        text: 'Completed',
         value: false
       }
     ]
@@ -330,10 +357,13 @@ const startAccessionProcess = () => {
   showAccessionModal.value = !showAccessionModal.value
 }
 
-const loadAccessionJobs = async () => {
+const loadAccessionJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    await getAccessionJobList({ queue: true })
+    await getAccessionJobList({
+      ...qParams,
+      status: accessionTableFilters.value.find(fltr => fltr.field == 'status').options.flatMap(opt => opt.value == true ? opt.text : [])
+    })
   } catch (error) {
     handleAlert({
       type: 'error',

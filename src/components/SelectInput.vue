@@ -3,6 +3,7 @@
     ref="selectInputComponent"
     :dense="currentScreenSize == 'xs'"
     outlined
+    :clearable="clearable"
     :model-value="modelValue"
     @update:model-value="updateModelValue"
     :options="localOptions"
@@ -21,8 +22,13 @@
     :display-value="multiple ? renderMultiSelectDisplayValues() : undefined"
     :placeholder="placeholder"
     :disable="disabled"
+    :loading="loading || scrollLoading"
+    @virtual-scroll="loadMoreOptions"
   >
-    <template #no-option>
+    <template
+      v-if="!loading"
+      #no-option
+    >
       <slot name="no-option">
         <q-item>
           <q-item-section>
@@ -67,7 +73,8 @@
 </template>
 
 <script setup>
-import { ref, watch, inject } from 'vue'
+import { ref, watch, inject, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useOptionStore } from 'src/stores/option-store'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 
@@ -84,6 +91,14 @@ const mainProps = defineProps({
   optionType: {
     type: String,
     default: ''
+  },
+  optionQuery: {
+    type: Object,
+    default () {
+      return {
+        size: 100
+      }
+    }
   },
   optionValue: {
     type: String,
@@ -109,6 +124,14 @@ const mainProps = defineProps({
     type: Boolean,
     default: true
   },
+  clearable: {
+    type: Boolean,
+    default: true
+  },
+  loading: {
+    type: Boolean,
+    default: false
+  },
   disabled: {
     type: Boolean,
     default: false
@@ -123,10 +146,18 @@ const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
 const { getOptions } = useOptionStore()
+const { optionsTotal } = storeToRefs(useOptionStore())
 
 // Local Data
 const selectInputComponent = ref(null)
+const selectInputFilterValue = ref('')
 const localOptions = ref(mainProps.options)
+const scrollLoading = ref(false)
+const lastOptionsPage = computed(() => {
+  // divide total local options by apiPageSizeDefault to get our last page value
+  return Math.ceil(optionsTotal.value / 50)
+})
+const nextOptionsPage = ref(2)
 
 // Logic
 const getNestedKeyPath = inject('get-nested-key-path')
@@ -147,10 +178,10 @@ const updateModelValue = (value) => {
   emit('update:modelValue', value)
 }
 const filterOptions = async (val, update) => {
-  // if there is an optionType then we need to get a list of options from the api based on the optionType passed in
+  // if there is an optionType then we need to get a the intial list of options from the api based on the optionType passed in
   // the passed in optionType should match an http endpoint
-  if (mainProps.optionType !== '') {
-    await getOptions(mainProps.optionType)
+  if (mainProps.optionType !== '' && localOptions.value.length == 0) {
+    await getOptions(mainProps.optionType, mainProps.optionQuery)
   }
 
   update(() => {
@@ -169,7 +200,26 @@ const filterOptions = async (val, update) => {
         localOptions.value = mainProps.options.filter(opt => opt.toString().toLowerCase().indexOf(val.toLowerCase()) > -1)
       }
     }
+
+    // set the user inputed filter value in state
+    selectInputFilterValue.value = val
   })
+}
+const loadMoreOptions = async ({ to, ref }) => {
+  const lastIndex = localOptions.value.length - 1
+  // only load more options if were at the bottom of the list, not on the last page and not trying to filter search
+  if (!scrollLoading.value && to === lastIndex && nextOptionsPage.value < lastOptionsPage.value && selectInputFilterValue.value == '') {
+    scrollLoading.value = true
+    await getOptions(mainProps.optionType, {
+      ...mainProps.optionQuery,
+      page: nextOptionsPage.value
+    }, true)
+
+    nextOptionsPage.value++
+    // calls and internal qSelect function that handles refreshing the list with the updating options at the last index position
+    ref.refresh()
+    scrollLoading.value = false
+  }
 }
 const renderLabel = (opt) => {
   if (mainProps.optionType == 'users') {

@@ -5,7 +5,7 @@
   >
     <div class="col-12 flex items-center q-mb-xs">
       <MoreOptionsMenu
-        :options="[{ text: 'Edit' }, { text: 'Print Job' }]"
+        :options="[{ text: 'Edit' }, { text: 'Print Job' }, { text: 'View History' }]"
         class="q-mr-sm"
         @click="handleOptionInput"
       />

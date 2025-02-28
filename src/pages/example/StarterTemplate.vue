@@ -1,7 +1,7 @@
 <template>
-  <q-page 
+  <q-page
     :style-fn="handleHeaderOffset"
-    padding 
+    padding
   >
     starting page/component, please copy and replace as needed
   </q-page>

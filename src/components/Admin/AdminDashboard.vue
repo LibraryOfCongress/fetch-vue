@@ -50,6 +50,11 @@
     :location-title="showLocationManageRouteModal"
     @hide="showLocationManageRouteModal = null; resetBuildingStore();"
   />
+
+  <AdminLocationManagerBulkUpload
+    v-if="showBulkUploadLocationModal"
+    @hide="showBulkUploadLocationModal = false"
+  />
 </template>
 
 <script setup>
@@ -59,6 +64,7 @@ import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { useBuildingStore } from '@/stores/building-store'
 import EssentialLink from '@/components/EssentialLink.vue'
 import AdminLocationManagerRouting from '@/components/Admin/AdminLocationManagerRouting.vue'
+import AdminLocationManagerBulkUpload from '@/components/Admin/AdminLocationManagerBulkUpload.vue'
 
 const router = useRouter()
 
@@ -72,10 +78,6 @@ const { resetBuildingStore } = useBuildingStore()
 const adminLinkList = computed(() => {
   let linkList = [
     {
-      title: 'Buildings',
-      link: '/admin/buildings/'
-    },
-    {
       title: 'Groups & Permissions',
       link: '/admin/groups/',
       hidden: !checkUserPermission('can_manage_groups_and_permissions')
@@ -83,20 +85,24 @@ const adminLinkList = computed(() => {
     {
       title: 'List Configurations',
       sublinks: [
-        // {
-        //   title: 'Add/Edit/Remove Owners',
-        //   hidden: !checkUserPermission('can_manage_owners')
-        // },
-        // {
-        //   title: 'Add/Edit/Remove Media Type',
-        //   hidden: !checkUserPermission('can_manage_media_type')
-        // },
+        {
+          title: 'Add/Edit/Remove Owners',
+          hidden: !checkUserPermission('can_manage_owners')
+        },
+        {
+          title: 'Add/Edit/Remove Media Type',
+          hidden: !checkUserPermission('can_manage_media_type')
+        },
         {
           title: 'Add/Edit/Remove Size Class',
           hidden: !checkUserPermission('can_manage_size_class')
+        },
+        {
+          title: 'Add/Edit/Remove Shelf Type',
+          hidden: !checkUserPermission('can_manage_shelf_type')
         }
       ],
-      hidden: !(checkUserPermission('can_manage_size_class') || checkUserPermission('can_manage_owners') || checkUserPermission('can_manage_media_type'))
+      hidden: !(checkUserPermission('can_manage_size_class') || checkUserPermission('can_manage_owners') || checkUserPermission('can_manage_media_type') || checkUserPermission('can_manage_shelf_type'))
     },
     {
       title: 'Location Manager',
@@ -115,6 +121,9 @@ const adminLinkList = computed(() => {
         },
         {
           title: 'Shelves'
+        },
+        {
+          title: 'Bulk Upload Ladders/Shelves'
         }
       ],
       hidden: !checkUserPermission('can_manage_locations')
@@ -134,6 +143,7 @@ const adminLinkList = computed(() => {
   })
 })
 const showLocationManageRouteModal = ref(null)
+const showBulkUploadLocationModal = ref(false)
 
 // Logic
 onBeforeMount(() => {
@@ -142,21 +152,27 @@ onBeforeMount(() => {
 
 const handleRouting = (link) => {
   switch (link.title) {
-  case 'Buildings':
-    router.push({ name: 'admin-location-manage-buildings' })
-    break
-  // case 'Add/Edit/Remove Owners':
-  //   router.push({ name: '' })
-  //   break
-  // case 'Add/Edit/Remove Media Type':
-  //   router.push({ name: '' })
-  //   break
-  case 'Add/Edit/Remove Size Class':
-    router.push({ name: 'admin-manage-size-class' })
-    break
-  default:
-    showLocationManageRouteModal.value = link.title
-    break
+    case 'Buildings':
+      router.push({ name: 'admin-location-manage-buildings' })
+      break
+    case 'Bulk Upload Ladders/Shelves':
+      showBulkUploadLocationModal.value = true
+      break
+    case 'Add/Edit/Remove Owners':
+      router.push({ name: 'admin-manage-owner' })
+      break
+    case 'Add/Edit/Remove Media Type':
+      router.push({ name: 'admin-manage-media-type' })
+      break
+    case 'Add/Edit/Remove Size Class':
+      router.push({ name: 'admin-manage-size-class' })
+      break
+    case 'Add/Edit/Remove Shelf Type':
+      router.push({ name: 'admin-manage-shelf-type' })
+      break
+    default:
+      showLocationManageRouteModal.value = link.title
+      break
   }
 }
 </script>

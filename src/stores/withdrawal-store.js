@@ -3,6 +3,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useWithdrawalStore = defineStore('withdrawal-store', {
   state: () => ({
+    withdrawJobListTotal: 0,
     withdrawJobList: [],
     withdrawJob: {
       id: null,
@@ -24,7 +25,10 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
         itemList = itemList.concat(state.withdrawJob.items, state.withdrawJob.non_tray_items)
       }
       // return the list sorted alphnumerically
-      return itemList.sort(new Intl.Collator('en', { numeric:true, sensitivity:'accent' }).compare)
+      return itemList.sort(new Intl.Collator('en', {
+        numeric:true,
+        sensitivity:'accent'
+      }).compare)
     }
   },
   actions: {
@@ -47,8 +51,16 @@ export const useWithdrawalStore = defineStore('withdrawal-store', {
     },
     async getWithdrawJobList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.withdrawJobs, { params: { ...qParams, size:100 } })
+        const res = await this.$api.get(inventoryServiceApi.withdrawJobs, {
+          params: {
+            size: this.apiPageSizeDefault,
+            ...qParams
+          }
+        })
         this.withdrawJobList = res.data.items
+
+        // keep track of response total for pagination
+        this.withdrawJobListTotal = res.data.total
       } catch (error) {
         throw error
       }

@@ -3,7 +3,21 @@
     <template #number-box-content>
       <div class="flex q-mb-xs">
         <MoreOptionsMenu
-          :options="[{ text: 'Edit', hidden: !checkUserPermission('can_assign_and_reassign_shelving_job'), disabled: appIsOffline || editJob || shelvingJob.status == 'Paused' || shelvingJob.status == 'Completed' }, { text: 'Print Job' }]"
+          :options="[
+            {
+              text: 'Edit',
+              hidden: !checkUserPermission(
+                'can_assign_and_reassign_shelving_job'
+              ),
+              disabled:
+                appIsOffline ||
+                editJob ||
+                shelvingJob.status == 'Paused' ||
+                shelvingJob.status == 'Completed',
+            },
+            { text: 'Print Job' },
+            { text: 'View History' }
+          ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
         />
@@ -21,10 +35,10 @@
 
     <template #details-content>
       <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
-          <label
-            class="info-display-details-label-2 text-h6"
-          >
+        <div
+          class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg"
+        >
+          <label class="info-display-details-label-2 text-h6">
             Building:
           </label>
           <p class="text-body1">
@@ -34,10 +48,10 @@
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
-          <label
-            class="info-display-details-label-2 text-h6"
-          >
+        <div
+          class="info-display-details q-mb-xs-md q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg"
+        >
+          <label class="info-display-details-label-2 text-h6">
             Assigned User:
           </label>
           <p
@@ -67,10 +81,10 @@
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-grow">
-        <div class="info-display-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg">
-          <label
-            class="info-display-details-label-2 text-h6"
-          >
+        <div
+          class="info-display-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-lg"
+        >
+          <label class="info-display-details-label-2 text-h6">
             Date Created:
           </label>
           <p class="text-body1">
@@ -80,15 +94,21 @@
       </div>
 
       <div class="col-xs-6 col-sm-auto col-md-auto q-mr-auto">
-        <div class="info-display-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-sm">
-          <label
-            class="info-display-details-label-2 text-h6"
-          >
-            Status:
-          </label>
+        <div
+          class="info-display-details q-mb-xs-none q-mb-sm-md q-mb-md-none q-mr-sm-none q-mr-md-sm"
+        >
+          <label class="info-display-details-label-2 text-h6"> Status: </label>
           <p
             class="text-body1"
-            :class="shelvingJob.status == 'Created' || shelvingJob.status == 'Completed' ? 'outline text-highlight' : shelvingJob.status == 'Paused' || shelvingJob.status == 'Running' ? 'outline text-highlight-warning' : null"
+            :class="
+              shelvingJob.status == 'Created' ||
+                shelvingJob.status == 'Completed'
+                ? 'outline text-highlight'
+                : shelvingJob.status == 'Paused' ||
+                  shelvingJob.status == 'Running'
+                  ? 'outline text-highlight-warning'
+                  : null
+            "
           >
             {{ shelvingJob.status }}
           </p>
@@ -136,17 +156,33 @@
             :label="shelvingJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
             :disabled="appPendingSync"
             class="btn-no-wrap text-body1 q-mr-sm"
-            @click="shelvingJob.status == 'Paused' ? updateShelvingJobStatus('Running') : updateShelvingJobStatus('Paused')"
+            @click="
+              shelvingJob.status == 'Paused'
+                ? updateShelvingJobStatus('Running')
+                : updateShelvingJobStatus('Paused')
+            "
           />
           <q-btn
             no-caps
             unelevated
             color="positive"
-            :label="shelvingJob.status == 'Created' ? 'Execute Job' : 'Complete Job'"
+            :label="
+              shelvingJob.status == 'Created' ? 'Execute Job' : 'Complete Job'
+            "
             class="btn-no-wrap text-body1"
-            :disabled="appIsOffline || appPendingSync || !checkUserPermission('can_create_and_execute_shelving_job') || shelvingJob.status == 'Paused' || !allContainersShelved"
+            :disabled="
+              appIsOffline ||
+                appPendingSync ||
+                !checkUserPermission('can_create_and_execute_shelving_job') ||
+                shelvingJob.status == 'Paused' ||
+                !allContainersShelved
+            "
             :loading="appActionIsLoadingData"
-            @click="shelvingJob.status == 'Created' ? executeShelvingJob() : showCompleteJobModal = true"
+            @click="
+              shelvingJob.status == 'Created'
+                ? executeShelvingJob()
+                : (showCompleteJobModal = true)
+            "
           />
         </div>
       </div>
@@ -165,17 +201,36 @@
       <MobileActionBar
         v-else-if="shelvingJob.status !== 'Completed'"
         button-one-color="accent"
-        :button-one-icon="shelvingJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'"
-        :button-one-label="shelvingJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'"
+        :button-one-icon="
+          shelvingJob.status !== 'Paused' ? 'mdi-pause' : 'mdi-play'
+        "
+        :button-one-label="
+          shelvingJob.status == 'Paused' ? 'Resume Job' : 'Pause Job'
+        "
         :button-one-outline="true"
         :button-one-disabled="appPendingSync || shelvingJob.status == 'Created'"
-        @button-one-click="shelvingJob.status == 'Paused' ? updateShelvingJobStatus('Running') : updateShelvingJobStatus('Paused')"
+        @button-one-click="
+          shelvingJob.status == 'Paused'
+            ? updateShelvingJobStatus('Running')
+            : updateShelvingJobStatus('Paused')
+        "
         button-two-color="positive"
-        :button-two-label="shelvingJob.status == 'Created' ? 'Execute Job' : 'Complete Job'"
+        :button-two-label="
+          shelvingJob.status == 'Created' ? 'Execute Job' : 'Complete Job'
+        "
         :button-two-outline="false"
-        :button-two-disabled="appIsOffline || appPendingSync || shelvingJob.status == 'Paused' || !allContainersShelved"
+        :button-two-disabled="
+          appIsOffline ||
+            appPendingSync ||
+            shelvingJob.status == 'Paused' ||
+            !allContainersShelved
+        "
         :button-two-loading="appActionIsLoadingData"
-        @button-two-click="shelvingJob.status == 'Created' ? executeShelvingJob() : showCompleteJobModal = true"
+        @button-two-click="
+          shelvingJob.status == 'Created'
+            ? executeShelvingJob()
+            : (showCompleteJobModal = true)
+        "
       />
     </template>
 
@@ -185,18 +240,18 @@
         :table-visible-columns="shelfTableVisibleColumns"
         :filter-options="shelfTableFilters"
         :table-data="shelvingJobContainers"
-        :row-key="'barcode.value'"
+        :row-key="row => row.barcode.value"
         :hide-table-rearrange="false"
-        :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
-        :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+        :heading-row-class="'justify-end q-mb-lg q-px-xs-sm q-px-sm-md'"
+        :heading-filter-class="
+          currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'
+        "
         :highlight-row-class="'bg-color-green-light'"
         :highlight-row-key="'scanned_for_shelving'"
         :highlight-row-value="true"
       >
         <template #heading-row>
-          <div
-            class="col-xs-12 col-sm-grow q-mr-auto"
-          >
+          <div class="col-xs-12 col-sm-grow q-mr-auto">
             <h2 class="text-h4 text-bold">
               Containers in Job:
             </h2>
@@ -204,11 +259,16 @@
         </template>
 
         <template #table-td="{ colName, props, value }">
-          <span
-            v-if="colName == 'actions'"
-          >
+          <span v-if="colName == 'actions'">
             <MoreOptionsMenu
-              :options="[{ text: 'Edit Location', disabled: shelvingJob.status == 'Paused' || shelvingJob.status == 'Completed' }]"
+              :options="[
+                {
+                  text: 'Edit Location',
+                  disabled:
+                    shelvingJob.status == 'Paused' ||
+                    shelvingJob.status == 'Completed',
+                },
+              ]"
               class=""
               @click="handleOptionMenu($event, props.row)"
             />
@@ -221,7 +281,7 @@
             class="text-bold text-nowrap"
             :class="value == true ? 'text-positive' : ''"
           >
-            {{ value == true ? 'Shelved' : '' }}
+            {{ value == true ? "Shelved" : "" }}
             <q-icon
               v-if="value == true"
               name="mdi-check-circle"
@@ -240,7 +300,10 @@
     v-if="showShelvingLocationModal"
     ref="locationModalComponent"
     :shelving-item="selectedShelvingItem"
-    @hide="showShelvingLocationModal = false; selectedShelvingItem = null;"
+    @hide="
+      showShelvingLocationModal = false;
+      selectedShelvingItem = null;
+    "
   />
 
   <!-- scan container note -->
@@ -252,9 +315,7 @@
     aria-label="scanContainerAlert"
   >
     <template #footer-content="{ hideModal }">
-      <q-card-section
-        class="row no-wrap justify-between items-center q-pt-sm"
-      >
+      <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
         <q-btn
           outline
           no-caps
@@ -291,7 +352,10 @@
           label="Complete & Print"
           class="btn-no-wrap text-body1 full-width"
           :loading="appActionIsLoadingData"
-          @click="completeShelvingJob(true); hideModal();"
+          @click="
+            completeShelvingJob(true);
+            hideModal();
+          "
         />
 
         <q-space class="q-mx-xs" />
@@ -303,7 +367,10 @@
           label="Complete"
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
-          @click="completeShelvingJob(false); hideModal();"
+          @click="
+            completeShelvingJob(false);
+            hideModal();
+          "
         />
 
         <q-space
@@ -328,10 +395,19 @@
     ref="batchSheetComponent"
     :shelving-job-details="shelvingJob"
   />
+
+  <!-- audit trail modal -->
+  <AuditTrail
+    v-if="showAuditTrailModal"
+    ref="historyModal"
+    @reset="showAuditTrailModal = null"
+    :job-type="showAuditTrailModal"
+    :job-id="shelvingJob.id"
+  />
 </template>
 
 <script setup>
-import { ref, inject, onBeforeMount, toRaw, watch, onMounted } from 'vue'
+import { ref, computed, inject, onBeforeMount, toRaw, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
@@ -352,6 +428,7 @@ import PopupModal from '@/components/PopupModal.vue'
 import ShelvingBatchSheet from '@/components/Shelving/ShelvingBatchSheet.vue'
 import ShelvingJobDetailsEditLocationModal from '@/components/Shelving/ShelvingJobDetailsEditLocationModal.vue'
 import ShelvingJobDetailsScanContainerModal from '@/components/Shelving/ShelvingJobDetailsScanContainerModal.vue'
+import AuditTrail from '@/components/AuditTrail.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -379,7 +456,7 @@ const {
   getModuleDetails,
   getAisleDetails,
   getSideDetails,
-  getLadderDetails,
+  getShelveList,
   getShelfDetails,
   getShelfPositionsList
 } = useBuildingStore()
@@ -411,28 +488,28 @@ const shelfTableColumns = ref([
   },
   {
     name: 'barcode',
-    field: row => row.barcode.value,
+    field: (row) => renderItemBarcodeDisplay(row),
     label: 'Barcode',
     align: 'left',
     sortable: true
   },
   {
     name: 'owner',
-    field: row => row.owner?.name,
+    field: (row) => row.owner?.name,
     label: 'Owner',
     align: 'left',
     sortable: true
   },
   {
     name: 'size_class',
-    field: row => row.size_class?.name,
+    field: (row) => row.size_class?.name,
     label: 'Size Class',
     align: 'left',
     sortable: true
   },
   {
     name: 'location',
-    field: row => getItemLocation(row),
+    field: (row) => getItemLocation(row),
     label: 'Item Location',
     align: 'left',
     sortable: true
@@ -454,30 +531,50 @@ const shelfTableVisibleColumns = ref([
   'location',
   'verified'
 ])
-const shelfTableFilters = ref([
-  {
-    field: row => row.size_class.name,
-    options: [
+const shelfTableFilters = computed(() => {
+  let tablesFilters = []
+  if (shelvingJobContainers.value.length > 0) {
+    tablesFilters = [
       {
-        text: 'C High',
-        value: false
+        field: (row) => row.owner?.name,
+        label: 'Owner',
+        // render options based on the passed in table data
+        // loop through all containers and return customized data set for table filtering and remove the duplicates
+        options: getUniqueListByKey(shelvingJobContainers.value.map(c => {
+          return {
+            text: c.owner.name,
+            value: false
+          }
+        }), 'text')
       },
       {
-        text: 'C Low',
-        value: false
+        field: (row) => row.size_class?.name,
+        label: 'Size Class',
+        options: getUniqueListByKey(shelvingJobContainers.value.map(c => {
+          return {
+            text: c.size_class.name,
+            value: false
+          }
+        }), 'text')
       }
     ]
   }
-])
+  return tablesFilters
+})
 const showShelvingLocationModal = ref(false)
 const showScanContainerNote = ref(false)
 const showScanContainerModal = ref(false)
 const showCompleteJobModal = ref(false)
+const historyModal = ref(null)
+const showAuditTrailModal = ref(false)
 
 // Logic
+const currentIsoDate = inject('current-iso-date')
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
 const handleAlert = inject('handle-alert')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
+const getUniqueListByKey = inject('get-uniqure-list-by-key')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
@@ -494,8 +591,16 @@ onBeforeMount(() => {
 onMounted(async () => {
   // when user is online and loads a job we store the current shelving job data and original in indexdb for reference offline
   if (!appIsOffline.value) {
-    addDataToIndexDb('shelvingStore', 'shelvingJob', JSON.parse(JSON.stringify(shelvingJob.value)))
-    addDataToIndexDb('shelvingStore', 'originalShelvingJob', JSON.parse(JSON.stringify(originalShelvingJob.value)))
+    addDataToIndexDb(
+      'shelvingStore',
+      'shelvingJob',
+      JSON.parse(JSON.stringify(shelvingJob.value))
+    )
+    addDataToIndexDb(
+      'shelvingStore',
+      'originalShelvingJob',
+      JSON.parse(JSON.stringify(originalShelvingJob.value))
+    )
   } else {
     // get saved shelving job data if were offline and page was reloaded/refreshed
     const res = await getDataInIndexDb('shelvingStore')
@@ -505,21 +610,32 @@ onMounted(async () => {
 })
 
 watch(compiledBarCode, (barcode) => {
-  if (barcode !== '' && shelvingJob.value.status == 'Running' && !showShelvingLocationModal.value && !showScanContainerModal.value) {
+  if (
+    barcode !== '' &&
+    shelvingJob.value.status == 'Running' &&
+    !showShelvingLocationModal.value &&
+    !showScanContainerModal.value
+  ) {
     // only allow scans if the shelving job is in a running state
     triggerContainerScan(barcode)
   }
 })
 const triggerContainerScan = (barcode_value) => {
   // check if the scanned barcode is in the containers data and that the barcode hasnt been shelved already
-  if (!shelvingJobContainers.value.some(c => c.barcode.value == barcode_value)) {
+  if (
+    !shelvingJobContainers.value.some((c) => c.barcode.value == barcode_value)
+  ) {
     handleAlert({
       type: 'error',
       text: 'The scanned container does not exist in this shelving job. Please try again.',
       autoClose: true
     })
     return
-  } else if (shelvingJobContainers.value.some(c => c.barcode.value == barcode_value && c.scanned_for_shelving)) {
+  } else if (
+    shelvingJobContainers.value.some(
+      (c) => c.barcode.value == barcode_value && c.scanned_for_shelving
+    )
+  ) {
     handleAlert({
       type: 'error',
       text: 'The scanned container has already been marked as shelved.',
@@ -535,44 +651,56 @@ const triggerContainerScan = (barcode_value) => {
 
 const handleOptionMenu = async (action, rowData) => {
   switch (action.text) {
-  case 'Edit Location':
-    try {
-      const itemLocationIdList = rowData.shelf_position?.internal_location?.split('-')
-      if (!appIsOffline.value) {
-        appIsLoadingData.value = true
-        if (itemLocationIdList) {
-          await Promise.all([
-            getBuildingDetails(shelvingJob.value.building_id),
-            getModuleDetails(itemLocationIdList[1]),
-            getAisleDetails(itemLocationIdList[2]),
-            getSideDetails(itemLocationIdList[3]),
-            getLadderDetails(itemLocationIdList[4], { owner_id: rowData.owner.id, size_class_id: rowData.size_class.id }), //filters the shelves returned from ladder by owner and size class
-            getShelfDetails(itemLocationIdList[5]),
-            getShelfPositionsList(itemLocationIdList[5], true)
-          ])
+    case 'Edit Location':
+      try {
+        const itemLocationIdList =
+          rowData.shelf_position?.internal_location?.split('-')
+        if (!appIsOffline.value) {
+          appIsLoadingData.value = true
+          if (itemLocationIdList) {
+            await Promise.all([
+              getBuildingDetails(shelvingJob.value.building_id),
+              getModuleDetails(itemLocationIdList[1]), //loads the aisle list
+              getAisleDetails(itemLocationIdList[2]), //loads the side list
+              getSideDetails(itemLocationIdList[3]), //loads the ladder list
+              getShelveList({
+                building_id: shelvingJob.value.building_id,
+                module_id: itemLocationIdList[1],
+                aisle_id: itemLocationIdList[2],
+                side_id: itemLocationIdList[3],
+                ladder_id: itemLocationIdList[4],
+                owner_id: rowData.owner.id,
+                size_class_id: rowData.size_class.id
+              }), //loads the shelve list
+              getShelfDetails(itemLocationIdList[5]),
+              getShelfPositionsList(itemLocationIdList[5], true) //loads the shelve positions list
+            ])
+          }
         }
+
+        // set the passed in rowData as the selected shelvingItem
+        selectedShelvingItem.value = rowData
+      } catch (error) {
+        handleAlert({
+          type: 'error',
+          text: error,
+          autoClose: true
+        })
+      } finally {
+        appIsLoadingData.value = false
+        showShelvingLocationModal.value = true
       }
 
-      // set the passed in rowData as the selected shelvingItem
-      selectedShelvingItem.value = rowData
-    } catch (error) {
-      handleAlert({
-        type: 'error',
-        text: error,
-        autoClose: true
-      })
-    } finally {
-      appIsLoadingData.value = false
-      showShelvingLocationModal.value = true
-    }
-
-    return
-  case 'Edit':
-    editJob.value = true
-    return
-  case 'Print Job':
-    batchSheetComponent.value.printBatchReport()
-    return
+      return
+    case 'Edit':
+      editJob.value = true
+      return
+    case 'Print Job':
+      batchSheetComponent.value.printBatchReport()
+      return
+    case 'View History':
+      showAuditTrailModal.value = 'shelving_jobs'
+      return
   }
 }
 
@@ -586,14 +714,24 @@ const executeShelvingJob = async () => {
     const payload = {
       id: route.params.jobId,
       status: 'Running',
-      user_id: shelvingJob.value.user_id ? shelvingJob.value.user_id : userData.value.user_id,
-      run_timestamp: new Date().toISOString()
+      user_id: shelvingJob.value.user_id
+        ? shelvingJob.value.user_id
+        : userData.value.user_id,
+      run_timestamp: currentIsoDate()
     }
     await patchShelvingJob(payload)
 
     // store the current shelving job data in indexdb for reference offline whenever job is executed
-    addDataToIndexDb('shelvingStore', 'shelvingJob', JSON.parse(JSON.stringify(shelvingJob.value)))
-    addDataToIndexDb('shelvingStore', 'originalShelvingJob', JSON.parse(JSON.stringify(originalShelvingJob.value)))
+    addDataToIndexDb(
+      'shelvingStore',
+      'shelvingJob',
+      JSON.parse(JSON.stringify(shelvingJob.value))
+    )
+    addDataToIndexDb(
+      'shelvingStore',
+      'originalShelvingJob',
+      JSON.parse(JSON.stringify(originalShelvingJob.value))
+    )
 
     handleAlert({
       type: 'success',
@@ -616,7 +754,7 @@ const updateShelvingJobStatus = async (status) => {
     const payload = {
       id: route.params.jobId,
       status,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
 
     await patchShelvingJob(payload)
@@ -628,8 +766,16 @@ const updateShelvingJobStatus = async (status) => {
     }
 
     // store the current shelving job data in indexdb for reference offline whenever job is executed
-    addDataToIndexDb('shelvingStore', 'shelvingJob', JSON.parse(JSON.stringify(shelvingJob.value)))
-    addDataToIndexDb('shelvingStore', 'originalShelvingJob', JSON.parse(JSON.stringify(originalShelvingJob.value)))
+    addDataToIndexDb(
+      'shelvingStore',
+      'shelvingJob',
+      JSON.parse(JSON.stringify(shelvingJob.value))
+    )
+    addDataToIndexDb(
+      'shelvingStore',
+      'originalShelvingJob',
+      JSON.parse(JSON.stringify(originalShelvingJob.value))
+    )
 
     handleAlert({
       type: 'success',
@@ -675,7 +821,7 @@ const completeShelvingJob = async (printBool) => {
     const payload = {
       id: route.params.jobId,
       status: 'Completed',
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchShelvingJob(payload)
 
@@ -708,5 +854,4 @@ const completeShelvingJob = async (printBool) => {
 }
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

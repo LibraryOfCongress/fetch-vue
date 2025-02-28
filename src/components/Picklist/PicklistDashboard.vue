@@ -11,6 +11,10 @@
           :enable-selection="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-xl'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="picklistJobListTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadPicklistJobs($event)"
           @selected-table-row="loadPicklistJob($event.id)"
         >
           <template #heading-row>
@@ -26,7 +30,7 @@
 
           <template #table-td="{ colName, value }">
             <span
-              v-if="colName == 'request_items'"
+              v-if="colName == 'request_count'"
               class="outline text-nowrap"
             >
               {{ value }} Items
@@ -41,7 +45,7 @@
             <span v-else-if="colName == 'create_dt'">
               {{ formatDateTime(value).date }}
             </span>
-            <span v-else-if="colName == 'complete_dt'">
+            <span v-else-if="colName == 'last_transition'">
               {{ formatDateTime(value).date }}
             </span>
           </template>
@@ -55,6 +59,7 @@
 import { onBeforeMount, ref, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
+import { useOptionStore } from '@/stores/option-store'
 import { usePicklistStore } from '@/stores/picklist-store'
 import { useUserStore } from '@/stores/user-store'
 import { storeToRefs } from 'pinia'
@@ -71,22 +76,26 @@ const { checkUserPermission } = usePermissionHandler()
 // Store Data
 const { appIsLoadingData } = storeToRefs(useGlobalStore())
 const {
+  buildings,
+  users
+} = storeToRefs(useOptionStore())
+const {
   resetPicklistStore,
   getPicklistJobList,
   getPicklistJob
 } = usePicklistStore()
-const { picklistJobList } = storeToRefs(usePicklistStore())
+const { picklistJobList, picklistJobListTotal } = storeToRefs(usePicklistStore())
 const { userData } = storeToRefs(useUserStore())
 
 // Local Data
 const picklistTableVisibleColumns = ref([
   'id',
-  'building',
-  'request_items',
+  'building_name',
+  'request_count',
   'status',
-  'user',
+  'user_id',
   'create_dt',
-  'complete_dt'
+  'last_transition'
 ])
 const picklistTableColumns = ref([
   {
@@ -97,14 +106,14 @@ const picklistTableColumns = ref([
     sortable: true
   },
   {
-    name: 'building',
+    name: 'building_name',
     field: row => row.building?.name,
     label: 'Building',
     align: 'left',
     sortable: true
   },
   {
-    name: 'request_items',
+    name: 'request_count',
     field: 'request_count',
     label: '# of Items in Job',
     align: 'left',
@@ -118,8 +127,8 @@ const picklistTableColumns = ref([
     sortable: true
   },
   {
-    name: 'user',
-    field: row => row.user?.first_name,
+    name: 'user_id',
+    field: row => row.user ? `${row.user.first_name} ${row.user.last_name}` : '',
     label: 'Assigned User',
     align: 'left',
     sortable: true
@@ -132,30 +141,57 @@ const picklistTableColumns = ref([
     sortable: true
   },
   {
-    name: 'complete_dt',
-    field: row => row.status == 'Completed' ? row.last_transition : '',
-    label: 'Date Completed',
+    name: 'last_transition',
+    field: 'last_transition',
+    label: 'Last Updated',
     align: 'left',
     sortable: true
   }
 ])
 const picklistTableFilters =  ref([
   {
+    field: row => row.building?.name,
+    label: 'Building',
+    apiField: 'building_name',
+    options: buildings.value.map(b => {
+      return {
+        text: b.name,
+        value: false
+      }
+    })
+  },
+  {
     field: 'status',
+    label: 'Status',
     options: [
       {
         text: 'Created',
-        value: false
+        value: true
       },
       {
         text: 'Paused',
-        value: false
+        value: true
+      },
+      {
+        text: 'Running',
+        value: true
       },
       {
         text: 'Completed',
         value: false
       }
     ]
+  },
+  {
+    field: row => row.user ? `${row.user.first_name} ${row.user.last_name}` : '',
+    label: 'Assigned User',
+    apiField: 'assigned_user',
+    options: users.value.map(usr => {
+      return {
+        text: `${usr.first_name} ${usr.last_name}`,
+        value: false
+      }
+    })
   }
 ])
 
@@ -171,16 +207,20 @@ onBeforeMount(() => {
     picklistTableVisibleColumns.value = [
       'id',
       'status',
-      'assigned_user',
+      'user_id',
       'create_dt'
     ]
   }
 })
 
-const loadPicklistJobs = async () => {
+const loadPicklistJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    await getPicklistJobList({ queue: true, user_id: checkUserPermission('can_view_all_picklist_jobs') ? null : userData.value.user_id })
+    await getPicklistJobList({
+      ...qParams,
+      status: picklistTableFilters.value.find(fltr => fltr.field == 'status').options.flatMap(opt => opt.value == true ? opt.text : []),
+      user_id: checkUserPermission('can_view_all_picklist_jobs') ? null : userData.value.user_id
+    })
   } catch (error) {
     handleAlert({
       type: 'error',

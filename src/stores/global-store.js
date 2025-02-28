@@ -5,8 +5,10 @@ export const useGlobalStore = defineStore('global-store', {
     appIsOffline: false,
     appIsLoadingData: false,
     appActionIsLoadingData: false,
+    appTableIsLoadingData: false,
     appPendingSync: false,
     appSyncGuard: null,
-    appRouteGuard: null
+    appRouteGuard: null,
+    pageInitLoading: false
   })
 })

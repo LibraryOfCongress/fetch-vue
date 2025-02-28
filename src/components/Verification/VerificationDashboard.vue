@@ -10,6 +10,10 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="verificationJobListTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadVerificationJobs($event)"
           @selected-table-row="loadVerificationJob($event.workflow_id)"
         >
           <template #heading-row>
@@ -65,7 +69,7 @@ const {
   getVerificationJobList,
   getVerificationJob
 } = useVerificationStore()
-const { verificationJobList } = storeToRefs(useVerificationStore())
+const { verificationJobList, verificationJobListTotal } = storeToRefs(useVerificationStore())
 
 
 // Local Data
@@ -99,18 +103,39 @@ const verificationTableColumns = ref([
 ])
 const verificationTableFilters =  ref([
   {
+    field: 'trayed',
+    label: 'Job Type',
+    options: [
+      {
+        text: 'Trayed',
+        boolValue: true,
+        value: false
+      },
+      {
+        text: 'Non-Trayed',
+        boolValue: false,
+        value: false
+      }
+    ]
+  },
+  {
     field: 'status',
+    label: 'Status',
     options: [
       {
         text: 'Created',
-        value: false
+        value: true
       },
       {
         text: 'Paused',
-        value: false
+        value: true
       },
       {
         text: 'Running',
+        value: true
+      },
+      {
+        text: 'Completed',
         value: false
       }
     ]
@@ -133,10 +158,13 @@ onBeforeMount(() => {
   }
 })
 
-const loadVerificationJobs = async () => {
+const loadVerificationJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    await getVerificationJobList({ queue: true })
+    await getVerificationJobList({
+      ...qParams,
+      status: verificationTableFilters.value.find(fltr => fltr.field == 'status').options.flatMap(opt => opt.value == true ? opt.text : [])
+    })
   } catch (error) {
     handleAlert({
       type: 'error',

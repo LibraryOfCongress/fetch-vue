@@ -6,13 +6,15 @@
           :options="!route.params.containerId ? [
             { text: 'Edit', disabled: accessionJob.status == 'Completed' },
             { text: 'Cancel Job', optionClass: 'text-negative', disabled: accessionJob.status == 'Completed', hidden: !checkUserPermission('can_cancel_accession')},
-            { text: 'Print Job' }
+            { text: 'Print Job' },
+            { text: 'View History' }
           ] : [
             { text: 'Edit', disabled: accessionJob.status == 'Completed'},
             { text: 'Cancel Job', optionClass: 'text-negative', disabled: accessionJob.status == 'Completed', hidden: !checkUserPermission('can_cancel_accession')},
             { text: 'Edit Tray Barcode', disabled: barcodeScanAllowed || accessionJob.status == 'Completed'},
             { text: 'Delete Tray', optionClass: 'text-negative', disabled: accessionJob.status == 'Completed'},
-            { text: 'Print Job' }
+            { text: 'Print Job' },
+            { text: 'View History' }
           ]"
           class="q-mr-sm"
           @click="handleOptionMenu"
@@ -66,6 +68,7 @@
               aria-label="containerSizeSelect"
               v-model="accessionContainer.size_class_id"
               :options="sizeClass"
+              :clearable="false"
               option-type="sizeClass"
               option-value="id"
               option-label="name"
@@ -88,6 +91,7 @@
                 aria-label="mediaTypeSelect"
                 v-model="accessionJob.media_type_id"
                 :options="mediaTypes"
+                :clearable="false"
                 option-type="mediaTypes"
                 option-value="id"
                 option-label="name"
@@ -97,6 +101,7 @@
                 aria-label="mediaTypeSelect"
                 v-model="accessionContainer.media_type_id"
                 :options="mediaTypes"
+                :clearable="false"
                 option-type="mediaTypes"
                 option-value="id"
                 option-label="name"
@@ -182,7 +187,7 @@
           no-caps
           unelevated
           color="accent"
-          label="submit"
+          label="Submit"
           class="text-body1 full-width"
           :disabled="!trayBarcodeInput"
           :loading="appActionIsLoadingData"
@@ -245,6 +250,15 @@
       </q-card-section>
     </template>
   </PopupModal>
+
+  <!-- audit trail modal -->
+  <AuditTrail
+    v-if="showAuditTrailModal"
+    ref="historyModal"
+    @reset="showAuditTrailModal = null"
+    :job-type="showAuditTrailModal"
+    :job-id="accessionJob.id"
+  />
 </template>
 
 <script setup>
@@ -264,6 +278,7 @@ import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import TextInput from '@/components/TextInput.vue'
+import AuditTrail from '@/components/AuditTrail.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -281,6 +296,7 @@ const {
   sizeClass,
   mediaTypes
 } = storeToRefs(useOptionStore())
+const { getOptions } = useOptionStore()
 const {
   patchAccessionJob,
   getAccessionTray,
@@ -306,9 +322,12 @@ const showConfirmationModal = ref(false)
 const trayBarcodeModal = ref(null)
 const showEditTrayModal = ref(false)
 const trayBarcodeInput = ref('')
+const historyModal = ref(null)
+const showAuditTrailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 const handleOptionMenu = (option) => {
   if (option.text == 'Edit') {
@@ -322,6 +341,8 @@ const handleOptionMenu = (option) => {
     showConfirmationModal.value = 'DeleteTray'
   } else if (option.text == 'Print Job') {
     emit('print')
+  } else if (option.text == 'View History') {
+    showAuditTrailModal.value = 'accession_jobs'
   }
 }
 
@@ -333,6 +354,7 @@ watch(compiledBarCode, (barcode) => {
 const handleTrayScan = async (barcode_value) => {
   try {
     // stop the scan if no size class matches the scanned tray
+    await getOptions('sizeClass', { short_name: barcode_value.slice(0, 2) })
     const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
     if (!generateSizeClass && accessionJob.value.status !== 'Completed') {
       handleAlert({
@@ -348,10 +370,10 @@ const handleTrayScan = async (barcode_value) => {
 
     // example barcode for tray: 'CH220987'
     // if the scanned tray exists in the accessionJob load the tray details
-    if (accessionJob.value.trays && accessionJob.value.trays.some(tray => tray.barcode_id == barcodeDetails.value.id)) {
+    if (accessionJob.value.trays && (accessionJob.value.trays.some(tray => tray.barcode_id == barcodeDetails.value.id) || accessionJob.value.trays.some(tray => tray.withdrawn_barcode?.id == barcodeDetails.value.id)) ) {
       await getAccessionTray(barcode_value)
     } else if (accessionJob.value.status !== 'Completed') {
-      // if the scanned tray barcode doesnt exist create the scanned tray using the scanned barcodes uuid
+      // if the scanned tray barcode doesn't exist create the scanned tray using the scanned barcodes uuid
       const currentDate = new Date()
       const payload = {
         accession_dt: currentDate,
@@ -360,9 +382,7 @@ const handleTrayScan = async (barcode_value) => {
         collection_accessioned: false,
         media_type_id: accessionJob.value.media_type_id,
         scanned_for_accession: false,
-        shelved_dt: currentDate,
-        size_class_id: generateSizeClass,
-        withdrawal_dt: currentDate
+        size_class_id: generateSizeClass
       }
       await postAccessionTray(payload)
     }
@@ -373,7 +393,7 @@ const handleTrayScan = async (barcode_value) => {
         name: 'accession-container',
         params: {
           jobId: accessionJob.value.workflow_id,
-          containerId: accessionContainer.value.barcode.value
+          containerId: renderItemBarcodeDisplay(accessionContainer.value)
         }
       })
     }

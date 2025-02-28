@@ -7,12 +7,16 @@
           :table-columns="refileDisplayType == 'refile_job' ? refileTableColumns : queueTableColumns"
           :table-visible-columns="refileDisplayType == 'refile_job' ? refileTableVisibleColumns : queueTableVisibleColumns"
           :filter-options="refileDisplayType == 'refile_job' ? refileTableFilters : queueTableFilters"
-          :table-data="refileJobList"
+          :table-data="refileDisplayType == 'refile_job' ? refileJobList : refileQueueList"
           :row-key="refileDisplayType == 'refile_job' ? 'id' : 'barcode_value'"
           :enable-table-reorder="false"
           :enable-selection="showCreateRefileJob || showAddRefileJob"
           :heading-row-class="'q-mb-xs-md q-mb-md-xl'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="refileDisplayType == 'refile_job' ? refileJobListTotal : refileQueueListTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadRefileJobs($event)"
           @selected-table-row="refileDisplayType == 'refile_job' ? loadRefileJob($event.id) : null"
           @selected-data="selectedRefileItems = $event"
         >
@@ -104,11 +108,19 @@
                 v-model="refileDisplayType"
                 :options="[
                   {label: 'Refile Job', value: 'refile_job'},
-                  {label: 'Refile Queue', value: 'refile_queue'}
+                  {label: ``, value: 'refile_queue', slot: 'right'}
                 ]"
-                @update:model-value="loadRefileJobs"
-                class="text-no-wrap"
-              />
+                @update:model-value="loadRefileJobs()"
+                class="refile-table-toggle"
+              >
+                <template #right>
+                  <div class="items-center no-wrap">
+                    <div class="text-center">
+                      Refile Queue <span class="refile-table-toggle-count">{{ formattedRefileQueueCount }}</span>
+                    </div>
+                  </div>
+                </template>
+              </ToggleButtonInput>
             </div>
 
             <div
@@ -165,6 +177,13 @@
             >
               {{ value }}
             </span>
+            <span
+              v-else-if="colName == 'status'"
+              class="outline text-nowrap"
+              :class="value == 'Completed' || value == 'Created' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-warning' : value == 'New' ? 'text-highlight-accent' : null "
+            >
+              {{ value }}
+            </span>
             <span v-else-if="colName == 'create_dt'">
               {{ formatDateTime(value).date }}
             </span>
@@ -186,6 +205,7 @@
   <!-- Create/Add To Refile Modal -->
   <PopupModal
     v-if="showRefileJobModal"
+    ref="refileJobModalComponent"
     :show-actions="false"
     @reset="showRefileJobModal = null"
     aria-label="refileJobModal"
@@ -234,11 +254,12 @@
           <SelectInput
             v-model="addToRefileJob"
             :options="refileJobs"
-            option-type="refileJobs"
             option-value="id"
             option-label="id"
             :placeholder="'Select Refile Job'"
             aria-label="refileJobSelect"
+            :loading="appActionIsLoadingData"
+            @focus="loadRefileJobOptions()"
           />
         </div>
       </q-card-section>
@@ -253,7 +274,7 @@
           label="Submit"
           class="text-body1 full-width text-nowrap"
           :disabled="showRefileJobModal == 'Create' ? !filterRefileByBuilding : (!filterRefileByBuilding || !addToRefileJob)"
-          @click="loadRefileQueueByBuilding(); hideModal();"
+          @click="loadRefileQueueByBuilding()"
         />
 
         <q-space class="q-mx-xs" />
@@ -271,7 +292,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, inject } from 'vue'
+import { onBeforeMount, ref, computed, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -295,7 +316,15 @@ const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
-const { buildings, refileJobs } = storeToRefs(useOptionStore())
+const {
+  buildings,
+  refileJobs,
+  users,
+  mediaTypes,
+  owners,
+  sizeClass
+} = storeToRefs(useOptionStore())
+const { getOptions } = useOptionStore()
 const {
   resetRefileStore,
   getRefileJobList,
@@ -304,17 +333,25 @@ const {
   postRefileJob,
   postRefileJobItem
 } = useRefileStore()
-const { refileJobList, refileJob } = storeToRefs(useRefileStore())
+const {
+  refileJobList,
+  refileJobListTotal,
+  refileQueueList,
+  refileQueueListTotal,
+  refileJob
+} = storeToRefs(useRefileStore())
 const { userData } = storeToRefs(useUserStore())
 
 // Local Data
+const refileJobModalComponent = ref(null)
 const refileJobMenuState = ref(false)
 const refileTableComponent = ref(null)
 const refileTableVisibleColumns = ref([
   'id',
-  'items_count',
+  'item_count',
   'shelved_count',
-  'user',
+  'status',
+  'assigned_user_id',
   'create_dt',
   'last_transition'
 ])
@@ -327,7 +364,7 @@ const refileTableColumns = ref([
     sortable: true
   },
   {
-    name: 'items_count',
+    name: 'item_count',
     field: row => (row.item_count + row.non_tray_item_count),
     label: '# of Items',
     align: 'left',
@@ -335,14 +372,21 @@ const refileTableColumns = ref([
   },
   {
     name: 'shelved_count',
-    field: row => (row.item_shelved_refiled_count + row.non_tray_item_shelved_refiled_count),
+    field: row => (row.item_shelved_refiled_count + row.container_shelved_refiled_count),
     label: '# of Items Shelved',
     align: 'left',
     sortable: true
   },
   {
-    name: 'user',
-    field: row => row.assigned_user?.first_name,
+    name: 'status',
+    field: 'status',
+    label: 'Status',
+    align: 'left',
+    sortable: true
+  },
+  {
+    name: 'assigned_user_id',
+    field: row => row.assigned_user ? `${row.assigned_user?.first_name} ${row.assigned_user?.last_name}` : '',
     label: 'Assigned User',
     align: 'left',
     sortable: true
@@ -362,33 +406,57 @@ const refileTableColumns = ref([
     sortable: true
   }
 ])
-const refileTableFilters =  ref([
-  {
-    field: row => row.assigned_user.first_name,
-    options: [
-      {
-        text: 'User 1',
-        value: false
-      },
-      {
-        text: 'User 2',
-        value: false
-      }
-    ]
-  }
-])
+const refileTableFilters = computed(() => {
+  let tablesFilters = []
+  tablesFilters = [
+    {
+      field: 'status',
+      label: 'Status',
+      options: [
+        {
+          text: 'Created',
+          value: true
+        },
+        {
+          text: 'Paused',
+          value: true
+        },
+        {
+          text: 'Running',
+          value: true
+        },
+        {
+          text: 'Completed',
+          value: false
+        }
+      ]
+    },
+    {
+      field: row => row.assigned_user ? `${row.assigned_user?.first_name} ${row.assigned_user?.last_name}` : '',
+      label: 'Assigned User',
+      apiField: 'assigned_user',
+      options: users.value.map(usr => {
+        return {
+          text: `${usr.first_name} ${usr.last_name}`,
+          value: false
+        }
+      })
+    }
+  ]
+  return tablesFilters
+})
 const queueTableVisibleColumns = ref([
-  'item_location',
+  'location',
   'container_type',
   'media_type',
-  'barcode',
+  'barcode_value',
   'owner',
   'size_class',
   'create_dt'
 ])
 const queueTableColumns = ref([
   {
-    name: 'item_location',
+    name: 'location',
     field: row => `${row.module_number}-${row.aisle_number}-${row.side_orientation == 'Right' ? 'R' : row.side_orientation == 'Left' ? 'L' : row.side_orientation}-${row.ladder_number}-${row.shelf_number}-${row.shelf_position_number}`,
     label: 'Item Location',
     align: 'left',
@@ -409,7 +477,7 @@ const queueTableColumns = ref([
     sortable: true
   },
   {
-    name: 'barcode',
+    name: 'barcode_value',
     field: row => row.barcode_value,
     label: 'Item Barcode',
     align: 'left',
@@ -440,16 +508,47 @@ const queueTableColumns = ref([
 const queueTableFilters =  ref([
   {
     field: 'container_type',
+    label: 'Container Type',
     options: [
       {
         text: 'Tray',
         value: false
       },
       {
-        text: 'Non Tray',
+        text: 'Non-Tray',
         value: false
       }
     ]
+  },
+  {
+    field: 'media_type',
+    label: 'Media Type',
+    options: mediaTypes.value.map(m => {
+      return {
+        text: m.name,
+        value: false
+      }
+    })
+  },
+  {
+    field: 'owner',
+    label: 'Owner',
+    options: owners.value.map(o => {
+      return {
+        text: o.name,
+        value: false
+      }
+    })
+  },
+  {
+    field: 'size_class',
+    label: 'Size Class',
+    options: sizeClass.value.map(s => {
+      return {
+        text: s.name,
+        value: false
+      }
+    })
   }
 ])
 const refileDisplayType = ref('refile_job')
@@ -460,7 +559,9 @@ const showRefileJobModal = ref(null)
 const selectedRefileItems = ref([])
 const filterRefileByBuilding = ref(null)
 const addToRefileJob = ref(null)
-
+const formattedRefileQueueCount = computed( () => {
+  return refileQueueListTotal.value.toLocaleString()
+})
 // Logic
 const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
@@ -468,17 +569,17 @@ const formatDateTime = inject('format-date-time')
 onBeforeMount(() => {
   resetRefileStore()
   loadRefileJobs()
-
+  getRefileQueueList({ size: 1 })
   if (currentScreenSize.value == 'xs') {
     refileTableVisibleColumns.value = [
       'id',
-      'items_count',
+      'item_count',
       'shelved_count',
-      'user'
+      'assigned_user_id'
     ]
     queueTableVisibleColumns.value = [
-      'item_location',
-      'barcode'
+      'location',
+      'barcode_value'
     ]
   }
 })
@@ -509,13 +610,17 @@ const resetRefileJobForm = () => {
   clearTableSelection()
 }
 
-const loadRefileJobs = async () => {
+const loadRefileJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
     if (refileDisplayType.value == 'refile_job') {
-      await getRefileJobList({ queue: true, user_id: checkUserPermission('can_view_all_refile_jobs') ? null : userData.value.user_id })
+      await getRefileJobList({
+        ...qParams,
+        status: refileTableFilters.value.find(fltr => fltr.field == 'status').options.flatMap(opt => opt.value == true ? opt.text : []),
+        user_id: checkUserPermission('can_view_all_refile_jobs') ? null : userData.value.user_id
+      })
     } else {
-      await getRefileQueueList()
+      await getRefileQueueList({ ...qParams })
     }
   } catch (error) {
     handleAlert({
@@ -527,11 +632,31 @@ const loadRefileJobs = async () => {
     appIsLoadingData.value = false
   }
 }
+const loadRefileJobOptions = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    // only load refile jobs with a created or paused status
+    await getOptions('refileJobs', {
+      status: [
+        'Created',
+        'Paused'
+      ]
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = false
+  }
+}
 const loadRefileQueueByBuilding = async () => {
   // this function only gets called during the creation/add refile job process
   try {
     refileDisplayType.value = 'refile_queue'
-    appIsLoadingData.value = true
+    appActionIsLoadingData.value = true
     await getRefileQueueList({ building_id: filterRefileByBuilding.value })
 
     // display next step in refile job creation
@@ -547,7 +672,9 @@ const loadRefileQueueByBuilding = async () => {
       autoClose: true
     })
   } finally {
-    appIsLoadingData.value = false
+    appActionIsLoadingData.value = false
+    refileJobModalComponent.value.hideModal()
+
   }
 }
 const loadRefileJob = async (id) => {
@@ -628,4 +755,22 @@ const updateRefileJob = async () => {
 </script>
 
 <style lang="scss" scoped>
+.refile-table-toggle {
+  :deep(.q-btn) {
+    flex: auto;
+    .refile-table-toggle-count {
+      display: inline-block;
+      padding: 0px 6px;
+      margin-top: -2px;
+      border: 1px solid $primary;
+      border-radius: 6px;
+      background-color: $color-white;
+      color: $color-black;
+    }
+    /* When the parent button is active (Refile Queue is selected) */
+    &[aria-pressed="true"] .refile-table-toggle-count {
+      border-color: $color-white;
+    }
+  }
+}
 </style>

@@ -13,7 +13,14 @@
     :options="localOptions"
     :disable="disabled"
     aria-label="toggleOptionsGroup"
-  />
+  >
+    <template #left>
+      <slot name="left" />
+    </template>
+    <template #right>
+      <slot name="right" />
+    </template>
+  </q-btn-toggle>
 </template>
 
 <script setup>
@@ -27,8 +34,14 @@ const mainProps = defineProps({
     type: Array,
     default () {
       return [
-        { label: 'Yes', value: true },
-        { label: 'No', value: false }
+        {
+          label: 'Yes',
+          value: true
+        },
+        {
+          label: 'No',
+          value: false
+        }
       ]
     }
   },

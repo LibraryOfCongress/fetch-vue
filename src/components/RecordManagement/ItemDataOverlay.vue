@@ -17,17 +17,144 @@
           flat
           round
           dense
+          aria-label="closeOverlayButton"
           v-close-popup
         />
       </q-card-section>
 
       <q-card-section>
         <BarcodeBox
-          :barcode="itemData.item ? itemData.item.barcode.value : itemData.non_tray_item.barcode.value"
+          :barcode="renderItemBarcode()"
+          :class="renderItemBarcodeColor()"
+          :min-height="'12rem'"
         />
       </q-card-section>
 
-      <q-card-section class="column q-pt-xs-none q-pt-sm-md">
+      <!-- Item Tray/Non-Tray Detail View (not nested)-->
+      <q-card-section class="column q-pt-none">
+        <div class="item-details">
+          <label class="item-details-label">
+            Tray Barcode:
+          </label>
+          <p class="item-details-text">
+            {{ itemData.tray ? itemData.tray.barcode.value : 'N/A' }}
+          </p>
+        </div>
+        <div class="item-details">
+          <label class="item-details-label">
+            Media Type:
+          </label>
+          <p class="item-details-text outline">
+            {{ itemData.media_type.name }}
+          </p>
+        </div>
+        <div class="item-details">
+          <label class="item-details-label">
+            Size Class:
+          </label>
+          <p class="item-details-text">
+            {{ itemData.size_class.name }}
+          </p>
+        </div>
+        <div class="item-details">
+          <label class="item-details-label">
+            Status:
+          </label>
+          <p
+            class="item-details-text outline"
+            :class="itemData.status == 'Out' ? 'text-highlight-negative' : 'text-highlight'"
+          >
+            {{ itemData.status }}
+          </p>
+        </div>
+        <div class="item-details">
+          <label class="item-details-label">
+            Owner:
+          </label>
+          <p class="item-details-text">
+            {{ itemData.owner?.name ? itemData.owner?.name : "" }}
+          </p>
+        </div>
+      </q-card-section>
+
+      <q-card-section class="column q-pt-none">
+        <h1 class="text-h4 q-mb-xs-sm q-mb-sm-md">
+          Dates
+        </h1>
+
+        <div class="item-details">
+          <label class="item-details-label">
+            Accession Date:
+          </label>
+          <p class="item-details-text">
+            {{ formatDateTime(itemData.accession_dt).date }}
+          </p>
+        </div>
+        <div class="item-details">
+          <label class="item-details-label">
+            Shelved Date:
+          </label>
+          <p class="item-details-text">
+            {{ formatDateTime(itemData.tray ? itemData.tray.shelving_job?.update_dt : itemData.shelving_job?.update_dt).date }}
+          </p>
+        </div>
+        <div class="item-details">
+          <label class="item-details-label">
+            Last Requested Date:
+          </label>
+          <p class="item-details-text">
+            {{ formatDateTime(itemData.last_requested_dt).date }}
+          </p>
+        </div>
+        <div class="item-details">
+          <label class="item-details-label">
+            Last Refile Date:
+          </label>
+          <p class="item-details-text">
+            {{ formatDateTime(itemData.last_refiled_dt).date }}
+          </p>
+        </div>
+        <div class="item-details">
+          <label class="item-details-label">
+            Withdrawal Date:
+          </label>
+          <p class="item-details-text">
+            {{ formatDateTime(itemData.withdrawal_dt).date }}
+          </p>
+        </div>
+      </q-card-section>
+
+      <q-card-section class="column q-pt-none">
+        <h1 class="text-h4 q-mb-xs-sm q-mb-sm-md">
+          Location
+        </h1>
+
+        <div class="item-details">
+          <p
+            v-if="renderItemBuilding(itemData)"
+            class="item-details-text outline q-mr-sm"
+          >
+            {{ renderItemBuilding(itemData) }}
+          </p>
+          <p class="item-details-text outline">
+            {{ getItemLocation(itemData.tray ?? itemData) }}
+          </p>
+        </div>
+      </q-card-section>
+
+      <q-card-section class="row items-center q-pt-sm">
+        <q-btn
+          outline
+          class="full-width"
+          color="accent"
+          label="Show Item Request History"
+          @click="emit('update')"
+          v-close-popup
+        />
+      </q-card-section>
+
+      <!-- Item Tray/Non-Tray Data View (nested)-->
+      <!-- <q-card-section class="column q-pt-xs-none q-pt-sm-md">
         <h1
           class="text-h4 q-mb-xs-sm q-mb-sm-md"
         >
@@ -81,7 +208,6 @@
             Dimensions:
           </label>
           <p class="item-details-text">
-            <!-- TODO change this once api returns correct dimensions -->
             {{ itemData.dimensions }}
           </p>
         </div>
@@ -97,9 +223,9 @@
             {{ itemData.item ? itemData.item.condition : itemData.non_tray_item.condition }}
           </p>
         </div>
-      </q-card-section>
+      </q-card-section> -->
 
-      <q-card-section class="column q-pt-none">
+      <!-- <q-card-section class="column q-pt-none">
         <h1 class="text-h4 q-mb-xs-sm q-mb-sm-md">
           Owner
         </h1>
@@ -109,9 +235,9 @@
             {{ itemData.item ? itemData.item.owner.name : itemData.non_tray_item.owner.name }}
           </p>
         </div>
-      </q-card-section>
+      </q-card-section> -->
 
-      <q-card-section class="column q-pt-none">
+      <!-- <q-card-section class="column q-pt-none">
         <h1 class="text-h4 q-mb-xs-sm q-mb-sm-md">
           Dates
         </h1>
@@ -145,13 +271,12 @@
             Arrival Date:
           </label>
           <p class="item-details-text">
-            <!-- TODO change this once api returns correct arrival date -->
             {{ formatDateTime(itemData.item ? itemData.item.accession_dt : itemData.non_tray_item.accession_dt).date }}
           </p>
         </div>
-      </q-card-section>
+      </q-card-section> -->
 
-      <q-card-section
+      <!-- <q-card-section
         class="column q-pt-none"
       >
         <h1 class="text-h4 q-mb-xs-sm q-mb-sm-md">
@@ -169,7 +294,7 @@
             {{ itemData.item ? getItemLocation(itemData.item.tray) : getItemLocation(itemData.non_tray_item) }}
           </p>
         </div>
-      </q-card-section>
+      </q-card-section> -->
 
       <q-card-section
         v-if="currentScreenSize == 'xs'"
@@ -192,7 +317,7 @@ import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 
 // Props
-defineProps({
+const mainProps = defineProps({
   itemData: {
     type: Object,
     required: true
@@ -200,7 +325,10 @@ defineProps({
 })
 
 // Emits
-const emit = defineEmits(['close'])
+const emit = defineEmits([
+  'update',
+  'close'
+])
 
 // Compasables
 const { currentScreenSize } = useCurrentScreenSize()
@@ -212,14 +340,37 @@ const showItemOverlay = ref(true)
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
 
-const renderItemBuilding = (itemData) => {
-  let building = ''
-  if (itemData.item && itemData.item.tray.shelf_position) {
-    building = itemData.item.tray.shelf_position.location?.split('-')[0]
-  } else if (itemData.non_tray_item && itemData.non_tray_item.shelf_position) {
-    building = itemData.non_tray_item.shelf_position.location?.split('-')[0]
+const renderItemBarcode = () => {
+  let barcode = ''
+  if (mainProps.itemData.barcode) {
+    barcode = mainProps.itemData.barcode.value
+  } else if (mainProps.itemData.item && mainProps.itemData.item.barcode) {
+    barcode = mainProps.itemData.item.barcode.value
+  } else if (mainProps.itemData.non_tray_item && mainProps.itemData.non_tray_item.barcode) {
+    barcode = mainProps.itemData.non_tray_item.barcode.value
   }
+  return barcode
+}
+const renderItemBarcodeColor = () => {
+  let bgColor = ''
+  if (mainProps.itemData.status) {
+    bgColor = mainProps.itemData.status == 'Out' ? 'bg-color-pink text-negative' : 'bg-color-green-light text-positive'
+  }
+  return bgColor
+}
 
+const renderItemBuilding = () => {
+  let building = ''
+  if (mainProps.itemData.tray && mainProps.itemData.tray.shelf_position) {
+    building = mainProps.itemData.tray.shelf_position.location?.split('-')[0]
+  } else if (mainProps.itemData.shelf_position) {
+    building = mainProps.itemData.shelf_position.location?.split('-')[0]
+  }
+  // else if (mainProps.itemData.item && mainProps.itemData.item.tray.shelf_position) {
+  //   building = mainProps.itemData.item.tray.shelf_position.location?.split('-')[0]
+  // } else if (mainProps.itemData.non_tray_item && mainProps.itemData.non_tray_item.shelf_position) {
+  //   building = mainProps.itemData.non_tray_item.shelf_position.location?.split('-')[0]
+  // }
   return building
 }
 </script>

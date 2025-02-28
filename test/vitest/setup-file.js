@@ -5,7 +5,10 @@ import { vi } from 'vitest'
 
 // globally mocks pinia store
 // eslint-disable-next-line no-undef
-globalThis.pinia = { global: { plugins: [createTestingPinia({ createSpy: vi.fn() })] }, props: {} }
+globalThis.pinia = {
+  global: { plugins: [createTestingPinia({ createSpy: vi.fn() })] },
+  props: {}
+}
 
 // eslint-disable-next-line no-undef
 globalThis.indexedDB = indexeddb
