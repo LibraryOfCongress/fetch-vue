@@ -173,7 +173,7 @@
       >
         <!-- TODO: TEMP Solution for editing a request, move this to the request detail page onces thats created -->
         <q-btn
-          v-if="route.name == 'request'"
+          v-if="route.name == 'request' && (itemData.item ? itemData.item.status == 'Requested' : itemData.non_tray_item.status == 'Requested')"
           no-caps
           unelevated
           outline
