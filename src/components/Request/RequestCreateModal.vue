@@ -8,7 +8,7 @@
     <template #header-content="{ hideModal }">
       <q-card-section class="row items-center q-pb-none">
         <h2 class="text-h6 text-bold">
-          {{ type == 'manual' ? 'Create Manual Request' : 'Import Request File' }}
+          {{ renderRequestModalTitle }}
         </h2>
 
         <q-btn
@@ -24,7 +24,7 @@
     </template>
     <template #main-content>
       <q-card-section
-        v-if="type == 'manual'"
+        v-if="type == 'manual' || type == 'edit'"
         class="row"
       >
         <div class="col-12 q-mb-md">
@@ -37,6 +37,7 @@
               placeholder="Enter or Scan Item Barcode"
               @focus="allowItemBarcodeScan = true"
               @blur="allowItemBarcodeScan = false"
+              :disabled="type == 'edit'"
             />
           </div>
         </div>
@@ -101,7 +102,7 @@
               Delivery Location
             </label>
             <SelectInput
-              v-model="manualRequestForm.building_id"
+              v-model="manualRequestForm.delivery_location_id"
               :options="requestsLocations"
               option-type="requestsLocations"
               option-value="id"
@@ -155,8 +156,8 @@
           label="Submit"
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
-          :disabled="!isCreateRequestjobFormValid"
-          @click="createRequestJob()"
+          :disabled="!isRequestjobFormValid"
+          @click="type == 'edit' ? editRequestJob() : createRequestJob()"
         />
 
         <q-space class="q-mx-xs" />
@@ -174,7 +175,7 @@
 </template>
 
 <script setup>
-import { ref, inject, computed, watch } from 'vue'
+import { ref, inject, computed, watch, onMounted } from 'vue'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useUserStore } from '@/stores/user-store'
@@ -191,6 +192,14 @@ const mainProps = defineProps({
   type: {
     type: String,
     default: ''
+  },
+  requestData: {
+    type: Object,
+    default: () => {
+      return {
+        id: null
+      }
+    }
   }
 })
 
@@ -211,7 +220,11 @@ const {
   requestsPriorities,
   requestsLocations
 } = storeToRefs(useOptionStore())
-const { postRequestJob, postRequestBatchJob } = useRequestStore()
+const {
+  postRequestJob,
+  patchRequestJob,
+  postRequestBatchJob
+} = useRequestStore()
 
 // Local Data
 const requestCreateModal = ref(null)
@@ -231,18 +244,27 @@ const manualRequestForm = ref({
   external_request_id: null,
   requestor_name: null,
   request_type_id: null,
-  building_id: null,
+  delivery_location_id: null,
   priority_id: null
 })
-const isCreateRequestjobFormValid = computed(() => {
-  let formIsValid = false
+const renderRequestModalTitle = computed(() => {
   if (mainProps.type == 'manual') {
+    return 'Create Manual Request'
+  } else if (mainProps.type == 'edit') {
+    return 'Edit Request'
+  } else {
+    return 'Import Request File'
+  }
+})
+const isRequestjobFormValid = computed(() => {
+  let formIsValid = false
+  if (mainProps.type == 'manual' || mainProps.type == 'edit') {
     // if any value in our form is null or empty form is not valid except for priority since thats optional
     const optionalFields = [
       'requestor_name',
       'priority_id',
       'request_type_id',
-      'building_id'
+      'delivery_location_id'
     ]
     formIsValid = Object.keys(manualRequestForm.value).every(key => optionalFields.includes(key) || (manualRequestForm.value[key] !== null && manualRequestForm.value[key] !== ''))
   } else {
@@ -254,6 +276,20 @@ const allowItemBarcodeScan = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
+
+onMounted(() => {
+  if (mainProps.type == 'edit') {
+    //populate or request form with the passed in request data
+    manualRequestForm.value = {
+      request_type_id: mainProps.requestData.request_type_id,
+      external_request_id: mainProps.requestData.external_request_id,
+      requestor_name: mainProps.requestData.requestor_name,
+      barcode: mainProps.requestData.non_tray_item ? mainProps.requestData.non_tray_item.barcode.value : mainProps.requestData.item.barcode.value,
+      delivery_location_id: mainProps.requestData.delivery_location_id,
+      priority_id: mainProps.requestData.priority_id
+    }
+  }
+})
 
 watch(compiledBarCode, (barcode) => {
   if (barcode !== '' && allowItemBarcodeScan.value) {
@@ -272,7 +308,7 @@ const createRequestJob = async () => {
         external_request_id: manualRequestForm.value.external_request_id,
         requestor_name: manualRequestForm.value.requestor_name,
         barcode_value: manualRequestForm.value.barcode,
-        delivery_location_id: manualRequestForm.value.building_id,
+        delivery_location_id: manualRequestForm.value.delivery_location_id,
         priority_id: manualRequestForm.value.priority_id
       }
       await postRequestJob(payload)
@@ -327,6 +363,36 @@ const createRequestJob = async () => {
         })
       }
     }
+  } finally {
+    appActionIsLoadingData.value = false
+    requestCreateModal.value.hideModal()
+  }
+}
+const editRequestJob = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    const payload = {
+      id: mainProps.requestData.id,
+      request_type_id: manualRequestForm.value.request_type_id,
+      external_request_id: manualRequestForm.value.external_request_id,
+      requestor_name: manualRequestForm.value.requestor_name,
+      delivery_location_id: manualRequestForm.value.delivery_location_id,
+      priority_id: manualRequestForm.value.priority_id
+    }
+    await patchRequestJob(payload)
+    handleAlert({
+      type: 'success',
+      text: 'Successfully updated the request.',
+      autoClose: true
+    })
+
+    emit('changeDisplay', 'request_view')
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
   } finally {
     appActionIsLoadingData.value = false
     requestCreateModal.value.hideModal()

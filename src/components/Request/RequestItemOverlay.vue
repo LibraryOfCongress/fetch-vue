@@ -169,13 +169,24 @@
       </q-card-section>
 
       <q-card-section
-        v-if="currentScreenSize == 'xs'"
         class="row items-center q-pt-sm"
       >
+        <!-- TODO: TEMP Solution for editing a request, move this to the request detail page onces thats created -->
         <q-btn
+          v-if="route.name == 'request'"
           no-caps
           unelevated
+          outline
           class="text-body1 full-width"
+          color="primary"
+          label="Edit Request"
+          @click="emit('edit')"
+        />
+        <q-btn
+          v-if="currentScreenSize == 'xs'"
+          no-caps
+          unelevated
+          class="text-body1 full-width q-mt-sm"
           color="primary"
           label="Close"
           v-close-popup
@@ -186,8 +197,11 @@
 </template>
 <script setup>
 import { inject } from 'vue'
+import { useRoute } from 'vue-router'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import BarcodeBox from '@/components/BarcodeBox.vue'
+
+const route = useRoute()
 
 // Props
 defineProps({
@@ -198,7 +212,10 @@ defineProps({
 })
 
 // Emits
-const emit = defineEmits(['close'])
+const emit = defineEmits([
+  'close',
+  'edit'
+])
 
 // Compasables
 const { currentScreenSize } = useCurrentScreenSize()
