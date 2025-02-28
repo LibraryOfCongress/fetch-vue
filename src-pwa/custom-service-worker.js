@@ -28,24 +28,34 @@ Queue.prototype.manualSync = async function () {
     try {
       const res = await fetch(entry.request.clone())
       const resdata = await res.json()
-      // Data successfully synchronized send response data back to client
-      console.log('Queued Request Successfully Sent', res, resdata)
-      const clients = await self.clients.matchAll()
-      for (const client of clients) {
-        client.postMessage({ url: res.url, response: resdata })
+
+      // 422 are considered passing for some reason but we want to send an error message for these
+      if (res.status == '422') {
+        console.log('Queued Request Failed', entry.request, resdata)
+        manualSyncErrorLog.push(resdata.detail ?? 'some error occured that doesnt break the proccess')
+      } else {
+        // Data successfully synchronized send response data back to client
+        console.log('Queued Request Successfully Sent', res, resdata)
+        const clients = await self.clients.matchAll()
+        for (const client of clients) {
+          client.postMessage({
+            url: res.url,
+            response: resdata
+          })
+        }
       }
     } catch (error) {
       // Handle synchronization errors
       console.log('Queued Request Failed', entry.request, error)
 
       // Put the failed request back in the queue if its a breaking error otherwise log the error responses to send back to the clinet
-      manualSyncErrorLog.push(`some error occured that doesnt break the proccess ${error}`)
-      // if (error.response.status == 500) {
-      //   await this.unshiftRequest(entry)
-      //   throw error
-      // } else {
-      //   manualSyncErrorLog.push(error.response.detail ?? 'some error occured that doesnt break the proccess')
-      // }
+      // manualSyncErrorLog.push(`some error occured that doesnt break the proccess ${error}`)
+      if (error.response.status == 500) {
+        await this.unshiftRequest(entry)
+        throw error
+      } else {
+        manualSyncErrorLog.push(error.response.detail ?? 'some error occured that doesnt break the proccess')
+      }
     }
   }
 }
@@ -97,19 +107,27 @@ self.addEventListener('message', async (event) => {
       // Send message to client to notify sync is complete
       const clients = await self.clients.matchAll()
       for (const client of clients) {
-        client.postMessage({ message: 'sync complete', error: manualSyncErrorLog })
+        client.postMessage({
+          message: 'sync complete',
+          error: manualSyncErrorLog
+        })
         manualSyncErrorLog = []
       }
     } catch (error) {
       // Send message to client to notify sync is failed
       const clients = await self.clients.matchAll()
       for (const client of clients) {
-        client.postMessage({ message: 'sync error', error })
+        client.postMessage({
+          message: 'sync error',
+          error
+        })
       }
     }
   } else if (typeof event.data == 'object' && event.data.queueIncomingApiCall) {
     // application is offline and we need to queue the passed in api request url
     clientApiCallUrl = event.data.queueIncomingApiCall
+  } else if (event.data === 'forceRefreshServiceWorkers') {
+    self.skipWaiting()
   }
 })
 
@@ -118,8 +136,14 @@ let clientApiCallUrl = '/url-recieved-from-client'
 self.addEventListener('fetch', (event) => {
   if (event.request.url.startsWith(process.env.VITE_INV_SERVCE_API) && event.request.url.includes(clientApiCallUrl)) {
     if (!self.navigator.onLine) {
-      const promiseChain = fetch(event.request.clone()).catch(() => {
+      const promiseChain = fetch(event.request.clone()).catch(async () => {
         console.log('Request failed to send no internet available storing in queue')
+        // send message to frontend to refresh once back online so that background sync can reload properly and send pending request
+        const clients = await self.clients.matchAll()
+        for (const client of clients) {
+          client.postMessage({ message: 'refreshWhenOnline' })
+        }
+
         return offlineQueue.pushRequest({ request: event.request })
       })
 

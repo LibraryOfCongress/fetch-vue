@@ -2,6 +2,7 @@ stages:
   - build
   - build_mr
   - build_staging
+  - build_deploy_prod
   - trigger
   - deploy
   - deploy_staging
@@ -97,6 +98,30 @@ build_image_staging:
   rules:
     - if: $CI_COMMIT_BRANCH == 'staging'
 
+build_image_prod:
+  stage: build_deploy_prod
+  image:
+    name: git.loc.gov:4567/fetch/build/kaniko-project/executor:1.0.0
+    entrypoint: [""]
+  variables:
+    IMAGE_FULL_TAG: $CI_REGISTRY_IMAGE/prod:latest
+  script:
+    - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
+    - cp -v images/web.prod.Containerfile Dockerfile
+    - echo $PROD_VITE_ENV > env/.env
+    - echo $PROD_VITE_INV_SERVCE_API >> env/.env
+    - echo $PROD_VITE_API_BASE_URI >> env/.env
+    - cat -A env/.env
+    - /kaniko/executor
+      --context $CI_PROJECT_DIR
+      --build-arg VITE_ENV=$PROD_VITE_ENV
+      --dockerfile $CI_PROJECT_DIR/Dockerfile
+      --destination $IMAGE_FULL_TAG
+  rules:
+    - if: '$PROD_BUILD =~ /^TRUE$/'
+      when: manual
+    - when: never
+
 deploy_dev:
   stage: deploy
   environment:
@@ -165,7 +190,8 @@ deploy_stage:
     - export TF_VAR_timestamp=$CI_COMMIT_TIMESTAMP
     - terraform --version
     - cd terraform
-    - cp -v $FETCH_DEPLOYER_K8S_CONFIG_STAGE kubeconfig
+    - kubectl config use-context fetch/build:fetch-stage -v=6
+    - cp -v $KUBECONFIG kubeconfig
     - export TF_STATE_NAME=stage
     - envsubst < backend.hcl.tmpl > backend.hcl
     - terraform init -backend-config=backend.hcl
@@ -173,3 +199,32 @@ deploy_stage:
   rules:
     - if: '$CI_COMMIT_BRANCH == "staging"'
       when: manual
+
+deploy_prod:
+  stage: build_deploy_prod
+  tags:
+    - fetch-group-runner-prod
+  image:
+    name: git.loc.gov:4567/fetch/build/terraform:alt
+    entrypoint: [""]
+  environment:
+    name: prod
+    url: https://fetch.loc.gov/
+  script:
+    - export TF_VAR_vault_deployer_password=$VAULT_DEPLOYER_PASSWORD_PROD
+    - export TF_VAR_vault_addr=$VAULT_ADDR_PROD
+    - export TF_VAR_app_name="vue"
+    - export TF_VAR_image='git.loc.gov:4567/fetch/vue/prod:latest'
+    - export TF_VAR_timestamp=$CI_COMMIT_TIMESTAMP
+    - terraform --version
+    - cd terraform
+    - kubectl config use-context fetch/build:fetch-prod -v=6
+    - cp -v $KUBECONFIG kubeconfig
+    - export TF_STATE_NAME=prod
+    - envsubst < backend.hcl.tmpl > backend.hcl
+    - terraform init -backend-config=backend.hcl
+    - terraform apply -auto-approve
+  rules:
+    - if: '$PROD_BUILD =~ /^TRUE$/'
+      when: manual
+    - when: never

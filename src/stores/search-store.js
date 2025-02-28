@@ -3,6 +3,8 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useSearchStore = defineStore('search-store', {
   state: () => ({
+    advanceSearchHistory: null,
+    searchResultsTotal: 0,
     searchResults: []
   }),
   actions: {
@@ -12,7 +14,7 @@ export const useSearchStore = defineStore('search-store', {
     async getExactSearchResult (searchInput, searchType) {
       try {
         if (searchType == 'Item') {
-          // exact searches for item/tray items types will load the item-managment ui for the item barcode value
+          // exact searches for item/tray items types will load the record-management ui for the item barcode value
           const [
             resTrayItem,
             resNonTrayItem
@@ -31,12 +33,12 @@ export const useSearchStore = defineStore('search-store', {
             this.searchResults = ['No results found...']
           }
         } else if (searchType == 'Tray') {
-          // exact search for shelf type will load the item-managment ui for the tray barcode value
+          // exact search for shelf type will load the record-management ui for the tray barcode value
           const res = await this.$api.get(`${inventoryServiceApi.traysBarcode}${searchInput}`)
           this.searchResults = [`Tray: ${searchInput}`]
           return res
         } else if (searchType == 'Shelf') {
-          // exact search for shelf type will load the item-managment ui for the shelf barcode value
+          // exact search for shelf type will load the record-management ui for the shelf barcode value
           const res = await this.$api.get(`${inventoryServiceApi.shelvesBarcode}${searchInput}`)
           this.searchResults = [`Shelf: ${searchInput}`]
           return res
@@ -67,14 +69,40 @@ export const useSearchStore = defineStore('search-store', {
     },
     async getAdvancedSearchResults (paramsObj, searchType) {
       try {
+        let res
         if (searchType == 'Item') {
-          const res = await this.$api.get(inventoryServiceApi.items, { params: { ...paramsObj, size: 100 } })
+          // advanced item search nonTrayItems
+          res = await this.$api.get(inventoryServiceApi.nonTrayItems, {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
+            }
+          })
+          this.searchResults = res.data.items
+        } else if (searchType == 'TrayItem') {
+          // advanced item search TrayItems
+          res = await this.$api.get(inventoryServiceApi.items, {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
+            }
+          })
           this.searchResults = res.data.items
         } else if (searchType == 'Tray') {
-          const res = await this.$api.get(inventoryServiceApi.trays, { params: { ...paramsObj, size: 100 } })
+          res = await this.$api.get(inventoryServiceApi.trays, {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
+            }
+          })
           this.searchResults = res.data.items
         } else if (searchType == 'Shelf') {
-          const res = await this.$api.get(inventoryServiceApi.shelves, { params: { ...paramsObj, size: 100 } })
+          res = await this.$api.get(inventoryServiceApi.shelves, {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
+            }
+          })
           this.searchResults = res.data.items
         } else {
           // job related advanced searches
@@ -85,9 +113,18 @@ export const useSearchStore = defineStore('search-store', {
             jobEndpoint = 'picklists'
           }
 
-          const res = await this.$api.get(inventoryServiceApi[jobEndpoint], { params: { ...paramsObj, size: 100 } })
+          res = await this.$api.get(inventoryServiceApi[jobEndpoint], {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
+            }
+          })
           this.searchResults = res.data.items
         }
+
+        // store the advance search history and total for pagination
+        this.searchResultsTotal = res.data.total
+        this.advanceSearchHistory = paramsObj
       } catch (error) {
         throw error
       }

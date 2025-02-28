@@ -6,7 +6,8 @@
           :options="[
             { text: 'Edit', disabled: accessionJob.status == 'Completed' },
             { text: 'Cancel Job', optionClass: 'text-negative', disabled: accessionJob.status == 'Completed', hidden: !checkUserPermission('can_cancel_accession')},
-            { text: 'Print Job' }
+            { text: 'Print Job' },
+            { text: 'View History' }
           ]"
           class="q-mr-sm"
           @click="handleOptionMenu"
@@ -59,6 +60,7 @@
               v-else-if="!accessionContainer.id"
               v-model="accessionJob.size_class_id"
               :options="sizeClass"
+              :clearable="false"
               option-type="sizeClass"
               option-value="id"
               option-label="name"
@@ -68,6 +70,7 @@
               v-else
               v-model="accessionContainer.size_class_id"
               :options="sizeClass"
+              :clearable="false"
               option-type="sizeClass"
               option-value="id"
               option-label="name"
@@ -89,6 +92,7 @@
               v-else-if="!accessionContainer.id"
               v-model="accessionJob.media_type_id"
               :options="mediaTypes"
+              :clearable="false"
               option-type="mediaTypes"
               option-value="id"
               option-label="name"
@@ -98,6 +102,7 @@
               v-else
               v-model="accessionContainer.media_type_id"
               :options="mediaTypes"
+              :clearable="false"
               option-type="mediaTypes"
               option-value="id"
               option-label="name"
@@ -186,6 +191,15 @@
       </q-card-section>
     </template>
   </PopupModal>
+
+  <!-- audit trail modal -->
+  <AuditTrail
+    v-if="showAuditTrailModal"
+    ref="historyModal"
+    @reset="showAuditTrailModal = null"
+    :job-type="showAuditTrailModal"
+    :job-id="accessionJob.id"
+  />
 </template>
 
 <script setup>
@@ -202,6 +216,7 @@ import SelectInput from '@/components/SelectInput.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
 import PopupModal from '@/components/PopupModal.vue'
+import AuditTrail from '@/components/AuditTrail.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -234,6 +249,8 @@ const emit = defineEmits(['print'])
 const editMode = ref(false)
 const confirmationModal = ref(null)
 const showConfirmationModal = ref(false)
+const historyModal = ref(null)
+const showAuditTrailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -245,6 +262,8 @@ const handleOptionMenu = (option) => {
     showConfirmationModal.value = 'CancelJob'
   } else if (option.text == 'Print Job') {
     emit('print')
+  } else if (option.text == 'View History') {
+    showAuditTrailModal.value = 'accession_jobs'
   }
 }
 

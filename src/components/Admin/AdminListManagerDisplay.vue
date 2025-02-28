@@ -11,6 +11,10 @@
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
           :heading-rearrange-class="'q-mr-xs-auto q-mr-sm-none q-ml-sm-auto'"
+          :enable-pagination="mainProps.listType == 'shelf-type' ? false: true"
+          :pagination-total="listDataTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadListData($event)"
         >
           <template #heading-row>
             <div
@@ -38,7 +42,7 @@
             </div>
           </template>
 
-          <template #table-td="{ colName, props, value }">
+          <template #table-td="{ colName, props }">
             <span
               v-if="colName == 'actions'"
             >
@@ -46,22 +50,6 @@
                 :options="generateTableOptionsMenu(props.row)"
                 class=""
                 @click="handleOptionMenu($event, props.row)"
-              />
-            </span>
-            <span
-              v-if="listType == 'size-class' && colName == 'owner'"
-              class=""
-            >
-              {{ renderSizeClassOwners(value, props.row.showMoreOwners) }}
-              <q-btn
-                v-if="value.length > 4"
-                dense
-                flat
-                no-caps
-                color="accent"
-                :label="props.row.showMoreOwners ? 'Show Less' : 'Show More'"
-                class="btn-no-wrap text-body2 q-ml-sm-sm"
-                @click="props.row.showMoreOwners = !props.row.showMoreOwners"
               />
             </span>
           </template>
@@ -77,6 +65,7 @@
     :action-type="showListInputModal.type"
     :list-data="showListInputModal.listData"
     @hide="showListInputModal.type = ''; showListInputModal.listData = {}"
+    @new-list-option-added="listDataTotal++"
   />
 
   <!-- confirmation modal -->
@@ -146,29 +135,51 @@ const {
 } = storeToRefs(useGlobalStore())
 const {
   getOptions,
-  deleteSizeClass
+  getParentOwnerOptions,
+  deleteSizeClass,
+  deleteMediaType,
+  deleteOwner,
+  deleteShelfType
 } = useOptionStore()
 const {
+  optionsTotal,
   owners,
-  mediaType,
-  sizeClass
+  mediaTypes,
+  sizeClass,
+  shelfTypes,
+  ownersTiers
 } = storeToRefs(useOptionStore())
 
 // Local Data
+const listDataTotal = ref(0)
 const listData = computed(() => {
   let tableData = []
   switch (mainProps.listType) {
-  case 'owners':
-    tableData = owners.value
-    break
-  case 'media-type':
-    tableData = mediaType.value
-    break
-  case 'size-class':
-    tableData = sizeClass.value
-    break
-  default:
-    break
+    case 'owner':
+      tableData = owners.value
+      break
+    case 'media-type':
+      tableData = mediaTypes.value
+      break
+    case 'size-class':
+      tableData = sizeClass.value
+      break
+    case 'shelf-type': {
+    // remove any duplicate shelf types by type name
+    // ex: [{ id: 1, type: 'Full' }, { id: 2, type: 'Short' }, { id: 3, type: 'Full' }] returns [{ id: 1, type: 'Full' }, { id: 2, type: 'Short' }]
+      const uniqueShelfTypes = shelfTypes.value.reduce ((initArr, current) => {
+        const matchingShelfType = initArr.find(st => st.type === current.type)
+        if (!matchingShelfType) {
+          return initArr.concat([current])
+        } else {
+          return initArr
+        }
+      }, [])
+      tableData = uniqueShelfTypes
+      break
+    }
+    default:
+      break
   }
   return tableData
 })
@@ -177,10 +188,12 @@ const listTableColumns = ref([])
 const listTableFilters =  ref([])
 const renderTableTitle = computed(() => {
   let title = ''
-  if (mainProps.listType == 'owners') {
-    title = 'Owners'
+  if (mainProps.listType == 'owner') {
+    title = 'Owner'
   } else if (mainProps.listType == 'media-type') {
     title = 'Media Type'
+  } else if (mainProps.listType == 'shelf-type') {
+    title = 'Shelf Type'
   } else {
     title = 'Size Class'
   }
@@ -188,10 +201,12 @@ const renderTableTitle = computed(() => {
 })
 const renderTableAction = computed(() => {
   let actionText = ''
-  if (mainProps.listType == 'owners') {
+  if (mainProps.listType == 'owner') {
     actionText = 'Add Owner'
   } else if (mainProps.listType == 'media-type') {
     actionText = 'Add Media Type'
+  } else if (mainProps.listType == 'shelf-type') {
+    actionText = 'Add Shelf Type'
   } else {
     actionText = 'Add Size Class'
   }
@@ -214,30 +229,30 @@ onBeforeMount(() => {
   generateListTableInfo()
 })
 
-const renderSizeClassOwners = (rowOwnerArray, showFullList = false) => {
-  let ownerList = []
-  if (rowOwnerArray) {
-    ownerList = rowOwnerArray.map(o => o.name)
-  }
-
-  // if we have more than 4 owners display the first 4 and a + # more label
-  // if less than 4 just show all 4
-  if (ownerList.length > 4 && !showFullList) {
-    return `${ownerList.splice(0, 4).join(', ')} + ${rowOwnerArray.length - 4} more`
-  } else if (ownerList.length > 4 && showFullList) {
-    return ownerList.join(', ')
-  } else if (ownerList.length <= 4) {
-    return ownerList.join(', ')
-  } else {
-    return ''
-  }
-}
-
 const handleOptionMenu = async (option, rowData) => {
   // load any options info that will be needed in our modal popup
   if (mainProps.listType == 'size-class') {
     appIsLoadingData.value = true
     await Promise.all([getOptions('owners')])
+    appIsLoadingData.value = false
+  } else if (mainProps.listType == 'media-type') {
+    appIsLoadingData.value = true
+    await Promise.all([getOptions('media-types')])
+    appIsLoadingData.value = false
+  } else if (mainProps.listType == 'shelf-type') {
+    appIsLoadingData.value = true
+    await Promise.all([getOptions('sizeClass')])
+    appIsLoadingData.value = false
+  } else if (mainProps.listType == 'owner') {
+    appIsLoadingData.value = true
+    await Promise.all([getOptions('ownersTiers')])
+    // Retrieve filtered list of parent owner options based on the selected owner tier
+    let currentTier = ownersTiers.value.find( (ot) => ot.id == rowData.owner_tier_id)
+    if (currentTier?.level > 1) {
+      await Promise.all([getParentOwnerOptions({ owner_tier_id: ownersTiers.value.find( (ot) => ot.level === currentTier.level - 1)?.id })])
+    } else {
+      rowData.parent_owner_id = null
+    }
     appIsLoadingData.value = false
   }
 
@@ -246,22 +261,45 @@ const handleOptionMenu = async (option, rowData) => {
     showListInputModal.value.type = 'Edit'
   } else {
     showConfirmationModal.value = {
-      text: `Are you sure you want to delete '${rowData.name}'?`,
+      text: `Are you sure you want to delete '${rowData.name || rowData.type}'?`,
       id: rowData.id
     }
   }
 }
 
-const generateTableOptionsMenu = (rowData) => {
+const generateTableOptionsMenu = () => {
   let options = []
-  if (mainProps.listType == 'owners') {
-    options = [{ text: 'Edit Owner' }]
+  if (mainProps.listType == 'owner') {
+    options = [
+      { text: 'Edit Owner' },
+      {
+        text: 'Delete Owner',
+        optionClass: 'text-negative'
+      }
+    ]
   } else if (mainProps.listType == 'media-type') {
-    options = [{ text: 'Edit Media Type' }]
+    options = [
+      { text: 'Edit Media Type' },
+      {
+        text: 'Delete Media Type',
+        optionClass: 'text-negative'
+      }
+    ]
+  } else if (mainProps.listType == 'shelf-type') {
+    options = [
+      { text: 'Edit Shelf Type' },
+      {
+        text: 'Delete Shelf Type',
+        optionClass: 'text-negative'
+      }
+    ]
   } else {
     options = [
       { text: 'Edit Size Class' },
-      { text: 'Delete Size Class', optionClass: 'text-negative', disabled: rowData.assigned }
+      {
+        text: 'Delete Size Class',
+        optionClass: 'text-negative'
+      }
     ]
   }
   return options
@@ -270,84 +308,178 @@ const generateTableOptionsMenu = (rowData) => {
 const generateListTableInfo = () => {
   // creates the report table fields needed based on the selected list type
   switch (mainProps.listType) {
-  case 'size-class':
-    listTableColumns.value = [
-      {
-        name: 'actions',
-        field: 'actions',
-        label: '',
-        align: 'center',
-        sortable: false,
-        required: true
-      },
-      {
-        name: 'name',
-        field: 'name',
-        label: 'Full Name',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'short_name',
-        field: 'short_name',
-        label: 'Short Name',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'width',
-        field: 'width',
-        label: 'Width (in)',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'depth',
-        field: 'depth',
-        label: 'Depth (in)',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'height',
-        field: 'height',
-        label: 'Height (in)',
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'owner',
-        field: 'owners',
-        label: 'Owner(s)',
-        align: 'left',
-        sortable: true
-      }
-    ]
-    listTableVisibleColumns.value = [
-      'actions',
-      'name',
-      'short_name',
-      'width',
-      'depth',
-      'height',
-      'owner'
-    ]
-    break
-  default:
-    break
+    case 'size-class':
+      listTableColumns.value = [
+        {
+          name: 'actions',
+          field: 'actions',
+          label: '',
+          align: 'center',
+          sortable: false,
+          required: true
+        },
+        {
+          name: 'name',
+          field: 'name',
+          label: 'Full Name',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'short_name',
+          field: 'short_name',
+          label: 'Short Name',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'width',
+          field: 'width',
+          label: 'Width (in)',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'depth',
+          field: 'depth',
+          label: 'Depth (in)',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'height',
+          field: 'height',
+          label: 'Height (in)',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      listTableVisibleColumns.value = [
+        'actions',
+        'name',
+        'short_name',
+        'width',
+        'depth',
+        'height'
+      ]
+      break
+    case 'media-type':
+      listTableColumns.value = [
+        {
+          name: 'actions',
+          field: 'actions',
+          label: '',
+          align: 'center',
+          sortable: false,
+          required: true
+        },
+        {
+          name: 'name',
+          field: 'name',
+          label: 'Name',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      listTableVisibleColumns.value = [
+        'actions',
+        'name'
+      ]
+      break
+    case 'shelf-type':
+      listTableColumns.value = [
+        {
+          name: 'actions',
+          field: 'actions',
+          label: '',
+          align: 'center',
+          sortable: false,
+          required: true
+        },
+        {
+          name: 'shelf_type',
+          field: 'type',
+          label: 'Shelf Type',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      listTableVisibleColumns.value = [
+        'actions',
+        'shelf_type'
+      ]
+      break
+    case 'owner':
+      listTableColumns.value = [
+        {
+          name: 'actions',
+          field: 'actions',
+          label: '',
+          align: 'center',
+          sortable: false,
+          required: true
+        },
+        {
+          name: 'name',
+          field: 'name',
+          label: 'Owner Name',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'parent_owner_id',
+          field: row => row.parent_owner?.name,
+          label: 'Parent Owner',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'owner_tier_id',
+          field: 'owner_tier_id',
+          label: 'Owner Tier',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      listTableVisibleColumns.value = [
+        'actions',
+        'name',
+        'parent_owner_id',
+        'owner_tier_id'
+      ]
+      break
+    default:
+      break
   }
 }
 
-const loadListData = async () => {
+const loadListData = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    if (mainProps.listType == 'owners') {
-      await getOptions('owners')
+    if (mainProps.listType == 'owner') {
+      await getOptions('owners', qParams)
     } else if (mainProps.listType == 'media-type') {
-      await getOptions('mediaType')
+      await getOptions('mediaTypes', qParams)
+    } else if (mainProps.listType == 'shelf-type') {
+      //TEMP loop the shelf types until we get all shelf type data needed for the page display
+      await getOptions('shelfTypes', qParams)
+      if (optionsTotal.value > 50) {
+        let page = 2
+        let totalPages = Math.ceil(optionsTotal.value/50)
+        while (page <= totalPages) {
+          await getOptions('shelfTypes', {
+            ...qParams,
+            page
+          }, true)
+          page++
+        }
+      }
     } else {
-      await getOptions('sizeClass')
+      await getOptions('sizeClass', qParams)
     }
+
+    // set the listData total based on the loaded list options from store
+    listDataTotal.value = optionsTotal.value
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -362,12 +494,61 @@ const loadListData = async () => {
 const deleteListOption = async (id) => {
   try {
     appActionIsLoadingData.value = true
-    await deleteSizeClass(id)
+    switch (mainProps.listType) {
+      case 'size-class': {
+        await deleteSizeClass(id)
+        break
+      }
+      case 'media-type':
+        await deleteMediaType(id)
+        break
+      case 'owner':
+        await deleteOwner(id)
+        break
+      case 'shelf-type': {
+        const matchingShelfTypesById = shelfTypes.value.filter(s => s.type == shelfTypes.value.find(s => s.id == id).type)
+        let deletedShelfTypes = []
+        await Promise.all(matchingShelfTypesById.map(async shelfType => {
+          const res = await deleteShelfType(shelfType.id)
+          if (res.status == 200) {
+            deletedShelfTypes.push(shelfType)
+          } else {
+            handleAlert({
+              type: 'error',
+              text: `"${shelfType.type} - ${shelfType.size_class.name}" is in use and cannot be deleted.`,
+              autoClose: false
+            })
+          }
+        }))
+
+        // display and alert for the successfully deleted shelfTypes
+        if (deletedShelfTypes.length == matchingShelfTypesById.length) {
+          handleAlert({
+            type: 'success',
+            text: `"${deletedShelfTypes[0].type}" has been successfully deleted.`,
+            autoClose: true
+          })
+        } else if (deletedShelfTypes.length > 0) {
+          handleAlert({
+            type: 'success',
+            text: `${deletedShelfTypes.length} size classes have been successfully deleted from "${deletedShelfTypes[0].type}".`,
+            autoClose: true
+          })
+        }
+        break
+      }
+      default:
+        break
+    }
+
     handleAlert({
       type: 'success',
       text: `Successfully Deleted The ${renderTableTitle.value}.`,
       autoClose: true
     })
+
+    // update listDataTotal for pagination
+    listDataTotal.value = listDataTotal.value == 0 ? 0 : listDataTotal.value - 1
   } catch (error) {
     handleAlert({
       type: 'error',

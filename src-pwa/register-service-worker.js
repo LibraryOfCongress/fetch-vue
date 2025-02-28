@@ -40,13 +40,26 @@ register(process.env.SERVICE_WORKER_FILE, {
       position: 'top',
       multiline: true,
       actions: [
-        { label: 'Cancel', color: 'white', handler: () => { /**/ } },
+        {
+          label: 'Cancel',
+          color: 'white',
+          handler: () => { /**/ }
+        },
         {
           label: 'Ok',
           color: 'white',
-          handler: () => {
+          handler: async () => {
             // localStorage.clear()
-            location.reload()
+            // clear out all the indexDB databases except workbox background sync
+            console.log('indexDb has been wiped and refreshed.')
+            const dbs = await window.indexedDB.databases()
+            dbs.forEach(db => {
+              if (db.name !== 'workbox-background-sync') {
+                window.indexedDB.deleteDatabase(db.name)
+              }
+            })
+            navigator.serviceWorker.controller.postMessage('forceRefreshServiceWorkers')
+            window.location.reload(true)
           }
         }
       ],

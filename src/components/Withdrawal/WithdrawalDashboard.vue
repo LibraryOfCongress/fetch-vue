@@ -10,6 +10,10 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="withdrawJobListTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadWithdrawJobs($event)"
           @selected-table-row="loadWithdrawJob($event.id)"
         >
           <template #heading-row>
@@ -87,6 +91,7 @@ const {
 } = storeToRefs(useGlobalStore())
 const {
   withdrawJobList,
+  withdrawJobListTotal,
   withdrawJob
 } = storeToRefs(useWithdrawalStore())
 const {
@@ -102,8 +107,7 @@ const withdrawTableVisibleColumns = ref([
   'id',
   'item_count',
   'status',
-  'create_dt',
-  'last_transition'
+  'create_dt'
 ])
 const withdrawTableColumns = ref([
   {
@@ -133,26 +137,24 @@ const withdrawTableColumns = ref([
     label: 'Date Created',
     align: 'left',
     sortable: true
-  },
-  {
-    name: 'last_transition',
-    field: row => row.status == 'Completed' ? row.last_transition : '',
-    label: 'Completed Date',
-    align: 'left',
-    sortable: true
   }
 ])
 const withdrawTableFilters =  ref([
   {
     field: 'status',
+    label: 'Status',
     options: [
       {
         text: 'Created',
-        value: false
+        value: true
       },
       {
         text: 'Paused',
-        value: false
+        value: true
+      },
+      {
+        text: 'Running',
+        value: true
       },
       {
         text: 'Completed',
@@ -174,16 +176,18 @@ onBeforeMount(() => {
     withdrawTableVisibleColumns.value = [
       'id',
       'item_count',
-      'create_dt',
-      'last_transition'
+      'create_dt'
     ]
   }
 })
 
-const loadWithdrawJobs = async () => {
+const loadWithdrawJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    await getWithdrawJobList({ queue: true })
+    await getWithdrawJobList({
+      ...qParams,
+      status: withdrawTableFilters.value.find(fltr => fltr.field == 'status').options.flatMap(opt => opt.value == true ? opt.text : [])
+    })
   } catch (error) {
     handleAlert({
       type: 'error',

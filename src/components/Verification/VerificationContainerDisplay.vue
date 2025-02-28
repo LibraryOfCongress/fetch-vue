@@ -354,7 +354,7 @@
           no-caps
           unelevated
           color="accent"
-          label="submit"
+          label="Submit"
           class="text-body1 full-width"
           :disabled="!manualBarcodeEdit"
           :loading="appActionIsLoadingData"
@@ -683,7 +683,7 @@ const verificationTableComponent = ref(null)
 const verificationTableColumns = ref([
   {
     name: 'barcode_value',
-    field: (row) => row.barcode.value,
+    field: (row) => renderItemBarcodeDisplay(row),
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -717,6 +717,8 @@ const renderIsEditMode = computed(() => {
 // Logic
 const handleAlert = inject('handle-alert')
 const audioAlert = inject('audio-alert')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
+const currentIsoDate = inject('current-iso-date')
 
 watch(route, () => {
   if (!route.params.containerId) {
@@ -803,7 +805,7 @@ const triggerItemScan = async (barcode_value) => {
           name: 'verification-container',
           params: {
             jobId: verificationJob.value.workflow_id,
-            containerId: verificationContainer.value.barcode.value
+            containerId: renderItemBarcodeDisplay(verificationContainer.value)
           }
         })
       }
@@ -853,6 +855,7 @@ const addContainerItem = async () => {
         accession_dt: verificationContainer.value.accession_dt,
         arbitrary_data: 'Signed copy',
         barcode_id: barcodeDetails.value.id,
+        barcode_value: barcodeDetails.value.value,
         condition: 'Good',
         media_type_id: verificationContainer.value.media_type_id,
         scanned_for_verification: true,
@@ -862,17 +865,20 @@ const addContainerItem = async () => {
         tray_id: verificationContainer.value.id,
         verification_job_id: verificationJob.value.id,
         volume: 'I',
-        withdrawal_dt: currentDate
+        withdrawal_dt: currentDate,
+        user_id: userData.value.user_id
       }
       await postVerificationTrayItem(payload)
     } else {
       // TODO: figure out what payload data is actually needed here
       const payload = {
         barcode_id: barcodeDetails.value.id,
+        barcode_value: barcodeDetails.value.value,
         media_type_id: verificationJob.value.media_type_id,
         size_class_id: verificationJob.value.size_class_id,
         status: 'In',
-        verification_job_id: verificationJob.value.id
+        verification_job_id: verificationJob.value.id,
+        user_id: userData.value.user_id
       }
       await postVerificationNonTrayItem(payload)
     }
@@ -939,7 +945,12 @@ const updateContainerItem = async (barcode_value) => {
 const deleteContainerItem = async () => {
   try {
     appActionIsLoadingData.value = true
-    const itemsToRemove = selectedItems.value.map((item) => item.id)
+    const itemsToRemove = selectedItems.value.map((item) => {
+      return {
+        ...item,
+        user_id: userData.value.user_id
+      }
+    })
     if (verificationJob.value.trayed) {
       await deleteVerificationTrayItem(itemsToRemove)
     } else {
@@ -1047,7 +1058,7 @@ const updateVerificationJobStatus = async (status) => {
     const payload = {
       id: verificationJob.value.id,
       status,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchVerificationJob(payload)
 
@@ -1070,7 +1081,7 @@ const completeVerificationJob = async () => {
     const payload = {
       id: verificationJob.value.id,
       status: 'Completed',
-      run_timestamp: new Date().toISOString(),
+      run_timestamp: currentIsoDate(),
       user_id: userData.value.user_id
     }
     await patchVerificationJob(payload)

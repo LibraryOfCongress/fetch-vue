@@ -139,6 +139,19 @@
     :search-bar-input="searchText"
     @hide="showAdvancedSearchModal = false"
   />
+
+  <!-- Item Overlay (quick view for item exact searchs)-->
+  <ItemDataOverlay
+    v-if="showItemQuickView"
+    :item-data="itemDetails"
+    @close="showItemQuickView = false"
+    @update="router.push({
+      name: 'record-management-items',
+      params: {
+        barcode: searchText
+      }
+    })"
+  />
 </template>
 
 <script setup>
@@ -148,7 +161,7 @@ import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { useGlobalStore } from '@/stores/global-store'
 import { useSearchStore } from '@/stores/search-store'
-import { useItemManagementStore } from '@/stores/item-management-store'
+import { useRecordManagementStore } from '@/stores/record-management-store'
 import { useAccessionStore } from '@/stores/accession-store'
 import { useVerificationStore } from '@/stores/verification-store'
 import { useShelvingStore } from '@/stores/shelving-store'
@@ -158,6 +171,7 @@ import { useRefileStore } from '@/stores/refile-store'
 import { useWithdrawalStore } from '@/stores/withdrawal-store'
 import { storeToRefs } from 'pinia'
 import SearchAdvancedModal from '@/components/Search/SearchAdvancedModal.vue'
+import ItemDataOverlay from '@/components/RecordManagement/ItemDataOverlay.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -174,7 +188,7 @@ const {
   itemDetails,
   trayDetails,
   shelfDetails
-} = storeToRefs(useItemManagementStore())
+} = storeToRefs(useRecordManagementStore())
 const { accessionJob } = storeToRefs(useAccessionStore())
 const { verificationJob } = storeToRefs(useVerificationStore())
 const { shelvingJob } = storeToRefs(useShelvingStore())
@@ -244,6 +258,7 @@ const searchTypes = computed(() => {
 const showExactSearch = ref(false)
 const showAdvancedSearchModal = ref(false)
 const exactSearchResponseInfo = ref(null)
+const showItemQuickView = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -285,83 +300,93 @@ const executeExactSearch = async () => {
 const handlingSearchResultRouting = () => {
   // load the exact search result route depending on search type and assign info to matching job store if needed
   switch (searchType.value) {
-  case 'Item':
-    itemDetails.value = exactSearchResponseInfo.value
-    // TODO setup routing to item-management pages once they are built out
-    break
-  case 'Tray':
-    trayDetails.value = exactSearchResponseInfo.value
-    // TODO setup routing to item-management pages once they are built out
-    break
-  case 'Shelf':
-    shelfDetails.value = exactSearchResponseInfo.value
-    // TODO setup routing to item-management pages once they are built out
-    break
-  case 'Accession':
-    accessionJob.value = exactSearchResponseInfo.value
-    router.push({
-      name: searchType.value.toLowerCase(),
-      params: {
-        jobId: searchText.value
-      }
-    })
-    break
-  case 'Verification':
-    verificationJob.value = exactSearchResponseInfo.value
-    router.push({
-      name: searchType.value.toLowerCase(),
-      params: {
-        jobId: searchText.value
-      }
-    })
-    break
-  case 'Shelving':
-    shelvingJob.value = exactSearchResponseInfo.value
-    router.push({
-      name: searchType.value.toLowerCase(),
-      params: {
-        jobId: searchText.value
-      }
-    })
-    break
-  case 'Request':
-    requestJob.value = exactSearchResponseInfo.value
-    router.push({
-      name: searchType.value.toLowerCase(),
-      params: {
-        jobId: searchText.value
-      }
-    })
-    break
-  case 'Picklist':
-    picklistJob.value = exactSearchResponseInfo.value
-    router.push({
-      name: searchType.value.toLowerCase(),
-      params: {
-        jobId: searchText.value
-      }
-    })
-    break
-  case 'Refile':
-    refileJob.value = exactSearchResponseInfo.value
-    router.push({
-      name: searchType.value.toLowerCase(),
-      params: {
-        jobId: searchText.value
-      }
-    })
-    break
-  case 'Withdraw':
-    withdrawJob.value = exactSearchResponseInfo.value
-    router.push({
-      name: 'withdrawal',
-      params: {
-        jobId: searchText.value
-      }
-    })
-    break
-  default:
-    break
+    case 'Item':
+      itemDetails.value = exactSearchResponseInfo.value
+      showItemQuickView.value = true
+      break
+    case 'Tray':
+      trayDetails.value = exactSearchResponseInfo.value
+      router.push({
+        name: 'record-management-tray',
+        params: {
+          barcode: searchText.value
+        }
+      })
+      break
+    case 'Shelf':
+      shelfDetails.value = exactSearchResponseInfo.value
+      router.push({
+        name: 'record-management-shelf',
+        params: {
+          barcode: searchText.value
+        }
+      })
+      break
+    case 'Accession':
+      accessionJob.value = exactSearchResponseInfo.value
+      router.push({
+        name: searchType.value.toLowerCase(),
+        params: {
+          jobId: searchText.value
+        }
+      })
+      break
+    case 'Verification':
+      verificationJob.value = exactSearchResponseInfo.value
+      router.push({
+        name: searchType.value.toLowerCase(),
+        params: {
+          jobId: searchText.value
+        }
+      })
+      break
+    case 'Shelving':
+      shelvingJob.value = exactSearchResponseInfo.value
+      router.push({
+        name: searchType.value.toLowerCase(),
+        params: {
+          jobId: searchText.value
+        }
+      })
+      break
+    case 'Request':
+      requestJob.value = exactSearchResponseInfo.value
+      router.push({
+        name: searchType.value.toLowerCase(),
+        params: {
+          jobId: searchText.value
+        }
+      })
+      break
+    case 'Picklist':
+      picklistJob.value = exactSearchResponseInfo.value
+      router.push({
+        name: searchType.value.toLowerCase(),
+        params: {
+          jobId: searchText.value
+        }
+      })
+      break
+    case 'Refile':
+      refileJob.value = exactSearchResponseInfo.value
+      router.push({
+        name: searchType.value.toLowerCase(),
+        params: {
+          jobId: searchText.value
+        }
+      })
+      break
+    case 'Withdraw':
+      withdrawJob.value = exactSearchResponseInfo.value
+      router.push({
+        name: 'withdrawal',
+        params: {
+          jobId: searchText.value
+        }
+      })
+      break
+    default:
+      break
   }
 }
 </script>

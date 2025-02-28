@@ -3,6 +3,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useAccessionStore = defineStore('accession-store', {
   state: () => ({
+    accessionJobListTotal: 0,
     accessionJobList: [],
     accessionJob: {
       id: null,
@@ -75,8 +76,16 @@ export const useAccessionStore = defineStore('accession-store', {
     },
     async getAccessionJobList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.accessionJobs, { params: { ...qParams, size: 100 } })
+        const res = await this.$api.get(inventoryServiceApi.accessionJobs, {
+          params: {
+            size: this.apiPageSizeDefault,
+            ...qParams
+          }
+        })
         this.accessionJobList = res.data.items
+
+        // keep track of response total for pagination
+        this.accessionJobListTotal = res.data.total
       } catch (error) {
         throw error
       }
@@ -120,8 +129,14 @@ export const useAccessionStore = defineStore('accession-store', {
     async getAccessionTray (barcode) {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.traysBarcode}${barcode}`)
-        this.accessionContainer = { ...res.data, items: res.data.items ?? [] }
-        this.originalAccessionContainer = { ...res.data, items: res.data.items ?? [] }
+        this.accessionContainer = {
+          ...res.data,
+          items: res.data.items ?? []
+        }
+        this.originalAccessionContainer = {
+          ...res.data,
+          items: res.data.items ?? []
+        }
       } catch (error) {
         throw error
       }
@@ -130,8 +145,14 @@ export const useAccessionStore = defineStore('accession-store', {
       try {
         const res = await this.$api.post(inventoryServiceApi.trays, payload)
 
-        this.accessionContainer = { ...res.data, items: res.data.items ?? [] }
-        this.originalAccessionContainer = { ...res.data, items: res.data.items ?? [] }
+        this.accessionContainer = {
+          ...res.data,
+          items: res.data.items ?? []
+        }
+        this.originalAccessionContainer = {
+          ...res.data,
+          items: res.data.items ?? []
+        }
 
         // add the new tray to accessionJob trays
         this.accessionJob.trays = [
@@ -149,8 +170,14 @@ export const useAccessionStore = defineStore('accession-store', {
     async patchAccessionTray (payload) {
       try {
         const res = await this.$api.patch(`${inventoryServiceApi.trays}${payload.id}`, payload)
-        this.accessionContainer = { ...res.data, items: res.data.items ?? [] }
-        this.originalAccessionContainer = { ...res.data, items: res.data.items ?? [] }
+        this.accessionContainer = {
+          ...res.data,
+          items: res.data.items ?? []
+        }
+        this.originalAccessionContainer = {
+          ...res.data,
+          items: res.data.items ?? []
+        }
       } catch (error) {
         throw error
       }

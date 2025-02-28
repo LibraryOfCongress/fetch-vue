@@ -1,62 +1,87 @@
 import { defineStore } from 'pinia'
+import moment from 'moment'
 import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useReportsStore = defineStore('reports-store', {
   state: () => ({
-    reportData: []
+    reportDataTotal: 0,
+    reportData: [],
+    reportQueryParams: {},
+    auditTrailData: []
   }),
   actions: {
     resetReportsStore () {
       this.$reset()
     },
+    generateReportEndpoint (reportType) {
+      const endpointMap = {
+        'Item Accession': inventoryServiceApi.reportingAccessionItems,
+        'Shelving Job Discrepancy':inventoryServiceApi.reportingShelvingDiscrepancy,
+        'Open Locations': inventoryServiceApi.reportingOpenLocations,
+        'Tray/Item Count By Aisle': inventoryServiceApi.reportingTrayItemCountByAisle,
+        'Non-Tray Count': inventoryServiceApi.reportingNonTrayItemsCount,
+        'Total Item Retrieved': inventoryServiceApi.reportingRetrievalsCount,
+        'Item in Tray': inventoryServiceApi.reportingTrayItemsCount,
+        'User Job Summary': inventoryServiceApi.reportingUserJobsCount,
+        'Verification Change': inventoryServiceApi.reportingVerificationChanges
+      }
+
+      return endpointMap[reportType] || null
+    },
     async getReport (paramsObj, reportType) {
       try {
-        if (reportType == 'Item Accession') {
-          const res = await this.$api.get(inventoryServiceApi.reportingAccessionItems, { params: { ...paramsObj, size: 100 },
-            paramsSerializer: function handleQuery (query) {
-              // this will process param arrays as multiple entries in get request query params
-              // ex: owner_id: [1,2] => owner_id=1&owner_id=2
-              return Object.entries(query).map(([
-                key,
-                value
-              ]) => Array.isArray(value) ? `${key}=${value.join('&' + key + '=')}` : `${key}=${value}`).join('&')
+        const endpoint = this.generateReportEndpoint(reportType)
+        this.reportData = []
+        if (endpoint) {
+          const res = await this.$api.get(endpoint, {
+            params: {
+              size: this.apiPageSizeDefault,
+              ...paramsObj
             }
-          })
-          this.reportData = res.data.items
-
-
-          //REMOVE: Temp solution until reports are figured out
-          // let itemData = []
-          // const res = this.$api.get(inventoryServiceApi.items, { params: { ...paramsObj, size: 100 } })
-          // const res2 = this.$api.get(inventoryServiceApi.nonTrayItems, { params: { ...paramsObj, size: 100 } })
-          // Promise.all([
-          //   res,
-          //   res2
-          // ]).then(values => {
-          //   itemData = itemData.concat(values[0].data.items, values[1].data.items)
-          //   console.log(itemData)
-          //   if (itemData.length == 0) {
-          //     this.reportData = []
-          //   } else {
-          //     this.reportData = [
-          //       {
-          //         owner: {
-          //           name: paramsObj.owner_id && itemData.length > 0 ? itemData[0].owner.name : 'All'
-          //         },
-          //         media_type: {
-          //           name: paramsObj.media_type_id && itemData.length > 0 ? itemData[0].media_type.name : 'All'
-          //         },
-          //         size_class: {
-          //           name: paramsObj.size_class_id && itemData.length > 0 ? itemData[0].size_class.name : 'All'
-          //         },
-          //         total_count: values[0].data.total + values[1].data.total
-          //       }
-          //     ]
-          //   }
-          // })
-        } else {
-          this.reportData = []
+          } )
+          this.reportData = res.data.items // Store the report data
+          this.reportDataTotal = res.data.total // keep track of response total for pagination
+          this.reportQueryParams = paramsObj // Remember the query params for download
         }
+      } catch (error) {
+        throw error
+      }
+    },
+    async downloadReport (reportType) {
+      try {
+        const endpoint = this.generateReportEndpoint(reportType)
+        if (endpoint) {
+          const res = await this.$api.get(`${endpoint}download`, {
+            params: { ...this.reportQueryParams },
+            responseType: 'blob'
+          })
+          const url = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
+
+          // Get the current date and time and format as YYYY_MM_DD_HH_MM_SS
+          const formattedDate = moment().format().slice(0, 19).replace(/[-T:]/g, '_')
+          const link = document.createElement('a')
+          link.href = url
+          link.download = `${reportType}_${formattedDate}.csv`
+          document.body.appendChild(link)
+          link.click()
+
+          link.remove()
+          window.URL.revokeObjectURL(url)
+        }
+      } catch (error) {
+        throw error
+      }
+    },
+    async getAuditTrailData (jobType, jobId) {
+      try {
+        this.auditTrailData = []
+        const res = await this.$api.get(`${inventoryServiceApi.history}${jobType}/${jobId}`)
+        this.auditTrailData = res.data.map(item => {
+          delete item.original_values
+          delete item.new_values
+          return item
+        })
+          .filter(item => item.last_action && item.last_action.trim() !== '')
       } catch (error) {
         throw error
       }

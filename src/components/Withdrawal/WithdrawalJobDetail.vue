@@ -5,7 +5,9 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit', disabled: editJob || withdrawJob.status == 'Completed' },
-            { text: 'Delete Job', optionClass: 'text-negative', disabled: editJob || withdrawJob.status == 'Completed' || withdrawJobItems.some(itm => itm.status == 'Withdrawn')}
+            { text: 'Delete Job', optionClass: 'text-negative', disabled: editJob || withdrawJob.status == 'Completed' || withdrawJobItems.some(itm => itm.status == 'Withdrawn')},
+            { text: 'Print Job' },
+            { text: 'View History' }
           ]"
           class="q-mr-xs"
           @click="handleOptionMenu"
@@ -212,14 +214,14 @@
         :row-key="'id'"
         :enable-table-reorder="false"
         :enable-selection="false"
-        :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
+        :heading-row-class="'justify-end q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
         :highlight-row-class="'bg-color-green-light'"
         :highlight-row-key="'status'"
         :highlight-row-value="'Withdrawn'"
       >
         <template #heading-row>
-          <div class="col-xs-7 col-sm-5 col-md-auto q-mb-md-sm">
+          <div class="col-xs-7 col-sm-5 col-md-auto q-mb-md-sm q-mr-auto">
             <h2 class="text-h4 text-bold">
               Items in Job:
             </h2>
@@ -340,10 +342,23 @@
           no-caps
           unelevated
           color="accent"
-          label="Withdraw Items"
-          class="text-body1 full-width"
+          label="Withdraw & Print"
+          class="btn-no-wrap text-body1 full-width"
           :loading="appActionIsLoadingData"
-          @click="completeWithdrawJob(); hideModal();"
+          @click="completeWithdrawJob('withdrawAndPrint'); hideModal();"
+        />
+
+        <q-space class="q-mx-xs" />
+
+        <q-btn
+          v-if="showConfirmationModal == 'CompleteJob'"
+          no-caps
+          unelevated
+          color="accent"
+          label="Withdraw Items"
+          class="btn-no-wrap text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="completeWithdrawJob('withdraw'); hideModal();"
         />
         <q-btn
           v-else
@@ -373,10 +388,25 @@
     :entry-type="showAddItemModal"
     @hide="showAddItemModal = null"
   />
+
+  <!-- Print detail -->
+  <WithdrawalBatchSheet
+    ref="batchSheetComponent"
+    :withdrawal-job-details="withdrawJob"
+  />
+
+  <!-- audit trail modal -->
+  <AuditTrail
+    v-if="showAuditTrailModal"
+    ref="historyModal"
+    @reset="showAuditTrailModal = null"
+    :job-type="showAuditTrailModal"
+    :job-id="withdrawJob.id"
+  />
 </template>
 
 <script setup>
-import { onBeforeMount, ref, inject, toRaw } from 'vue'
+import { onBeforeMount, ref, computed, inject, toRaw } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -391,6 +421,8 @@ import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import WithdrawalJobAddItemModal from '@/components/Withdrawal/WithdrawalJobAddItemModal.vue'
+import AuditTrail from '@/components/AuditTrail.vue'
+import WithdrawalBatchSheet from '@/components/Withdrawal/WithdrawalBatchSheet.vue'
 
 const router = useRouter()
 
@@ -416,6 +448,7 @@ const {
 } = storeToRefs(useWithdrawalStore())
 
 // Local Data
+const batchSheetComponent = ref(null)
 const withdrawItemsMenuState = ref(false)
 const editJob = ref(false)
 const itemTableVisibleColumns = ref([
@@ -437,21 +470,21 @@ const itemTableColumns = ref([
   },
   {
     name: 'shelf_barcode',
-    field: row => row.tray ? row.tray?.shelf_position?.shelf?.barcode?.value : row.shelf_position?.shelf?.barcode?.value,
+    field: row => row.status === 'Withdrawn' ? renderWithdrawnShelfBarcode(row) : (row.tray ? row.tray?.shelf_position?.shelf?.barcode?.value : row.shelf_position?.shelf?.barcode?.value),
     label: 'Shelf Barcode',
     align: 'left',
     sortable: true
   },
   {
     name: 'tray_barcode',
-    field: row => row.tray?.barcode?.value,
+    field: row => row.status === 'Withdrawn' ? renderWithdrawnTrayBarcode(row) : renderItemBarcodeDisplay(row.tray),
     label: 'Tray Barcode',
     align: 'left',
     sortable: true
   },
   {
     name: 'barcode',
-    field: row => row.barcode?.value,
+    field: row => renderItemBarcodeDisplay(row),
     label: 'Barcode',
     align: 'left',
     sortable: true
@@ -471,21 +504,26 @@ const itemTableColumns = ref([
     sortable: false
   }
 ])
-const itemTableFilters =  ref([
-  {
-    field: row => row.owner.name,
-    options: [
+const itemTableFilters = computed(() => {
+  let tablesFilters = []
+  if (withdrawJobItems.value.length > 0) {
+    tablesFilters = [
       {
-        text: 'John Doe',
-        value: false
-      },
-      {
-        text: 'Abraham Lincoln',
-        value: false
+        field: row => row.owner?.name,
+        label: 'Owner',
+        // render options based on the passed in table data
+        // loop through all containers and return customized data set for table filtering and remove the duplicates
+        options: getUniqueListByKey(withdrawJobItems.value.map(tableEntry => {
+          return {
+            text: tableEntry.owner?.name,
+            value: false
+          }
+        }), 'text')
       }
     ]
   }
-])
+  return tablesFilters
+})
 const trayTableVisibleColumns = ref([
   'actions',
   'shelf_barcode',
@@ -503,14 +541,14 @@ const trayTableColumns = ref([
   },
   {
     name: 'shelf_barcode',
-    field: row => row.shelf_position?.shelf?.barcode?.value,
+    field: row => row.status === 'Withdrawn' ? renderWithdrawnShelfBarcode(row) : row.shelf_position?.shelf?.barcode?.value,
     label: 'Shelf Barcode',
     align: 'left',
     sortable: true
   },
   {
     name: 'tray_barcode',
-    field: row => row.barcode?.value,
+    field: row => row.status === 'Withdrawn' ? renderWithdrawnTrayBarcode(row) : renderItemBarcodeDisplay(row),
     label: 'Tray Barcode',
     align: 'left',
     sortable: true
@@ -523,27 +561,37 @@ const trayTableColumns = ref([
     sortable: true
   }
 ])
-const trayTableFilters =  ref([
-  {
-    field: row => row.owner.name,
-    options: [
+const trayTableFilters = computed(() => {
+  let tablesFilters = []
+  if (withdrawJob.value.trays.length > 0) {
+    tablesFilters = [
       {
-        text: 'John Doe',
-        value: false
-      },
-      {
-        text: 'Abraham Lincoln',
-        value: false
+        field: row => row.owner?.name,
+        label: 'Owner',
+        options: getUniqueListByKey(withdrawJob.value.trays.map(tableEntry => {
+          return {
+            text: tableEntry.owner?.name,
+            value: false
+          }
+        }), 'text')
       }
     ]
   }
-])
+  return tablesFilters
+})
 const showConfirmationModal = ref(null)
 const showAddItemModal = ref(null)
+const historyModal = ref(null)
+const showAuditTrailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
+const currentIsoDate = inject('current-iso-date')
 const formatDateTime = inject('format-date-time')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
+const renderWithdrawnTrayBarcode = inject('render-withdrawn-tray-barcode')
+const renderWithdrawnShelfBarcode = inject('render-withdrawn-shelf-barcode')
+const getUniqueListByKey = inject('get-uniqure-list-by-key')
 
 onBeforeMount(() => {
   if (currentScreenSize.value == 'xs') {
@@ -559,15 +607,21 @@ onBeforeMount(() => {
 
 const handleOptionMenu = async (action, rowData) => {
   switch (action.text) {
-  case 'Edit':
-    editJob.value = true
-    return
-  case 'Delete Job':
-    showConfirmationModal.value = 'DeleteJob'
-    return
-  case 'Remove Item':
-    removeWithdrawItems([rowData.barcode.value])
-    return
+    case 'Edit':
+      editJob.value = true
+      return
+    case 'Delete Job':
+      showConfirmationModal.value = 'DeleteJob'
+      return
+    case 'Remove Item':
+      removeWithdrawItems([rowData.barcode.value])
+      return
+    case 'Print Job':
+      batchSheetComponent.value.printBatchReport()
+      return
+    case 'View History':
+      showAuditTrailModal.value = 'withdraw_jobs'
+      return
   }
 }
 
@@ -581,7 +635,7 @@ const updateWithdrawJob = async () => {
     const payload = {
       id: withdrawJob.value.id,
       assigned_user_id: withdrawJob.value.assigned_user_id,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchWithdrawJob(payload)
 
@@ -628,7 +682,7 @@ const cancelWithdrawJob = async () => {
     appIsLoadingData.value = false
   }
 }
-const completeWithdrawJob = async () => {
+const completeWithdrawJob = async (withdrawType) => {
   try {
     // check if an associated picklist exists and make sure it is completed
     if (withdrawJob.value.pick_list && withdrawJob.value.pick_list.status !== 'Completed') {
@@ -645,15 +699,21 @@ const completeWithdrawJob = async () => {
       id: withdrawJob.value.id,
       status: 'Completed',
       assigned_user_id: withdrawJob.value.assigned_user_id ? withdrawJob.value.assigned_user_id : userData.value.user_id,
-      run_timestamp: new Date().toISOString()
+      run_timestamp: currentIsoDate()
     }
     await patchWithdrawJob(payload)
 
     handleAlert({
       type: 'success',
-      text: 'All items have been successfuly withdrawn, the job has been completed.',
+      text: 'All items have been successfully withdrawn, the job has been completed.',
       autoClose: true
     })
+
+    // If the user has selected complete and print, let's print!
+    if (withdrawType && withdrawType === 'withdrawAndPrint') {
+      batchSheetComponent.value.printBatchReport()
+    }
+
   } catch (error) {
     handleAlert({
       type: 'error',

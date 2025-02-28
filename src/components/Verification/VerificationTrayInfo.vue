@@ -5,7 +5,7 @@
     <div class="row">
       <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
         <MoreOptionsMenu
-          :options="[{ text: 'Edit', disabled: verificationJob.status == 'Completed' }, { text: 'Print Job' }]"
+          :options="[{ text: 'Edit', disabled: verificationJob.status == 'Completed' }, { text: 'Print Job' }, { text: 'View History'}]"
           class="q-mr-sm"
           @click="handleOptionMenu"
         />
@@ -42,6 +42,7 @@
               option-type="owners"
               option-value="id"
               option-label="name"
+              :clearable="false"
               aria-label="ownerSelect"
             />
           </div>
@@ -77,6 +78,7 @@
               option-type="sizeClass"
               option-value="id"
               option-label="name"
+              :clearable="false"
               aria-label="sizeClassSelect"
             />
           </div>
@@ -99,6 +101,7 @@
                 option-type="mediaTypes"
                 option-value="id"
                 option-label="name"
+                :clearable="false"
                 aria-label="mediaTypeSelect"
               />
               <SelectInput
@@ -108,6 +111,7 @@
                 option-type="mediaTypes"
                 option-value="id"
                 option-label="name"
+                :clearable="false"
                 aria-label="mediaTypeSelect"
               />
             </template>
@@ -166,6 +170,15 @@
       :button-two-outline="true"
       @button-two-click="cancelTrayEdit()"
     />
+
+    <!-- audit trail modal -->
+    <AuditTrail
+      v-if="showAuditTrailModal"
+      ref="historyModal"
+      @reset="showAuditTrailModal = null"
+      :job-type="showAuditTrailModal"
+      :job-id="verificationJob.id"
+    />
   </div>
 </template>
 
@@ -176,7 +189,6 @@ import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useVerificationStore } from '@/stores/verification-store'
 import { useOptionStore } from '@/stores/option-store'
-import { useBarcodeStore } from '@/stores/barcode-store'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import BarcodeBox from '@/components/BarcodeBox.vue'
@@ -184,6 +196,7 @@ import SelectInput from '@/components/SelectInput.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import VerificationMobileInfo from '@/components/Verification/VerificationMobileInfo.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
+import AuditTrail from '@/components/AuditTrail.vue'
 
 const router = useRouter()
 
@@ -192,7 +205,6 @@ const emit = defineEmits(['print'])
 
 // Composables
 const { compiledBarCode } = useBarcodeScanHandler()
-const { verifyBarcode } = useBarcodeStore()
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
@@ -216,6 +228,8 @@ const {
 
 // Local Data
 const editMode = ref(false)
+const historyModal = ref(null)
+const showAuditTrailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -227,17 +241,6 @@ watch(compiledBarCode, (barcode_value) => {
 })
 const handleTrayScan = async (barcode_value) => {
   try {
-    // stop the scan if no size class matches the scanned tray
-    const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
-    if (!generateSizeClass && verificationJob.value.status !== 'Completed') {
-      handleAlert({
-        type: 'error',
-        text: `The tray can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
-        persistent: true
-      })
-      return
-    }
-
     // stop the scan if the scanned tray doesnt exist in the verificationJob
     if (verificationJob.value.trays && !verificationJob.value.trays.some(tray => tray.barcode.value == barcode_value)) {
       handleAlert({
@@ -247,16 +250,15 @@ const handleTrayScan = async (barcode_value) => {
       })
       return
     } else {
-      // example barcode for tray: 'CH220987'
-      // check if the barcode is in the system otherwise create it
-      await verifyBarcode(barcode_value, 'Tray', true)
-
       // load the tray details
       await getVerificationTray(barcode_value)
 
       // set tray scanned status to true if the scanned tray wasnt already scanned at some point
       if (!verificationContainer.value.scanned_for_verification && verificationJob.value.status !== 'Completed') {
-        await patchVerificationTray({ id: verificationContainer.value.id, scanned_for_verification: true })
+        await patchVerificationTray({
+          id: verificationContainer.value.id,
+          scanned_for_verification: true
+        })
       }
 
       // set job status to running if it isnt already running
@@ -289,6 +291,8 @@ const handleOptionMenu = (option) => {
     editMode.value = true
   } else if (option.text == 'Print Job') {
     emit('print')
+  } else if (option.text == 'View History') {
+    showAuditTrailModal.value = 'verification_jobs'
   }
 }
 

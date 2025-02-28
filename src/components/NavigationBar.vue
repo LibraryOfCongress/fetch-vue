@@ -107,26 +107,22 @@
     >
       <q-list
         class="nav-list"
+        role="group"
       >
         <q-item
-          class="q-mb-lg align-center"
+          class="q-my-lg align-center"
           clickable
           tag="a"
           role="link"
           :to="'/'"
         >
           <q-item-section>
-            <q-icon
-              name="image"
-              color="secondary"
-              size="120px"
+            <img
+              :src="mainLogo"
+              alt="FETCH LOGO"
+              width="268"
+              height="100"
             />
-          </q-item-section>
-
-          <q-item-section>
-            <q-item-label class="text-white text-bold">
-              FETCH LOGO
-            </q-item-label>
           </q-item-section>
         </q-item>
 
@@ -197,6 +193,7 @@ import PopupModal from '@/components/PopupModal.vue'
 import UserLogin from '@/components/User/UserLogin.vue'
 import UserMenu from '@/components/User/UserMenu.vue'
 
+const mainLogo = '/assets/FETCH-Logo.svg'
 const route = useRoute()
 const router = useRouter()
 
@@ -289,6 +286,7 @@ const adminLink = ref({
 })
 const leftDrawerOpen = ref(false)
 const showOfflineBanner = ref(false)
+const refreshWhenOnline = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -311,6 +309,9 @@ onMounted(() => {
       if (event.data.message == 'pending sync') {
         // show online banner only if we have requests pending in queue
         appPendingSync.value = true
+      } else if (event.data.message == 'refreshWhenOnline') {
+        // refresh the app state incase indexDb fails to detect stored queue calls when user comes back online
+        refreshWhenOnline.value = true
       } else if (event.data.message == 'sync complete') {
         // when user triggers an offline sync, we need to wait for the syncComplete message from the serviceworker queue
         syncInProgress.value = 'Complete'
@@ -352,6 +353,13 @@ onMounted(() => {
   // display a route guard alert if the user tries to directly navigate to a page
   if (appRouteGuard.value) {
     displayRouteGuardAlert(appRouteGuard.value.name)
+  }
+})
+
+// when coming back online sometimes indexDb doesnt catch queue requests, so when our background sync service worker stores api calls it sends a message to frontend to refresh the app
+watch(appIsOffline, () => {
+  if (appIsOffline.value == false && refreshWhenOnline.value == true) {
+    window.location.reload(true)
   }
 })
 
@@ -429,14 +437,13 @@ const displayRouteGuardAlert = (pathName) => {
 
   &-list {
     position: relative;
+    display: flex;
+    flex-flow: column nowrap;
     height: 100%;
 
     &-link {
       &-admin {
-        position: absolute;
-        bottom: 0px;
-        width: 100%;
-        height: auto;
+        margin-top: auto;
       }
     }
   }

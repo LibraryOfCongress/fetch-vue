@@ -60,7 +60,10 @@ module.exports = {
     indent: [
       'error',
       2,
-      { offsetTernaryExpressions: true }
+      {
+        offsetTernaryExpressions: true,
+        SwitchCase: 1
+      }
     ],
     'prefer-promise-reject-errors': 'off',
     // allow debugger during development only
@@ -158,6 +161,33 @@ module.exports = {
     'object-curly-spacing': [
       'error',
       'always'
+    ],
+    'object-curly-newline': [
+      'error',
+      {
+        ObjectExpression: {
+          multiline: true,
+          consistent: true
+        },
+        ObjectPattern: {
+          multiline: true,
+          consistent: true
+        },
+        ImportDeclaration: {
+          multiline: true,
+          consistent: true
+        },
+        ExportDeclaration: {
+          multiline: true,
+          consistent: true
+        }
+      }
+    ],
+    'object-property-newline': [
+      'error',
+      {
+        allowAllPropertiesOnSameLine: false
+      }
     ],
     'curly': 'error',
     'no-dupe-args': 'error',

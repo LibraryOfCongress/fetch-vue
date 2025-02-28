@@ -9,15 +9,27 @@ describe('Toggle Button Input Component', () => {
     const wrapper = mount(ToggleButtonInput, {
       props: {
         options: [
-          { label: 'Yes', value: true },
-          { label: 'No', value: false }
+          {
+            label: 'Yes',
+            value: true
+          },
+          {
+            label: 'No',
+            value: false
+          }
         ]
       }
     })
 
     expect(wrapper.vm.mainProps.options).toMatchObject([
-      { label: 'Yes', value: true },
-      { label: 'No', value: false }
+      {
+        label: 'Yes',
+        value: true
+      },
+      {
+        label: 'No',
+        value: false
+      }
     ])
   })
 
@@ -25,8 +37,14 @@ describe('Toggle Button Input Component', () => {
     const wrapper = mount(ToggleButtonInput, {
       props: {
         options: [
-          { label: 'Yes', value: true },
-          { label: 'No', value: false }
+          {
+            label: 'Yes',
+            value: true
+          },
+          {
+            label: 'No',
+            value: false
+          }
         ]
       }
     })

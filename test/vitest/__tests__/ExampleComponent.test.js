@@ -11,8 +11,14 @@ describe('example Component', () => {
         title: 'Hello',
         totalCount: 4,
         todos: [
-          { id: 1, content: 'Hallo' },
-          { id: 2, content: 'Hoi' }
+          {
+            id: 1,
+            content: 'Hallo'
+          },
+          {
+            id: 2,
+            content: 'Hoi'
+          }
         ]
       }
     })

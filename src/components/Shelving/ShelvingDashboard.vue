@@ -10,6 +10,10 @@
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
           :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
+          :enable-pagination="true"
+          :pagination-total="shelvingJobListTotal"
+          :pagination-loading="appIsLoadingData"
+          @update-pagination="loadShelvingJobs($event)"
           @selected-table-row="loadShelvingJob($event.id, $event.origin)"
         >
           <template #heading-row>
@@ -119,7 +123,7 @@
               {{ value }}
             </span>
             <span
-              v-else-if="colName == 'containers'"
+              v-else-if="colName == 'container_count'"
               class="outline text-nowrap"
             >
               {{ value }} Containers
@@ -127,7 +131,7 @@
             <span v-else-if="colName == 'create_dt'">
               {{ formatDateTime(value).date }}
             </span>
-            <span v-else-if="colName == 'complete_dt'">
+            <span v-else-if="colName == 'last_transition'">
               {{ formatDateTime(value).date }}
             </span>
           </template>
@@ -373,7 +377,7 @@
             color="accent"
             label="Submit"
             class="text-body1 full-width"
-            :disabled="!isCreateShelvingjobFormValid"
+            :disabled="!isCreateShelvingJobFormValid"
             @click="submitDirectToShelfJob(); hideModal();"
           />
           <q-btn
@@ -383,7 +387,7 @@
             color="accent"
             label="Submit"
             class="text-body1 full-width"
-            :disabled="!isCreateShelvingjobFormValid"
+            :disabled="!isCreateShelvingJobFormValid"
             @click="submitShelvingJob(); hideModal();"
           />
 
@@ -430,7 +434,7 @@ const {
   appIsLoadingData,
   appIsOffline
 } = storeToRefs(useGlobalStore())
-const { buildings } = storeToRefs(useOptionStore())
+const { buildings, users } = storeToRefs(useOptionStore())
 const { getVerificationJobList } = useVerificationStore()
 const { verificationJobList } = storeToRefs(useVerificationStore())
 const {
@@ -438,7 +442,6 @@ const {
   getModuleDetails,
   getAisleDetails,
   getSideDetails,
-  getLadderDetails,
   resetBuildingStore,
   resetBuildingChildren,
   resetModuleChildren,
@@ -454,7 +457,8 @@ const {
 const {
   shelvingJobList,
   shelvingJob,
-  directToShelfJob
+  directToShelfJob,
+  shelvingJobListTotal
 } = storeToRefs(useShelvingStore())
 const {
   resetShelvingStore,
@@ -471,11 +475,11 @@ const { userData } = storeToRefs(useUserStore())
 const createShelvingJobModal = ref(null)
 const shelfTableVisibleColumns = ref([
   'id',
-  'containers',
+  'container_count',
   'status',
   'user_id',
   'create_dt',
-  'complete_dt'
+  'last_transition'
 ])
 const shelfTableColumns = ref([
   {
@@ -487,7 +491,7 @@ const shelfTableColumns = ref([
     order: 0
   },
   {
-    name: 'containers',
+    name: 'container_count',
     field: row => (row.tray_count + row.non_tray_item_count),
     label: '# of Containers in Job',
     align: 'left',
@@ -504,7 +508,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'user_id',
-    field: row => row.user?.first_name,
+    field: row => row.user ? `${row.user.first_name} ${row.user.last_name}` : '',
     label: 'Assigned User',
     align: 'left',
     sortable: true,
@@ -519,39 +523,59 @@ const shelfTableColumns = ref([
     order: 4
   },
   {
-    name: 'complete_dt',
-    field: row => row.status == 'Completed' ? row.last_transition : '',
-    label: 'Completed Date',
+    name: 'last_transition',
+    field: 'last_transition',
+    label: 'Last Updated',
     align: 'left',
     sortable: true,
     order: 5
   }
 ])
-const shelfTableFilters =  ref([
-  {
-    field: 'status',
-    options: [
-      {
-        text: 'Created',
-        value: false
-      },
-      {
-        text: 'Paused',
-        value: false
-      },
-      {
-        text: 'Completed',
-        value: false
-      }
-    ]
-  }
-])
+const shelfTableFilters = computed(() => {
+  let tablesFilters = []
+  tablesFilters = [
+    {
+      field: 'status',
+      label: 'Status',
+      options: [
+        {
+          text: 'Created',
+          value: true
+        },
+        {
+          text: 'Paused',
+          value: true
+        },
+        {
+          text: 'Running',
+          value: true
+        },
+        {
+          text: 'Completed',
+          value: false
+        }
+      ]
+    },
+    {
+      field: row => row.user ? `${row.user.first_name} ${row.user.last_name}` : '',
+      label: 'Assigned User',
+      apiField: 'assigned_user',
+      options: users.value.map(usr => {
+        return {
+          text: `${usr.first_name} ${usr.last_name}`,
+          value: false
+        }
+      })
+    }
+  ]
+  return tablesFilters
+})
 const shelvingJobMenuState = ref(false)
 const showShelvingJobModal = ref(null)
-const isCreateShelvingjobFormValid = computed(() => {
-  if (shelvingJob.value.type == 'Verification' && (shelvingJob.value.verification_jobs.length == 0 || !shelvingJob.value.building_id)) {
+const isCreateShelvingJobFormValid = computed(() => {
+  if (showShelvingJobModal.value == 'Verification' && (shelvingJob.value.verification_jobs.length == 0 || !shelvingJob.value.building_id)) {
     return false
-  } else if (shelvingJob.value.type == 'Direct' && !shelvingJob.value.building_id) {
+  } else if (showShelvingJobModal.value == 'Direct' && !shelvingJob.value.building_id) {
     return false
   } else {
     return true
@@ -584,43 +608,46 @@ const resetCreateShelfJobModal = () => {
 const handleShelvingJobFormChange = async (valueType) => {
   // reset the form depending on the edited form field type
   switch (valueType) {
-  case 'Building':
-    await getBuildingDetails(shelvingJob.value.building_id)
-    shelvingJob.value.module_id = null
-    shelvingJob.value.aisle_id = null
-    shelvingJob.value.side_id = null
-    shelvingJob.value.ladder_id = null
-    resetBuildingChildren()
-    return
-  case 'Module':
-    await getModuleDetails(shelvingJob.value.module_id)
-    shelvingJob.value.aisle_id = null
-    shelvingJob.value.side_id = null
-    shelvingJob.value.ladder_id = null
-    // clear state for aisle options downward since user needs to select an aisle next to populate the rest of the data
-    resetModuleChildren()
-    return
-  case 'Aisle':
-    await getAisleDetails(shelvingJob.value.aisle_id)
-    shelvingJob.value.side_id = null
-    shelvingJob.value.ladder_id = null
-    resetAisleChildren()
-    return
-  case 'Side':
-    await getSideDetails(shelvingJob.value.side_id)
-    shelvingJob.value.ladder_id = null
-    resetSideChildren()
-    return
-  case 'Ladder':
-    await getLadderDetails(shelvingJob.value.ladder_id)
-    return
+    case 'Building':
+      await getBuildingDetails(shelvingJob.value.building_id)
+      shelvingJob.value.module_id = null
+      shelvingJob.value.aisle_id = null
+      shelvingJob.value.side_id = null
+      shelvingJob.value.ladder_id = null
+      resetBuildingChildren()
+      return
+    case 'Module':
+      await getModuleDetails(shelvingJob.value.module_id)
+      shelvingJob.value.aisle_id = null
+      shelvingJob.value.side_id = null
+      shelvingJob.value.ladder_id = null
+      // clear state for aisle options downward since user needs to select an aisle next to populate the rest of the data
+      resetModuleChildren()
+      return
+    case 'Aisle':
+      await getAisleDetails(shelvingJob.value.aisle_id)
+      shelvingJob.value.side_id = null
+      shelvingJob.value.ladder_id = null
+      resetAisleChildren()
+      return
+    case 'Side':
+      await getSideDetails(shelvingJob.value.side_id)
+      shelvingJob.value.ladder_id = null
+      resetSideChildren()
+      return
+    case 'Ladder':
+      return
   }
 }
 
-const loadShelvingJobs = async () => {
+const loadShelvingJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    await getShelvingJobList({ queue: true, user_id: checkUserPermission('can_view_all_shelving_jobs') ? null : userData.value.user_id })
+    await getShelvingJobList({
+      ...qParams,
+      status: shelfTableFilters.value.find(fltr => fltr.field == 'status').options.flatMap(opt => opt.value == true ? opt.text : []),
+      user_id: checkUserPermission('can_view_all_shelving_jobs') ? null : userData.value.user_id
+    })
   } catch (error) {
     handleAlert({
       type: 'error',

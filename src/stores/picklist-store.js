@@ -5,6 +5,7 @@ const globalStore = useGlobalStore()
 
 export const usePicklistStore = defineStore('picklist-store', {
   state: () => ({
+    picklistJobListTotal: 0,
     picklistJobList: [],
     picklistJob: {
       id: null,
@@ -15,14 +16,23 @@ export const usePicklistStore = defineStore('picklist-store', {
       status: null,
       requests: []
     },
-    originalPicklistJob: null
+    originalPicklistJob: null,
+    picklistItem: {
+      id: null,
+      barcode: {
+        value: null
+      }
+    }
   }),
   getters: {
     picklistItems: (state) => {
       let items = []
       if (state.picklistJob.requests.length > 0) {
         items = state.picklistJob.requests.map(rq => {
-          return { ...rq, status: rq.item ? rq.item.status : rq.non_tray_item.status }
+          return {
+            ...rq,
+            status: rq.item ? rq.item.status : rq.non_tray_item.status
+          }
         })
       }
       return items
@@ -30,7 +40,7 @@ export const usePicklistStore = defineStore('picklist-store', {
     allItemsRetrieved: (state) => {
       if (state.picklistJob.id && state.picklistJob.status !== 'Created') {
         // when a picklist job is active we can keep track of if all requested items have been pulled/retrieved using status
-        return state.picklistItems.length == 0 || state.picklistItems.some(itm => itm.status == 'Requested') ? false : true
+        return state.picklistItems.length == 0 || state.picklistItems.some(itm => itm.status == 'PickList') ? false : true
       } else {
         return true
       }
@@ -42,8 +52,16 @@ export const usePicklistStore = defineStore('picklist-store', {
     },
     async getPicklistJobList (qParams) {
       try {
-        const res = await this.$api.get(inventoryServiceApi.picklists, { params: { ...qParams, size: 100 } })
+        const res = await this.$api.get(inventoryServiceApi.picklists, {
+          params: {
+            size: this.apiPageSizeDefault,
+            ...qParams
+          }
+        })
         this.picklistJobList = res.data.items
+
+        // keep track of response total for pagination
+        this.picklistJobListTotal = res.data.total
       } catch (error) {
         throw error
       }
@@ -90,6 +108,18 @@ export const usePicklistStore = defineStore('picklist-store', {
       } catch (error) {
         throw error
       }
+    },
+    resetPicklistItem () {
+      this.picklistItem = {
+        id: null,
+        barcode: {
+          value: null
+        }
+      }
+    },
+    async getPicklistJobItem (itemId) {
+      //find the item with the matching barcode_value and set the data as the picklistJobItem
+      this.picklistItem = this.picklistJob.requests.find(picklistRequest => picklistRequest?.item?.barcode.value == itemId || picklistRequest.non_tray_item?.barcode.value == itemId)
     },
     async patchPicklistJobItem (payload) {
       try {

@@ -224,6 +224,7 @@ const containerLocationDisplayValues = computed(() => {
 
 // Logic
 const handleAlert = inject('handle-alert')
+const currentIsoDate = inject('current-iso-date')
 
 watch(compiledBarCode, (barcode) => {
   if (barcode !== '') {
@@ -255,6 +256,7 @@ const updateContainerLocation = async () => {
       trayed: shelvingJobContainer.value.container_type.type == 'Tray' ? true : false,
       shelf_position_number: manualShelfPosition.value !== '' ? manualShelfPosition.value : containerLocationDisplayValues.value[6],
       shelf_barcode_value: shelvingJobContainer.value.shelf_position.shelf.barcode.value,
+      shelved_dt: currentIsoDate(),
       scanned_for_shelving: true
     }
     await postShelvingJobContainer(payload)
@@ -265,9 +267,15 @@ const updateContainerLocation = async () => {
       updatedLocationString[6] = payload.shelf_position_number
       shelvingJobContainer.value.shelf_position.location = updatedLocationString.join('-')
       if (payload.trayed) {
-        shelvingJob.value.trays[shelvingJob.value.trays.findIndex(container => container.id == payload.container_id)] = { ...shelvingJobContainer.value, scanned_for_shelving: payload.scanned_for_shelving }
+        shelvingJob.value.trays[shelvingJob.value.trays.findIndex(container => container.id == payload.container_id)] = {
+          ...shelvingJobContainer.value,
+          scanned_for_shelving: payload.scanned_for_shelving
+        }
       } else {
-        shelvingJob.value.non_tray_items[shelvingJob.value.non_tray_items.findIndex(container => container.id == payload.container_id)] = { ...shelvingJobContainer.value, scanned_for_shelving: payload.scanned_for_shelving }
+        shelvingJob.value.non_tray_items[shelvingJob.value.non_tray_items.findIndex(container => container.id == payload.container_id)] = {
+          ...shelvingJobContainer.value,
+          scanned_for_shelving: payload.scanned_for_shelving
+        }
       }
     }
 

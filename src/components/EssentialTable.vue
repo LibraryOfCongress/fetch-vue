@@ -45,31 +45,43 @@
               >
                 <q-item-section>
                   <q-item-label header>
-                    {{ localTableColumns.find(obj => obj.field.toString() == data.field.toString())?.label }}
+                    {{ data.label }}
                   </q-item-label>
 
+                  <template v-if="data.options.length > 0">
+                    <q-item
+                      v-for="opt in data.options"
+                      :key="opt.text"
+                      tag="label"
+                      v-ripple
+                      :class="opt.value ? 'active' : ''"
+                      role=""
+                    >
+                      <q-item-section
+                        side
+                        top
+                      >
+                        <q-checkbox
+                          v-model="opt.value"
+                          @update:model-value="filterTableData(opt)"
+                          aria-label="tableFilterOptionCheckbox"
+                          role="menuitemcheckbox"
+                        />
+                      </q-item-section>
+
+                      <q-item-section>
+                        <q-item-label>{{ opt.text }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </template>
                   <q-item
-                    v-for="opt in data.options"
-                    :key="opt.text"
+                    v-else
+                    :disable="true"
                     tag="label"
-                    v-ripple
-                    :class="opt.value ? 'active' : ''"
                     role=""
                   >
-                    <q-item-section
-                      side
-                      top
-                    >
-                      <q-checkbox
-                        v-model="opt.value"
-                        @update:model-value="filterTableData(opt)"
-                        aria-label="tableFilterOptionCheckbox"
-                        role="menuitemcheckbox"
-                      />
-                    </q-item-section>
-
                     <q-item-section>
-                      <q-item-label>{{ opt.text }}</q-item-label>
+                      <q-item-label>No Filters Found</q-item-label>
                     </q-item-section>
                   </q-item>
                 </q-item-section>
@@ -166,10 +178,13 @@
           :wrap-cells="true"
           :hide-selected-banner="true"
           column-sort-order="da"
-          :hide-pagination="true"
-          :pagination="paginationConfig"
+          :hide-pagination="enablePagination ? false : true"
+          v-model:pagination="paginationConfig"
+          :loading="paginationLoading"
+          :rows-per-page-options="[25, 50, 75, 100]"
           :selection="enableSelection ? 'multiple' : 'none'"
           v-model:selected="selectedTableData"
+          @request="onTableRequest"
           class="table-component-table"
           tabindex="0"
         >
@@ -253,6 +268,18 @@ import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 
 // Props
 const mainProps = defineProps({
+  enablePagination: {
+    type: Boolean,
+    default: false
+  },
+  paginationTotal: {
+    type: Number,
+    default: 0
+  },
+  paginationLoading: {
+    type: Boolean,
+    default: false
+  },
   enableSelection: {
     type: Boolean,
     default: false
@@ -293,6 +320,7 @@ const mainProps = defineProps({
       // [
       //   {
       //     field: 'media_type', or field: row => row.media_type.name
+      //     label: 'Media Type'
       //     options: [
       //       {
       //         text: 'Document',
@@ -306,9 +334,44 @@ const mainProps = defineProps({
       //   },
       //   {
       //     field: 'container_type',
+      //     label: 'Container Type'
       //     options: [
       //       {
       //         text: 'Book Tray',
+      //         value: false
+      //       }
+      //     ]
+      //   },
+      //   {
+      //     field: 'trayed',
+      //     label: 'Trayed'
+      //     options: [
+      //       {
+      //         text: 'Trayed',
+      //         boolValue: true,
+      //         value: false
+      //       },
+      //       {
+      //         text: 'Non-Trayed',
+      //         boolValue: false,
+      //         value: false
+      //       }
+      //     ]
+      //   }
+      // ]
+      // example of how filterOptions need to be structured when filtering via api
+      // [
+      //   {
+      //     apiField: 'media_type'
+      //     field: row => row.media_type.name
+      //     label: 'Media Type'
+      //     options: [
+      //       {
+      //         text: 'Document',
+      //         value: false
+      //       },
+      //       {
+      //         text: 'Archival Material',
       //         value: false
       //       }
       //     ]
@@ -329,8 +392,9 @@ const mainProps = defineProps({
     default: ''
   },
   rowKey: {
-    type: String,
+    type: undefined,
     default: 'id' // if tableData doesnt include an 'id' param we need to specifiy this
+    // warning some data patterns like tray/non tray based tables could contain similar id's this will cause duplicate issues
   },
   // inorder to generate a class to highlight an entire row of data you must provide a key/value pair to use as an indicator on what row needs the class added
   highlightRowClass: {
@@ -347,7 +411,8 @@ const mainProps = defineProps({
 // Emits
 const emit = defineEmits([
   'selected-table-row',
-  'selected-data'
+  'selected-data',
+  'update-pagination'
 ])
 
 // Compasables
@@ -362,16 +427,20 @@ const allowTableReorder = ref(false)
 const draggedItemElement = ref(null)
 const selectedTableData = ref([])
 const tableComponent = ref(null)
+const tableFilterMenuState = ref(false)
 const paginationConfig = ref({
-  sortBy: 'desc',
+  sortBy: '',
   descending: false,
   page: 1,
-  rowsPerPage: 0
+  rowsPerPage: 50 // this needs to match our apiPageSizeDefault
 })
-const tableFilterMenuState = ref(false)
 
 // Logic
 onMounted(() => {
+  // if pagination is enabled and a pagination total is passed in we add the rowsNumber param to our pagination config as needed for server side rendering
+  if (mainProps.enablePagination && mainProps.paginationTotal !== 0) {
+    paginationConfig.value.rowsNumber = mainProps.paginationTotal
+  }
   // if no tableVisibleColumns prop is passed map the tableColumns so all columns are always visible
   if (mainProps.tableVisibleColumns.length == 0) {
     localTableVisibleColumns.value = mainProps.tableColumns.map(col => col.name)
@@ -402,6 +471,14 @@ watch(() => mainProps.tableData, (updatedTableData) => {
 },
 { deep: true })
 
+// watch the paginated related props for changes and update our local paginationConfig
+watch(() => mainProps.paginationTotal, () => {
+  if (mainProps.enablePagination) {
+    paginationConfig.value.rowsNumber = mainProps.paginationTotal
+  }
+},
+{ deep: true })
+
 const clearSelectedData = () => {
   tableComponent.value.clearSelection()
 }
@@ -410,8 +487,16 @@ const filterTableData = () => {
   // get all user selected filters
   const activeFilters = localFilterOptions.value.flatMap(opt => {
     if (opt.options.some(obj => obj.value == true)) {
-      return {
-        [opt.field]: opt.options.filter(obj => obj.value == true).map(obj => obj.text)
+      // if opt contains an apiField return that instead of the table field (this is for paginated filtering from the api)
+      const optValue = opt.options.filter(obj => obj.value == true).map(obj => Object.hasOwn(obj, 'boolValue') ? obj.boolValue : obj.text)
+      if (opt.apiField) {
+        return {
+          [opt.apiField]: optValue
+        }
+      } else {
+        return {
+          [opt.field]: optValue
+        }
       }
     } else {
       return []
@@ -420,26 +505,68 @@ const filterTableData = () => {
   // convert the filters array to a single object
   const activeFiltersObj = Object.assign({}, ...activeFilters)
 
-  // filters the original table data based on the active filters obj
-  const filteredData = mainProps.tableData.filter(entry => {
+  if (mainProps.enablePagination) {
+    // call the table request function and pass active filters + required table props
+    onTableRequest(tableComponent.value, activeFiltersObj)
+  } else {
+    // filters the original table data based on the active filters obj if pagination is not enabled
+    const filteredData = mainProps.tableData.filter(entry => {
     // iterate through every active filter by field and selected filter values and check if the value exists under the table data entrys field
-    const filterMatchesData = Object.entries(activeFiltersObj).every(([
-      field,
-      val
-    ]) => {
-      if (field.includes('=>')) {
-        // if we pass in an arrow function string convert it to an actual function to check the entry param path
-        // ex row => row.barcode.value becomes entry.barcode.value and we compare that value to the selected filter
-        const fieldArrowFunc = eval(field.replaceAll('row', 'entry').split('=>').pop())
-        return val.includes(fieldArrowFunc, entry)
-      } else {
-        return val.includes(entry[field])
-      }
+      const filterMatchesData = Object.entries(activeFiltersObj).every(([
+        field,
+        val
+      ]) => {
+        if (field.includes('=>')) {
+          // if we pass in an arrow function string convert it to an actual function to check the entry param path
+          // ex row => row.barcode.value becomes entry.barcode.value and we compare that value to the selected filter
+          const fieldArrowFunc = eval(field)
+          return val.includes(fieldArrowFunc(entry))
+        } else {
+          return val.includes(entry[field])
+        }
+      })
+      return filterMatchesData
     })
-    return filterMatchesData
-  })
 
-  localTableData.value = [...toRaw(filteredData)]
+    localTableData.value = [...toRaw(filteredData)]
+  }
+}
+
+
+const onTableRequest = (props, tableFilters) => {
+  if (mainProps.enablePagination) {
+    const { page, sortBy, rowsPerPage, descending } = props.pagination
+
+    // update local pagination object to match table props
+    paginationConfig.value = {
+      ...paginationConfig.value,
+      page,
+      sortBy,
+      rowsPerPage,
+      descending
+    }
+
+    // if filters are passed update our pagination object and add/remove the filters
+    if (tableFilters) {
+      paginationConfig.value = {
+        ...tableFilters,
+        page,
+        sortBy,
+        rowsPerPage,
+        descending,
+        rowsNumber: paginationConfig.value.rowsNumber
+      }
+    }
+
+    // emit to parent to get next set of paged data with refrenced query params
+    emit('update-pagination', {
+      ...paginationConfig.value,
+      size: paginationConfig.value.rowsPerPage,
+      page: paginationConfig.value.page,
+      sort_by: paginationConfig.value.sortBy,
+      sort_order: paginationConfig.value.descending ? 'desc' : 'asc'
+    })
+  }
 }
 
 const startDrag = (e) => {
@@ -529,8 +656,12 @@ defineExpose({ clearSelectedData })
 
   &-table {
     :deep(tbody) {
-      & tr {
+      & tr td {
         cursor: pointer;
+
+        &.q-td--no-hover {
+          cursor: initial;
+        }
       }
     }
   }

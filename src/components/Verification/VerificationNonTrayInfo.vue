@@ -5,7 +5,7 @@
     <div class="row">
       <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
         <MoreOptionsMenu
-          :options="[{ text: 'Edit', disabled: verificationJob.status == 'Completed' }, { text: 'Print Job' }]"
+          :options="[{ text: 'Edit', disabled: verificationJob.status == 'Completed' }, { text: 'Print Job' }, { text: 'View History' }]"
           class="q-mr-sm"
           @click="handleOptionMenu"
         />
@@ -42,6 +42,7 @@
               option-type="owners"
               option-value="id"
               option-label="name"
+              :clearable="false"
               aria-label="ownerSelect"
             />
           </div>
@@ -74,6 +75,7 @@
               option-type="sizeClass"
               option-value="id"
               option-label="name"
+              :clearable="false"
               aria-label="sizeClassSelect"
             />
             <SelectInput
@@ -83,6 +85,7 @@
               option-type="sizeClass"
               option-value="id"
               option-label="name"
+              :clearable="false"
               aria-label="sizeClassSelect"
             />
           </div>
@@ -104,6 +107,7 @@
               option-type="mediaTypes"
               option-value="id"
               option-label="name"
+              :clearable="false"
               aria-label="mediaTypeSelect"
             />
             <SelectInput
@@ -113,6 +117,7 @@
               option-type="mediaTypes"
               option-value="id"
               option-label="name"
+              :clearable="false"
               aria-label="mediaTypeSelect"
             />
           </div>
@@ -169,6 +174,15 @@
       :button-two-outline="true"
       @button-two-click="cancelNonTrayEdit()"
     />
+
+    <!-- audit trail modal -->
+    <AuditTrail
+      v-if="showAuditTrailModal"
+      ref="historyModal"
+      @reset="showAuditTrailModal = null"
+      :job-type="showAuditTrailModal"
+      :job-id="verificationJob.id"
+    />
   </div>
 </template>
 
@@ -184,6 +198,7 @@ import SelectInput from '@/components/SelectInput.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import VerificationMobileInfo from '@/components/Verification/VerificationMobileInfo.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
+import AuditTrail from '@/components/AuditTrail.vue'
 
 // Emits
 const emit = defineEmits(['print'])
@@ -211,6 +226,8 @@ const {
 
 // Local Data
 const editMode = ref(false)
+const historyModal = ref(null)
+const showAuditTrailModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -220,6 +237,8 @@ const handleOptionMenu = (option) => {
     editMode.value = true
   } else if (option.text == 'Print Job') {
     emit('print')
+  } else if (option.text == 'View History') {
+    showAuditTrailModal.value = 'verification_jobs'
   }
 }
 

@@ -48,15 +48,6 @@ const routes = [
         }
       },
       {
-        name: 'admin-building-view',
-        path: 'admin/buildings/:buildingId?',
-        component: () => import('@/pages/AdminPage.vue'),
-        meta: {
-          requiresAuth: true,
-          requiresPerm: 'can_manage_locations'
-        }
-      },
-      {
         name: 'admin-groups',
         path: 'admin/groups/:groupId?',
         component: () => import('@/pages/AdminPage.vue'),
@@ -102,12 +93,30 @@ const routes = [
         }
       },
       {
+        name: 'admin-manage-owner',
+        path: 'admin/manage/owner',
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: {
+          requiresAuth: true,
+          requiresPerm: 'can_manage_owners'
+        }
+      },
+      {
         name: 'admin-location-manage-shelves',
         path: 'admin/manage/:buildingId/:moduleId/:aisleId/:sideId/:ladderId/shelves',
         component: () => import('@/pages/AdminPage.vue'),
         meta: {
           requiresAuth: true,
           requiresPerm: 'can_manage_locations'
+        }
+      },
+      {
+        name: 'admin-manage-media-type',
+        path: 'admin/manage/media-type',
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: {
+          requiresAuth: true,
+          requiresPerm: 'can_manage_media_type'
         }
       },
       {
@@ -120,27 +129,36 @@ const routes = [
         }
       },
       {
-        name: 'item-management-items',
-        path: 'item-management/items',
-        component: () => import('@/pages/ItemManagementPage.vue'),
+        name: 'admin-manage-shelf-type',
+        path: 'admin/manage/shelf-type',
+        component: () => import('@/pages/AdminPage.vue'),
+        meta: {
+          requiresAuth: true,
+          requiresPerm: 'can_manage_shelf_type'
+        }
+      },
+      {
+        name: 'record-management-items',
+        path: 'record-management/items/:barcode?',
+        component: () => import('@/pages/RecordManagementPage.vue'),
         meta: {
           requiresAuth: true,
           requiresPerm: 'can_access_item_detail'
         }
       },
       {
-        name: 'item-management-shelf',
-        path: 'item-management/shelf',
-        component: () => import('@/pages/ItemManagementPage.vue'),
+        name: 'record-management-shelf',
+        path: 'record-management/shelf/:barcode?',
+        component: () => import('@/pages/RecordManagementPage.vue'),
         meta: {
           requiresAuth: true,
           requiresPerm: 'can_access_shelf_detail'
         }
       },
       {
-        name: 'item-management-tray',
-        path: 'item-management/tray',
-        component: () => import('@/pages/ItemManagementPage.vue'),
+        name: 'record-management-tray',
+        path: 'record-management/tray/:barcode?',
+        component: () => import('@/pages/RecordManagementPage.vue'),
         meta: {
           requiresAuth: true,
           requiresPerm: 'can_access_tray_detail'
@@ -220,7 +238,7 @@ const routes = [
         component: () => import('@/pages/ShelvingPage.vue'),
         meta: {
           requiresAuth: true,
-          requiresPerm: 'can_access_shelving'
+          requiresPerm: 'can_move_trays_and_items_shelving_locations'
         }
       },
       {
