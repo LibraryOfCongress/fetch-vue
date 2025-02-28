@@ -202,8 +202,9 @@
 
     <!-- Request Item Overlay-->
     <RequestItemOverlay
-      v-if="requestJob.id && requestDisplayType == 'request_view'"
+      v-if="route.params.jobId && requestDisplayType == 'request_view'"
       :item-data="requestJob"
+      @edit="editRequest()"
       @close="resetRequestOverlay()"
     />
 
@@ -211,6 +212,7 @@
     <RequestCreateModal
       v-if="showCreateRequestByType"
       :type="showCreateRequestByType"
+      :request-data="requestJob"
       @change-display="requestDisplayType = $event; showCreateRequestByType = null;"
       @hide="showCreateRequestByType = null"
     />
@@ -669,6 +671,15 @@ const resetPickListForm = () => {
 }
 const resetRequestOverlay = () => {
   resetRequestJob()
+  router.push({
+    name: 'request',
+    params: {
+      jobId: null
+    }
+  })
+}
+const editRequest = () => {
+  showCreateRequestByType.value = 'edit'
   router.push({
     name: 'request',
     params: {
