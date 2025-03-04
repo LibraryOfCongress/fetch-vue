@@ -193,7 +193,6 @@ const {
   getParentOwnerOptions,
   postSizeClass,
   patchSizeClass,
-  deleteSizeClassOwners,
   postOwner,
   patchOwner,
   postMediaType,
@@ -441,13 +440,6 @@ const updateListType = async () => {
     }
     switch (mainProps.listType) {
       case 'size-class': {
-      //check if we removed owner selections and send updates to api
-        let removedOwners = []
-        removedOwners = inputFormOriginal.value.owner_ids.filter(oid => !inputForm.value.owner_ids.includes(oid))
-        if (removedOwners.length > 0) {
-          await deleteSizeClassOwners(payload.id, { owner_ids: removedOwners })
-        }
-
         await patchSizeClass(payload)
         break
       }

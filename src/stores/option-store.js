@@ -171,16 +171,6 @@ export const useOptionStore = defineStore('option-store', {
         throw error
       }
     },
-    async deleteSizeClassOwners (sizeClassId, payload) {
-      try {
-        const res = await this.$api.delete(`${inventoryServiceApi.sizeClass}${sizeClassId}/remove_owner`, { data: payload })
-
-        // update the specific size class with the response info
-        this.sizeClass[this.sizeClass.findIndex(s => s.id == sizeClassId)] = res.data
-      } catch (error) {
-        throw error
-      }
-    },
     async postShelfType (payload) {
       try {
         const res = await this.$api.post(inventoryServiceApi.shelfTypes, payload)
