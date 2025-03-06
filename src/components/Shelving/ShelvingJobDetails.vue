@@ -413,7 +413,6 @@ import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
 import { useShelvingStore } from '@/stores/shelving-store'
 import { useOptionStore } from '@/stores/option-store'
-// import { useBuildingStore } from '@/stores/building-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
@@ -452,15 +451,6 @@ const {
 } = storeToRefs(useGlobalStore())
 const { getOptions } = useOptionStore()
 const { userData } = storeToRefs(useUserStore())
-// const {
-//   getBuildingDetails,
-//   getModuleDetails,
-//   getAisleDetails,
-//   getSideDetails,
-//   getShelveList,
-//   getShelfDetails,
-//   getShelfPositionsList
-// } = useBuildingStore()
 const {
   patchShelvingJob,
   getShelvingJobContainer

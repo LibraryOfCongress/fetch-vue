@@ -56,7 +56,7 @@
                 :options="modules"
                 option-type="modules"
                 :option-query="{
-                  building_id: reportForm.module_id
+                  building_id: reportForm.building_id
                 }"
                 option-value="id"
                 option-label="module_number"
@@ -505,11 +505,13 @@ const handleLocationFormChange = async (valueType) => {
     case 'Aisle':
       resetAisleChildren()
       // get sides since sides are toggle buttons and not dynamically loaded from a options select input
-      await getSideList({
-        building_id: reportForm.value.building_id,
-        module_id: reportForm.value.module_id,
-        aisle_id: reportForm.value.aisle_id
-      })
+      if (reportForm.value.aisle_id) {
+        await getSideList({
+          building_id: reportForm.value.building_id,
+          module_id: reportForm.value.module_id,
+          aisle_id: reportForm.value.aisle_id
+        })
+      }
       reportForm.value.side_id = null
       reportForm.value.ladder_id = null
       return
