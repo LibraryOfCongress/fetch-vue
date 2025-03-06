@@ -272,7 +272,6 @@ const {
   modules,
   aisles,
   ladders,
-  sides,
   shelves,
   shelvesPositions
 } = storeToRefs(useOptionStore())
@@ -280,8 +279,10 @@ const {
   resetModuleChildren,
   resetAisleChildren,
   resetSideChildren,
-  resetLadderChildren
+  resetLadderChildren,
+  getSideList
 } = useBuildingStore()
+const { sides } = storeToRefs(useBuildingStore())
 const { postShelvingJobContainer, resetShelvingJobContainer } = useShelvingStore()
 const { shelvingJob } = storeToRefs(useShelvingStore())
 
@@ -348,6 +349,12 @@ const handleLocationFormChange = async (valueType) => {
       return
     case 'Aisle':
       resetAisleChildren()
+      // get sides since sides are buttons and not dynamically loaded from a options select input
+      await getSideList({
+        building_id: locationForm.value.building_id,
+        module_id: locationForm.value.module_id,
+        aisle_id: locationForm.value.aisle_id
+      })
       locationForm.value.side_id = null
       locationForm.value.ladder_id = null
       locationForm.value.shelf_id = null

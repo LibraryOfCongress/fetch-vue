@@ -412,6 +412,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
 import { useShelvingStore } from '@/stores/shelving-store'
+import { useBuildingStore } from '@/stores/building-store'
 import { useOptionStore } from '@/stores/option-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
@@ -462,6 +463,7 @@ const {
   allContainersShelved
 } = storeToRefs(useShelvingStore())
 const { users } = storeToRefs(useOptionStore())
+const { getSideList } = useBuildingStore()
 
 // Local Data
 const batchSheetComponent = ref(null)
@@ -654,7 +656,7 @@ const handleOptionMenu = async (action, rowData) => {
                 building_id: shelvingJob.value.building_id,
                 module_id: itemLocationIdList[1]
               }),
-              getOptions('sides', {
+              getSideList({
                 building_id: shelvingJob.value.building_id,
                 module_id: itemLocationIdList[1],
                 aisle_id: itemLocationIdList[2]
