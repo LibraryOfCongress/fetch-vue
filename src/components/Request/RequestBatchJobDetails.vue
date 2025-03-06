@@ -33,7 +33,7 @@
             Uploaded By:
           </label>
           <p class="text-body1">
-            {{ requestBatchJob.user?.email }}
+            {{ `${requestBatchJob.user.first_name} ${requestBatchJob.user.last_name}` }}
           </p>
         </div>
       </div>

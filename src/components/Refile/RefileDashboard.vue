@@ -386,7 +386,7 @@ const refileTableColumns = ref([
   },
   {
     name: 'assigned_user_id',
-    field: row => row.assigned_user ? `${row.assigned_user?.first_name} ${row.assigned_user?.last_name}` : '',
+    field: row => row.assigned_user ? row.assigned_user.name : '',
     label: 'Assigned User',
     align: 'left',
     sortable: true
@@ -432,12 +432,12 @@ const refileTableFilters = computed(() => {
       ]
     },
     {
-      field: row => row.assigned_user ? `${row.assigned_user?.first_name} ${row.assigned_user?.last_name}` : '',
+      field: row => row.assigned_user ? row.assigned_user.name : '',
       label: 'Assigned User',
       apiField: 'assigned_user',
       options: users.value.map(usr => {
         return {
-          text: `${usr.first_name} ${usr.last_name}`,
+          text: usr.name,
           value: false
         }
       })

@@ -58,7 +58,7 @@
             v-if="!editJob"
             class="text-body1"
           >
-            {{ shelvingJob.user?.first_name }}
+            {{ shelvingJob.user?.name }}
           </p>
           <SelectInput
             v-else
@@ -66,7 +66,7 @@
             :options="users"
             option-type="users"
             option-value="id"
-            option-label="first_name"
+            option-label="name"
             aria-label="userSelect"
           >
             <template #no-option>

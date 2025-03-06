@@ -166,7 +166,7 @@
             :options="users"
             option-type="users"
             option-value="id"
-            option-label="first_name"
+            option-label="name"
             :placeholder="'Select User To Add'"
             aria-label="multiUserSelect"
           />
@@ -194,7 +194,7 @@
                     class="text-body1 full-width q-pl-sm"
                     @click="showConfirmationModal = {
                       type: 'deleteUser',
-                      text: `Do you wish to delete ${user.first_name} ${user.last_name} from the group?`
+                      text: `Do you wish to delete ${user.name} from the group?`
                     }; selectedGroupUserId = user.id"
                   >
                     <span class="text-left">
