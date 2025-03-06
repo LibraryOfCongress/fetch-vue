@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import inventoryServiceApi from '@/http/InventoryService.js'
+import { useOptionStore } from './option-store'
+const optionStore = useOptionStore()
 
 export const useBuildingStore = defineStore('building-store', {
   state: () => ({
@@ -26,7 +28,7 @@ export const useBuildingStore = defineStore('building-store', {
     ],
     ladders: [],
     shelves: [],
-    shelfPositions: [],
+    shelvesPositions: [],
     buildingDetails: {},
     moduleDetails: {},
     aisleDetails: {},
@@ -64,7 +66,14 @@ export const useBuildingStore = defineStore('building-store', {
       ]
       this.ladders = []
       this.shelves = []
-      this.shelfPositions = []
+      this.shelvesPositions = []
+
+      // we also need to clear the relevant options utilized in select inputs via the optionStore
+      optionStore.modules = []
+      optionStore.aisles = []
+      optionStore.ladders = []
+      optionStore.shelves = []
+      optionStore.shelvesPositions = []
     },
     resetModuleChildren () {
       // clears state for aisle options downward since user will need to select an aisle next to populate the rest of the data
@@ -89,7 +98,13 @@ export const useBuildingStore = defineStore('building-store', {
       ]
       this.ladders = []
       this.shelves = []
-      this.shelfPositions = []
+      this.shelvesPositions = []
+
+      // we also need to clear the relevant options utilized in select inputs via the optionStore
+      optionStore.aisles = []
+      optionStore.ladders = []
+      optionStore.shelves = []
+      optionStore.shelvesPositions = []
     },
     resetAisleChildren () {
       // clears state for side options downward since user will need to select an side next to populate the rest of the data
@@ -112,7 +127,12 @@ export const useBuildingStore = defineStore('building-store', {
       ]
       this.ladders = []
       this.shelves = []
-      this.shelfPositions = []
+      this.shelvesPositions = []
+
+      // we also need to clear the relevant options utilized in select inputs via the optionStore
+      optionStore.ladders = []
+      optionStore.shelves = []
+      optionStore.shelvesPositions = []
     },
     resetSideChildren () {
       // clears state for ladder options downward since user will need to select an ladder next to populate the rest of the data
@@ -120,13 +140,22 @@ export const useBuildingStore = defineStore('building-store', {
       this.shelfDetails = {}
       this.ladders = []
       this.shelves = []
-      this.shelfPositions = []
+      this.shelvesPositions = []
+
+      // we also need to clear the relevant options utilized in select inputs via the optionStore
+      optionStore.ladders = []
+      optionStore.shelves = []
+      optionStore.shelvesPositions = []
     },
     resetLadderChildren () {
       // clears state for shelf options downward since user will need to select an shelf next to populate the rest of the data
       this.shelfDetails = {}
       this.shelves = []
-      this.shelfPositions = []
+      this.shelvesPositions = []
+
+      // we also need to clear the relevant options utilized in select inputs via the optionStore
+      optionStore.shelves = []
+      optionStore.shelvesPositions = []
     },
     async getBuildingsList (qParams) {
       try {
@@ -398,7 +427,7 @@ export const useBuildingStore = defineStore('building-store', {
             size: this.apiPageSizeDefault
           }
         })
-        this.shelfPositions = res.data.items
+        this.shelvesPositions = res.data.items
       } catch (error) {
         throw error
       }

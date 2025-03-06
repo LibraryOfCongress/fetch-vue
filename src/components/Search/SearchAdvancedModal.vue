@@ -414,11 +414,13 @@ const handleLocationFormChange = async (valueType) => {
     case 'Aisle':
       resetAisleChildren()
       // get sides since sides are toggle buttons and not dynamically loaded from a options select input
-      await getSideList({
-        building_id: searchForm.value.building_id,
-        module_id: searchForm.value.module_id,
-        aisle_id: searchForm.value.aisle_id
-      })
+      if (searchForm.value.aisle_id) {
+        await getSideList({
+          building_id: searchForm.value.building_id,
+          module_id: searchForm.value.module_id,
+          aisle_id: searchForm.value.aisle_id
+        })
+      }
       searchForm.value.side_id = null
       searchForm.value.ladder_id = null
       searchForm.value.shelf_id = null
