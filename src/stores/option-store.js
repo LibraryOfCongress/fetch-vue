@@ -4,6 +4,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 export const useOptionStore = defineStore('option-store', {
   state: () => ({
     optionsTotal: 0,
+    aisles: [],
     buildings: [],
     containerTypes: [
       {
@@ -15,9 +16,9 @@ export const useOptionStore = defineStore('option-store', {
         name: 'Trayed'
       }
     ],
-    sizeClass: [],
-    shelfTypes: [],
+    ladders: [],
     mediaTypes: [],
+    modules: [],
     owners: [],
     ownersTiers: [],
     ownerTierOptions: [],
@@ -28,6 +29,9 @@ export const useOptionStore = defineStore('option-store', {
     requestsPriorities: [],
     requestsTypes: [],
     shelves: [],
+    shelvesPositions: [],
+    sizeClass: [],
+    shelfTypes: [],
     users: [],
     verificationJobs: []
   }),

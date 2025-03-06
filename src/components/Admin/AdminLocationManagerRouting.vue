@@ -60,12 +60,16 @@
               </label>
               <SelectInput
                 v-model="locationRoutingForm.module_id"
-                :options="renderBuildingModules"
+                :options="modules"
+                option-type="modules"
+                :option-query="{
+                  building_id: locationRoutingForm.building_id
+                }"
                 option-value="id"
                 option-label="module_number"
                 :placeholder="'Select Module'"
                 :clearable="false"
-                :disabled="renderBuildingModules.length == 0"
+                :disabled="!locationRoutingForm.building_id"
                 @update:model-value="handleLocationFormChange('Module')"
                 aria-label="moduleSelect"
               />
@@ -85,12 +89,17 @@
               </label>
               <SelectInput
                 v-model="locationRoutingForm.aisle_id"
-                :options="renderBuildingOrModuleAisles"
+                :options="aisles"
+                option-type="aisles"
+                :option-query="{
+                  building_id: locationRoutingForm.building_id,
+                  module_id: locationRoutingForm.module_id
+                }"
                 option-value="id"
                 :option-label="opt => opt.aisle_number.number"
                 :placeholder="'Select Aisle'"
                 :clearable="false"
-                :disabled="renderBuildingOrModuleAisles.length == 0"
+                :disabled="!locationRoutingForm.module_id"
                 @update:model-value="handleLocationFormChange('Aisle')"
                 aria-label="aisleSelect"
               />
@@ -109,10 +118,10 @@
               </label>
               <ToggleButtonInput
                 v-model="locationRoutingForm.side_id"
-                :options="renderAisleSides"
+                :options="sides"
                 option-value="id"
                 option-label="side_orientation.name"
-                :disabled="!renderAisleSides[0].id"
+                :disabled="!locationRoutingForm.aisle_id"
                 @update:model-value="handleLocationFormChange('Side')"
               />
             </div>
@@ -131,11 +140,18 @@
               </label>
               <SelectInput
                 v-model="locationRoutingForm.ladder_id"
-                :options="renderSideLadders"
+                :options="ladders"
+                option-type="ladders"
+                :option-query="{
+                  building_id: locationRoutingForm.building_id,
+                  module_id: locationRoutingForm.module_id,
+                  aisle_id: locationRoutingForm.aisle_id,
+                  side_id: locationRoutingForm.side_id
+                }"
                 option-value="id"
                 :option-label="opt => opt.ladder_number.number"
                 :placeholder="'Select Ladder'"
-                :disabled="renderSideLadders.length == 0"
+                :disabled="!locationRoutingForm.side_id"
                 :clearable="false"
                 @update:model-value="handleLocationFormChange('Ladder')"
                 aria-label="ladderSelect"
@@ -202,24 +218,25 @@ const emit = defineEmits([
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
-const { buildings } = storeToRefs(useOptionStore())
+const {
+  buildings,
+  modules,
+  aisles,
+  ladders
+} = storeToRefs(useOptionStore())
 const {
   getBuildingDetails,
   getModuleDetails,
   getAisleDetails,
   getSideDetails,
+  getSideList,
   getLadderDetails,
   resetBuildingChildren,
   resetModuleChildren,
   resetAisleChildren,
   resetSideChildren
 } = useBuildingStore()
-const {
-  renderBuildingModules,
-  renderBuildingOrModuleAisles,
-  renderAisleSides,
-  renderSideLadders
-} = storeToRefs(useBuildingStore())
+const { sides } = storeToRefs(useBuildingStore())
 
 // Local Data
 const locationRoutingModal = ref(null)
@@ -297,30 +314,36 @@ const handleLocationFormChange = async (valueType) => {
   // reset the report form depending on the edited form field type
   switch (valueType) {
     case 'Building':
+      resetBuildingChildren()
       await getBuildingDetails(locationRoutingForm.value.building_id)
       locationRoutingForm.value.module_id = null
       locationRoutingForm.value.aisle_id = null
       locationRoutingForm.value.side_id = null
       locationRoutingForm.value.ladder_id = null
-      resetBuildingChildren()
       return
     case 'Module':
+      resetModuleChildren()
       await getModuleDetails(locationRoutingForm.value.module_id)
       locationRoutingForm.value.aisle_id = null
       locationRoutingForm.value.side_id = null
       locationRoutingForm.value.ladder_id = null
-      resetModuleChildren()
       return
     case 'Aisle':
+      resetAisleChildren()
       await getAisleDetails(locationRoutingForm.value.aisle_id)
+      // also get sides since sides are buttons and not dynamically loaded from a options select input
+      await getSideList({
+        building_id: locationRoutingForm.value.building_id,
+        module_id: locationRoutingForm.value.module_id,
+        aisle_id: locationRoutingForm.value.aisle_id
+      })
       locationRoutingForm.value.side_id = null
       locationRoutingForm.value.ladder_id = null
-      resetAisleChildren()
       return
     case 'Side':
+      resetSideChildren()
       await getSideDetails(locationRoutingForm.value.side_id)
       locationRoutingForm.value.ladder_id = null
-      resetSideChildren()
       return
     case 'Ladder':
       await getLadderDetails(locationRoutingForm.value.ladder_id)
