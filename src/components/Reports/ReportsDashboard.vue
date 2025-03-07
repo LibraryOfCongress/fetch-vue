@@ -198,6 +198,20 @@ const generateReportTableFields = () => {
     case 'Item Accession':
       generatedTableColumns.value = [
         {
+          name: 'year',
+          field: 'year',
+          label: 'Year',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'month',
+          field: 'month',
+          label: 'Month',
+          align: 'left',
+          sortable: true
+        },
+        {
           name: 'owner',
           field: 'owner_name',
           label: 'Owner',
@@ -227,6 +241,8 @@ const generateReportTableFields = () => {
         }
       ]
       generatedTableVisibleColumns.value = [
+        'year',
+        'month',
         'owner',
         'media_type',
         'size_class',
