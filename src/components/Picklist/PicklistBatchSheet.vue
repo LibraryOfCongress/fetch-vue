@@ -25,7 +25,7 @@
             Assigned User:
             {{
               picklistJobDetails.user
-                ? `${picklistJobDetails.user.first_name} ${picklistJobDetails.user.last_name}`
+                ? picklistJobDetails.user.name
                 : "No Assignee"
             }}
           </p>

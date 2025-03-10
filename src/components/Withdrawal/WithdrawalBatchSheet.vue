@@ -20,7 +20,7 @@
             Withdrawal Job User:
             {{
               withdrawalJobDetails.assigned_user
-                ? `${withdrawalJobDetails.assigned_user.first_name} ${withdrawalJobDetails.assigned_user.last_name}`
+                ? withdrawalJobDetails.assigned_user.name
                 : "No Assignee"
             }}
           </p>

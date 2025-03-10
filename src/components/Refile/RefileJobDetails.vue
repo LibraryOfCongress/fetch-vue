@@ -36,7 +36,7 @@
             v-if="!editJob"
             class="text-body1"
           >
-            {{ refileJob.assigned_user?.first_name }}
+            {{ refileJob.assigned_user?.name }}
           </p>
           <SelectInput
             v-else
@@ -44,7 +44,7 @@
             :options="users"
             option-type="users"
             option-value="id"
-            option-label="first_name"
+            option-label="name"
             aria-label="userSelect"
             class="q-pr-xs-sm q-pr-md-none"
           />

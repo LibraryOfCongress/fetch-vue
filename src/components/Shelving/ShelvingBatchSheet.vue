@@ -20,7 +20,7 @@
             Shelving Job Created Date/Time: {{ formatDateTime(shelvingJobDetails.create_dt).dateTime }}
           </p>
           <p class="text-bold">
-            Shelving Job User: {{ shelvingJobDetails.user ? `${shelvingJobDetails.user.first_name} ${shelvingJobDetails.user.last_name}` : 'No Assignee' }}
+            Shelving Job User: {{ shelvingJobDetails.user ? shelvingJobDetails.user.name : 'No Assignee' }}
           </p>
         </section>
 

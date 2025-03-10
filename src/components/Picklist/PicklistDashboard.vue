@@ -128,7 +128,7 @@ const picklistTableColumns = ref([
   },
   {
     name: 'user_id',
-    field: row => row.user ? `${row.user.first_name} ${row.user.last_name}` : '',
+    field: row => row.user ? row.user.name : '',
     label: 'Assigned User',
     align: 'left',
     sortable: true
@@ -183,12 +183,12 @@ const picklistTableFilters =  ref([
     ]
   },
   {
-    field: row => row.user ? `${row.user.first_name} ${row.user.last_name}` : '',
+    field: row => row.user ? row.user.name : '',
     label: 'Assigned User',
     apiField: 'assigned_user',
     options: users.value.map(usr => {
       return {
-        text: `${usr.first_name} ${usr.last_name}`,
+        text: usr.name,
         value: false
       }
     })

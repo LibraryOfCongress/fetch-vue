@@ -282,7 +282,7 @@
                   :options="param.options"
                   :option-type="param.optionType"
                   :option-value="param.optionType ? 'id' : ''"
-                  :option-label="!param.optionType ? '' : param.optionType == 'users' ? 'first_name' : 'name'"
+                  :option-label="!param.optionType ? '' : 'name'"
                   :placeholder="`Select ${param.label}`"
                   @update:model-value="null"
                   :aria-label="`${param.query}Select`"

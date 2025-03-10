@@ -167,14 +167,6 @@ watch(() => mainProps.options, (updatedOptions) => {
 })
 
 const updateModelValue = (value) => {
-  //TODO remove if we dont need to auto populate the user filter text input on select
-  // if (mainProps.optionType == 'users') {
-  //   // this is a one off just for user options since majority of our select options typically use a single param except users which have 2 params to display (first_name and last_name)
-  //   console.log('test update', value, localOptions.value.find(opt => opt.id == value))
-  //   const userDisplayValue = renderLabel(localOptions.value.find(opt => opt.id == value))
-  //   selectInputComponent.value.updateInputValue(userDisplayValue, true)
-  // }
-
   emit('update:modelValue', value)
 }
 const filterOptions = async (val, update) => {
@@ -222,10 +214,7 @@ const loadMoreOptions = async ({ to, ref }) => {
   }
 }
 const renderLabel = (opt) => {
-  if (mainProps.optionType == 'users') {
-    // this is a one off just for user options since majority of our select options typically use a single param except users which have 2 params to display (first_name and last_name)
-    return `${opt.first_name} ${opt.last_name}`
-  } else if (mainProps.optionLabel.toString().includes('.')) {
+  if (mainProps.optionLabel.toString().includes('.')) {
     // if we pass in a arrow function label we convert it to read as a property key
     // ex opt => opt.barcode.value we only need 'barcode.value' from that function
     const paramPath = mainProps.optionLabel.toString().split('.').slice(1).join('.')
@@ -241,14 +230,14 @@ const renderMultiSelectDisplayValues = () => {
     // if user selects more than 4 values we change the select display value to say the first 4 values + more count message
     // ex (select display if user selected 9 options): A,B,C,D + 5 more
     const multiDisplayLabel = mainProps.modelValue.map(idVal => {
-      return renderLabel(localOptions.value.find(opt => opt.id == idVal))
+      return renderLabel(mainProps.options.find(opt => opt.id == idVal))
     }).splice(0, 4)
 
     return `${multiDisplayLabel} + ${mainProps.modelValue.length - 4} more`
   } else if (mainProps.modelValue) {
     // display the single selected value
     const displayLabel = mainProps.modelValue.map(idVal => {
-      return renderLabel(localOptions.value.find(opt => opt.id == idVal))
+      return renderLabel(mainProps.options.find(opt => opt.id == idVal))
     })
     return displayLabel.toString()
   } else {

@@ -591,7 +591,7 @@ const requestBatchTableColumns = ref([
   },
   {
     name: 'user_id',
-    field: row => row.user?.email,
+    field: row => row.user?.name,
     label: 'Uploaded By',
     align: 'left',
     sortable: true

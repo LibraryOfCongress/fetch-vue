@@ -49,7 +49,7 @@
             Assigned User:
           </label>
           <p class="text-body1">
-            {{ `${moveShelfJob.user.first_name} ${moveShelfJob.user.last_name}` }}
+            {{ moveShelfJob.user.name }}
           </p>
         </div>
       </div>
