@@ -12,6 +12,12 @@ describe('Alert Popup Component', async () => {
     }
 
     const wrapper = mount(AlertPopup, {
+      global: {
+        provide: {
+          //If you are using provide/inject
+          'audio-alert': 'test-inject-function'
+        }
+      },
       props: {
         alertType: 'error',
         alertText: 'this is a test'
