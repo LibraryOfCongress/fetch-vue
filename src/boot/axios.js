@@ -60,8 +60,8 @@ export default boot(({ app }) => {
         }
       }
     } else if (error.response.status == 401 && userStore.userData.user_id) {
-      // if we get a 401 error then user needs to be logged out
-      userStore.patchLogout()
+      // if we get a 401 error then user needs to be logged out and reauthenticated
+      userStore.patchLogout(true)
     }
     return Promise.reject(error)
   })

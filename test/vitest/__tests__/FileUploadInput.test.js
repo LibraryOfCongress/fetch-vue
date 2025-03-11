@@ -7,6 +7,12 @@ installQuasarPlugin()
 describe('File Upload Input Component', () => {
   it('should mount a dropzone box input where user will see a "click here or drag to upload prompt"', () => {
     const wrapper = mount(FileUploadInput, {
+      global: {
+        provide: {
+          //If you are using provide/inject
+          'handle-alert': 'test-inject-function'
+        }
+      },
       props: {
         allowMultipleFiles: false
       }

@@ -91,7 +91,21 @@ const handleAlert = inject('handle-alert')
 
 onMounted(async () => {
   // when a user is using sso login they will get redirected back to the app in a logged out state with a token in the route
-  if (route.query.token) {
+  // there might also be a preserve_route query, this occurs when user is timeout via a 401 and we preserve the users location to come back to on reauthentication
+  if (route.query.token && route.query.preserve_route) {
+    // decode the token and pass and store that info in localstorage
+    appActionIsLoadingData.value = true
+    const payload = {
+      token: route.query.token,
+      ...jwtDecode(route.query.token)
+    }
+    await patchLogin(payload, 'Sso')
+
+    // send the user to the preserved route
+    router.push(route.query.preserve_route)
+
+    appActionIsLoadingData.value = false
+  } else if (route.query.token) {
     // decode the token and pass and store that info in localstorage
     appActionIsLoadingData.value = true
     const payload = {
