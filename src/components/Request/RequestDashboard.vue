@@ -181,7 +181,7 @@
             <span
               v-else-if="colName == 'status'"
               class="outline text-nowrap"
-              :class="value == 'Completed' || value == 'New' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-warning' : null "
+              :class="value == 'Completed' || value == 'New' ? 'text-highlight' : value == 'Requested' || value == 'PickList' ? 'text-highlight-warning' : 'text-highlight-negative'"
             >
               {{ value }}
             </span>
@@ -199,14 +199,6 @@
         </EssentialTable>
       </div>
     </div>
-
-    <!-- Request Item Overlay-->
-    <RequestItemOverlay
-      v-if="route.params.jobId && requestDisplayType == 'request_view'"
-      :item-data="requestJob"
-      @edit="editRequest()"
-      @close="resetRequestOverlay()"
-    />
 
     <!-- Request Creation Modal -->
     <RequestCreateModal
@@ -326,8 +318,8 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, reactive, inject, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { onBeforeMount, ref, reactive, inject } from 'vue'
+import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -339,13 +331,11 @@ import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import EssentialTable from '@/components/EssentialTable.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
-import RequestItemOverlay from '@/components/Request/RequestItemOverlay.vue'
 import RequestCreateModal from '@/components/Request/RequestCreateModal.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import SelectInput from '@/components/SelectInput.vue'
 
 const router = useRouter()
-const route = useRoute()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
@@ -362,7 +352,6 @@ const {
   requestsLocations
 } = storeToRefs(useOptionStore())
 const {
-  resetRequestJob,
   getRequestJobList,
   getRequestJob,
   getRequestBatchJobList,
@@ -651,12 +640,6 @@ onBeforeMount(() => {
   }
 })
 
-watch(route, () => {
-  if (route.params.jobId) {
-    loadRequestJob(route.params.jobId)
-  }
-})
-
 const clearTableSelection = () => {
   requestTableComponent.value.clearSelectedData()
   selectedRequestItems.value = []
@@ -668,24 +651,6 @@ const resetPickListForm = () => {
   filterRequestsByBuilding.value = null
   addToPickListJob.value = null
   clearTableSelection()
-}
-const resetRequestOverlay = () => {
-  resetRequestJob()
-  router.push({
-    name: 'request',
-    params: {
-      jobId: null
-    }
-  })
-}
-const editRequest = () => {
-  showCreateRequestByType.value = 'edit'
-  router.push({
-    name: 'request',
-    params: {
-      jobId: null
-    }
-  })
 }
 
 const loadRequestJobs = async (qParams) => {
@@ -754,7 +719,7 @@ const loadRequestJob = async (id) => {
     } else {
       await getRequestJob(id)
       router.push({
-        name: 'request',
+        name: 'request-details',
         params: {
           jobId: id
         }
