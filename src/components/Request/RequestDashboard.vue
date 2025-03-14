@@ -201,7 +201,7 @@
     </div>
 
     <!-- Request Creation Modal -->
-    <RequestCreateModal
+    <RequestCreateEditModal
       v-if="showCreateRequestByType"
       :type="showCreateRequestByType"
       :request-data="requestJob"
@@ -331,7 +331,7 @@ import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import EssentialTable from '@/components/EssentialTable.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
-import RequestCreateModal from '@/components/Request/RequestCreateModal.vue'
+import RequestCreateEditModal from '@/components/Request/RequestCreateEditModal.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import SelectInput from '@/components/SelectInput.vue'
 
@@ -429,7 +429,7 @@ const requestTableColumns = ref([
   {
     name: 'status',
     field: row => row.item ? row.item?.status : row.non_tray_item?.status,
-    label: 'Status',
+    label: 'Item Status',
     align: 'left',
     sortable: true
   },
@@ -502,7 +502,7 @@ const requestTableFilters =  reactive([
   },
   {
     field: row => row.item ? row.item?.status : row.non_tray_item?.status,
-    label: 'Status',
+    label: 'Item Status',
     apiField: 'status',
     options: [
       {
