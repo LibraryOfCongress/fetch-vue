@@ -347,11 +347,8 @@ const renderShelfLocation = () => {
   return `${module}-${aisle}-${side == 'Right' ? 'R' : side == 'Left' ? 'L' : side}-${ladder}-${shelf}`.replace('undefined-', '')
 }
 const renderUsedCapacity = () => {
-  let usedSpace = 0
-  if (shelfDetails.value.shelf_type?.max_capacity && shelfDetails.value.available_space) {
-    usedSpace = shelfDetails.value.shelf_type?.max_capacity - shelfDetails.value.available_space
-  }
-  return usedSpace
+  const usedSpace = shelfDetails.value.shelf_type?.max_capacity - shelfDetails.value.available_space
+  return typeof usedSpace === 'number' && !Number.isNaN(usedSpace) ? usedSpace : 0
 }
 
 const routeToItemDetail = (item) => {
