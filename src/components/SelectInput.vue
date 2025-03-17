@@ -157,7 +157,7 @@ const lastOptionsPage = computed(() => {
   // divide total local options by apiPageSizeDefault to get our last page value
   return Math.ceil(optionsTotal.value / 50)
 })
-const nextOptionsPage = ref(2)
+const nextOptionsPage = ref(1)
 
 // Logic
 const getNestedKeyPath = inject('get-nested-key-path')
@@ -204,7 +204,7 @@ const loadMoreOptions = async ({ to, ref }) => {
     scrollLoading.value = true
     await getOptions(mainProps.optionType, {
       ...mainProps.optionQuery,
-      page: nextOptionsPage.value
+      page: nextOptionsPage.value + 1
     }, true)
 
     nextOptionsPage.value++
