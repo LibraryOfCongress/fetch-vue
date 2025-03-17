@@ -755,7 +755,8 @@ const removePicklistItem = async (itemId) => {
 }
 const updatePicklistItem = async (barcode_value) => {
   try {
-    const pickListItemToUpdate = picklistJob.value.requests.find(itm => itm.item ? itm.item.barcode.value == barcode_value : itm.non_tray_item.barcode.value == barcode_value)
+    const pickListItemToUpdateIndex = picklistJob.value.requests.findIndex(itm => itm.item ? itm.item.barcode.value == barcode_value : itm.non_tray_item.barcode.value == barcode_value)
+    const pickListItemToUpdate = picklistJob.value.requests[pickListItemToUpdateIndex]
     const payload = {
       id: picklistJob.value.id,
       request_id: pickListItemToUpdate.id,
@@ -766,6 +767,14 @@ const updatePicklistItem = async (barcode_value) => {
 
     // update the item directly in the picklist job and set it to retrieved
     pickListItemToUpdate.item ? pickListItemToUpdate.item.status = 'Out' : pickListItemToUpdate.non_tray_item.status = 'Out'
+
+    // move the item to bottom of the list if in offline mode
+    if (appIsOffline.value) {
+      picklistJob.value.requests.splice(pickListItemToUpdateIndex, 1)
+      picklistJob.value.requests.push(pickListItemToUpdate)
+    }
+
+    // update our original picklist job state
     originalPicklistJob.value = { ...toRaw(picklistJob.value) }
 
     // store the current picklist job data in indexdb for reference offline whenever job is executed

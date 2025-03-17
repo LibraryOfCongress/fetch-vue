@@ -261,21 +261,31 @@ const updateContainerLocation = async () => {
     }
     await postShelvingJobContainer(payload)
 
-    // when offline we need to directly update the shelving status and shelving job container as the job level
+    // when offline we need to directly update the shelving status and shelving job container at the job level
     if (appIsOffline.value) {
       let updatedLocationString = shelvingJobContainer.value.shelf_position.location.split('-')
       updatedLocationString[6] = payload.shelf_position_number
       shelvingJobContainer.value.shelf_position.location = updatedLocationString.join('-')
       if (payload.trayed) {
-        shelvingJob.value.trays[shelvingJob.value.trays.findIndex(container => container.id == payload.container_id)] = {
+        const trayItemIndex = shelvingJob.value.trays.findIndex(itm => itm.id == payload.container_id)
+        const trayItemByIndex = shelvingJob.value.trays[trayItemIndex] = {
           ...shelvingJobContainer.value,
           scanned_for_shelving: payload.scanned_for_shelving
         }
+
+        // move the item to bottom of the list
+        shelvingJob.value.trays.splice(trayItemIndex, 1)
+        shelvingJob.value.trays.push(trayItemByIndex)
       } else {
-        shelvingJob.value.non_tray_items[shelvingJob.value.non_tray_items.findIndex(container => container.id == payload.container_id)] = {
+        const nonTrayItemIndex = shelvingJob.value.non_tray_items.findIndex(itm => itm.id == payload.container_id)
+        const nonTrayItemByIndex = shelvingJob.value.non_tray_items[nonTrayItemIndex] = {
           ...shelvingJobContainer.value,
           scanned_for_shelving: payload.scanned_for_shelving
         }
+
+        // move the item to bottom of the list
+        shelvingJob.value.non_tray_items.splice(nonTrayItemIndex, 1)
+        shelvingJob.value.non_tray_items.push(nonTrayItemByIndex)
       }
     }
 
