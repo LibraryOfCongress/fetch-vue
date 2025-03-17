@@ -41,6 +41,7 @@ onMounted( async () => {
     getOptions('buildings'),
     getOptions('requestsPriorities'),
     getOptions('requestsLocations'),
+    getOptions('requestsTypes'),
     getOptions('mediaTypes')
   ])
 

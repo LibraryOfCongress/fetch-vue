@@ -7,6 +7,12 @@ installQuasarPlugin()
 describe('Select Input Component', () => {
   it('should mount with passed in options', () => {
     const wrapper = mount(SelectInput, {
+      global: {
+        provide: {
+          //If you are using provide/inject
+          'get-nested-key-path': 'test-inject-function'
+        }
+      },
       props: {
         options: [
           {

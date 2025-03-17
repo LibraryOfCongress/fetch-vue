@@ -432,7 +432,7 @@ const paginationConfig = ref({
   sortBy: '',
   descending: false,
   page: 1,
-  rowsPerPage: 50 // this needs to match our apiPageSizeDefault
+  rowsPerPage: 0 // defaults to show all if pagination is not enabled
 })
 
 // Logic
@@ -440,6 +440,7 @@ onMounted(() => {
   // if pagination is enabled and a pagination total is passed in we add the rowsNumber param to our pagination config as needed for server side rendering
   if (mainProps.enablePagination && mainProps.paginationTotal !== 0) {
     paginationConfig.value.rowsNumber = mainProps.paginationTotal
+    paginationConfig.value.rowsPerPage = 50
   }
   // if no tableVisibleColumns prop is passed map the tableColumns so all columns are always visible
   if (mainProps.tableVisibleColumns.length == 0) {

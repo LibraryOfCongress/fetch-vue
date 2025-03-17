@@ -46,12 +46,15 @@ export const useUserStore = defineStore('user-store', {
         throw error
       }
     },
-    async patchLogout () {
+    async patchLogout (reauthenticate = false) {
       try {
-        // TODO uncomment once api is ready for testing
-        // const res = await this.$api.post(inventoryServiceApi.authSsoLogout)
-        // this.userData = res.data
         this.resetUserStore()
+
+        if (reauthenticate) {
+          // if the reauthenticate flag is passed (usually occurs when user gets timed-out via 401)
+          // we want to auto reauthenticate the user and preserve the users route by sending the user to the sso login with a preserve_route query param
+          window.location.replace(`${process.env.VITE_INV_SERVCE_API}${inventoryServiceApi.authSsoLogin}?preserve_route=${this.router.currentRoute._value.fullPath}`)
+        }
       } catch (error) {
         throw error
       }
