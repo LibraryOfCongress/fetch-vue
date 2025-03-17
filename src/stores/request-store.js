@@ -120,6 +120,8 @@ export const useRequestStore = defineStore('request-store', {
       try {
         const res = await this.$api.patch(`${inventoryServiceApi.requests}${payload.id}`, payload)
         this.requestJob = res.data
+        // refresh the requestJobList using request view filter since this endpoint only triggers from the request view tab
+        await this.getRequestJobList({ queue: true })
       } catch (error) {
         throw error
       }

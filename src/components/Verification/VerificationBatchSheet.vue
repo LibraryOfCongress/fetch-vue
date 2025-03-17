@@ -20,7 +20,7 @@
             Verification Job User:
             {{
               verificationJobDetails.user
-                ? `${verificationJobDetails.user.first_name} ${verificationJobDetails.user.last_name}`
+                ? verificationJobDetails.user.name
                 : "No Assignee"
             }}
           </p>

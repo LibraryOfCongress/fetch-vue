@@ -20,7 +20,7 @@
             Refile Job User:
             {{
               refileJobDetails.assigned_user
-                ? `${refileJobDetails.assigned_user.first_name} ${refileJobDetails.assigned_user.last_name}`
+                ? refileJobDetails.assigned_user.name
                 : "No Assignee"
             }}
           </p>

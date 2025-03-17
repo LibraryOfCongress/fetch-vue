@@ -36,7 +36,7 @@
             v-if="!editJob"
             class="text-body1"
           >
-            {{ withdrawJob.assigned_user?.first_name }}
+            {{ withdrawJob.assigned_user?.name }}
           </p>
           <SelectInput
             v-else
@@ -44,7 +44,7 @@
             :options="users"
             option-type="users"
             option-value="id"
-            option-label="first_name"
+            option-label="name"
             aria-label="userSelect"
             class="q-pr-xs-sm q-pr-md-none"
           />
@@ -457,7 +457,8 @@ const itemTableVisibleColumns = ref([
   'tray_barcode',
   'barcode',
   'owner',
-  'status'
+  'status',
+  'withdrawn_location'
 ])
 const itemTableColumns = ref([
   {
@@ -502,6 +503,13 @@ const itemTableColumns = ref([
     label: 'Item Status',
     align: 'left',
     sortable: false
+  },
+  {
+    name: 'withdrawn_location',
+    field: row => renderWithdrawnItemLocation(row),
+    label: 'Location',
+    align: 'left',
+    sortable: true
   }
 ])
 const itemTableFilters = computed(() => {
@@ -591,6 +599,7 @@ const formatDateTime = inject('format-date-time')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 const renderWithdrawnTrayBarcode = inject('render-withdrawn-tray-barcode')
 const renderWithdrawnShelfBarcode = inject('render-withdrawn-shelf-barcode')
+const renderWithdrawnItemLocation = inject('render-withdrawn-item-location')
 const getUniqueListByKey = inject('get-uniqure-list-by-key')
 
 onBeforeMount(() => {

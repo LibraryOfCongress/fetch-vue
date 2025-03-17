@@ -53,11 +53,15 @@
               </label>
               <SelectInput
                 v-model="reportForm.module_id"
-                :options="renderBuildingModules"
+                :options="modules"
+                option-type="modules"
+                :option-query="{
+                  building_id: reportForm.building_id
+                }"
                 option-value="id"
                 option-label="module_number"
                 :placeholder="'Select Module'"
-                :disabled="renderBuildingModules.length == 0"
+                :disabled="!reportForm.building_id"
                 @update:model-value="handleLocationFormChange('Module')"
                 aria-label="moduleSelect"
               />
@@ -73,11 +77,16 @@
               </label>
               <SelectInput
                 v-model="reportForm.aisle_id"
-                :options="renderBuildingOrModuleAisles"
+                :options="aisles"
+                option-type="aisles"
+                :option-query="{
+                  building_id: reportForm.building_id,
+                  module_id: reportForm.module_id
+                }"
                 option-value="id"
                 :option-label="opt => opt.aisle_number.number"
                 :placeholder="'Select Aisle'"
-                :disabled="renderBuildingOrModuleAisles.length == 0"
+                :disabled="!reportForm.module_id"
                 @update:model-value="handleLocationFormChange('Aisle')"
                 aria-label="aisleSelect"
               />
@@ -92,10 +101,10 @@
               </label>
               <ToggleButtonInput
                 v-model="reportForm.side_id"
-                :options="renderAisleSides"
+                :options="sides"
                 option-value="id"
                 option-label="side_orientation.name"
-                :disabled="!renderAisleSides[0].id"
+                :disabled="!reportForm.aisle_id"
                 @update:model-value="handleLocationFormChange('Side')"
               />
             </div>
@@ -110,11 +119,18 @@
               </label>
               <SelectInput
                 v-model="reportForm.ladder_id"
-                :options="renderSideLadders"
+                :options="ladders"
+                option-type="ladders"
+                :option-query="{
+                  building_id: reportForm.building_id,
+                  module_id: reportForm.module_id,
+                  aisle_id: reportForm.aisle_id,
+                  side_id: reportForm.side_id
+                }"
                 option-value="id"
                 :option-label="opt => opt.ladder_number.number"
                 :placeholder="'Select Ladder'"
-                :disabled="renderSideLadders.length == 0"
+                :disabled="!reportForm.side_id"
                 @update:model-value="handleLocationFormChange('Ladder')"
                 aria-label="ladderSelect"
               />
@@ -348,6 +364,7 @@
                   :hide-selected="!param.multiple"
                   :options="param.options"
                   :option-type="param.optionType"
+                  :option-query="param.optionQuery"
                   :option-value="param.optionValue ?? 'id'"
                   :option-label="param.optionLabel ?? 'name'"
                   :placeholder="`Select ${param.label}`"
@@ -425,6 +442,9 @@ const { currentScreenSize } = useCurrentScreenSize()
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   buildings,
+  modules,
+  aisles,
+  ladders,
   owners,
   sizeClass,
   mediaTypes,
@@ -432,23 +452,14 @@ const {
   verificationJobs
 } = storeToRefs(useOptionStore())
 const {
+  getSideList,
   resetBuildingStore,
-  getBuildingDetails,
-  getModuleDetails,
-  getAisleDetails,
-  getSideDetails,
-  getLadderDetails,
   resetBuildingChildren,
   resetModuleChildren,
   resetAisleChildren,
   resetSideChildren
 } = useBuildingStore()
-const {
-  renderBuildingModules,
-  renderBuildingOrModuleAisles,
-  renderAisleSides,
-  renderSideLadders
-} = storeToRefs(useBuildingStore())
+const { sides } = storeToRefs(useBuildingStore())
 const { getReport } = useReportsStore()
 
 // Local Data
@@ -479,33 +490,36 @@ const handleLocationFormChange = async (valueType) => {
   // reset the report form depending on the edited form field type
   switch (valueType) {
     case 'Building':
-      await getBuildingDetails(reportForm.value.building_id)
+      resetBuildingChildren()
       reportForm.value.module_id = null
       reportForm.value.aisle_id = null
       reportForm.value.side_id = null
       reportForm.value.ladder_id = null
-      resetBuildingChildren()
       return
     case 'Module':
-      await getModuleDetails(reportForm.value.module_id)
+      resetModuleChildren()
       reportForm.value.aisle_id = null
       reportForm.value.side_id = null
       reportForm.value.ladder_id = null
-      resetModuleChildren()
       return
     case 'Aisle':
-      await getAisleDetails(reportForm.value.aisle_id)
+      resetAisleChildren()
+      // get sides since sides are toggle buttons and not dynamically loaded from a options select input
+      if (reportForm.value.aisle_id) {
+        await getSideList({
+          building_id: reportForm.value.building_id,
+          module_id: reportForm.value.module_id,
+          aisle_id: reportForm.value.aisle_id
+        })
+      }
       reportForm.value.side_id = null
       reportForm.value.ladder_id = null
-      resetAisleChildren()
       return
     case 'Side':
-      await getSideDetails(reportForm.value.side_id)
-      reportForm.value.ladder_id = null
       resetSideChildren()
+      reportForm.value.ladder_id = null
       return
     case 'Ladder':
-      await getLadderDetails(reportForm.value.ladder_id)
       return
   }
 }
@@ -576,8 +590,15 @@ const generateReportModal = () => {
         {
           query: 'module_id',
           label: 'Module',
-          options: renderBuildingModules,
+          options: modules,
+          optionType: 'modules',
+          optionQuery: computed(() => {
+            return {
+              building_id: reportForm.value.building_id
+            }
+          }),
           optionLabel: 'module_number',
+          onUpdate: () => handleLocationFormChange('Module'),
           disabled: computed(() => !reportForm.value.building_id)
         },
         {
@@ -653,8 +674,15 @@ const generateReportModal = () => {
         {
           query: 'module_id',
           label: 'Module',
-          options: renderBuildingModules,
+          options: modules,
+          optionType: 'modules',
+          optionQuery: computed(() => {
+            return {
+              building_id: reportForm.value.building_id
+            }
+          }),
           optionLabel: 'module_number',
+          onUpdate: () => handleLocationFormChange('Module'),
           disabled: computed(() => !reportForm.value.building_id)
         },
         {

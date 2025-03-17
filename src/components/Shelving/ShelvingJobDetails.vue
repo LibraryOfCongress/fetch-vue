@@ -58,7 +58,7 @@
             v-if="!editJob"
             class="text-body1"
           >
-            {{ shelvingJob.user?.first_name }}
+            {{ shelvingJob.user?.name }}
           </p>
           <SelectInput
             v-else
@@ -66,7 +66,7 @@
             :options="users"
             option-type="users"
             option-value="id"
-            option-label="first_name"
+            option-label="name"
             aria-label="userSelect"
           >
             <template #no-option>
@@ -412,8 +412,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
 import { useShelvingStore } from '@/stores/shelving-store'
-import { useOptionStore } from '@/stores/option-store'
 import { useBuildingStore } from '@/stores/building-store'
+import { useOptionStore } from '@/stores/option-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
@@ -450,16 +450,8 @@ const {
   appPendingSync,
   appIsOffline
 } = storeToRefs(useGlobalStore())
+const { getOptions } = useOptionStore()
 const { userData } = storeToRefs(useUserStore())
-const {
-  getBuildingDetails,
-  getModuleDetails,
-  getAisleDetails,
-  getSideDetails,
-  getShelveList,
-  getShelfDetails,
-  getShelfPositionsList
-} = useBuildingStore()
 const {
   patchShelvingJob,
   getShelvingJobContainer
@@ -471,6 +463,7 @@ const {
   allContainersShelved
 } = storeToRefs(useShelvingStore())
 const { users } = storeToRefs(useOptionStore())
+const { getSideList } = useBuildingStore()
 
 // Local Data
 const batchSheetComponent = ref(null)
@@ -653,17 +646,28 @@ const handleOptionMenu = async (action, rowData) => {
   switch (action.text) {
     case 'Edit Location':
       try {
-        const itemLocationIdList =
-          rowData.shelf_position?.internal_location?.split('-')
+        const itemLocationIdList = rowData.shelf_position?.internal_location?.split('-')
         if (!appIsOffline.value) {
           appIsLoadingData.value = true
           if (itemLocationIdList) {
             await Promise.all([
-              getBuildingDetails(shelvingJob.value.building_id),
-              getModuleDetails(itemLocationIdList[1]), //loads the aisle list
-              getAisleDetails(itemLocationIdList[2]), //loads the side list
-              getSideDetails(itemLocationIdList[3]), //loads the ladder list
-              getShelveList({
+              getOptions('modules', { building_id: shelvingJob.value.building_id }),
+              getOptions('aisles', {
+                building_id: shelvingJob.value.building_id,
+                module_id: itemLocationIdList[1]
+              }),
+              getSideList({
+                building_id: shelvingJob.value.building_id,
+                module_id: itemLocationIdList[1],
+                aisle_id: itemLocationIdList[2]
+              }),
+              getOptions('ladders', {
+                building_id: shelvingJob.value.building_id,
+                module_id: itemLocationIdList[1],
+                aisle_id: itemLocationIdList[2],
+                side_id: itemLocationIdList[3]
+              }),
+              getOptions('shelves', {
                 building_id: shelvingJob.value.building_id,
                 module_id: itemLocationIdList[1],
                 aisle_id: itemLocationIdList[2],
@@ -671,9 +675,27 @@ const handleOptionMenu = async (action, rowData) => {
                 ladder_id: itemLocationIdList[4],
                 owner_id: rowData.owner.id,
                 size_class_id: rowData.size_class.id
-              }), //loads the shelve list
-              getShelfDetails(itemLocationIdList[5]),
-              getShelfPositionsList(itemLocationIdList[5], true) //loads the shelve positions list
+              }),
+              getOptions('shelvesPositions', {
+                shelf_id: itemLocationIdList[5],
+                empty: true
+              })
+
+              // getBuildingDetails(shelvingJob.value.building_id),
+              // getModuleDetails(itemLocationIdList[1]), //loads the aisle list
+              // getAisleDetails(itemLocationIdList[2]), //loads the side list
+              // getSideDetails(itemLocationIdList[3]), //loads the ladder list
+              // getShelveList({
+              //   shelf_id: shelvingJob.value.building_id,
+              //   module_id: itemLocationIdList[1],
+              //   aisle_id: itemLocationIdList[2],
+              //   side_id: itemLocationIdList[3],
+              //   ladder_id: itemLocationIdList[4],
+              //   owner_id: rowData.owner.id,
+              //   size_class_id: rowData.size_class.id
+              // }), //loads the shelve list
+              // getShelfDetails(itemLocationIdList[5]),
+              // getShelfPositionsList(itemLocationIdList[5], true) //loads the shelve positions list
             ])
           }
         }

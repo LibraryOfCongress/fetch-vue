@@ -21,7 +21,7 @@
             Accession Job User:
             {{
               accessionJobDetails.user
-                ? `${accessionJobDetails.user.first_name} ${accessionJobDetails.user.last_name}`
+                ? accessionJobDetails.user.name
                 : "No Assignee"
             }}
           </p>

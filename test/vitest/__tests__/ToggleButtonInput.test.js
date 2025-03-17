@@ -7,6 +7,12 @@ installQuasarPlugin()
 describe('Toggle Button Input Component', () => {
   it('should mount with passed in options', () => {
     const wrapper = mount(ToggleButtonInput, {
+      global: {
+        provide: {
+          //If you are using provide/inject
+          'get-nested-key-path': 'test-inject-function'
+        }
+      },
       props: {
         options: [
           {
@@ -35,6 +41,12 @@ describe('Toggle Button Input Component', () => {
 
   it('should mount a toggle button with a yes and no option', () => {
     const wrapper = mount(ToggleButtonInput, {
+      global: {
+        provide: {
+          //If you are using provide/inject
+          'get-nested-key-path': 'test-inject-function'
+        }
+      },
       props: {
         options: [
           {

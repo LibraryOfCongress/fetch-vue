@@ -53,11 +53,15 @@
               </label>
               <SelectInput
                 v-model="searchForm.module_id"
-                :options="renderBuildingModules"
+                :options="modules"
+                option-type="modules"
+                :option-query="{
+                  building_id: searchForm.building_id
+                }"
                 option-value="id"
                 option-label="module_number"
                 :placeholder="'Select Module'"
-                :disabled="renderBuildingModules.length == 0"
+                :disabled="!searchForm.building_id"
                 @update:model-value="handleLocationFormChange('Module')"
                 aria-label="moduleSelect"
               />
@@ -73,11 +77,16 @@
               </label>
               <SelectInput
                 v-model="searchForm.aisle_id"
-                :options="renderBuildingOrModuleAisles"
+                :options="aisles"
+                option-type="aisles"
+                :option-query="{
+                  building_id: searchForm.building_id,
+                  module_id: searchForm.module_id
+                }"
                 option-value="id"
                 :option-label="opt => opt.aisle_number.number"
                 :placeholder="'Select Aisle'"
-                :disabled="renderBuildingOrModuleAisles.length == 0"
+                :disabled="!searchForm.module_id"
                 @update:model-value="handleLocationFormChange('Aisle')"
                 aria-label="aisleSelect"
               />
@@ -92,10 +101,10 @@
               </label>
               <ToggleButtonInput
                 v-model="searchForm.side_id"
-                :options="renderAisleSides"
+                :options="sides"
                 option-value="id"
                 option-label="side_orientation.name"
-                :disabled="!renderAisleSides[0].id"
+                :disabled="!searchForm.aisle_id"
                 @update:model-value="handleLocationFormChange('Side')"
               />
             </div>
@@ -110,11 +119,18 @@
               </label>
               <SelectInput
                 v-model="searchForm.ladder_id"
-                :options="renderSideLadders"
+                :options="ladders"
+                option-type="ladders"
+                :option-query="{
+                  building_id: searchForm.building_id,
+                  module_id: searchForm.module_id,
+                  aisle_id: searchForm.aisle_id,
+                  side_id: searchForm.side_id
+                }"
                 option-value="id"
                 :option-label="opt => opt.ladder_number.number"
                 :placeholder="'Select Ladder'"
-                :disabled="renderSideLadders.length == 0"
+                :disabled="!searchForm.side_id"
                 @update:model-value="handleLocationFormChange('Ladder')"
                 aria-label="ladderSelect"
               />
@@ -266,7 +282,7 @@
                   :options="param.options"
                   :option-type="param.optionType"
                   :option-value="param.optionType ? 'id' : ''"
-                  :option-label="!param.optionType ? '' : param.optionType == 'users' ? 'first_name' : 'name'"
+                  :option-label="!param.optionType ? '' : 'name'"
                   :placeholder="`Select ${param.label}`"
                   @update:model-value="null"
                   :aria-label="`${param.query}Select`"
@@ -341,6 +357,9 @@ const emit = defineEmits(['hide'])
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   buildings,
+  modules,
+  aisles,
+  ladders,
   shelves,
   owners,
   sizeClass,
@@ -348,23 +367,14 @@ const {
   users
 } = storeToRefs(useOptionStore())
 const {
-  getBuildingDetails,
-  getModuleDetails,
-  getAisleDetails,
-  getSideDetails,
-  getLadderDetails,
+  getSideList,
   resetBuildingStore,
   resetBuildingChildren,
   resetModuleChildren,
   resetAisleChildren,
   resetSideChildren
 } = useBuildingStore()
-const {
-  renderBuildingModules,
-  renderBuildingOrModuleAisles,
-  renderAisleSides,
-  renderSideLadders
-} = storeToRefs(useBuildingStore())
+const { sides } = storeToRefs(useBuildingStore())
 const { getAdvancedSearchResults } = useSearchStore()
 
 // Local Data
@@ -387,37 +397,40 @@ const handleLocationFormChange = async (valueType) => {
   // reset the report form depending on the edited form field type
   switch (valueType) {
     case 'Building':
-      await getBuildingDetails(searchForm.value.building_id)
+      resetBuildingChildren()
       searchForm.value.module_id = null
       searchForm.value.aisle_id = null
       searchForm.value.side_id = null
       searchForm.value.ladder_id = null
       searchForm.value.shelf_id = null
-      resetBuildingChildren()
       return
     case 'Module':
-      await getModuleDetails(searchForm.value.module_id)
+      resetModuleChildren()
       searchForm.value.aisle_id = null
       searchForm.value.side_id = null
       searchForm.value.ladder_id = null
       searchForm.value.shelf_id = null
-      resetModuleChildren()
       return
     case 'Aisle':
-      await getAisleDetails(searchForm.value.aisle_id)
+      resetAisleChildren()
+      // get sides since sides are toggle buttons and not dynamically loaded from a options select input
+      if (searchForm.value.aisle_id) {
+        await getSideList({
+          building_id: searchForm.value.building_id,
+          module_id: searchForm.value.module_id,
+          aisle_id: searchForm.value.aisle_id
+        })
+      }
       searchForm.value.side_id = null
       searchForm.value.ladder_id = null
       searchForm.value.shelf_id = null
-      resetAisleChildren()
       return
     case 'Side':
-      await getSideDetails(searchForm.value.side_id)
+      resetSideChildren()
       searchForm.value.ladder_id = null
       searchForm.value.shelf_id = null
-      resetSideChildren()
       return
     case 'Ladder':
-      await getLadderDetails(searchForm.value.ladder_id)
       searchForm.value.shelf_id = null
       return
   }
