@@ -181,7 +181,7 @@
             <span
               v-else-if="colName == 'status'"
               class="outline text-nowrap"
-              :class="value == 'Completed' || value == 'New' ? 'text-highlight' : value == 'Requested' || value == 'PickList' ? 'text-highlight-warning' : 'text-highlight-negative'"
+              :class="value == 'Completed' ? 'text-highlight' : value == 'InProgress' ? 'text-highlight-warning' : null"
             >
               {{ value }}
             </span>
@@ -428,8 +428,8 @@ const requestTableColumns = ref([
   },
   {
     name: 'status',
-    field: row => row.item ? row.item?.status : row.non_tray_item?.status,
-    label: 'Item Status',
+    field: 'status',
+    label: 'Request Status',
     align: 'left',
     sortable: true
   },
@@ -501,16 +501,15 @@ const requestTableFilters =  reactive([
     })
   },
   {
-    field: row => row.item ? row.item?.status : row.non_tray_item?.status,
-    label: 'Item Status',
-    apiField: 'status',
+    field: 'status',
+    label: 'Request Status',
     options: [
       {
-        text: 'PickList',
+        text: 'New',
         value: false
       },
       {
-        text: 'Requested',
+        text: 'InProgress',
         value: false
       }
     ]

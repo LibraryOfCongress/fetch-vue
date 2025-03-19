@@ -4,8 +4,8 @@
       <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
         <MoreOptionsMenu
           :options="[
-            { text: 'Edit Request', disabled: renderRequestStatus == 'Completed'},
-            { text: 'Cancel Request', optionClass: 'text-negative', disabled: renderRequestStatus == 'Completed', hidden: !checkUserPermission('can_delete_request')},
+            { text: 'Edit Request', disabled: requestJob.status == 'Completed'},
+            { text: 'Cancel Request', optionClass: 'text-negative', disabled: requestJob.status == 'Completed', hidden: !checkUserPermission('can_delete_request')},
           ]"
           class="q-mr-sm"
           @click="handleOptionMenu"
@@ -63,9 +63,9 @@
             </label>
             <p
               class="request-details-text outline"
-              :class="renderRequestStatus == 'Completed' ? 'text-highlight' : renderRequestStatus == 'Requested' || renderRequestStatus == 'PickList' ? 'text-highlight-warning' : 'text-highlight-negative'"
+              :class="requestJob.status == 'Completed' ? 'text-highlight' : requestJob.status == 'InProgress' ? 'text-highlight-warning' : null"
             >
-              {{ renderRequestStatus }}
+              {{ requestJob.status }}
             </p>
           </div>
         </div>
@@ -165,16 +165,6 @@ const renderRequestItemStatus = computed(() => {
     return 'Out'
   } else {
     return 'In'
-  }
-})
-//TODO REMOVE since request status will come from new status field at the top level of the requestJob data once api has that setup
-const renderRequestStatus = computed(() => {
-  if (requestJob.value.scanned_for_retrieval) {
-    return 'Completed'
-  } else if (requestJob.value.scanned_for_pick_list) {
-    return 'PickList'
-  } else {
-    return 'Requested'
   }
 })
 const showEditRequestModal = ref(false)
