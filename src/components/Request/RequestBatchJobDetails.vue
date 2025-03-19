@@ -74,7 +74,7 @@
         :enable-selection="showCreatePickList || showAddPickList"
         :heading-row-class="'justify-end q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
-        @selected-table-row="selectedRequestItem = $event"
+        @selected-table-row="loadRequestJob($event.id)"
         @selected-data="selectedRequestItems = $event"
       >
         <template #heading-row>
@@ -213,13 +213,6 @@
     </template>
   </InfoDisplayLayout>
 
-  <!-- Request Item Overlay-->
-  <RequestItemOverlay
-    v-if="selectedRequestItem"
-    :item-data="selectedRequestItem"
-    @close="selectedRequestItem = null"
-  />
-
   <!-- Add To Picklist Modal -->
   <PopupModal
     v-if="showPickListModal"
@@ -294,6 +287,7 @@
 
 <script setup>
 import { onBeforeMount, ref, inject, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useRequestStore } from '@/stores/request-store'
@@ -304,20 +298,21 @@ import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import InfoDisplayLayout from '@/components/InfoDisplayLayout.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
-import RequestItemOverlay from '@/components/Request/RequestItemOverlay.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import SelectInput from '@/components/SelectInput.vue'
+
+const router = useRouter()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
 const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
-const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { appActionIsLoadingData, appIsLoadingData } = storeToRefs(useGlobalStore())
 const { getOptions } = useOptionStore()
 const { picklists } = storeToRefs(useOptionStore())
 const { requestBatchJob } = storeToRefs(useRequestStore())
-const { getRequestBatchJob } = useRequestStore()
+const { getRequestBatchJob, getRequestJob } = useRequestStore()
 const { postPicklistJob, patchPicklistJobItem } = usePicklistStore()
 const { picklistJob } = storeToRefs(usePicklistStore())
 
@@ -376,7 +371,7 @@ const requestTableColumns = ref([
   {
     name: 'status',
     field: row => row.item ? row.item?.status : row.non_tray_item?.status,
-    label: 'Status',
+    label: 'Item Status',
     align: 'left',
     sortable: true
   },
@@ -439,7 +434,7 @@ const requestTableFilters = computed(() => {
       },
       {
         field: row => row.item ? row.item?.status : row.non_tray_item?.status,
-        label: 'Status',
+        label: 'Item Status',
         options: getUniqueListByKey(requestItems.value.map(tableEntry => {
           return {
             text: tableEntry.item ? tableEntry.item.status : tableEntry.non_tray_item.status,
@@ -489,7 +484,6 @@ const addToPickListJob = ref(null)
 const showCreatePickList = ref(false)
 const showAddPickList = ref(false)
 const selectedRequestItems = ref([])
-const selectedRequestItem = ref(null)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -522,6 +516,26 @@ const clearTableSelection = () => {
   selectedRequestItems.value = []
 }
 
+const loadRequestJob = async (id) => {
+  try {
+    appIsLoadingData.value = false
+    await getRequestJob(id)
+    router.push({
+      name: 'request-details',
+      params: {
+        jobId: id
+      }
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
+  }
+}
 const loadPicklistJobs = async () => {
   try {
     await getOptions('picklists', { queue: true })

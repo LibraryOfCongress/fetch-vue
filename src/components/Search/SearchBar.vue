@@ -352,7 +352,7 @@ const handlingSearchResultRouting = () => {
     case 'Request':
       requestJob.value = exactSearchResponseInfo.value
       router.push({
-        name: searchType.value.toLowerCase(),
+        name: 'request-details',
         params: {
           jobId: searchText.value
         }

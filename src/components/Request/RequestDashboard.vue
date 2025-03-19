@@ -181,7 +181,7 @@
             <span
               v-else-if="colName == 'status'"
               class="outline text-nowrap"
-              :class="value == 'Completed' || value == 'New' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-warning' : null "
+              :class="value == 'Completed' ? 'text-highlight' : value == 'InProgress' ? 'text-highlight-warning' : null"
             >
               {{ value }}
             </span>
@@ -200,16 +200,8 @@
       </div>
     </div>
 
-    <!-- Request Item Overlay-->
-    <RequestItemOverlay
-      v-if="route.params.jobId && requestDisplayType == 'request_view'"
-      :item-data="requestJob"
-      @edit="editRequest()"
-      @close="resetRequestOverlay()"
-    />
-
     <!-- Request Creation Modal -->
-    <RequestCreateModal
+    <RequestCreateEditModal
       v-if="showCreateRequestByType"
       :type="showCreateRequestByType"
       :request-data="requestJob"
@@ -326,8 +318,8 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, reactive, inject, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { onBeforeMount, ref, reactive, inject } from 'vue'
+import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -339,13 +331,11 @@ import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import EssentialTable from '@/components/EssentialTable.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
-import RequestItemOverlay from '@/components/Request/RequestItemOverlay.vue'
-import RequestCreateModal from '@/components/Request/RequestCreateModal.vue'
+import RequestCreateEditModal from '@/components/Request/RequestCreateEditModal.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import SelectInput from '@/components/SelectInput.vue'
 
 const router = useRouter()
-const route = useRoute()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
@@ -362,7 +352,6 @@ const {
   requestsLocations
 } = storeToRefs(useOptionStore())
 const {
-  resetRequestJob,
   getRequestJobList,
   getRequestJob,
   getRequestBatchJobList,
@@ -439,8 +428,8 @@ const requestTableColumns = ref([
   },
   {
     name: 'status',
-    field: row => row.item ? row.item?.status : row.non_tray_item?.status,
-    label: 'Status',
+    field: 'status',
+    label: 'Request Status',
     align: 'left',
     sortable: true
   },
@@ -512,16 +501,15 @@ const requestTableFilters =  reactive([
     })
   },
   {
-    field: row => row.item ? row.item?.status : row.non_tray_item?.status,
-    label: 'Status',
-    apiField: 'status',
+    field: 'status',
+    label: 'Request Status',
     options: [
       {
-        text: 'PickList',
+        text: 'New',
         value: false
       },
       {
-        text: 'Requested',
+        text: 'InProgress',
         value: false
       }
     ]
@@ -651,12 +639,6 @@ onBeforeMount(() => {
   }
 })
 
-watch(route, () => {
-  if (route.params.jobId) {
-    loadRequestJob(route.params.jobId)
-  }
-})
-
 const clearTableSelection = () => {
   requestTableComponent.value.clearSelectedData()
   selectedRequestItems.value = []
@@ -668,24 +650,6 @@ const resetPickListForm = () => {
   filterRequestsByBuilding.value = null
   addToPickListJob.value = null
   clearTableSelection()
-}
-const resetRequestOverlay = () => {
-  resetRequestJob()
-  router.push({
-    name: 'request',
-    params: {
-      jobId: null
-    }
-  })
-}
-const editRequest = () => {
-  showCreateRequestByType.value = 'edit'
-  router.push({
-    name: 'request',
-    params: {
-      jobId: null
-    }
-  })
 }
 
 const loadRequestJobs = async (qParams) => {
@@ -754,7 +718,7 @@ const loadRequestJob = async (id) => {
     } else {
       await getRequestJob(id)
       router.push({
-        name: 'request',
+        name: 'request-details',
         params: {
           jobId: id
         }

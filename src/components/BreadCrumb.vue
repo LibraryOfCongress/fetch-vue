@@ -270,21 +270,20 @@ const breadcrumbList = computed(() => {
       ]
       break
     case 'request':
-      if (!route.params.jobId) {
-        breadCrumbs = [
-          ...breadCrumbs,
-          { text: 'Request' }
-        ]
-      } else {
-        breadCrumbs = [
-          ...breadCrumbs,
-          {
-            text: 'Request',
-            to: '/request'
-          },
-          { text: `${route.params.jobId}` }
-        ]
-      }
+      breadCrumbs = [
+        ...breadCrumbs,
+        { text: 'Request' }
+      ]
+      break
+    case 'request-details':
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Request',
+          to: '/request'
+        },
+        { text: `Request Item: ${route.params.jobId}` }
+      ]
       break
     case 'request-batch':
       breadCrumbs = [

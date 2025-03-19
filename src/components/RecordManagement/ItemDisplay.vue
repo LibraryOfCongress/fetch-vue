@@ -294,7 +294,7 @@
           :pagination-total="itemRequestHistoryTotal"
           :pagination-loading="appIsLoadingData"
           @update-pagination="loadRequestHistory($event)"
-          @selected-table-row="null"
+          @selected-table-row="routeToRequestDetail($event)"
         >
           <template #heading-row>
             <div
@@ -422,6 +422,15 @@ const routeToShelfDetail = () => {
     name: 'record-management-shelf',
     params: {
       barcode: renderShelfBarcode()
+    }
+  })
+}
+const routeToRequestDetail = (request) => {
+  console.log(request)
+  router.push({
+    name: 'request-details',
+    params: {
+      jobId: request.id
     }
   })
 }
