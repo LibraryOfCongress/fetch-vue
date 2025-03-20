@@ -4,7 +4,7 @@
       <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
         <MoreOptionsMenu
           :options="[
-            { text: 'Edit Request', disabled: requestJob.status == 'Completed'},
+            { text: 'Edit Request', disabled: requestJob.status == 'InProgress' || requestJob.status == 'Completed'},
             { text: 'Cancel Request', optionClass: 'text-negative', disabled: requestJob.status == 'Completed', hidden: !checkUserPermission('can_delete_request')},
           ]"
           class="q-mr-sm"
