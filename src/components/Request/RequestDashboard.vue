@@ -205,7 +205,7 @@
       v-if="showCreateRequestByType"
       :type="showCreateRequestByType"
       :request-data="requestJob"
-      @change-display="requestDisplayType = $event; showCreateRequestByType = null;"
+      @change-display="requestDisplayType = $event"
       @hide="showCreateRequestByType = null"
     />
 
