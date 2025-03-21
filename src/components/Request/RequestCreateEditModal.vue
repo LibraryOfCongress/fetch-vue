@@ -163,6 +163,20 @@
         <q-space class="q-mx-xs" />
 
         <q-btn
+          v-if="type == 'manual'"
+          no-caps
+          unelevated
+          color="accent"
+          label="Next"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          :disabled="!isRequestjobFormValid"
+          @click="createRequestJob(true)"
+        />
+
+        <q-space class="q-ml-xs q-mr-lg" />
+
+        <q-btn
           outline
           no-caps
           label="Cancel"
@@ -298,7 +312,7 @@ watch(compiledBarCode, (barcode) => {
   }
 })
 
-const createRequestJob = async () => {
+const createRequestJob = async (isNext = false) => {
   try {
     appActionIsLoadingData.value = true
     let payload
@@ -365,7 +379,20 @@ const createRequestJob = async () => {
     }
   } finally {
     appActionIsLoadingData.value = false
-    requestCreateModal.value.hideModal()
+    // If we're a manual request and clicking next, we want to reset
+    // the form and keep it displayed.
+    if (mainProps.type == 'manual' && isNext) {
+      manualRequestForm.value = {
+        request_type_id: null,
+        external_request_id: null,
+        requestor_name: null,
+        barcode: null,
+        delivery_location_id: null,
+        priority_id: null
+      }
+    } else {
+      requestCreateModal.value.hideModal()
+    }
   }
 }
 const editRequestJob = async () => {
