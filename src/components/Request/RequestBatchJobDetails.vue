@@ -370,8 +370,8 @@ const requestTableColumns = ref([
   },
   {
     name: 'status',
-    field: row => row.item ? row.item?.status : row.non_tray_item?.status,
-    label: 'Item Status',
+    field: 'status',
+    label: 'Request Status',
     align: 'left',
     sortable: true
   },
@@ -433,11 +433,11 @@ const requestTableFilters = computed(() => {
         }), 'text')
       },
       {
-        field: row => row.item ? row.item?.status : row.non_tray_item?.status,
-        label: 'Item Status',
+        field: 'status',
+        label: 'Request Status',
         options: getUniqueListByKey(requestItems.value.map(tableEntry => {
           return {
-            text: tableEntry.item ? tableEntry.item.status : tableEntry.non_tray_item.status,
+            text: tableEntry.status,
             value: false
           }
         }), 'text')
