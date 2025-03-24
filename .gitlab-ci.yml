@@ -128,22 +128,14 @@ deploy_dev:
     name: develop
     url: https://dev.fetch.loctest.gov/
   image:
-    name: git.loc.gov:4567/fetch/build/terraform:alt
+    name: bitnami/kubectl:latest
     entrypoint: [""]
   script:
-    - export TF_VAR_vault_deployer_password=$VAULT_DEPLOYER_PASSWORD_DEV
-    - export TF_VAR_vault_addr=$VAULT_ADDR_DEV
-    - export TF_VAR_app_name="vue"
-    - export TF_VAR_image='git.loc.gov:4567/fetch/vue:latest'
-    - export TF_VAR_timestamp=$CI_COMMIT_TIMESTAMP
-    - terraform --version
-    - cd terraform
     - kubectl config use-context fetch/build:fetch -v=6
-    - cp -v $KUBECONFIG kubeconfig
-    - export TF_STATE_NAME=develop
-    - envsubst < backend.hcl.tmpl > backend.hcl
-    - terraform init -backend-config=backend.hcl
-    - terraform apply -auto-approve
+    - kubectl -n fetch apply -f k8s/deployment-dev.yml
+    - kubectl -n fetch apply -f k8s/service.yml
+    - sleep 10
+    - kubectl -n fetch rollout restart deployment/vue
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
 
