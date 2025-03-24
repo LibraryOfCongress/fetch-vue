@@ -5,7 +5,7 @@
         <MoreOptionsMenu
           :options="[
             { text: 'Edit Request', disabled: requestJob.status == 'InProgress' || requestJob.status == 'Completed'},
-            { text: 'Cancel Request', optionClass: 'text-negative', disabled: requestJob.status == 'Completed', hidden: !checkUserPermission('can_delete_request')},
+            { text: 'Delete Request', optionClass: 'text-negative', disabled: requestJob.status == 'Completed', hidden: !checkUserPermission('can_delete_request')},
           ]"
           class="q-mr-sm"
           @click="handleOptionMenu"
@@ -136,18 +136,53 @@
     :request-data="requestJob"
     @hide="showEditRequestModal = false"
   />
+
+  <!-- confirmation modal -->
+  <PopupModal
+    v-if="showConfirmationModal"
+    ref="confirmationModal"
+    :title="'Delete'"
+    :text="'Are you sure you want to delete the Request?'"
+    :show-actions="false"
+    @reset="showConfirmationModal = null"
+    aria-label="confirmationModal"
+  >
+    <template #footer-content="{ hideModal }">
+      <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
+        <q-btn
+          no-caps
+          unelevated
+          color="negative"
+          label="Delete Request"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="deleteRequest()"
+        />
+        <q-space class="q-mx-xs" />
+        <q-btn
+          outline
+          no-caps
+          label="Cancel"
+          class="text-body1 full-width"
+          @click="hideModal"
+        />
+      </q-card-section>
+    </template>
+  </PopupModal>
 </template>
 
 <script setup>
-import { ref, inject, computed } from 'vue'
+import { ref, inject, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
+import { useGlobalStore } from '@/stores/global-store'
 import { useRequestStore } from '@/stores/request-store'
 import { storeToRefs } from 'pinia'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 import EssentialLink from '@/components/EssentialLink.vue'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import RequestCreateEditModal from '@/components/Request/RequestCreateEditModal.vue'
+import PopupModal from '@/components/PopupModal.vue'
 
 const router = useRouter()
 
@@ -156,6 +191,8 @@ const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { requestJob } = storeToRefs(useRequestStore())
+const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { deleteRequestJob } = useRequestStore()
 
 // Local Data
 const renderRequestItemStatus = computed(() => {
@@ -168,8 +205,10 @@ const renderRequestItemStatus = computed(() => {
   }
 })
 const showEditRequestModal = ref(false)
+const showConfirmationModal = ref(false)
 
 // Logic
+const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
@@ -185,10 +224,41 @@ const routeToItemDetail = (barcode) => {
 const handleOptionMenu = (option) => {
   if (option.text == 'Edit Request') {
     showEditRequestModal.value = true
-  } else if (option.text == 'Cancel Request') {
-    //TODO: add logic to handle cancel request here
+  } else if (option.text == 'Delete Request') {
+    showConfirmationModal.value = true
   }
 }
+
+const deleteRequest = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    await deleteRequestJob(requestJob.value.id)
+
+    handleAlert({
+      type: 'success',
+      text: 'The request has been deleted.',
+      autoClose: true
+    })
+    appActionIsLoadingData.value = false
+
+    await nextTick()
+
+    router.push({
+      name: 'request',
+      params: {
+        jobId: null
+      }
+    })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      persistent: true
+    })
+    appActionIsLoadingData.value = false
+  }
+}
+
 </script>
 
 <style lang="scss" scoped>
