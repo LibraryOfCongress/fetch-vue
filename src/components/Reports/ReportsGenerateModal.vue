@@ -151,7 +151,6 @@
                 option-value="id"
                 option-label="name"
                 :placeholder="`Select Size Class`"
-                @update:model-value="null"
                 :aria-label="`sizeClassSelect`"
               />
             </div>
@@ -171,7 +170,6 @@
                 option-value="id"
                 option-label="name"
                 :placeholder="`Select Owner`"
-                @update:model-value="null"
                 :aria-label="`ownerSelect`"
               />
             </div>
@@ -186,7 +184,6 @@
                 v-model="reportForm.height"
                 :placeholder="`Enter Height`"
                 :disabled="!reportForm.building_id"
-                @update:model-value="null"
                 :aria-label="`heightInput`"
               />
             </div>
@@ -201,7 +198,6 @@
                 v-model="reportForm.width"
                 :placeholder="`Enter Width`"
                 :disabled="!reportForm.building_id"
-                @update:model-value="null"
                 :aria-label="`widthInput`"
               />
             </div>
@@ -216,7 +212,6 @@
                 v-model="reportForm.depth"
                 :placeholder="`Enter Depth`"
                 :disabled="!reportForm.building_id"
-                @update:model-value="null"
                 :aria-label="`depthInput`"
               />
             </div>

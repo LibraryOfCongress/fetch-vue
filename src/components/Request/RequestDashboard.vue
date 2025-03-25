@@ -261,12 +261,15 @@
             <SelectInput
               v-model="addToPickListJob"
               :options="picklists"
+              option-type="picklists"
+              :option-query="{status: [
+                'Created',
+                'Paused'
+              ]}"
               option-value="id"
               option-label="id"
               :placeholder="'Select Pick List Job'"
               aria-label="picklistJobSelect"
-              :loading="appActionIsLoadingData"
-              @focus="loadPicklistJobs"
             >
               <template #option="{ itemProps, opt, selected, toggleOption }">
                 <q-item v-bind="itemProps">
@@ -343,7 +346,6 @@ const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
-const { getOptions } = useOptionStore()
 const {
   buildings,
   picklists,
@@ -732,26 +734,6 @@ const loadRequestJob = async (id) => {
     })
   } finally {
     appIsLoadingData.value = false
-  }
-}
-const loadPicklistJobs = async () => {
-  try {
-    appActionIsLoadingData.value = true
-    // only load picklist jobs with a created or paused status
-    await getOptions('picklists', {
-      status: [
-        'Created',
-        'Paused'
-      ]
-    })
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
-  } finally {
-    appActionIsLoadingData.value = false
   }
 }
 const createPickListJob = async () => {
