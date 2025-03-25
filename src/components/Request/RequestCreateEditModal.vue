@@ -171,10 +171,10 @@
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
           :disabled="!isRequestjobFormValid"
-          @click="type == 'manual' ? createRequestJob(true) : null"
+          @click="createRequestJob(true)"
         />
 
-        <q-space class="q-mx-xs" />
+        <q-space class="q-ml-xs q-mr-lg" />
 
         <q-btn
           outline
