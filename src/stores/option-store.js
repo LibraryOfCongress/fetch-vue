@@ -50,18 +50,46 @@ export const useOptionStore = defineStore('option-store', {
         if (combineOptions) {
           // combineOptions is only mainly used when we need to add to our list of options ex: paginated selects on scroll need to add to options
           // merge the results with current options and get rid of duplicates
-          this[optionType] = [
-            ...new Set([
-              ...this[optionType],
-              ...res.data.items
-            ])
+          const combinedArray = [
+            ...this[optionType],
+            ...res.data.items
           ]
+          const uniqueObjects = new Map()
+          combinedArray.forEach(obj => {
+            uniqueObjects.set(obj.id, obj)
+          })
+          this[optionType] = Array.from(uniqueObjects.values())
         } else {
           this[optionType] = res.data.items
         }
 
         // set the total number of rendered options which is used for pagination limits
         this.optionsTotal = res.data.total
+      } catch (error) {
+        throw error
+      }
+    },
+    async getExactOption (optionType, qParams) {
+      // this function is used specifically for exact searching on select filters without messing with the total options count
+      try {
+        const res = await this.$api.get(inventoryServiceApi[optionType], {
+          params: {
+            size: this.apiPageSizeDefault,
+            ...qParams
+          }
+        })
+        // updates the passed in optionType and merges in the new exact results
+        const combinedArray = [
+          ...this[optionType],
+          ...res.data.items
+        ]
+        const uniqueObjects = new Map()
+        combinedArray.forEach(obj => {
+          uniqueObjects.set(obj.id, obj)
+        })
+        this[optionType] = Array.from(uniqueObjects.values())
+        console.log('api exact option result', res)
+        return res.data.items
       } catch (error) {
         throw error
       }

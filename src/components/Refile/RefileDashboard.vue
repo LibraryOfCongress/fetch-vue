@@ -254,12 +254,15 @@
           <SelectInput
             v-model="addToRefileJob"
             :options="refileJobs"
+            option-type="refileJobs"
+            :option-query="{status: [
+              'Created',
+              'Paused'
+            ]}"
             option-value="id"
             option-label="id"
             :placeholder="'Select Refile Job'"
             aria-label="refileJobSelect"
-            :loading="appActionIsLoadingData"
-            @focus="loadRefileJobOptions()"
           />
         </div>
       </q-card-section>
@@ -324,7 +327,6 @@ const {
   owners,
   sizeClass
 } = storeToRefs(useOptionStore())
-const { getOptions } = useOptionStore()
 const {
   resetRefileStore,
   getRefileJobList,
@@ -630,26 +632,6 @@ const loadRefileJobs = async (qParams) => {
     })
   } finally {
     appIsLoadingData.value = false
-  }
-}
-const loadRefileJobOptions = async () => {
-  try {
-    appActionIsLoadingData.value = true
-    // only load refile jobs with a created or paused status
-    await getOptions('refileJobs', {
-      status: [
-        'Created',
-        'Paused'
-      ]
-    })
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
-  } finally {
-    appActionIsLoadingData.value = false
   }
 }
 const loadRefileQueueByBuilding = async () => {
