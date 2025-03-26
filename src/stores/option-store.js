@@ -88,7 +88,6 @@ export const useOptionStore = defineStore('option-store', {
           uniqueObjects.set(obj.id, obj)
         })
         this[optionType] = Array.from(uniqueObjects.values())
-        console.log('api exact option result', res)
         return res.data.items
       } catch (error) {
         throw error

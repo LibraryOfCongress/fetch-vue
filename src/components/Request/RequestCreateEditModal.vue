@@ -290,6 +290,7 @@ const allowItemBarcodeScan = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
+const handleCSVDownload = inject('handle-csv-download')
 
 onMounted(() => {
   if (mainProps.type == 'edit') {
@@ -338,23 +339,13 @@ const createRequestJob = async (isNext = false) => {
         file: requestFile.value[0].file,
         user_id: userData.value.user_id
       }
-      const res = await postRequestBatchJob(payload)
+      await postRequestBatchJob(payload)
 
       handleAlert({
         type: 'success',
         text: 'Successfully uploaded batch requests.',
         autoClose: true
       })
-      // check if errors are returned in our 200 response and display them
-      if (res) {
-        res.forEach(err => {
-          handleAlert({
-            type: 'error',
-            text: `Batch request upload failed for the following: ${JSON.stringify(err)}`,
-            autoClose: true
-          })
-        })
-      }
 
       emit('changeDisplay', 'batch_view')
     }
@@ -366,16 +357,22 @@ const createRequestJob = async (isNext = false) => {
         autoClose: true
       })
     } else {
+      handleAlert({
+        type: 'error',
+        text: 'Batch request upload failed with x errors. See downloaded error report.',
+        autoClose: true
+      })
+      handleCSVDownload(error.response.data, 'Bulk_Request_Errors')
       //TODO figure out how to handle error logging for the user
-      if (error.response?.data?.errors) {
-        error.response.data.errors.forEach(err => {
-          handleAlert({
-            type: 'error',
-            text: `Batch request upload failed: ${JSON.stringify(err)}`,
-            autoClose: true
-          })
-        })
-      }
+      // if (error.response?.data?.errors) {
+      //   error.response.data.errors.forEach(err => {
+      //     handleAlert({
+      //       type: 'error',
+      //       text: `Batch request upload failed: ${JSON.stringify(err)}`,
+      //       autoClose: true
+      //     })
+      //   })
+      // }
     }
   } finally {
     appActionIsLoadingData.value = false
