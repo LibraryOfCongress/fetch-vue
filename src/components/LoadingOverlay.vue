@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="appIsLoadingData || pageInitLoading || testLoading"
+    v-if="appIsLoadingData || pageInitLoading || propLoading"
     class="overlay"
   >
     <q-spinner-bars
@@ -16,8 +16,8 @@ import { useGlobalStore } from '@/stores/global-store'
 import { storeToRefs } from 'pinia'
 // Props
 defineProps({
-  // used for unit test
-  testLoading: {
+  // used for unit test or forced loading scenarios
+  propLoading: {
     type: Boolean,
     default: false
   }
@@ -25,3 +25,9 @@ defineProps({
 // Store Data
 const { appIsLoadingData, pageInitLoading } = storeToRefs(useGlobalStore())
 </script>
+
+<style lang="scss" scoped>
+.overlay-loading {
+  z-index: 1;
+}
+</style>

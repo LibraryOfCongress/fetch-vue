@@ -261,6 +261,7 @@
             ]}"
             option-value="id"
             option-label="id"
+            @focus="refileJobs = []"
             :placeholder="'Select Refile Job'"
             aria-label="refileJobSelect"
           />
@@ -277,6 +278,7 @@
           label="Submit"
           class="text-body1 full-width text-nowrap"
           :disabled="showRefileJobModal == 'Create' ? !filterRefileByBuilding : (!filterRefileByBuilding || !addToRefileJob)"
+          :loading="appActionIsLoadingData"
           @click="loadRefileQueueByBuilding()"
         />
 
@@ -656,7 +658,6 @@ const loadRefileQueueByBuilding = async () => {
   } finally {
     appActionIsLoadingData.value = false
     refileJobModalComponent.value.hideModal()
-
   }
 }
 const loadRefileJob = async (id) => {

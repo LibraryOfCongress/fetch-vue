@@ -174,7 +174,7 @@
             </label>
             <EssentialLink
               :title="renderShelfBarcode()"
-              @click="() => (console.log('pending shelf detail page'))"
+              @click="routeToShelfDetail()"
               :disabled="!renderShelfBarcode()"
               dense
               class="item-details-text q-pa-none"

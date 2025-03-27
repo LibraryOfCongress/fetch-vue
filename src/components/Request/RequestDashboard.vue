@@ -268,6 +268,7 @@
               ]}"
               option-value="id"
               option-label="id"
+              @focus="picklists = []"
               :placeholder="'Select Pick List Job'"
               aria-label="picklistJobSelect"
             >
@@ -707,7 +708,7 @@ const loadRequestJobsByBuilding = async () => {
 }
 const loadRequestJob = async (id) => {
   try {
-    appIsLoadingData.value = false
+    appIsLoadingData.value = true
 
     if (requestDisplayType.value == 'batch_view') {
       await getRequestBatchJob(id)

@@ -255,6 +255,7 @@
             ]}"
             option-value="id"
             option-label="id"
+            @focus="picklists = []"
             :placeholder="'Select Pick List Job'"
             aria-label="picklistJobSelect"
           />

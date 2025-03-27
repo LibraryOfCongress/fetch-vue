@@ -209,6 +209,7 @@
                   :option-query="{ unshelved: true }"
                   option-value="id"
                   option-label="workflow_id"
+                  @focus="verificationJobs = []"
                   :placeholder="'Select Verification Job(s) by Number'"
                   aria-label="verificationJobSelect"
                 >
