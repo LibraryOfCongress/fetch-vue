@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { inject, onMounted, watch } from 'vue'
+import { inject, onMounted, onBeforeMount, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useRecordManagementStore } from '@/stores/record-management-store'
@@ -50,8 +50,11 @@ const { pageInitLoading } = storeToRefs(useGlobalStore())
 // Logic
 const handlePageOffset = inject('handle-page-offset')
 
-onMounted( async () => {
+onBeforeMount(() => {
   pageInitLoading.value = true
+})
+
+onMounted( async () => {
   if (route.name == 'record-management-items' && route.params.barcode) {
     await getItemDetails(route.params.barcode)
   } else if (route.name == 'record-management-tray' && route.params.barcode) {

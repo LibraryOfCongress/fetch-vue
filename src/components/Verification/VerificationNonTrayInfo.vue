@@ -187,7 +187,8 @@
 </template>
 
 <script setup>
-import { ref, toRaw, inject } from 'vue'
+import { ref, toRaw, inject, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useVerificationStore } from '@/stores/verification-store'
@@ -200,6 +201,8 @@ import VerificationMobileInfo from '@/components/Verification/VerificationMobile
 import MobileActionBar from '@/components/MobileActionBar.vue'
 import AuditTrail from '@/components/AuditTrail.vue'
 
+const route = useRoute()
+
 // Emits
 const emit = defineEmits(['print'])
 
@@ -207,7 +210,12 @@ const emit = defineEmits(['print'])
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const {
+  getOwner,
+  getSizeClass,
+  getMediaType
+} = useOptionStore()
 const {
   owners,
   sizeClass,
@@ -232,13 +240,48 @@ const showAuditTrailModal = ref(false)
 // Logic
 const handleAlert = inject('handle-alert')
 
-const handleOptionMenu = (option) => {
+watch(route, () => {
+  if (!route.params.containerId) {
+    // if the user clicks to go back to the job in the breadcrumb
+    // we need to kick the user out of the edit mode
+    editMode.value = false
+  }
+})
+
+const handleOptionMenu = async (option) => {
   if (option.text == 'Edit') {
+    await loadOptionData()
     editMode.value = true
   } else if (option.text == 'Print Job') {
     emit('print')
   } else if (option.text == 'View History') {
     showAuditTrailModal.value = 'verification_jobs'
+  }
+}
+const loadOptionData = async () => {
+  try {
+    appIsLoadingData.value = true
+    // load the exact option data needed in our container and media type select inputs
+    if (!verificationContainer.value.id) {
+      await Promise.all([
+        getOwner(verificationJob.value.owner_id),
+        getSizeClass(verificationJob.value.size_class_id),
+        getMediaType(verificationJob.value.media_type_id)
+      ])
+    } else {
+      await Promise.all([
+        getSizeClass(verificationContainer.value.size_class_id),
+        getMediaType(verificationContainer.value.media_type_id)
+      ])
+    }
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 

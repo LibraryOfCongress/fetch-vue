@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { onMounted, inject } from 'vue'
+import { onBeforeMount, onMounted, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAccessionStore } from 'src/stores/accession-store'
@@ -39,8 +39,11 @@ const { pageInitLoading } = storeToRefs(useGlobalStore())
 const handlePageOffset = inject('handle-page-offset')
 const handleAlert = inject('handle-alert')
 
-onMounted( async () => {
+onBeforeMount(() => {
   pageInitLoading.value = true
+})
+
+onMounted( async () => {
   if (route.params.jobId) {
     await getAccessionJob(route.params.jobId)
   }

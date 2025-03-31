@@ -1,5 +1,6 @@
 <template>
   <PopupModal
+    ref="shelvingJobDetailScanModal"
     @reset="emit('hide')"
     aria-label="shelvingJobDetailScanModal"
   >
@@ -19,7 +20,7 @@
             flat
             dense
             class="text-body1"
-            @click="selectNewLocation = false"
+            @click="selectNewLocation = false; manualShelfPosition = ''"
             aria-label="backIcon"
           />
           <h2 class="text-h6 text-bold q-ml-xs">
@@ -153,6 +154,7 @@
           color="accent"
           label="Select New Location"
           class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
           @click="selectNewLocation = true"
         />
       </q-card-section>
@@ -168,7 +170,7 @@
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
           :disabled="!manualShelfPosition"
-          @click="updateContainerLocation(); hideModal();"
+          @click="updateContainerLocation()"
         />
 
         <q-space class="q-mx-xs" />
@@ -212,6 +214,7 @@ const { postShelvingJobContainer, resetShelvingJobContainer } = useShelvingStore
 const { shelvingJobContainer, shelvingJob } = storeToRefs(useShelvingStore())
 
 // Local Data
+const shelvingJobDetailScanModal = ref(null)
 const selectNewLocation = ref(false)
 const manualShelfPosition = ref('')
 const containerLocationDisplayValues = computed(() => {
@@ -307,6 +310,7 @@ const updateContainerLocation = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
+    shelvingJobDetailScanModal.value.hideModal()
   }
 }
 </script>

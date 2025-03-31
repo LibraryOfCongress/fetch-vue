@@ -144,6 +144,7 @@
           color="accent"
           label="Cancel"
           class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
           @click="hideModal"
         />
       </q-card-section>
@@ -155,6 +156,7 @@
 import { inject, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { useGlobalStore } from '@/stores/global-store'
 import { useRefileStore } from '@/stores/refile-store'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
@@ -171,6 +173,7 @@ const { compiledBarCode } = useBarcodeScanHandler()
 const { addDataToIndexDb } = useIndexDbHandler()
 
 // Store Data
+const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   patchRefileJobTrayItemScanned,
   patchRefileJobNonTrayItemScanned,
@@ -232,6 +235,7 @@ const triggerShelfScan = (barcode_value) => {
 
 const updateTrayItemAsRefiled = async () => {
   try {
+    appActionIsLoadingData.value = true
     const payload = {
       job_id: route.params.jobId,
       item_id: refileItem.value.id,
@@ -267,10 +271,13 @@ const updateTrayItemAsRefiled = async () => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appActionIsLoadingData.value = false
   }
 }
 const updateNonTrayItemAsRefiled = async () => {
   try {
+    appActionIsLoadingData.value = true
     const payload = {
       job_id: route.params.jobId,
       non_tray_item_id: refileItem.value.id,
@@ -306,6 +313,8 @@ const updateNonTrayItemAsRefiled = async () => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appActionIsLoadingData.value = false
   }
 }
 </script>

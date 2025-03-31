@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { inject, onMounted } from 'vue'
+import { inject, onMounted, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useWithdrawalStore } from '@/stores/withdrawal-store'
@@ -32,8 +32,11 @@ const { pageInitLoading } = storeToRefs(useGlobalStore())
 // Logic
 const handlePageOffset = inject('handle-page-offset')
 
-onMounted( async () => {
+onBeforeMount(() => {
   pageInitLoading.value = true
+})
+
+onMounted( async () => {
   // if there is an id in the url we need to load that withdrawal job directly
   if (route.params.jobId) {
     await getWithdrawJob(route.params.jobId)

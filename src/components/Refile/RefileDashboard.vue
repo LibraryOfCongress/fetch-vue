@@ -261,6 +261,7 @@
             ]}"
             option-value="id"
             option-label="id"
+            @focus="refileJobs = []"
             :placeholder="'Select Refile Job'"
             aria-label="refileJobSelect"
           />
@@ -277,6 +278,7 @@
           label="Submit"
           class="text-body1 full-width text-nowrap"
           :disabled="showRefileJobModal == 'Create' ? !filterRefileByBuilding : (!filterRefileByBuilding || !addToRefileJob)"
+          :loading="appActionIsLoadingData"
           @click="loadRefileQueueByBuilding()"
         />
 
@@ -374,7 +376,7 @@ const refileTableColumns = ref([
   },
   {
     name: 'shelved_count',
-    field: row => (row.item_shelved_refiled_count + row.container_shelved_refiled_count),
+    field: 'container_shelved_refiled_count',
     label: '# of Items Shelved',
     align: 'left',
     sortable: true
@@ -656,7 +658,6 @@ const loadRefileQueueByBuilding = async () => {
   } finally {
     appActionIsLoadingData.value = false
     refileJobModalComponent.value.hideModal()
-
   }
 }
 const loadRefileJob = async (id) => {

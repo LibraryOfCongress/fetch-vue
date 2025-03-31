@@ -381,6 +381,7 @@
   <!-- confirmation modal -->
   <PopupModal
     v-if="showConfirmation !== null"
+    ref="confirmationModal"
     :title="'Confirm'"
     :text="showConfirmation.text"
     :show-actions="false"
@@ -400,8 +401,7 @@
           class="btn-no-wrap text-body1 full-width"
           :loading="appActionIsLoadingData"
           @click="
-            handleConfirmationModal('completePrint');
-            hideModal();
+            handleConfirmationModal('completePrint')
           "
         />
 
@@ -415,8 +415,7 @@
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
           @click="
-            handleConfirmationModal('completeJob');
-            hideModal();
+            handleConfirmationModal('completeJob')
           "
         />
 
@@ -446,8 +445,7 @@
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
           @click="
-            handleConfirmationModal('delete');
-            hideModal();
+            handleConfirmationModal('delete')
           "
         />
 
@@ -473,8 +471,7 @@
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
           @click="
-            handleConfirmationModal('addItem');
-            hideModal();
+            handleConfirmationModal('addItem')
           "
         />
 
@@ -649,7 +646,7 @@ const { compiledBarCode } = useBarcodeScanHandler()
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { userData } = storeToRefs(useUserStore())
 const { verifyBarcode, patchBarcode, deleteBarcode } = useBarcodeStore()
 const { barcodeDetails, barcodeScanAllowed } = storeToRefs(useBarcodeStore())
@@ -676,6 +673,7 @@ const {
 
 // Local Data
 const barcodeEditModal = ref(null)
+const confirmationModal = ref(null)
 const batchSheetComponent = ref(null)
 const trayInfoComponent = ref(null)
 const nonTrayInfoComponent = ref(null)
@@ -728,7 +726,7 @@ watch(route, () => {
   }
 })
 
-watch(compiledBarCode, (barcode_value) => {
+watch(compiledBarCode, async (barcode_value) => {
   // ignore scans if job is paused
   if (verificationJob.value.status == 'Paused' || verificationJob.value.status == 'Completed') {
     return
@@ -740,9 +738,13 @@ watch(compiledBarCode, (barcode_value) => {
     verificationContainer.value.id
   ) {
     // if were in a trayed job only trigger scan if we already loaded a tray container
-    triggerItemScan(barcode_value)
+    appIsLoadingData.value = true
+    await triggerItemScan(barcode_value)
+    appIsLoadingData.value = false
   } else if (barcode_value !== '' && verificationJob.value.trayed == false) {
-    triggerItemScan(barcode_value)
+    appIsLoadingData.value = true
+    await triggerItemScan(barcode_value)
+    appIsLoadingData.value = false
   }
 })
 const triggerItemScan = async (barcode_value) => {
@@ -818,7 +820,9 @@ const triggerItemScan = async (barcode_value) => {
     })
   } finally {
     appActionIsLoadingData.value = false
-    barcodeEditModal.value.hideModal()
+    if (barcodeEditModal.value) {
+      barcodeEditModal.value.hideModal()
+    }
   }
 }
 const validateItemBarcode = async () => {
@@ -848,6 +852,7 @@ const validateItemBarcode = async () => {
 }
 const addContainerItem = async () => {
   try {
+    appActionIsLoadingData.value = true
     const currentDate = new Date()
     if (verificationJob.value.trayed) {
       // TODO: Remove this hardcoded item data since it will mostly come from folio?
@@ -888,6 +893,8 @@ const addContainerItem = async () => {
       text: error,
       persistent: true
     })
+  } finally {
+    appActionIsLoadingData.value = false
   }
 }
 const updateContainerItem = async (barcode_value) => {
@@ -1013,6 +1020,7 @@ const handleConfirmationModal = async (confirmType) => {
     // print the job after completion
     batchSheetComponent.value.printBatchReport()
   }
+  confirmationModal.value.hideModal()
 }
 const handleOptionMenu = (option) => {
   if (option.text == 'Print Job') {
@@ -1033,6 +1041,7 @@ const setNextVerificationTray = async () => {
   try {
     // set the current tray to completed status since user can only go to the next tray if the current tray is done
     if (!verificationContainer.value.collection_verified) {
+      appIsLoadingData.value = true
       const payload = {
         id: verificationContainer.value.id,
         collection_verified: true
@@ -1051,10 +1060,13 @@ const setNextVerificationTray = async () => {
       text: error,
       persistent: true
     })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 const updateVerificationJobStatus = async (status) => {
   try {
+    appIsLoadingData.value = true
     const payload = {
       id: verificationJob.value.id,
       status,
@@ -1073,6 +1085,8 @@ const updateVerificationJobStatus = async (status) => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 const completeVerificationJob = async () => {

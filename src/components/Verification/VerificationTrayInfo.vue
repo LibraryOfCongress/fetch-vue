@@ -184,7 +184,7 @@
 
 <script setup>
 import { ref, toRaw, watch, inject } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useVerificationStore } from '@/stores/verification-store'
@@ -199,6 +199,7 @@ import MobileActionBar from '@/components/MobileActionBar.vue'
 import AuditTrail from '@/components/AuditTrail.vue'
 
 const router = useRouter()
+const route = useRoute()
 
 // Emits
 const emit = defineEmits(['print'])
@@ -208,12 +209,17 @@ const { compiledBarCode } = useBarcodeScanHandler()
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   owners,
   sizeClass,
   mediaTypes
 } = storeToRefs(useOptionStore())
+const {
+  getOwner,
+  getSizeClass,
+  getMediaType
+} = useOptionStore()
 const {
   patchVerificationJob,
   getVerificationTray,
@@ -234,6 +240,14 @@ const showAuditTrailModal = ref(false)
 // Logic
 const handleAlert = inject('handle-alert')
 
+watch(route, () => {
+  if (!route.params.containerId) {
+    // if the user clicks to go back to the job in the breadcrumb
+    // we need to kick the user out of the edit mode
+    editMode.value = false
+  }
+})
+
 watch(compiledBarCode, (barcode_value) => {
   if (barcode_value !== '' && !verificationContainer.value.id && verificationJob.value.status !== 'Paused') {
     handleTrayScan(barcode_value)
@@ -251,6 +265,7 @@ const handleTrayScan = async (barcode_value) => {
       return
     } else {
       // load the tray details
+      appIsLoadingData.value = true
       await getVerificationTray(barcode_value)
 
       // set tray scanned status to true if the scanned tray wasnt already scanned at some point
@@ -283,16 +298,44 @@ const handleTrayScan = async (barcode_value) => {
       text: error,
       persistent: true
     })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 
-const handleOptionMenu = (option) => {
+const handleOptionMenu = async (option) => {
   if (option.text == 'Edit') {
+    await loadOptionData()
     editMode.value = true
   } else if (option.text == 'Print Job') {
     emit('print')
   } else if (option.text == 'View History') {
     showAuditTrailModal.value = 'verification_jobs'
+  }
+}
+const loadOptionData = async () => {
+  try {
+    appIsLoadingData.value = true
+    // load the exact option data needed in our container and media type select inputs
+    if (!verificationContainer.value.id) {
+      await Promise.all([
+        getOwner(verificationJob.value.owner_id),
+        getMediaType(verificationJob.value.media_type_id)
+      ])
+    } else {
+      await Promise.all([
+        getSizeClass(verificationContainer.value.size_class_id),
+        getMediaType(verificationContainer.value.media_type_id)
+      ])
+    }
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 

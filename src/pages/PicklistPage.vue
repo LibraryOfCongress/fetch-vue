@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { inject, onMounted } from 'vue'
+import { inject, onMounted, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { usePicklistStore } from '@/stores/picklist-store'
@@ -34,8 +34,11 @@ const { getOptions } = useOptionStore()
 // Logic
 const handlePageOffset = inject('handle-page-offset')
 
-onMounted( async () => {
+onBeforeMount(() => {
   pageInitLoading.value = true
+})
+
+onMounted( async () => {
   // load any options info that will be needed on the picklist page
   await Promise.all([
     getOptions('buildings'),

@@ -88,8 +88,16 @@ export const useOptionStore = defineStore('option-store', {
           uniqueObjects.set(obj.id, obj)
         })
         this[optionType] = Array.from(uniqueObjects.values())
-        console.log('api exact option result', res)
         return res.data.items
+      } catch (error) {
+        throw error
+      }
+    },
+    async getExactOptionById (optionType, id) {
+      // preloads options needed on our select inputs when they mount with a modelValue passed in
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi[optionType]}${id}`)
+        this[optionType] = [res.data]
       } catch (error) {
         throw error
       }
@@ -103,6 +111,14 @@ export const useOptionStore = defineStore('option-store', {
           }
         })
         this['parentOwnerOptions'] = res.data.items
+      } catch (error) {
+        throw error
+      }
+    },
+    async getOwner (id) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.owners}${id}`)
+        this.owners = [res.data]
       } catch (error) {
         throw error
       }
@@ -139,6 +155,14 @@ export const useOptionStore = defineStore('option-store', {
         throw error
       }
     },
+    async getMediaType (id) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.mediaTypes}${id}`)
+        this.mediaTypes = [res.data]
+      } catch (error) {
+        throw error
+      }
+    },
     async postMediaType (payload) {
       try {
         const res = await this.$api.post(inventoryServiceApi.mediaTypes, payload)
@@ -167,6 +191,14 @@ export const useOptionStore = defineStore('option-store', {
 
         // filter out the specific media type
         this.mediaTypes = this.mediaTypes.filter(mt => mt.id !== mediaTypeId)
+      } catch (error) {
+        throw error
+      }
+    },
+    async getSizeClass (id) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.sizeClass}${id}`)
+        this.sizeClass = [res.data]
       } catch (error) {
         throw error
       }

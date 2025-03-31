@@ -50,17 +50,17 @@
       >
         <template #append>
           <q-spinner
-            v-if="appActionIsLoadingData"
+            v-if="searchIsLoadingData"
             color="secondary"
             size="24px"
           />
           <q-icon
-            v-else-if="currentScreenSize == 'xs' && !appActionIsLoadingData && searchText === ''"
+            v-else-if="currentScreenSize == 'xs' && !searchIsLoadingData && searchText === ''"
             name="search"
             @click="$event.target.closest('div.q-field__control').querySelector('input').focus()"
           />
           <q-icon
-            v-else-if="!appActionIsLoadingData && searchText !== ''"
+            v-else-if="!searchIsLoadingData && searchText !== ''"
             name="clear"
             role="img"
             aria-label="clearSearch"
@@ -159,7 +159,6 @@ import { onMounted, ref, watch, inject, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
-import { useGlobalStore } from '@/stores/global-store'
 import { useSearchStore } from '@/stores/search-store'
 import { useRecordManagementStore } from '@/stores/record-management-store'
 import { useAccessionStore } from '@/stores/accession-store'
@@ -181,7 +180,6 @@ const { currentScreenSize } = useCurrentScreenSize()
 const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
-const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { getExactSearchResult } = useSearchStore()
 const { searchResults } = storeToRefs(useSearchStore())
 const {
@@ -198,6 +196,7 @@ const { refileJob } = storeToRefs(useRefileStore())
 const { withdrawJob } = storeToRefs(useWithdrawalStore())
 
 // Local Data
+const searchIsLoadingData = ref(false)
 const searchMenuState = ref(false)
 const renderSearchPlaceholder = computed(() => {
   let placeholderText = 'Search'
@@ -281,7 +280,7 @@ const setSearchType = () => {
 const executeExactSearch = async () => {
   try {
     exactSearchResponseInfo.value = null
-    appActionIsLoadingData.value = true
+    searchIsLoadingData.value = true
     const res = await getExactSearchResult(searchText.value, searchType.value)
     if (res) {
       exactSearchResponseInfo.value = res.data
@@ -294,7 +293,7 @@ const executeExactSearch = async () => {
       autoClose: true
     })
   } finally {
-    appActionIsLoadingData.value = false
+    searchIsLoadingData.value = false
   }
 }
 const handlingSearchResultRouting = () => {

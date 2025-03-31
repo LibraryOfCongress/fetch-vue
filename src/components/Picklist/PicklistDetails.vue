@@ -248,6 +248,7 @@
   <!-- confirmation modal -->
   <PopupModal
     v-if="showConfirmationModal"
+    ref="confirmationModal"
     :title="showConfirmationModal == 'CompleteJob' ? 'Confirm' : 'Delete'"
     :text="showConfirmationModal == 'CompleteJob' ? 'Are you sure you want to complete the job?' : 'Are you sure you want to delete the job?'"
     :show-actions="false"
@@ -264,7 +265,7 @@
             label="Complete & Print"
             class="btn-no-wrap text-body1 full-width"
             :loading="appActionIsLoadingData"
-            @click="completePicklistJob(true); hideModal();"
+            @click="completePicklistJob(true)"
           />
           <q-space class="q-mx-xs" />
           <q-btn
@@ -274,7 +275,7 @@
             label="Complete"
             class="text-body1 full-width"
             :loading="appActionIsLoadingData"
-            @click="completePicklistJob(false); hideModal();"
+            @click="completePicklistJob(false)"
           />
         </template>
         <q-btn
@@ -384,6 +385,7 @@ const {
 } = storeToRefs(usePicklistStore())
 
 // Local Data
+const confirmationModal = ref(null)
 const batchSheetComponent = ref(null)
 const editJob = ref(false)
 const itemTableVisibleColumns = ref([
@@ -627,6 +629,7 @@ const updatePicklistJob = async () => {
 }
 const updatePicklistJobStatus = async (status) => {
   try {
+    appIsLoadingData.value = true
     const payload = {
       id: picklistJob.value.id,
       status,
@@ -655,6 +658,8 @@ const updatePicklistJobStatus = async (status) => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 const cancelPicklistJob = async () => {
@@ -721,6 +726,7 @@ const completePicklistJob = async (printBool) => {
     appActionIsLoadingData.value = false
     deleteDataInIndexDb('picklistStore', 'picklistJob')
     deleteDataInIndexDb('picklistStore', 'originalPicklistJob')
+    confirmationModal.value.hideModal()
   }
 }
 const removePicklistItem = async (itemId) => {
@@ -755,6 +761,7 @@ const removePicklistItem = async (itemId) => {
 }
 const updatePicklistItem = async (barcode_value) => {
   try {
+    appIsLoadingData.value = true
     const pickListItemToUpdateIndex = picklistJob.value.requests.findIndex(itm => itm.item ? itm.item.barcode.value == barcode_value : itm.non_tray_item.barcode.value == barcode_value)
     const pickListItemToUpdate = picklistJob.value.requests[pickListItemToUpdateIndex]
     const payload = {
@@ -786,6 +793,8 @@ const updatePicklistItem = async (barcode_value) => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 const loadPicklistItem = (barcode_value) => {

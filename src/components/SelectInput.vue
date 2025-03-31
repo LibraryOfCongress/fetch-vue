@@ -1,5 +1,6 @@
 <template>
   <q-select
+    v-if="!initLoading"
     ref="selectInputComponent"
     :dense="currentScreenSize == 'xs'"
     outlined
@@ -74,7 +75,7 @@
 </template>
 
 <script setup>
-import { ref, watch, inject, computed } from 'vue'
+import { ref, watch, inject, computed, onBeforeMount } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useOptionStore } from 'src/stores/option-store'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
@@ -146,10 +147,15 @@ const emit = defineEmits(['update:modelValue'])
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { getOptions, getExactOption } = useOptionStore()
+const {
+  getOptions,
+  getExactOption,
+  getExactOptionById
+} = useOptionStore()
 const { optionsTotal } = storeToRefs(useOptionStore())
 
 // Local Data
+const initLoading = ref(false)
 const selectInputComponent = ref(null)
 const selectInputFilterValue = ref('')
 const localOptions = ref(mainProps.options)
@@ -165,6 +171,16 @@ const exactOptionSearchInput = ref('')
 // Logic
 const getNestedKeyPath = inject('get-nested-key-path')
 
+onBeforeMount( async () => {
+  initLoading.value = true
+  // if the select component renders with a prepopulated modelValue we need to make sure it exists in the passed in options to properly render
+  if (mainProps.optionValue !== '' && mainProps.modelValue && mainProps.options.some(opt => opt[mainProps.optionValue] == mainProps.modelValue) == false) {
+    // if we cant find the the defined option in our passed in options list, check if we can get it directly from the api
+    await getExactOptionById(mainProps.optionType, mainProps.modelValue)
+  }
+  initLoading.value = false
+})
+
 watch(() => mainProps.options, (updatedOptions) => {
   localOptions.value = updatedOptions
   if (selectInputFilterValue.value) {
@@ -179,7 +195,7 @@ const updateModelValue = (value) => {
 const filterOptions = async (val, update) => {
   // if there is an optionType then we need to get a the intial list of options from the api based on the optionType passed in
   // the passed in optionType should match an http endpoint
-  if (mainProps.optionType !== '' && localOptions.value.length == 0) {
+  if (mainProps.optionType !== '' && localOptions.value.length <= 1) {
     await getOptions(mainProps.optionType, mainProps.optionQuery, true)
   }
 
