@@ -376,7 +376,7 @@ const refileTableColumns = ref([
   },
   {
     name: 'shelved_count',
-    field: row => (row.item_shelved_refiled_count + row.container_shelved_refiled_count),
+    field: 'container_shelved_refiled_count',
     label: '# of Items Shelved',
     align: 'left',
     sortable: true
