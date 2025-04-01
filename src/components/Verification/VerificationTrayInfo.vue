@@ -5,7 +5,12 @@
     <div class="row">
       <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
         <MoreOptionsMenu
-          :options="[{ text: 'Edit', disabled: verificationJob.status == 'Completed' }, { text: 'Print Job' }, { text: 'View History'}]"
+          :options="[
+            { text: 'Edit', disabled: verificationJob.status == 'Completed' },
+            { text: 'Print Job' },
+            { text: 'Cancel Job', optionClass: 'text-negative', disabled: verificationJob.status == 'Completed', hidden: !checkUserPermission('can_cancel_verification_job')},
+            { text: 'View History'}
+          ]"
           class="q-mr-sm"
           @click="handleOptionMenu"
         />
@@ -180,11 +185,44 @@
       :job-id="verificationJob.id"
     />
   </div>
+  <!-- confirmation modal -->
+  <PopupModal
+    v-if="showConfirmationModal"
+    ref="confirmationModal"
+    :title="'Cancel'"
+    :text="'Are you sure you want to cancel the Verification Job?'"
+    :show-actions="false"
+    @reset="showConfirmationModal = null"
+    aria-label="confirmationModal"
+  >
+    <template #footer-content="{ hideModal }">
+      <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
+        <q-btn
+          no-caps
+          unelevated
+          color="negative"
+          label="Cancel Verification"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="cancelVerification()"
+        />
+        <q-space class="q-mx-xs" />
+        <q-btn
+          outline
+          no-caps
+          label="Cancel"
+          class="text-body1 full-width"
+          @click="hideModal"
+        />
+      </q-card-section>
+    </template>
+  </PopupModal>
 </template>
 
 <script setup>
-import { ref, toRaw, watch, inject } from 'vue'
+import { ref, toRaw, watch, inject, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useVerificationStore } from '@/stores/verification-store'
@@ -197,6 +235,7 @@ import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import VerificationMobileInfo from '@/components/Verification/VerificationMobileInfo.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
 import AuditTrail from '@/components/AuditTrail.vue'
+import PopupModal from '@/components/PopupModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -207,6 +246,7 @@ const emit = defineEmits(['print'])
 // Composables
 const { compiledBarCode } = useBarcodeScanHandler()
 const { currentScreenSize } = useCurrentScreenSize()
+const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
@@ -223,7 +263,8 @@ const {
 const {
   patchVerificationJob,
   getVerificationTray,
-  patchVerificationTray
+  patchVerificationTray,
+  cancelVerificationJob
 } = useVerificationStore()
 const {
   verificationJob,
@@ -236,6 +277,7 @@ const {
 const editMode = ref(false)
 const historyModal = ref(null)
 const showAuditTrailModal = ref(false)
+const showConfirmationModal = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
@@ -303,12 +345,45 @@ const handleTrayScan = async (barcode_value) => {
   }
 }
 
+const cancelVerification = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    await cancelVerificationJob(verificationJob.value.id)
+
+    handleAlert({
+      type: 'success',
+      text: 'Verification Job canceled',
+      autoClose: true
+    })
+    appActionIsLoadingData.value = false
+
+    await nextTick()
+
+    router.push({
+      name: 'verification',
+      params: {
+        jobId: null
+      }
+    })
+
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      persistent: true
+    })
+    appActionIsLoadingData.value = false
+  }
+}
+
 const handleOptionMenu = async (option) => {
   if (option.text == 'Edit') {
     await loadOptionData()
     editMode.value = true
   } else if (option.text == 'Print Job') {
     emit('print')
+  } else if (option.text == 'Cancel Job') {
+    showConfirmationModal.value = true
   } else if (option.text == 'View History') {
     showAuditTrailModal.value = 'verification_jobs'
   }
