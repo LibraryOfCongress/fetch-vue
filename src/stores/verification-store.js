@@ -58,6 +58,22 @@ export const useVerificationStore = defineStore('verification-store', {
     resetVerificationStore () {
       this.$reset()
     },
+    resetVerificationJob () {
+      this.verificationJob = {
+        id: null,
+        trayed: null,
+        owner: null,
+        owner_id: null,
+        media_type: null,
+        media_type_id: null,
+        non_tray_items: [],
+        size_class: null,
+        size_class_id: null,
+        trays: [],
+        status: ''
+      }
+      this.originalVerificationJob = null
+    },
     resetVerificationContainer () {
       this.verificationContainer = {
         id: null,
@@ -285,6 +301,14 @@ export const useVerificationStore = defineStore('verification-store', {
 
         // update the non tray items verified state in the verificationJob data as well
         this.verificationJob.non_tray_items[this.verificationJob.non_tray_items.findIndex(item => item.id == id)].scanned_for_verification = true
+      } catch (error) {
+        throw error
+      }
+    },
+    async cancelVerificationJob (id) {
+      try {
+        await this.$api.delete(`${inventoryServiceApi.verificationJobs}${id}`)
+        this.resetVerificationJob()
       } catch (error) {
         throw error
       }
