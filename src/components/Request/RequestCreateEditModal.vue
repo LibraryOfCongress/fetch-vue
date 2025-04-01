@@ -359,20 +359,10 @@ const createRequestJob = async (isNext = false) => {
     } else {
       handleAlert({
         type: 'error',
-        text: 'Batch request upload failed with x errors. See downloaded error report.',
+        text: 'Batch request upload failed with errors. See downloaded error report.',
         autoClose: true
       })
       handleCSVDownload(error.response.data, 'Bulk_Request_Errors')
-      //TODO figure out how to handle error logging for the user
-      // if (error.response?.data?.errors) {
-      //   error.response.data.errors.forEach(err => {
-      //     handleAlert({
-      //       type: 'error',
-      //       text: `Batch request upload failed: ${JSON.stringify(err)}`,
-      //       autoClose: true
-      //     })
-      //   })
-      // }
     }
   } finally {
     appActionIsLoadingData.value = false

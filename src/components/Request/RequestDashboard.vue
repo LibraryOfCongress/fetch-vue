@@ -600,6 +600,22 @@ const requestBatchTableFilters =  ref([
     label: 'Status',
     options: [
       {
+        text: 'New',
+        value: false
+      },
+      {
+        text: 'Processing',
+        value: false
+      },
+      {
+        text: 'Failed',
+        value: false
+      },
+      {
+        text: 'Cancelled',
+        value: false
+      },
+      {
         text: 'Completed',
         value: false
       }

@@ -127,7 +127,6 @@ export const useRequestStore = defineStore('request-store', {
       }
     },
     async deleteRequestJob (id) {
-      console.log(id)
       try {
         await this.$api.delete(`${inventoryServiceApi.requests}${id}`)
         this.resetRequestJob()

@@ -426,7 +426,6 @@ const routeToShelfDetail = () => {
   })
 }
 const routeToRequestDetail = (request) => {
-  console.log(request)
   router.push({
     name: 'request-details',
     params: {
