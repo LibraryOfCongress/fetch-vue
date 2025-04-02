@@ -356,13 +356,19 @@ const createRequestJob = async (isNext = false) => {
         text: error,
         autoClose: true
       })
-    } else {
+    } else if (error.response.status == 400) {
       handleAlert({
         type: 'error',
         text: 'Batch request upload failed with errors. See downloaded error report.',
         autoClose: true
       })
       handleCSVDownload(error.response.data, 'Bulk_Request_Errors')
+    } else {
+      handleAlert({
+        type: 'error',
+        text: error,
+        autoClose: true
+      })
     }
   } finally {
     appActionIsLoadingData.value = false
