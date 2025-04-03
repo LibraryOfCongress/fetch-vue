@@ -524,8 +524,8 @@ const generateReportTableFields = () => {
           sortable: true
         },
         {
-          name: 'preassigned_location',
-          field: row => row.preassigned_location ? row.preassigned_location?.value : 'N/A',
+          name: 'pre_assigned_location',
+          field: row => row.pre_assigned_location ? row.pre_assigned_location?.value : 'N/A',
           label: 'Pre-Assigned Location',
           align: 'left',
           sortable: true
@@ -545,7 +545,7 @@ const generateReportTableFields = () => {
         'size_class',
         'owner',
         'assigned_location',
-        'preassigned_location',
+        'pre_assigned_location',
         'error'
       ]
       break
