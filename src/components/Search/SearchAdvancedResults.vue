@@ -641,7 +641,7 @@ const handleResultSelection = (rowData) => {
       break
     case 'Request':
       router.push({
-        name: 'request',
+        name: 'request-details',
         params: {
           jobId: rowData.id
         }

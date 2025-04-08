@@ -17,11 +17,10 @@
 </template>
 
 <script setup>
-import { onMounted, inject } from 'vue'
+import { onBeforeMount, onMounted, inject } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useVerificationStore } from 'src/stores/verification-store'
-import { useOptionStore } from '@/stores/option-store'
 import { useGlobalStore } from '@/stores/global-store'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import VerificationDashboard from '@/components/Verification/VerificationDashboard.vue'
@@ -36,21 +35,16 @@ const {
   getVerificationNonTrayItem
 } = useVerificationStore()
 const { verificationJob } = storeToRefs(useVerificationStore())
-const { getOptions } = useOptionStore()
 const { pageInitLoading } = storeToRefs(useGlobalStore())
 
 // Logic
 const handlePageOffset = inject('handle-page-offset')
 
-onMounted( async () => {
+onBeforeMount(() => {
   pageInitLoading.value = true
-  // load any options info that will be needed in verification
-  await Promise.all([
-    getOptions('owners'),
-    getOptions('sizeClass'),
-    getOptions('mediaTypes')
-  ])
+})
 
+onMounted( async () => {
   // if there is an id in the url we need to load that job
   if (route.params.jobId) {
     await getVerificationJob(route.params.jobId)

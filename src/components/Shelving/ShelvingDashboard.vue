@@ -204,11 +204,13 @@
                   :multiple="true"
                   :use-chips="true"
                   :hide-selected="false"
-                  :options="verificationJobList"
+                  :options="verificationJobs"
+                  option-type="verificationJobs"
+                  :option-query="{ unshelved: true }"
                   option-value="id"
                   option-label="workflow_id"
+                  @focus="verificationJobs = []"
                   :placeholder="'Select Verification Job(s) by Number'"
-                  @focus="loadVerificationJobs"
                   aria-label="verificationJobSelect"
                 >
                   <template #option="{ itemProps, opt, selected, toggleOption }">
@@ -433,7 +435,6 @@ import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
 import { useOptionStore } from '@/stores/option-store'
-import { useVerificationStore } from 'src/stores/verification-store'
 import { useBuildingStore } from '@/stores/building-store'
 import { useShelvingStore } from '@/stores/shelving-store'
 import { storeToRefs } from 'pinia'
@@ -460,10 +461,9 @@ const {
   modules,
   aisles,
   ladders,
-  users
+  users,
+  verificationJobs
 } = storeToRefs(useOptionStore())
-const { getVerificationJobList } = useVerificationStore()
-const { verificationJobList } = storeToRefs(useVerificationStore())
 const {
   getBuildingDetails,
   getModuleDetails,
@@ -801,18 +801,6 @@ const submitShelvingMove = async (moveType) => {
       type: moveType
     }
   })
-}
-
-const loadVerificationJobs = async () => {
-  try {
-    await getVerificationJobList({ unshelved: true })
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
-  }
 }
 
 </script>

@@ -590,6 +590,7 @@ const updateRefileJob = async () => {
 }
 const updateRefileJobStatus = async (status) => {
   try {
+    appIsLoadingData.value = true
     const payload = {
       id: refileJob.value.id,
       status,
@@ -618,6 +619,8 @@ const updateRefileJobStatus = async (status) => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 const cancelRefileJob = async () => {

@@ -181,7 +181,7 @@
             <span
               v-else-if="colName == 'status'"
               class="outline text-nowrap"
-              :class="value == 'Completed' || value == 'New' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-warning' : null "
+              :class="value == 'Completed' ? 'text-highlight' : value == 'InProgress' ? 'text-highlight-warning' : null"
             >
               {{ value }}
             </span>
@@ -200,20 +200,12 @@
       </div>
     </div>
 
-    <!-- Request Item Overlay-->
-    <RequestItemOverlay
-      v-if="route.params.jobId && requestDisplayType == 'request_view'"
-      :item-data="requestJob"
-      @edit="editRequest()"
-      @close="resetRequestOverlay()"
-    />
-
     <!-- Request Creation Modal -->
-    <RequestCreateModal
+    <RequestCreateEditModal
       v-if="showCreateRequestByType"
       :type="showCreateRequestByType"
       :request-data="requestJob"
-      @change-display="requestDisplayType = $event; showCreateRequestByType = null;"
+      @change-display="requestDisplayType = $event"
       @hide="showCreateRequestByType = null"
     />
 
@@ -269,12 +261,16 @@
             <SelectInput
               v-model="addToPickListJob"
               :options="picklists"
+              option-type="picklists"
+              :option-query="{status: [
+                'Created',
+                'Paused'
+              ]}"
               option-value="id"
               option-label="id"
+              @focus="picklists = []"
               :placeholder="'Select Pick List Job'"
               aria-label="picklistJobSelect"
-              :loading="appActionIsLoadingData"
-              @focus="loadPicklistJobs"
             >
               <template #option="{ itemProps, opt, selected, toggleOption }">
                 <q-item v-bind="itemProps">
@@ -326,8 +322,8 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, reactive, inject, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { onBeforeMount, ref, reactive, inject } from 'vue'
+import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -339,13 +335,11 @@ import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import EssentialTable from '@/components/EssentialTable.vue'
 import ToggleButtonInput from '@/components/ToggleButtonInput.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
-import RequestItemOverlay from '@/components/Request/RequestItemOverlay.vue'
-import RequestCreateModal from '@/components/Request/RequestCreateModal.vue'
+import RequestCreateEditModal from '@/components/Request/RequestCreateEditModal.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import SelectInput from '@/components/SelectInput.vue'
 
 const router = useRouter()
-const route = useRoute()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
@@ -353,7 +347,6 @@ const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
-const { getOptions } = useOptionStore()
 const {
   buildings,
   picklists,
@@ -362,7 +355,6 @@ const {
   requestsLocations
 } = storeToRefs(useOptionStore())
 const {
-  resetRequestJob,
   getRequestJobList,
   getRequestJob,
   getRequestBatchJobList,
@@ -439,8 +431,8 @@ const requestTableColumns = ref([
   },
   {
     name: 'status',
-    field: row => row.item ? row.item?.status : row.non_tray_item?.status,
-    label: 'Status',
+    field: 'status',
+    label: 'Request Status',
     align: 'left',
     sortable: true
   },
@@ -512,16 +504,15 @@ const requestTableFilters =  reactive([
     })
   },
   {
-    field: row => row.item ? row.item?.status : row.non_tray_item?.status,
-    label: 'Status',
-    apiField: 'status',
+    field: 'status',
+    label: 'Request Status',
     options: [
       {
-        text: 'PickList',
+        text: 'New',
         value: false
       },
       {
-        text: 'Requested',
+        text: 'InProgress',
         value: false
       }
     ]
@@ -610,6 +601,22 @@ const requestBatchTableFilters =  ref([
     label: 'Status',
     options: [
       {
+        text: 'New',
+        value: false
+      },
+      {
+        text: 'Processing',
+        value: false
+      },
+      {
+        text: 'Failed',
+        value: false
+      },
+      {
+        text: 'Cancelled',
+        value: false
+      },
+      {
         text: 'Completed',
         value: false
       }
@@ -651,12 +658,6 @@ onBeforeMount(() => {
   }
 })
 
-watch(route, () => {
-  if (route.params.jobId) {
-    loadRequestJob(route.params.jobId)
-  }
-})
-
 const clearTableSelection = () => {
   requestTableComponent.value.clearSelectedData()
   selectedRequestItems.value = []
@@ -668,24 +669,6 @@ const resetPickListForm = () => {
   filterRequestsByBuilding.value = null
   addToPickListJob.value = null
   clearTableSelection()
-}
-const resetRequestOverlay = () => {
-  resetRequestJob()
-  router.push({
-    name: 'request',
-    params: {
-      jobId: null
-    }
-  })
-}
-const editRequest = () => {
-  showCreateRequestByType.value = 'edit'
-  router.push({
-    name: 'request',
-    params: {
-      jobId: null
-    }
-  })
 }
 
 const loadRequestJobs = async (qParams) => {
@@ -741,7 +724,7 @@ const loadRequestJobsByBuilding = async () => {
 }
 const loadRequestJob = async (id) => {
   try {
-    appIsLoadingData.value = false
+    appIsLoadingData.value = true
 
     if (requestDisplayType.value == 'batch_view') {
       await getRequestBatchJob(id)
@@ -754,7 +737,7 @@ const loadRequestJob = async (id) => {
     } else {
       await getRequestJob(id)
       router.push({
-        name: 'request',
+        name: 'request-details',
         params: {
           jobId: id
         }
@@ -768,26 +751,6 @@ const loadRequestJob = async (id) => {
     })
   } finally {
     appIsLoadingData.value = false
-  }
-}
-const loadPicklistJobs = async () => {
-  try {
-    appActionIsLoadingData.value = true
-    // only load picklist jobs with a created or paused status
-    await getOptions('picklists', {
-      status: [
-        'Created',
-        'Paused'
-      ]
-    })
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
-  } finally {
-    appActionIsLoadingData.value = false
   }
 }
 const createPickListJob = async () => {

@@ -1,5 +1,6 @@
 <template>
   <q-select
+    v-if="!initLoading"
     ref="selectInputComponent"
     :dense="currentScreenSize == 'xs'"
     outlined
@@ -18,21 +19,22 @@
     fill-input
     input-debounce="500"
     @filter="filterOptions"
+    @blur="selectInputFilterValue = ''"
     class="custom-select full-width"
     :display-value="multiple ? renderMultiSelectDisplayValues() : undefined"
     :placeholder="placeholder"
     :disable="disabled"
-    :loading="loading || scrollLoading"
+    :loading="loading || localLoading"
     @virtual-scroll="loadMoreOptions"
   >
     <template
-      v-if="!loading"
+      v-if="!loading && !localLoading"
       #no-option
     >
       <slot name="no-option">
         <q-item>
           <q-item-section>
-            No results
+            No Results
           </q-item-section>
         </q-item>
       </slot>
@@ -73,7 +75,7 @@
 </template>
 
 <script setup>
-import { ref, watch, inject, computed } from 'vue'
+import { ref, watch, inject, computed, onBeforeMount } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useOptionStore } from 'src/stores/option-store'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
@@ -145,25 +147,46 @@ const emit = defineEmits(['update:modelValue'])
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { getOptions } = useOptionStore()
+const {
+  getOptions,
+  getExactOption,
+  getExactOptionById
+} = useOptionStore()
 const { optionsTotal } = storeToRefs(useOptionStore())
 
 // Local Data
+const initLoading = ref(false)
 const selectInputComponent = ref(null)
 const selectInputFilterValue = ref('')
 const localOptions = ref(mainProps.options)
-const scrollLoading = ref(false)
+const localLoading = ref(false)
 const lastOptionsPage = computed(() => {
   // divide total local options by apiPageSizeDefault to get our last page value
   return Math.ceil(optionsTotal.value / 50)
 })
 const nextOptionsPage = ref(1)
+const exactOption = ref(null)
+const exactOptionSearchInput = ref('')
 
 // Logic
 const getNestedKeyPath = inject('get-nested-key-path')
 
+onBeforeMount( async () => {
+  initLoading.value = true
+  // if the select component renders with a prepopulated modelValue we need to make sure it exists in the passed in options to properly render
+  if (mainProps.optionValue !== '' && mainProps.modelValue & (Array.isArray(mainProps.modelValue) && mainProps.modelValue.length !== 0) && mainProps.options.some(opt => opt[mainProps.optionValue] == mainProps.modelValue) == false) {
+    // if we cant find the the defined option in our passed in options list, check if we can get it directly from the api
+    await getExactOptionById(mainProps.optionType, mainProps.modelValue)
+  }
+  initLoading.value = false
+})
+
 watch(() => mainProps.options, (updatedOptions) => {
   localOptions.value = updatedOptions
+  if (selectInputFilterValue.value) {
+    // we need to force filtering to re render to catch our updated options from the api
+    selectInputComponent.value.filter()
+  }
 })
 
 const updateModelValue = (value) => {
@@ -172,36 +195,56 @@ const updateModelValue = (value) => {
 const filterOptions = async (val, update) => {
   // if there is an optionType then we need to get a the intial list of options from the api based on the optionType passed in
   // the passed in optionType should match an http endpoint
-  if (mainProps.optionType !== '' && localOptions.value.length == 0) {
-    await getOptions(mainProps.optionType, mainProps.optionQuery)
+  if (mainProps.optionType !== '' && localOptions.value.length <= 1) {
+    await getOptions(mainProps.optionType, mainProps.optionQuery, true)
   }
 
-  update(() => {
+  update(async () => {
+    // set the user inputed filter value in state
+    selectInputFilterValue.value = selectInputComponent.value.$el.querySelector('input').value
+
     if (mainProps.optionLabel.toString().includes('.')) {
       // if we pass in a arrow function label we convert it to read as a property key
       // ex opt => opt.barcode.value we only need 'barcode.value' from that function
       const paramPath = mainProps.optionLabel.toString().split('.').slice(1).join('.')
       localOptions.value = mainProps.options.filter(opt => {
-        return getNestedKeyPath(opt, paramPath).toString().toLowerCase().indexOf(val.toLowerCase()) > -1
+        return getNestedKeyPath(opt, paramPath).toString().toLowerCase().indexOf(selectInputFilterValue.value.toLowerCase()) > -1
       })
     } else {
       // filter all passed in options based on user input value
       if (mainProps.optionLabel !== '') {
-        localOptions.value = mainProps.options.filter(opt => opt[mainProps.optionLabel]?.toString().toLowerCase().indexOf(val.toLowerCase()) > -1)
+        localOptions.value = mainProps.options.filter(opt => opt[mainProps.optionLabel]?.toString().toLowerCase().indexOf(selectInputFilterValue.value.toLowerCase()) > -1)
       } else {
-        localOptions.value = mainProps.options.filter(opt => opt.toString().toLowerCase().indexOf(val.toLowerCase()) > -1)
+        localOptions.value = mainProps.options.filter(opt => opt.toString().toLowerCase().indexOf(selectInputFilterValue.value.toLowerCase()) > -1)
       }
     }
 
-    // set the user inputed filter value in state
-    selectInputFilterValue.value = val
+    // if there is a previous exact option search
+    // clear out our stored exactOption if our current select input filter doesnt match the exact search input
+    if (exactOptionSearchInput.value !== '' && exactOptionSearchInput.value !== selectInputFilterValue.value) {
+      exactOption.value = null
+    }
+
+    // if we are populating our select via an api list that has multiple pages and the users filter result returns nothing
+    // we need to query search through the entire api list option to make sure there truly is no matching result across all pages
+    // this only runs if our filters above find no results within the current paged data set and there is no previous exactOption resulting in an empty array
+    if (mainProps.optionType !== '' && localOptions.value.length == 0 && lastOptionsPage.value !== 1 && !(Array.isArray(exactOption.value) && exactOption.value.length == 0)) {
+      localLoading.value = true
+      exactOptionSearchInput.value = selectInputFilterValue.value
+      const res = await getExactOption(mainProps.optionType, {
+        ...mainProps.optionQuery,
+        search: selectInputFilterValue.value
+      })
+      exactOption.value = res
+      localLoading.value = false
+    }
   })
 }
 const loadMoreOptions = async ({ to, ref }) => {
   const lastIndex = localOptions.value.length - 1
   // only load more options if were at the bottom of the list, not on the last page and not trying to filter search
-  if (!scrollLoading.value && to === lastIndex && nextOptionsPage.value < lastOptionsPage.value && selectInputFilterValue.value == '') {
-    scrollLoading.value = true
+  if (mainProps.optionType !== '' && !localLoading.value && to === lastIndex && nextOptionsPage.value < lastOptionsPage.value && selectInputFilterValue.value == '') {
+    localLoading.value = true
     await getOptions(mainProps.optionType, {
       ...mainProps.optionQuery,
       page: nextOptionsPage.value + 1
@@ -210,7 +253,7 @@ const loadMoreOptions = async ({ to, ref }) => {
     nextOptionsPage.value++
     // calls and internal qSelect function that handles refreshing the list with the updating options at the last index position
     ref.refresh()
-    scrollLoading.value = false
+    localLoading.value = false
   }
 }
 const renderLabel = (opt) => {

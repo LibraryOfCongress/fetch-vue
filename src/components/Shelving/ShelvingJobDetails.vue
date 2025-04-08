@@ -337,6 +337,7 @@
   <!-- complete job modal -->
   <PopupModal
     v-if="showCompleteJobModal"
+    ref="confirmationModal"
     :title="'Confirm'"
     text="Are you sure you want to complete the job?"
     :show-actions="false"
@@ -354,7 +355,6 @@
           :loading="appActionIsLoadingData"
           @click="
             completeShelvingJob(true);
-            hideModal();
           "
         />
 
@@ -369,7 +369,6 @@
           :loading="appActionIsLoadingData"
           @click="
             completeShelvingJob(false);
-            hideModal();
           "
         />
 
@@ -468,6 +467,7 @@ const { getSideList } = useBuildingStore()
 // Local Data
 const batchSheetComponent = ref(null)
 const locationModalComponent = ref(null)
+const confirmationModal = ref(null)
 const editJob = ref(false)
 const selectedShelvingItem = ref(null)
 const shelfTableColumns = ref([
@@ -613,7 +613,7 @@ watch(compiledBarCode, (barcode) => {
     triggerContainerScan(barcode)
   }
 })
-const triggerContainerScan = (barcode_value) => {
+const triggerContainerScan = async (barcode_value) => {
   // check if the scanned barcode is in the containers data and that the barcode hasnt been shelved already
   if (
     !shelvingJobContainers.value.some((c) => c.barcode.value == barcode_value)
@@ -637,7 +637,9 @@ const triggerContainerScan = (barcode_value) => {
     return
   } else {
     // load the matching containers info directly from the shelvingJob data
-    getShelvingJobContainer(barcode_value)
+    appIsLoadingData.value = true
+    await getShelvingJobContainer(barcode_value)
+    appIsLoadingData.value = false
     showScanContainerModal.value = true
   }
 }
@@ -773,6 +775,7 @@ const executeShelvingJob = async () => {
 }
 const updateShelvingJobStatus = async (status) => {
   try {
+    appIsLoadingData.value = true
     const payload = {
       id: route.params.jobId,
       status,
@@ -810,6 +813,8 @@ const updateShelvingJobStatus = async (status) => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 const updateShelvingJob = async () => {
@@ -872,6 +877,7 @@ const completeShelvingJob = async (printBool) => {
     deleteDataInIndexDb('shelvingStore', 'shelvingJob')
     deleteDataInIndexDb('shelvingStore', 'originalShelvingJob')
     appActionIsLoadingData.value = false
+    confirmationModal.value.hideModal()
   }
 }
 </script>

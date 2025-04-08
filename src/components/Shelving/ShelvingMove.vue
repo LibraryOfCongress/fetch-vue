@@ -614,6 +614,8 @@ const triggerContainerScan = async (barcode_value) => {
 
     // if online verify the scanned container exists and its the correct type and get the scanned containers data
     if (!appIsOffline.value) {
+      appIsLoadingData.value = true
+      appActionIsLoadingData.value = true
       if (route.params.type == 'tray-non-tray') {
         await verifyBarcode(barcode_value, [
           'Item',
@@ -653,6 +655,9 @@ const triggerContainerScan = async (barcode_value) => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appIsLoadingData.value = false
+    appActionIsLoadingData.value = false
   }
 }
 const verifyTransferContainerShelfLocation = () => {
