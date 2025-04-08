@@ -8,7 +8,7 @@ describe('Loading Overlay Component', () => {
   it('should display a spinner/loading icon whenever our app in data loading state', () => {
     const wrapper = mount(LoadingOverlay, {
       props: {
-        testLoading: true
+        propLoading: true
       }
     })
 

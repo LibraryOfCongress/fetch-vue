@@ -1,5 +1,6 @@
 <template>
   <PopupModal
+    ref="editShelvingLocationModal"
     :title="`Edit Shelving Location`"
     @reset="resetLocationForm"
     aria-label="editShelvingLocationModal"
@@ -210,7 +211,7 @@
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
           :disabled="!isLocationFormValid"
-          @click="submitLocationForm(); hideModal();"
+          @click="submitLocationForm()"
         />
 
         <q-space class="q-mx-xs" />
@@ -287,6 +288,7 @@ const { postShelvingJobContainer, resetShelvingJobContainer } = useShelvingStore
 const { shelvingJob } = storeToRefs(useShelvingStore())
 
 // Local Data
+const editShelvingLocationModal = ref(null)
 const locationForm = ref({
   id: null,
   building_id: null,
@@ -449,6 +451,7 @@ const submitLocationForm = async () => {
   } finally {
     appActionIsLoadingData.value = false
     resetLocationForm()
+    editShelvingLocationModal.value.hideModal()
   }
 }
 

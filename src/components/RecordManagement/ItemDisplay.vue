@@ -174,7 +174,7 @@
             </label>
             <EssentialLink
               :title="renderShelfBarcode()"
-              @click="() => (console.log('pending shelf detail page'))"
+              @click="routeToShelfDetail()"
               :disabled="!renderShelfBarcode()"
               dense
               class="item-details-text q-pa-none"
@@ -294,7 +294,7 @@
           :pagination-total="itemRequestHistoryTotal"
           :pagination-loading="appIsLoadingData"
           @update-pagination="loadRequestHistory($event)"
-          @selected-table-row="null"
+          @selected-table-row="routeToRequestDetail($event)"
         >
           <template #heading-row>
             <div
@@ -422,6 +422,14 @@ const routeToShelfDetail = () => {
     name: 'record-management-shelf',
     params: {
       barcode: renderShelfBarcode()
+    }
+  })
+}
+const routeToRequestDetail = (request) => {
+  router.push({
+    name: 'request-details',
+    params: {
+      jobId: request.id
     }
   })
 }

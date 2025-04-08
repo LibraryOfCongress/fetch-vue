@@ -14,12 +14,11 @@
 </template>
 
 <script setup>
-import { onMounted, inject } from 'vue'
+import { onBeforeMount, onMounted, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAccessionStore } from 'src/stores/accession-store'
 import { useGlobalStore } from '@/stores/global-store'
-import { useOptionStore } from '@/stores/option-store'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import AccessionDashboard from '@/components/Accession/AccessionDashboard.vue'
 import AccessionContainerDisplay from '@/components/Accession/AccessionContainerDisplay.vue'
@@ -34,22 +33,17 @@ const {
   getAccessionNonTrayItem
 } = useAccessionStore()
 const { accessionJob } = storeToRefs(useAccessionStore())
-const { getOptions } = useOptionStore()
 const { pageInitLoading } = storeToRefs(useGlobalStore())
 
 // Logic
 const handlePageOffset = inject('handle-page-offset')
 const handleAlert = inject('handle-alert')
 
-onMounted( async () => {
+onBeforeMount(() => {
   pageInitLoading.value = true
-  // load any options info that will be needed in accession
-  await Promise.all([
-    getOptions('owners'),
-    getOptions('sizeClass'),
-    getOptions('mediaTypes')
-  ])
+})
 
+onMounted( async () => {
   if (route.params.jobId) {
     await getAccessionJob(route.params.jobId)
   }

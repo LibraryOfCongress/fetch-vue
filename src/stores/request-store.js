@@ -126,6 +126,14 @@ export const useRequestStore = defineStore('request-store', {
         throw error
       }
     },
+    async deleteRequestJob (id) {
+      try {
+        await this.$api.delete(`${inventoryServiceApi.requests}${id}`)
+        this.resetRequestJob()
+      } catch (error) {
+        throw error
+      }
+    },
     async getRequestBatchJobList (qParams) {
       try {
         const res = await this.$api.get(inventoryServiceApi.batchUpload, {
@@ -156,16 +164,10 @@ export const useRequestStore = defineStore('request-store', {
         let formData = new FormData()
         formData.append('file', payload.file)
         formData.append('user_id', payload.user_id)
-        const res = await this.$api.post(`${inventoryServiceApi.batchUpload}request`, formData)
+        await this.$api.post(`${inventoryServiceApi.batchUpload}request`, formData)
 
         // reload batch request data
         await this.getRequestBatchJobList()
-
-        // check if success message contains errors and return them
-        if (res.data.errors && res.data.errors.length > 0) {
-          // TODO setup a better way to read success errors
-          return res.data.errors
-        }
       } catch (error) {
         throw error
       }

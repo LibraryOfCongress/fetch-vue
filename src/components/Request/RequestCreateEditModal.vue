@@ -163,6 +163,20 @@
         <q-space class="q-mx-xs" />
 
         <q-btn
+          v-if="type == 'manual'"
+          no-caps
+          unelevated
+          color="accent"
+          label="Next"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          :disabled="!isRequestjobFormValid"
+          @click="createRequestJob(true)"
+        />
+
+        <q-space class="q-ml-xs q-mr-lg" />
+
+        <q-btn
           outline
           no-caps
           label="Cancel"
@@ -276,6 +290,7 @@ const allowItemBarcodeScan = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
+const handleCSVDownload = inject('handle-csv-download')
 
 onMounted(() => {
   if (mainProps.type == 'edit') {
@@ -298,7 +313,7 @@ watch(compiledBarCode, (barcode) => {
   }
 })
 
-const createRequestJob = async () => {
+const createRequestJob = async (isNext = false) => {
   try {
     appActionIsLoadingData.value = true
     let payload
@@ -324,23 +339,13 @@ const createRequestJob = async () => {
         file: requestFile.value[0].file,
         user_id: userData.value.user_id
       }
-      const res = await postRequestBatchJob(payload)
+      await postRequestBatchJob(payload)
 
       handleAlert({
         type: 'success',
         text: 'Successfully uploaded batch requests.',
         autoClose: true
       })
-      // check if errors are returned in our 200 response and display them
-      if (res) {
-        res.forEach(err => {
-          handleAlert({
-            type: 'error',
-            text: `Batch request upload failed for the following: ${JSON.stringify(err)}`,
-            autoClose: true
-          })
-        })
-      }
 
       emit('changeDisplay', 'batch_view')
     }
@@ -351,21 +356,36 @@ const createRequestJob = async () => {
         text: error,
         autoClose: true
       })
+    } else if (error.response.status == 400) {
+      handleAlert({
+        type: 'error',
+        text: 'Batch request upload failed with errors. See downloaded error report.',
+        autoClose: true
+      })
+      handleCSVDownload(error.response.data, 'Bulk_Request_Errors')
     } else {
-      //TODO figure out how to handle error logging for the user
-      if (error.response?.data?.errors) {
-        error.response.data.errors.forEach(err => {
-          handleAlert({
-            type: 'error',
-            text: `Batch request upload failed: ${JSON.stringify(err)}`,
-            autoClose: true
-          })
-        })
-      }
+      handleAlert({
+        type: 'error',
+        text: error,
+        autoClose: true
+      })
     }
   } finally {
     appActionIsLoadingData.value = false
-    requestCreateModal.value.hideModal()
+    // If we're a manual request and clicking next, we want to reset
+    // the form and keep it displayed.
+    if (mainProps.type == 'manual' && isNext) {
+      manualRequestForm.value = {
+        request_type_id: null,
+        external_request_id: null,
+        requestor_name: null,
+        barcode: null,
+        delivery_location_id: null,
+        priority_id: null
+      }
+    } else {
+      requestCreateModal.value.hideModal()
+    }
   }
 }
 const editRequestJob = async () => {

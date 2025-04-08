@@ -254,12 +254,16 @@
           <SelectInput
             v-model="addToRefileJob"
             :options="refileJobs"
+            option-type="refileJobs"
+            :option-query="{status: [
+              'Created',
+              'Paused'
+            ]}"
             option-value="id"
             option-label="id"
+            @focus="refileJobs = []"
             :placeholder="'Select Refile Job'"
             aria-label="refileJobSelect"
-            :loading="appActionIsLoadingData"
-            @focus="loadRefileJobOptions()"
           />
         </div>
       </q-card-section>
@@ -274,6 +278,7 @@
           label="Submit"
           class="text-body1 full-width text-nowrap"
           :disabled="showRefileJobModal == 'Create' ? !filterRefileByBuilding : (!filterRefileByBuilding || !addToRefileJob)"
+          :loading="appActionIsLoadingData"
           @click="loadRefileQueueByBuilding()"
         />
 
@@ -324,7 +329,6 @@ const {
   owners,
   sizeClass
 } = storeToRefs(useOptionStore())
-const { getOptions } = useOptionStore()
 const {
   resetRefileStore,
   getRefileJobList,
@@ -372,7 +376,7 @@ const refileTableColumns = ref([
   },
   {
     name: 'shelved_count',
-    field: row => (row.item_shelved_refiled_count + row.container_shelved_refiled_count),
+    field: 'container_shelved_refiled_count',
     label: '# of Items Shelved',
     align: 'left',
     sortable: true
@@ -632,26 +636,6 @@ const loadRefileJobs = async (qParams) => {
     appIsLoadingData.value = false
   }
 }
-const loadRefileJobOptions = async () => {
-  try {
-    appActionIsLoadingData.value = true
-    // only load refile jobs with a created or paused status
-    await getOptions('refileJobs', {
-      status: [
-        'Created',
-        'Paused'
-      ]
-    })
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
-  } finally {
-    appActionIsLoadingData.value = false
-  }
-}
 const loadRefileQueueByBuilding = async () => {
   // this function only gets called during the creation/add refile job process
   try {
@@ -674,7 +658,6 @@ const loadRefileQueueByBuilding = async () => {
   } finally {
     appActionIsLoadingData.value = false
     refileJobModalComponent.value.hideModal()
-
   }
 }
 const loadRefileJob = async (id) => {
