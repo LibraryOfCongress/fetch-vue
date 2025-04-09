@@ -81,8 +81,7 @@
                 option-type="aisles"
                 :option-query="{
                   building_id: searchForm.building_id,
-                  module_id: searchForm.module_id,
-                  sort_by: 'aisle_number'
+                  module_id: searchForm.module_id
                 }"
                 option-value="id"
                 :option-label="opt => opt.aisle_number.number"
@@ -126,8 +125,7 @@
                   building_id: searchForm.building_id,
                   module_id: searchForm.module_id,
                   aisle_id: searchForm.aisle_id,
-                  side_id: searchForm.side_id,
-                  sort_by: 'ladder_number'
+                  side_id: searchForm.side_id
                 }"
                 option-value="id"
                 :option-label="opt => opt.ladder_number.number"
@@ -154,8 +152,7 @@
                   module_id: searchForm.module_id,
                   aisle_id: searchForm.aisle_id,
                   side_id: searchForm.side_id,
-                  ladder_id: searchForm.ladder_id,
-                  sort_by: 'shelf_number'
+                  ladder_id: searchForm.ladder_id
                 }"
                 :option-label="opt => opt.shelf_number.number"
                 :placeholder="'Select Shelf'"

@@ -39,13 +39,11 @@ onBeforeMount(() => {
 })
 
 onMounted( async () => {
-  // load any options info that will be needed on the picklist dashboard
-  if (!route.params.jobId) {
-    await Promise.all([
-      getOptions('buildings', { sort_by: 'name' }),
-      getOptions('users', { sort_by: 'name' })
-    ])
-  }
+  // load any options info that will be needed on the picklist page
+  await Promise.all([
+    getOptions('buildings'),
+    getOptions('users')
+  ])
 
   // if there is an id in the url we need to load that picklist job
   if (route.params.jobId) {
