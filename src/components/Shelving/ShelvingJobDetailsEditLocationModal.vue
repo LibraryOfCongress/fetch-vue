@@ -46,8 +46,7 @@
               option-type="aisles"
               :option-query="{
                 building_id: locationForm.building_id,
-                module_id: locationForm.module_id,
-                sort_by: 'aisle_number'
+                module_id: locationForm.module_id
               }"
               option-value="id"
               :option-label="opt => opt.aisle_number.number"
@@ -91,8 +90,7 @@
               building_id: locationForm.building_id,
               module_id: locationForm.module_id,
               aisle_id: locationForm.aisle_id,
-              side_id: locationForm.side_id,
-              sort_by: 'ladder_number'
+              side_id: locationForm.side_id
             }"
             option-value="id"
             :option-label="opt => opt.ladder_number.number"
@@ -124,8 +122,7 @@
                 side_id: locationForm.side_id,
                 ladder_id: locationForm.ladder_id,
                 owner_id: mainProps.shelvingItem.owner.id,
-                size_class_id: mainProps.shelvingItem.size_class.id,
-                sort_by: 'shelf_number'
+                size_class_id: mainProps.shelvingItem.size_class.id
               }"
               option-value="id"
               :option-label="opt => opt.shelf_number.number"
@@ -163,8 +160,7 @@
               option-type="shelvesPositions"
               :option-query="{
                 shelf_id: locationForm.shelf_id,
-                empty: true,
-                sort_by: 'shelf_position_number'
+                empty: true
               }"
               option-value="id"
               :option-label="opt => opt.shelf_position_number.number"

@@ -65,7 +65,6 @@ export const useOptionStore = defineStore('option-store', {
 
         // set the total number of rendered options which is used for pagination limits
         this.optionsTotal = res.data.total
-        return res
       } catch (error) {
         throw error
       }

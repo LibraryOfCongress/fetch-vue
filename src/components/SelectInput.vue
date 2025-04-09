@@ -19,7 +19,7 @@
     fill-input
     input-debounce="500"
     @filter="filterOptions"
-    @blur="selectInputFilterValue = ''; optionTypeTotal = 0"
+    @blur="selectInputFilterValue = ''"
     class="custom-select full-width"
     :display-value="multiple ? renderMultiSelectDisplayValues() : undefined"
     :placeholder="placeholder"
@@ -76,6 +76,7 @@
 
 <script setup>
 import { ref, watch, inject, computed, onBeforeMount } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useOptionStore } from 'src/stores/option-store'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 
@@ -151,6 +152,7 @@ const {
   getExactOption,
   getExactOptionById
 } = useOptionStore()
+const { optionsTotal } = storeToRefs(useOptionStore())
 
 // Local Data
 const initLoading = ref(false)
@@ -158,10 +160,9 @@ const selectInputComponent = ref(null)
 const selectInputFilterValue = ref('')
 const localOptions = ref(mainProps.options)
 const localLoading = ref(false)
-const optionTypeTotal = ref(0)
 const lastOptionsPage = computed(() => {
   // divide total local options by apiPageSizeDefault to get our last page value
-  return Math.ceil(optionTypeTotal.value / 50)
+  return Math.ceil(optionsTotal.value / 50)
 })
 const nextOptionsPage = ref(1)
 const exactOption = ref(null)
@@ -173,7 +174,7 @@ const getNestedKeyPath = inject('get-nested-key-path')
 onBeforeMount( async () => {
   initLoading.value = true
   // if the select component renders with a prepopulated modelValue we need to make sure it exists in the passed in options to properly render
-  if (mainProps.optionType && (mainProps.modelValue || (Array.isArray(mainProps.modelValue) && mainProps.modelValue.length !== 0)) && mainProps.options.some(opt => opt[mainProps.optionValue] == mainProps.modelValue) == false) {
+  if (mainProps.optionValue !== '' && mainProps.modelValue & (Array.isArray(mainProps.modelValue) && mainProps.modelValue.length !== 0) && mainProps.options.some(opt => opt[mainProps.optionValue] == mainProps.modelValue) == false) {
     // if we cant find the the defined option in our passed in options list, check if we can get it directly from the api
     await getExactOptionById(mainProps.optionType, mainProps.modelValue)
   }
@@ -194,14 +195,8 @@ const updateModelValue = (value) => {
 const filterOptions = async (val, update) => {
   // if there is an optionType then we need to get a the intial list of options from the api based on the optionType passed in
   // the passed in optionType should match an http endpoint
-  if (mainProps.optionType !== '' && localOptions.value.length <= 1 && optionTypeTotal.value == 0) {
-    // for string based option labels we can set these as our default sort by, nested option labels must be passed in via optionQuery
-    const defaultSortBy = mainProps.optionLabel.toString().includes('.') ? null : mainProps.optionLabel
-    const res = await getOptions(mainProps.optionType, {
-      sort_by: defaultSortBy,
-      ...mainProps.optionQuery
-    }, true)
-    optionTypeTotal.value = res.data.total
+  if (mainProps.optionType !== '' && localOptions.value.length <= 1) {
+    await getOptions(mainProps.optionType, mainProps.optionQuery, true)
   }
 
   update(async () => {
@@ -250,13 +245,10 @@ const loadMoreOptions = async ({ to, ref }) => {
   // only load more options if were at the bottom of the list, not on the last page and not trying to filter search
   if (mainProps.optionType !== '' && !localLoading.value && to === lastIndex && nextOptionsPage.value < lastOptionsPage.value && selectInputFilterValue.value == '') {
     localLoading.value = true
-    const defaultSortBy = mainProps.optionLabel.toString().includes('.') ? null : mainProps.optionLabel
-    const res = await getOptions(mainProps.optionType, {
-      sort_by: defaultSortBy,
+    await getOptions(mainProps.optionType, {
       ...mainProps.optionQuery,
       page: nextOptionsPage.value + 1
     }, true)
-    optionTypeTotal.value = res.data.total
 
     nextOptionsPage.value++
     // calls and internal qSelect function that handles refreshing the list with the updating options at the last index position
