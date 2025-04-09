@@ -172,8 +172,9 @@ const getNestedKeyPath = inject('get-nested-key-path')
 
 onBeforeMount( async () => {
   initLoading.value = true
+
   // if the select component renders with a prepopulated modelValue we need to make sure it exists in the passed in options to properly render
-  if (mainProps.optionType && (mainProps.modelValue || (Array.isArray(mainProps.modelValue) && mainProps.modelValue.length !== 0)) && mainProps.options.some(opt => opt[mainProps.optionValue] == mainProps.modelValue) == false) {
+  if (mainProps.optionType && !(mainProps.modelValue == null || mainProps.modelValue.length === 0) && mainProps.options.some(opt => opt[mainProps.optionValue] == mainProps.modelValue) == false) {
     // if we cant find the the defined option in our passed in options list, check if we can get it directly from the api
     await getExactOptionById(mainProps.optionType, mainProps.modelValue)
   }
