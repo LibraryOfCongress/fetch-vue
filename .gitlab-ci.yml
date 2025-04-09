@@ -167,7 +167,7 @@ deploy_stage:
     name: bitnami/kubectl:latest
     entrypoint: [""]
   script:
-    - kubectl config use-context fetch/build:fetch-test -v=6
+    - kubectl config use-context fetch/build:fetch-stage -v=6
     - kubectl -n fetch apply -f k8s/deployment-stage.yml
     - kubectl -n fetch apply -f k8s/service.yml
     - sleep 10
