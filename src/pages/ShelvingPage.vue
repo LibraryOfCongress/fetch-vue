@@ -44,7 +44,9 @@ onBeforeMount(() => {
 
 onMounted( async () => {
   // load any options info that will be needed on the shelving page
-  await Promise.all([getOptions('users')])
+  if (!route.params.jobId) {
+    await Promise.all([getOptions('users', { sort_by: 'name' })])
+  }
 
   // if there is an id in the url we need to load that shelving job
   if (route.name == 'shelving' && route.params.jobId) {
