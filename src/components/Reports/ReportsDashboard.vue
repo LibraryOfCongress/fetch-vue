@@ -174,7 +174,6 @@ const lastReportType = ref(null)
 const reportOptions =  ref([
   'Item Accession',
   'Item in Tray',
-  'Move/Withdraw Discrepancy',
   'Non-Tray Count',
   'Open Locations',
   'Refile Discrepancy',
@@ -189,7 +188,6 @@ const exportReportMenuState = ref (false)
 
 // Logic
 const handleAlert = inject('handle-alert')
-const getItemLocation = inject('get-item-location')
 
 const generateReportTableFields = () => {
   lastReportType.value = reportType.value
@@ -277,68 +275,6 @@ const generateReportTableFields = () => {
         'size_class_short_name',
         'tray_count',
         'tray_item_count'
-      ]
-      break
-    case 'Move/Withdraw Discrepancy':
-      generatedTableColumns.value = [
-        {
-          name: 'complete_dt',
-          field: 'complete_dt',
-          label: 'Completed Date',
-          align: 'left',
-          sortable: true
-        },
-        {
-          name: 'assigned_user',
-          field: row => row.assigned_user?.name,
-          label: 'Completed By',
-          align: 'left',
-          sortable: true
-        },
-        {
-          name: 'container_type',
-          field: 'container_type',
-          label: 'Container Type',
-          align: 'left',
-          sortable: true
-        },
-        {
-          name: 'size_class',
-          field: row => row.size_class?.name,
-          label: 'Size Class',
-          align: 'left',
-          sortable: true
-        },
-        {
-          name: 'barcode',
-          field: row => row.barcode?.value,
-          label: 'Barcode',
-          align: 'left',
-          sortable: true
-        },
-        {
-          name: 'item_location',
-          field: row => row.item ? getItemLocation(row.item.tray) : getItemLocation(row.non_tray_item),
-          label: 'Item Location',
-          align: 'left',
-          sortable: true
-        },
-        {
-          name: 'error',
-          field: 'error',
-          label: 'Error Type',
-          align: 'left',
-          sortable: true
-        }
-      ]
-      generatedTableVisibleColumns.value = [
-        'complete_dt',
-        'assigned_user',
-        'container_type',
-        'size_class',
-        'barcode',
-        'item_location',
-        'error'
       ]
       break
     case 'Non-Tray Count':
