@@ -766,6 +766,29 @@ const generateReportModal = () => {
         }
       ]
       break
+    case 'Shelving Move Discrepancy':
+      reportForm.value = {
+        from_dt: null,
+        to_dt: null,
+        assigned_user_id: null
+      }
+      reportParams.value = [
+        {
+          query: 'from_dt',
+          label: 'Date (From)'
+        },
+        {
+          query: 'to_dt',
+          label: 'Date (To)'
+        },
+        {
+          query: 'assigned_user_id',
+          label: 'Assigned User',
+          options: users,
+          optionType: 'users'
+        }
+      ]
+      break
     case 'Total Item Retrieved':
       reportForm.value = {
         from_dt: null,

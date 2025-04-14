@@ -801,22 +801,30 @@ const completeMoveShelfLocations = async () => {
     )
 
     // loop through the responses and display the transfer success/failures and link the move descrepency report if needed
+    const successfulMoves = []
+    const capturedMoveErrors = []
     for (const res of responses) {
       if (res.status == 200) {
-        handleAlert({
-          type: 'success',
-          text: `The Container: ${res.data.barcode.value} has been successfully transferred.`,
-          autoClose: true
-        })
+        successfulMoves.push(res)
       } else {
-        //TODO change this to return a single error listing the number of errors and link a move discrepancy report when that feature is added.
-        //REMOVE TEMPORARY FIX - since there is no move descrepency report yet we just display error alerts for now
-        handleAlert({
-          type: 'error',
-          text: res,
-          autoClose: false
-        })
+        capturedMoveErrors.push(res)
       }
+    }
+
+    // display all success/errors under a single alert
+    if (successfulMoves.length > 0) {
+      handleAlert({
+        type: 'success',
+        text: `${successfulMoves.length} containers successfully transferred.`,
+        autoClose: true
+      })
+    }
+    if (capturedMoveErrors.length > 0) {
+      handleAlert({
+        type: 'error',
+        text: `Failed to move ${capturedMoveErrors.length} container(s). Please see move discrepency report`,
+        autoClose: false
+      })
     }
 
     // set transffered date

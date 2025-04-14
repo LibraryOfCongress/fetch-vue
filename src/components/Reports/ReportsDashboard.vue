@@ -178,6 +178,7 @@ const reportOptions =  ref([
   'Open Locations',
   'Refile Discrepancy',
   'Shelving Job Discrepancy',
+  'Shelving Move Discrepancy',
   'Total Item Retrieved',
   'Tray/Item Count By Aisle',
   'User Job Summary',
@@ -482,6 +483,76 @@ const generateReportTableFields = () => {
         'owner',
         'assigned_location',
         'pre_assigned_location',
+        'error'
+      ]
+      break
+    case 'Shelving Move Discrepancy':
+      generatedTableColumns.value = [
+        {
+          name: 'complete_dt',
+          field: 'complete_dt',
+          label: 'Completed Date',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'assigned_user',
+          field: row => row.assigned_user?.name,
+          label: 'Completed By',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'container_type',
+          field: 'container_type',
+          label: 'Container Type',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'size_class',
+          field: row => row.size_class?.name,
+          label: 'Size Class',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'barcode',
+          field: row => row.barcode?.value,
+          label: 'Barcode',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'original_item_location',
+          field: 'original_item_location',
+          label: 'Original Item Location',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'item_location',
+          field: 'item_location',
+          label: 'Current Item Location',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'error',
+          field: 'error',
+          label: 'Error Type',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      generatedTableVisibleColumns.value = [
+        'complete_dt',
+        'assigned_user',
+        'container_type',
+        'size_class',
+        'barcode',
+        'original_item_location',
+        'item_location',
         'error'
       ]
       break
