@@ -779,21 +779,24 @@ const completeMoveShelfLocations = async () => {
           const payload = {
             tray_barcode_value: container.barcode.value,
             shelf_barcode_value: container.shelf_barcode_value,
-            shelf_position_number: parseInt(container.new_shelf_position)
+            shelf_position_number: parseInt(container.new_shelf_position),
+            assigned_user_id: userData.value.user_id
           }
           return postMoveTrayLocation(payload)
         } else if (container.container_type.type == 'Non-Tray') {
           const payload = {
             non_tray_barcode_value: container.barcode.value,
             shelf_barcode_value: container.shelf_barcode_value,
-            shelf_position_number: parseInt(container.new_shelf_position)
+            shelf_position_number: parseInt(container.new_shelf_position),
+            assigned_user_id: userData.value.user_id
           }
           return postMoveNonTrayLocation(payload)
         } else {
           // tray items moving between trays logic here
           const payload = {
             tray_barcode_value: container.tray_barcode_value,
-            item_barcode_value: container.barcode.value
+            item_barcode_value: container.barcode.value,
+            assigned_user_id: userData.value.user_id
           }
           return postMoveTrayItemLocation(payload)
         }

@@ -109,6 +109,12 @@
 
           <template #table-td="{ colName, value }">
             <span
+              v-if="colName.includes('_dt')"
+              class="text-nowrap"
+            >
+              {{ formatDateTime(value).date }}
+            </span>
+            <span
               v-if="colName == 'status'"
               class="outline text-nowrap"
               :class="value == 'Created' || value == 'Completed' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-warning' : 'text-highlight-negative'"
@@ -164,7 +170,6 @@ const { appIsOffline } = storeToRefs(useGlobalStore())
 const { downloadReport } = useReportsStore()
 
 // Local Data
-const formatDateTime = inject('format-date-time')
 const generatedTableVisibleColumns = ref([])
 const generatedTableColumns = ref([])
 const showReportModal = ref(false)
@@ -189,6 +194,8 @@ const exportReportMenuState = ref (false)
 
 // Logic
 const handleAlert = inject('handle-alert')
+const formatDateTime = inject('format-date-time')
+const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 const generateReportTableFields = () => {
   lastReportType.value = reportType.value
@@ -489,8 +496,8 @@ const generateReportTableFields = () => {
     case 'Shelving Move Discrepancy':
       generatedTableColumns.value = [
         {
-          name: 'complete_dt',
-          field: 'complete_dt',
+          name: 'update_dt',
+          field: 'update_dt',
           label: 'Completed Date',
           align: 'left',
           sortable: true
@@ -504,35 +511,35 @@ const generateReportTableFields = () => {
         },
         {
           name: 'container_type',
-          field: 'container_type',
+          field: row => row.item ? 'Tray-Item' : row.tray ? 'Tray' : 'Non-Tray',
           label: 'Container Type',
           align: 'left',
           sortable: true
         },
         {
           name: 'size_class',
-          field: row => row.size_class?.name,
+          field: row => row.size_class?.short_name,
           label: 'Size Class',
           align: 'left',
           sortable: true
         },
         {
-          name: 'barcode',
-          field: row => row.barcode?.value,
+          name: 'barcode_value',
+          field: row => row.item ? renderItemBarcodeDisplay(row.item) : row.tray ? renderItemBarcodeDisplay(row.tray) : renderItemBarcodeDisplay(row.non_tray_item),
           label: 'Barcode',
           align: 'left',
           sortable: true
         },
         {
-          name: 'original_item_location',
-          field: 'original_item_location',
+          name: 'original_assigned_location',
+          field: 'original_assigned_location',
           label: 'Original Item Location',
           align: 'left',
           sortable: true
         },
         {
-          name: 'item_location',
-          field: 'item_location',
+          name: 'current_assigned_location',
+          field: 'current_assigned_location',
           label: 'Current Item Location',
           align: 'left',
           sortable: true
@@ -546,13 +553,13 @@ const generateReportTableFields = () => {
         }
       ]
       generatedTableVisibleColumns.value = [
-        'complete_dt',
+        'update_dt',
         'assigned_user',
         'container_type',
         'size_class',
-        'barcode',
-        'original_item_location',
-        'item_location',
+        'barcode_value',
+        'original_assigned_location',
+        'current_assigned_location',
         'error'
       ]
       break
@@ -681,7 +688,7 @@ const generateReportTableFields = () => {
         },
         {
           name: 'completed_dt',
-          field: row => formatDateTime(row.completed_dt).date,
+          field: 'completed_dt',
           label: 'Completed Date',
           align: 'left',
           sortable: true
