@@ -42,13 +42,15 @@ onBeforeMount(() => {
 
 onMounted( async () => {
   // load any options info that will be needed on the request page
-  await Promise.all([
-    getOptions('buildings'),
-    getOptions('requestsPriorities'),
-    getOptions('requestsLocations'),
-    getOptions('requestsTypes'),
-    getOptions('mediaTypes')
-  ])
+  if (!route.params.jobId) {
+    await Promise.all([
+      getOptions('buildings', { sort_by: 'name' }),
+      getOptions('requestsPriorities', { sort_by: 'value' }),
+      getOptions('requestsLocations', { sort_by: 'name' }),
+      getOptions('requestsTypes', { sort_by: 'type' }),
+      getOptions('mediaTypes', { sort_by: 'name' })
+    ])
+  }
 
   // if there is an id in the url we need to load that request job
   if (route.name == 'request-batch') {
