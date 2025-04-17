@@ -34,8 +34,23 @@
                   {label: 'Non-Tray Items', value: 'nonTrayItem'},
                   {label: 'Tray Items', value: 'trayItem'}
                 ]"
-                @update:model-value="loadAdvancedSearch(advanceSearchHistory);"
+                @update:model-value="loadAdvancedSearch(advancedSearchHistory);"
                 class="text-no-wrap"
+              />
+            </div>
+            <div
+              v-if="showDownloadReport"
+              class="col-xs-12 col-sm-12 col-md-auto flex"
+              :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? 'justify-end q-mb-md' : 'order-1'"
+            >
+              <q-btn
+                no-caps
+                unelevated
+                color="accent"
+                label="Download Report"
+                class="text-body1 q-ml-xs-none q-ml-sm-sm"
+                :disabled="appIsOffline"
+                @click="downloadAdvancedSearchReport()"
               />
             </div>
           </template>
@@ -73,20 +88,22 @@ const router = useRouter()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
+const { appIsOffline } = storeToRefs(useGlobalStore())
 
 // Store Data
 const {
   searchResults,
   searchResultsTotal,
-  advanceSearchHistory
+  advancedSearchHistory
 } = storeToRefs(useSearchStore())
-const { getAdvancedSearchResults } = useSearchStore()
+const { getAdvancedSearchResults, downloadAdvancedSearchResults } = useSearchStore()
 const { appIsLoadingData } = storeToRefs(useGlobalStore())
 
 // Local Data
 const toggleSearchTab = ref(null)
 const searchResultsTableVisibleColumns = ref([])
 const searchResultsTableColumns = ref([])
+const showDownloadReport = ref(false)
 
 // Logic
 const formatDateTime = inject('format-date-time')
@@ -102,7 +119,8 @@ watch(route, () => {
 })
 
 const generateSearchTableFields = () => {
-  // creates the search table fields needed based on the route searcType
+  showDownloadReport.value = false
+  // creates the search table fields needed based on the route searchType
   switch (route.params.searchType) {
     case 'Item':
     case 'TrayItem':
@@ -175,6 +193,7 @@ const generateSearchTableFields = () => {
           'barcode_value'
         ]
       }
+      showDownloadReport.value = true
       break
     case 'Tray':
       searchResultsTableColumns.value = [
@@ -688,14 +707,14 @@ const loadAdvancedSearch = async (qParams) => {
     }
 
     await getAdvancedSearchResults({
-      ...advanceSearchHistory.value,
+      ...advancedSearchHistory.value,
       ...qParams
     }, route.params.searchType)
 
     // update route queries to match new searches
     router.replace({
       query: {
-        ...advanceSearchHistory.value,
+        ...advancedSearchHistory.value,
         ...qParams
       }
     })
@@ -709,6 +728,22 @@ const loadAdvancedSearch = async (qParams) => {
     appIsLoadingData.value = false
   }
 }
+
+const downloadAdvancedSearchReport = async () => {
+  try {
+    appIsLoadingData.value = true
+    await downloadAdvancedSearchResults()
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
+  }
+}
+
 </script>
 <style lang="scss" scoped>
 </style>
