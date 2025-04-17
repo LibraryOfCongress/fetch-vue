@@ -13,8 +13,9 @@
         <SelectInput
           v-model="reportType"
           :options="reportOptions"
-          :clearable="false"
+          :clearable="true"
           :placeholder="'Select Report'"
+          @clear="resetReport()"
           @update:model-value="reportFormHistory = null; showReportModal = true;"
           aria-label="reportSelect"
         />
@@ -133,7 +134,7 @@
       :report-history="reportFormHistory"
       @hide="showReportModal = false; reportType = lastReportType;"
       @update="reportFormHistory = $event"
-      @submit="generateReportTableFields();"
+      @submit="generateReportTableFields($event);"
     />
   </div>
 
@@ -149,7 +150,8 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
+import { ref, inject, onBeforeMount } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useReportsStore } from '@/stores/reports-store'
 import { useGlobalStore } from '@/stores/global-store'
@@ -158,6 +160,9 @@ import EssentialTable from '@/components/EssentialTable.vue'
 import SelectInput from '@/components/SelectInput.vue'
 import ReportsGenerateModal from '@/components/Reports/ReportsGenerateModal.vue'
 import ReportPrintTemplate from '@/components/Reports/ReportPrintTemplate.vue'
+
+const route = useRoute()
+const router = useRouter()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
@@ -197,7 +202,24 @@ const handleAlert = inject('handle-alert')
 const formatDateTime = inject('format-date-time')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
-const generateReportTableFields = () => {
+onBeforeMount(() => {
+  // when loading the dashboard if the route contains a specific report type we need to preload that table and get the report
+  if (route.params.reportType) {
+    reportType.value = route.params.reportType
+    generateReportTableFields(route.query)
+    regenerateReport(route.query)
+  }
+})
+
+const resetReport = () => {
+  reportType.value = null
+  reportFormHistory.value = null
+  generatedTableColumns.value = []
+  generatedTableVisibleColumns.value = []
+  showReportModal.value = false
+}
+
+const generateReportTableFields = (qParams) => {
   lastReportType.value = reportType.value
   // creates the report table fields needed based on the selected report type
   switch (reportType.value) {
@@ -511,7 +533,7 @@ const generateReportTableFields = () => {
         },
         {
           name: 'container_type',
-          field: row => row.item ? 'Tray-Item' : row.tray ? 'Tray' : 'Non-Tray',
+          field: row => row.item || row.tray ? 'Tray' : 'Non-Tray',
           label: 'Container Type',
           align: 'left',
           sortable: true
@@ -734,34 +756,46 @@ const generateReportTableFields = () => {
     default:
       break
   }
+
+  // update our route with passed in query params and report type
+  router.push({
+    name: 'reports',
+    params: {
+      reportType: reportType.value
+    },
+    query: qParams
+  })
 }
 
 const regenerateReport = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    let queryParamsForm = JSON.parse(JSON.stringify(reportFormHistory.value))
-    // convert any form date values to iso format along with removing any empty query params
-    Object.entries(queryParamsForm).forEach(([
-      key,
-      value
-    ]) => {
-      if (key.includes('_dt') && value) {
-        const [
-          month,
-          day,
-          year
-        ] = queryParamsForm[key].split('/')
-        if (key.includes('from')) {
+    let queryParamsForm
+    if (reportFormHistory.value !== null) {
+      queryParamsForm = JSON.parse(JSON.stringify(reportFormHistory.value))
+      // convert any form date values to iso format along with removing any empty query params
+      Object.entries(queryParamsForm).forEach(([
+        key,
+        value
+      ]) => {
+        if (key.includes('_dt') && value) {
+          const [
+            month,
+            day,
+            year
+          ] = queryParamsForm[key].split('/')
+          if (key.includes('from')) {
           // sets from dates to begging of day
-          queryParamsForm[key] = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0)).toISOString()
-        }  else {
+            queryParamsForm[key] = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0)).toISOString()
+          }  else {
           // sets to date to end of date
-          queryParamsForm[key] = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999)).toISOString()
+            queryParamsForm[key] = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999)).toISOString()
+          }
+        } else if ((Array.isArray(value) && value.length == 0) || !value) {
+          delete queryParamsForm[key]
         }
-      } else if ((Array.isArray(value) && value.length == 0) || !value) {
-        delete queryParamsForm[key]
-      }
-    })
+      })
+    }
 
     await getReport({
       ...qParams,

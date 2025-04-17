@@ -284,6 +284,7 @@
 </template>
 
 <script setup>
+import moment from 'moment'
 import { ref, inject, onBeforeMount, onMounted, watch, nextTick, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
@@ -723,8 +724,15 @@ const verifyAndAddTransferTrayItem = () => {
     })
     clearScannedContainer()
     return
+  } else if (!appIsOffline.value && !scannedContainer.value.tray.shelf_position_id) {
+    handleAlert({
+      type: 'error',
+      text: 'The scanned item has not been previously shelved. Please try again!',
+      autoClose: true
+    })
+    clearScannedContainer()
+    return
   }
-  //TODO? possibly add checks to make sure size class and owners match as well?
 
   const trayItemPendingTransfer = {
     barcode: scannedContainer.value.barcode,
@@ -791,14 +799,6 @@ const completeMoveShelfLocations = async () => {
             assigned_user_id: userData.value.user_id
           }
           return postMoveNonTrayLocation(payload)
-        } else {
-          // tray items moving between trays logic here
-          const payload = {
-            tray_barcode_value: container.tray_barcode_value,
-            item_barcode_value: container.barcode.value,
-            assigned_user_id: userData.value.user_id
-          }
-          return postMoveTrayItemLocation(payload)
         }
       })
     )
@@ -825,7 +825,7 @@ const completeMoveShelfLocations = async () => {
     if (capturedMoveErrors.length > 0) {
       handleAlert({
         type: 'error',
-        text: `Failed to move ${capturedMoveErrors.length} container(s). Please see move discrepency report`,
+        text: `Failed to move ${capturedMoveErrors.length} container(s). Please see move discrepency <a href='/reports/Shelving%20Move%20Discrepancy?from_dt=${moment().format('YYYY-MM-DDT00:00:00.000') + 'Z'}&to_dt=${moment().format('YYYY-MM-DDT23:59:59.999') + 'Z'}&assigned_user_id=${userData.value.user_id}' tabindex='0'>report</a>`,
         autoClose: false
       })
     }
@@ -839,7 +839,7 @@ const completeMoveShelfLocations = async () => {
           jobId: null
         }
       })
-    }, 3000)
+    }, 1000)
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -859,29 +859,38 @@ const completeMoveTrayItem = async () => {
       moveShelfJob.value.containers.map((container) => {
         const payload = {
           tray_barcode_value: container.tray_barcode_value,
-          item_barcode_value: container.barcode.value
+          item_barcode_value: container.barcode.value,
+          assigned_user_id: userData.value.user_id
         }
         return postMoveTrayItemLocation(payload)
       })
     )
 
-    // loop through the responses and display the transfer success/failures and link the move dependency report if needed
+    // loop through the responses and display the transfer success/failures and link the move descrepency report if needed
+    const successfulMoves = []
+    const capturedMoveErrors = []
     for (const res of responses) {
       if (res.status == 200) {
-        handleAlert({
-          type: 'success',
-          text: `The Tray-Item: ${res.data.barcode.value} has been successfully transferred.`,
-          autoClose: true
-        })
+        successfulMoves.push(res)
       } else {
-        //TODO change this to return a single error listing the number of errors and link a move discrepancy report when that feature is added.
-        //REMOVE TEMPORARY FIX - since there is no move dependency report yet we just display error alerts for now
-        handleAlert({
-          type: 'error',
-          text: res,
-          autoClose: false
-        })
+        capturedMoveErrors.push(res)
       }
+    }
+
+    // display all success/errors under a single alert
+    if (successfulMoves.length > 0) {
+      handleAlert({
+        type: 'success',
+        text: `${successfulMoves.length} containers successfully transferred.`,
+        autoClose: true
+      })
+    }
+    if (capturedMoveErrors.length > 0) {
+      handleAlert({
+        type: 'error',
+        text: `Failed to move ${capturedMoveErrors.length} container(s). Please see move discrepency <a href='/reports/Shelving%20Move%20Discrepancy?from_dt=${moment().format('YYYY-MM-DDT00:00:00.000') + 'Z'}&to_dt=${moment().format('YYYY-MM-DDT23:59:59.999') + 'Z'}&assigned_user_id=${userData.value.user_id}' tabindex='0'>report</a>`,
+        autoClose: false
+      })
     }
 
     // set transffered date
@@ -893,7 +902,7 @@ const completeMoveTrayItem = async () => {
           jobId: null
         }
       })
-    }, 3000)
+    }, 1000)
   } catch (error) {
     handleAlert({
       type: 'error',

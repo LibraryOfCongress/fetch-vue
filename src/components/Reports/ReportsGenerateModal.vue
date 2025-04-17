@@ -937,7 +937,8 @@ const generateReport = async () => {
 
     await getReport(queryParams, mainProps.reportType)
 
-    emit('submit')
+    //emit to main report dashboard and pass query params so we can store them in the route
+    emit('submit', queryParams)
   } catch (error) {
     handleAlert({
       type: 'error',
