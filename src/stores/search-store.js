@@ -140,8 +140,7 @@ export const useSearchStore = defineStore('search-store', {
         const endpoint = inventoryServiceApi.items
 
         const res = await this.$api.get(`${endpoint}download`, {
-          params: this.advancedSearchHistory ?? {},
-          responseType: 'blob'
+          params: this.advancedSearchHistory ?? {}
         })
         const url = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
         const formattedDate = moment().format().slice(0, 19).replace(/[-T:]/g, '_')
