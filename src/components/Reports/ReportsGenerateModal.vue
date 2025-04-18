@@ -81,7 +81,8 @@
                 option-type="aisles"
                 :option-query="{
                   building_id: reportForm.building_id,
-                  module_id: reportForm.module_id
+                  module_id: reportForm.module_id,
+                  sort_by: 'aisle_number'
                 }"
                 option-value="id"
                 :option-label="opt => opt.aisle_number.number"
@@ -125,7 +126,8 @@
                   building_id: reportForm.building_id,
                   module_id: reportForm.module_id,
                   aisle_id: reportForm.aisle_id,
-                  side_id: reportForm.side_id
+                  side_id: reportForm.side_id,
+                  sort_by: 'ladder_number'
                 }"
                 option-value="id"
                 :option-label="opt => opt.ladder_number.number"

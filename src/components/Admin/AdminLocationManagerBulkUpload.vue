@@ -95,7 +95,8 @@
               option-type="aisles"
               :option-query="{
                 building_id: bulkUploadLocationForm.building_id,
-                module_id: bulkUploadLocationForm.module_id
+                module_id: bulkUploadLocationForm.module_id,
+                sort_by: 'aisle_number'
               }"
               option-value="id"
               :option-label="opt => opt.aisle_number.number"
