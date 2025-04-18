@@ -298,7 +298,8 @@
                         option-type="aisles"
                         :option-query="{
                           building_id: shelvingJob.building_id,
-                          module_id: shelvingJob.module_id
+                          module_id: shelvingJob.module_id,
+                          sort_by: 'aisle_number'
                         }"
                         option-value="id"
                         :option-label="opt => opt.aisle_number.number"
@@ -343,7 +344,8 @@
                       building_id: shelvingJob.building_id,
                       module_id: shelvingJob.module_id,
                       aisle_id: shelvingJob.aisle_id,
-                      side_id: shelvingJob.side_id
+                      side_id: shelvingJob.side_id,
+                      sort_by: 'ladder_number'
                     }"
                     option-value="id"
                     :option-label="opt => opt.ladder_number.number"
