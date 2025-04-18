@@ -132,14 +132,9 @@ export const useSearchStore = defineStore('search-store', {
         throw error
       }
     },
-    async downloadAdvancedSearchResults () {
+    async downloadAdvancedSearchResults (endpoint) {
       try {
-        // As more advanced search downloads are added, adjust this logic to determine which endpoint to hit.
-        // The rest of this method should not need to be changed.
-        // For the moment, we just have the items download.
-        const endpoint = inventoryServiceApi.items
-
-        const res = await this.$api.get(`${endpoint}download`, {
+        const res = await this.$api.get(`${inventoryServiceApi[endpoint]}download`, {
           params: this.advancedSearchHistory ?? {}
         })
         const url = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
