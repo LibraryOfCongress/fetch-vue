@@ -183,7 +183,7 @@
         :table-columns="itemTableColumns"
         :table-visible-columns="itemTableVisibleColumns"
         :filter-options="itemTableFilters"
-        :table-data="refileJob.refile_job_items ?? []"
+        :table-data="refileJobItems"
         :row-key="row => renderItemBarcodeDisplay(row)"
         :enable-table-reorder="false"
         :enable-selection="editItems"
@@ -420,6 +420,12 @@ const itemTableColumns = ref([
     headerStyle: 'max-width: 200px'
   }
 ])
+const refileJobItems = computed(() => {
+  if (!refileJob.value.refile_job_items) {
+    return []
+  }
+  return editItems.value ? refileJob.value.refile_job_items.filter(item => item.status == 'Out') : refileJob.value.refile_job_items
+})
 const itemTableFilters = computed(() => {
   let tablesFilters = []
   if (refileJob.value.refile_job_items && refileJob.value.refile_job_items.length > 0) {
