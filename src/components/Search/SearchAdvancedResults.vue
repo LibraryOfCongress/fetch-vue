@@ -732,7 +732,20 @@ const loadAdvancedSearch = async (qParams) => {
 const downloadAdvancedSearchReport = async () => {
   try {
     appIsLoadingData.value = true
-    await downloadAdvancedSearchResults()
+    // Send the download the endpoint to use based on which tab we are looking at
+    // The endpoints set here need to match the keys in InventoryService.js
+    let endpoint
+    switch (route.params.searchType) {
+      case 'Item':
+        endpoint = 'nonTrayItems'
+        break
+      case 'TrayItem':
+        endpoint = 'items'
+        break
+      default:
+        return
+    }
+    await downloadAdvancedSearchResults(endpoint)
   } catch (error) {
     handleAlert({
       type: 'error',
