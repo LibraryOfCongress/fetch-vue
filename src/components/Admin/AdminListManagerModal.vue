@@ -48,6 +48,7 @@
                 <TextInput
                   v-model="inputForm[field.field]"
                   :placeholder="`Enter ${field.label}`"
+                  :type="field.fieldType ?? ''"
                   :disabled="field.disabled"
                   :aria-label="`${field.field}_input`"
                 />
@@ -272,16 +273,19 @@ const generateListModal = async () => {
         {
           field: 'width',
           label: 'Width (in)',
+          fieldType: 'number',
           required: true
         },
         {
           field: 'depth',
           label: 'Depth (in)',
+          fieldType: 'number',
           required: true
         },
         {
           field: 'height',
           label: 'Height (in)',
+          fieldType: 'number',
           required: true
         }
       ]

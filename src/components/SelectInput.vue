@@ -174,8 +174,14 @@ onBeforeMount( async () => {
   initLoading.value = true
 
   // if the select component renders with a prepopulated modelValue we need to make sure it exists in the passed in options to properly render
-  if (mainProps.optionType && !(mainProps.modelValue == null || mainProps.modelValue.length === 0) && mainProps.options.some(opt => opt[mainProps.optionValue] == mainProps.modelValue) == false) {
+  if (mainProps.optionType && Array.isArray(mainProps.modelValue) && mainProps.modelValue.length > 0 && mainProps.modelValue.every(val => mainProps.options.some(opt => opt[mainProps.optionValue] == val)) == false) {
     // if we cant find the the defined option in our passed in options list, check if we can get it directly from the api
+    await Promise.all(mainProps.modelValue.map(val => {
+      // gets every exact option if our modelValue is prepopulated via an array of values and data is not found in the current loaded options
+      return getExactOptionById(mainProps.optionType, val, true)
+    }))
+  } else if (mainProps.optionType && mainProps.modelValue !== null && !Array.isArray(mainProps.modelValue) && mainProps.options.some(opt => opt[mainProps.optionValue] == mainProps.modelValue) == false) {
+    // gets a single exact option if our modelValue is prepopulated and data is not found in the current loaded options
     await getExactOptionById(mainProps.optionType, mainProps.modelValue)
   }
   initLoading.value = false

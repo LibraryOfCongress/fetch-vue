@@ -204,6 +204,7 @@
             v-model="scannedContainer.shelf_position_number"
             placeholder="Enter Shelf Postion"
             :disabled="!scannedContainer.barcode.value"
+            type="number"
           />
         </div>
       </q-card-section>
