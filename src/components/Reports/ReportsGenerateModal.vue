@@ -186,6 +186,7 @@
                 v-model="reportForm.height"
                 :placeholder="`Enter Height`"
                 :disabled="!reportForm.building_id"
+                type="number"
                 :aria-label="`heightInput`"
               />
             </div>
@@ -200,6 +201,7 @@
                 v-model="reportForm.width"
                 :placeholder="`Enter Width`"
                 :disabled="!reportForm.building_id"
+                type="number"
                 :aria-label="`widthInput`"
               />
             </div>
@@ -214,6 +216,7 @@
                 v-model="reportForm.depth"
                 :placeholder="`Enter Depth`"
                 :disabled="!reportForm.building_id"
+                type="number"
                 :aria-label="`depthInput`"
               />
             </div>

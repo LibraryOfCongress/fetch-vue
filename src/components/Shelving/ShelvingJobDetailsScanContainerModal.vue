@@ -128,6 +128,7 @@
           <TextInput
             v-model="manualShelfPosition"
             placeholder="Enter Shelf Postion"
+            type="number"
           />
         </div>
       </q-card-section>

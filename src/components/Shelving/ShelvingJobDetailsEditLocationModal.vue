@@ -198,6 +198,7 @@
             <TextInput
               v-model="locationForm.shelf_position_number"
               placeholder="Enter Shelf Postion"
+              type="number"
               :disabled="!locationForm.shelf_barcode"
             />
           </div>
