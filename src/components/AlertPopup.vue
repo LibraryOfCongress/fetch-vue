@@ -138,7 +138,7 @@ const checkForRouteLinks = () => {
     if (link.hostname == window.location.hostname) {
       link.onclick = (event => {
         event.preventDefault()
-        router.push(link.pathname)
+        router.push(link.pathname + link.search)
         emit('reset')
       })
     }

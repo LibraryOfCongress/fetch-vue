@@ -768,6 +768,29 @@ const generateReportModal = () => {
         }
       ]
       break
+    case 'Shelving Move Discrepancy':
+      reportForm.value = {
+        from_dt: null,
+        to_dt: null,
+        assigned_user_id: null
+      }
+      reportParams.value = [
+        {
+          query: 'from_dt',
+          label: 'Date (From)'
+        },
+        {
+          query: 'to_dt',
+          label: 'Date (To)'
+        },
+        {
+          query: 'assigned_user_id',
+          label: 'Assigned User',
+          options: users,
+          optionType: 'users'
+        }
+      ]
+      break
     case 'Total Item Retrieved':
       reportForm.value = {
         from_dt: null,
@@ -916,7 +939,8 @@ const generateReport = async () => {
 
     await getReport(queryParams, mainProps.reportType)
 
-    emit('submit')
+    //emit to main report dashboard and pass query params so we can store them in the route
+    emit('submit', queryParams)
   } catch (error) {
     handleAlert({
       type: 'error',
