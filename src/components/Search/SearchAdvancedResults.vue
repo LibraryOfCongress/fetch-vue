@@ -398,37 +398,79 @@ const generateSearchTableFields = () => {
     case 'Request':
       searchResultsTableColumns.value = [
         {
-          name: 'create_dt',
-          field: 'create_dt',
-          label: 'Create Date',
+          name: 'requested_by',
+          field: row => renderUserName(row?.requested_by),
+          label: 'Requested By',
           align: 'left',
           sortable: true
         },
         {
-          name: 'id',
-          field: 'id',
-          label: 'Request ID #',
+          name: 'barcode_value',
+          field: row => renderItemBarcodeDisplay(row.non_tray_item ? row.non_tray_item : row.item),
+          label: 'Barcode',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'external_request_id',
+          field: 'external_request_id',
+          label: 'External Request ID',
           align: 'left',
           sortable: true
         },
         {
           name: 'requestor_name',
           field: 'requestor_name',
-          label: 'Requested By',
+          label: 'Requestor Name',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'request_type',
+          field: row => row.request_type?.type,
+          label: 'Request Type',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'priority',
+          field: row => row.priority?.value,
+          label: 'Priority',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'delivery_location',
+          field: row => row.delivery_location?.address,
+          label: 'Delivery Location',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'create_dt',
+          field: 'create_dt',
+          label: 'Create Date',
           align: 'left',
           sortable: true
         }
       ]
       searchResultsTableVisibleColumns.value = [
-        'create_dt',
-        'id',
-        'requestor_name'
+        'requested_by',
+        'barcode_value',
+        'external_request_id',
+        'requestor_name',
+        'request_type',
+        'priority',
+        'delivery_location',
+        'create_dt'
       ]
       if (currentScreenSize.value == 'xs') {
         searchResultsTableVisibleColumns.value = [
-          'create_dt',
-          'id',
-          'requestor_name'
+          'barcode_value',
+          'external_request_id',
+          'priority',
+          'delivery_location',
+          'create_dt'
         ]
       }
       break
