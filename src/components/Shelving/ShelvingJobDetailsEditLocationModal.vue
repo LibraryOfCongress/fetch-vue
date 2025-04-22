@@ -199,6 +199,8 @@
               v-model="locationForm.shelf_position_number"
               placeholder="Enter Shelf Postion"
               type="number"
+              @focus="shelvesPositionInputFocused = true"
+              @blur="shelvesPositionInputFocused = false"
               :disabled="!locationForm.shelf_barcode"
             />
           </div>
@@ -289,13 +291,14 @@ const {
   getSideList
 } = useBuildingStore()
 const { sides } = storeToRefs(useBuildingStore())
-const { postShelvingJobContainer, resetShelvingJobContainer } = useShelvingStore()
+const { postShelvingJobContainerProposedLocation, resetShelvingJobContainer } = useShelvingStore()
 const { shelvingJob } = storeToRefs(useShelvingStore())
 
 // Local Data
 const editShelvingLocationModal = ref(null)
 const locationForm = ref({
   id: null,
+  barcode: null,
   building_id: null,
   module_id: null,
   aisle_id: null,
@@ -315,28 +318,30 @@ const isLocationFormValid = computed(() => {
     return locationForm.value.shelf_position_id ?? false
   }
 })
+const shelvesPositionInputFocused = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
-const currentIsoDate = inject('current-iso-date')
 
 onMounted(() => {
   // set the form data if shelvingItem is passed in
   if (mainProps.shelvingItem.id) {
     const itemLocationIdList = mainProps.shelvingItem.shelf_position?.internal_location?.split('-')
     locationForm.value.id = mainProps.shelvingItem.id
+    locationForm.value.barcode = mainProps.shelvingItem.barcode.value
     locationForm.value.building_id = parseInt(itemLocationIdList[0])
     locationForm.value.module_id = parseInt(itemLocationIdList[1])
     locationForm.value.aisle_id = parseInt(itemLocationIdList[2])
     locationForm.value.side_id = parseInt(itemLocationIdList[3])
     locationForm.value.ladder_id = parseInt(itemLocationIdList[4])
     locationForm.value.shelf_id = parseInt(itemLocationIdList[5])
+    locationForm.value.shelf_barcode = appIsOffline.value ? null : mainProps.shelvingItem.shelf_position?.shelf?.barcode?.value ?? ''
     locationForm.value.trayed = mainProps.shelvingItem.container_type?.type == 'Tray' ? true : false
   }
 })
 
 watch(compiledBarCode, (barcode) => {
-  if (barcode !== '' && appIsOffline.value) {
+  if (barcode !== '' && appIsOffline.value && !shelvesPositionInputFocused.value) {
     locationForm.value.shelf_barcode = barcode
     locationForm.value.shelf_position_number = null
   }
@@ -386,6 +391,7 @@ const handleLocationFormChange = async (valueType) => {
 const resetLocationForm = () => {
   locationForm.value = {
     id: null,
+    barcode: null,
     building_id: null,
     module_id: null,
     aisle_id: null,
@@ -408,24 +414,24 @@ const submitLocationForm = async () => {
     if (appIsOffline.value) {
       payload = {
         job_id: route.params.jobId,
-        container_id: locationForm.value.id,
         trayed: locationForm.value.trayed,
+        container_id: locationForm.value.id,
+        container_barcode_value: locationForm.value.barcode,
         shelf_position_number: locationForm.value.shelf_position_number,
-        shelf_barcode_value: locationForm.value.shelf_barcode,
-        shelved_dt: currentIsoDate()
+        shelf_barcode_value: locationForm.value.shelf_barcode
       }
     } else {
       payload = {
         job_id: route.params.jobId,
-        container_id: locationForm.value.id,
         trayed: locationForm.value.trayed,
+        container_id: locationForm.value.id,
+        container_barcode_value: locationForm.value.barcode,
         shelf_position_number: shelvesPositions.value.find(shelf_pos => shelf_pos.id == locationForm.value.shelf_position_id)?.shelf_position_number?.number,
-        shelf_id: locationForm.value.shelf_id,
-        shelved_dt: currentIsoDate()
+        shelf_barcode_value: locationForm.value.shelf_barcode
       }
     }
 
-    await postShelvingJobContainer(payload)
+    await postShelvingJobContainerProposedLocation(payload)
 
     // when offline we need to directly update the shelving status and shelving job container as the job level
     if (appIsOffline.value) {
