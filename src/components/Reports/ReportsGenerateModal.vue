@@ -703,6 +703,7 @@ const generateReportModal = () => {
         aisle_id: null,
         side_id: null,
         ladder_id: null,
+        size_class_id: null,
         owner_id: null,
         height: null,
         width: null,
