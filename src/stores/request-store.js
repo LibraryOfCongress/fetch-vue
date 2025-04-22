@@ -163,7 +163,7 @@ export const useRequestStore = defineStore('request-store', {
         // create a formData Object and assign the file to the formData to be passed to api as 'multipart/form-data' content
         let formData = new FormData()
         formData.append('file', payload.file)
-        formData.append('user_id', payload.user_id)
+        formData.append('requested_by_id', payload.requested_by_id)
         await this.$api.post(`${inventoryServiceApi.batchUpload}request`, formData)
 
         // reload batch request data

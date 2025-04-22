@@ -257,7 +257,7 @@
             </div>
             <!-- text inputs -->
             <div
-              v-else-if="param.query == 'barcode' || param.query == 'job_id' || param.query == 'requestor_name'"
+              v-else-if="param.query == 'barcode' || param.query == 'job_id' || param.query == 'requestor_name' || param.query == 'external_request_id'"
               class="col-12 q-mb-md"
             >
               <div class="form-group">
@@ -285,7 +285,7 @@
                   :options="param.options"
                   :option-type="param.optionType"
                   :option-value="param.optionType ? 'id' : ''"
-                  :option-label="!param.optionType ? '' : 'name'"
+                  :option-label="param.optionLabel ?? ''"
                   :placeholder="`Select ${param.label}`"
                   @update:model-value="null"
                   :aria-label="`${param.query}Select`"
@@ -367,7 +367,10 @@ const {
   owners,
   sizeClass,
   mediaTypes,
-  users
+  users,
+  requestsTypes,
+  requestsLocations,
+  requestsPriorities
 } = storeToRefs(useOptionStore())
 const {
   getSideList,
@@ -464,7 +467,8 @@ const generateSearchModal = () => {
           query: 'owner_id',
           label: 'Owner',
           options: owners,
-          optionType: 'owners'
+          optionType: 'owners',
+          optionLabel: 'name'
         },
         {
           query: 'status',
@@ -481,13 +485,15 @@ const generateSearchModal = () => {
           query: 'size_class_id',
           label: 'Size Class',
           options: sizeClass,
-          optionType: 'sizeClass'
+          optionType: 'sizeClass',
+          optionLabel: 'name'
         },
         {
           query: 'media_type_id',
           label: 'Media Type',
           options: mediaTypes,
-          optionType: 'mediaTypes'
+          optionType: 'mediaTypes',
+          optionLabel: 'name'
         }
       ]
       break
@@ -512,19 +518,22 @@ const generateSearchModal = () => {
           query: 'owner_id',
           label: 'Owner',
           options: owners,
-          optionType: 'owners'
+          optionType: 'owners',
+          optionLabel: 'name'
         },
         {
           query: 'size_class_id',
           label: 'Size Class',
           options: sizeClass,
-          optionType: 'sizeClass'
+          optionType: 'sizeClass',
+          optionLabel: 'name'
         },
         {
           query: 'media_type_id',
           label: 'Media Type',
           options: mediaTypes,
-          optionType: 'mediaTypes'
+          optionType: 'mediaTypes',
+          optionLabel: 'name'
         }
       ]
       break
@@ -544,7 +553,13 @@ const generateSearchModal = () => {
       searchForm.value = {
         from_dt: null,
         to_dt: null,
-        requestor_name: ''
+        requested_by_id: null,
+        barcode: null,
+        external_request_id: null,
+        requestor_name: '',
+        priority_id: null,
+        request_type_id: null,
+        delivery_location_id: null
       }
       searchParams.value = [
         {
@@ -556,8 +571,44 @@ const generateSearchModal = () => {
           label: 'Created Date (To)'
         },
         {
+          query: 'requested_by_id',
+          label: 'Requested By',
+          options: users,
+          optionType: 'users',
+          optionLabel: 'name'
+        },
+        {
+          query: 'barcode',
+          label: 'Item Barcode'
+        },
+        {
+          query: 'external_request_id',
+          label: 'External Request ID'
+        },
+        {
           query: 'requestor_name',
-          label: 'Requested By'
+          label: 'Requestor Name'
+        },
+        {
+          query: 'priority_id',
+          label: 'Priority',
+          options: requestsPriorities,
+          optionType: 'requestsPriorities',
+          optionLabel: 'value'
+        },
+        {
+          query: 'request_type_id',
+          label: 'Request Type',
+          options: requestsTypes,
+          optionType: 'requestsTypes',
+          optionLabel: 'type'
+        },
+        {
+          query: 'delivery_location_id',
+          label: 'Delivery Location',
+          options: requestsLocations,
+          optionType: 'requestsLocations',
+          optionLabel: 'name'
         }
       ]
       break
@@ -594,13 +645,15 @@ const generateSearchModal = () => {
           query: 'created_by_id',
           label: 'Created By',
           options: users,
-          optionType: 'users'
+          optionType: 'users',
+          optionLabel: 'name'
         },
         {
           query: 'user_id',
           label: 'Completed By',
           options: users,
-          optionType: 'users'
+          optionType: 'users',
+          optionLabel: 'name'
         }
       ]
       break
