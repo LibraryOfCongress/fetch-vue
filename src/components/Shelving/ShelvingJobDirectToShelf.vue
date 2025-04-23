@@ -181,6 +181,7 @@
           <TextInput
             v-model="shelvingJobContainer.shelf_position_number"
             placeholder="Enter Shelf Postion"
+            type="number"
           />
         </div>
       </q-card-section>

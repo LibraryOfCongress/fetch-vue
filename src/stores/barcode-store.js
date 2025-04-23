@@ -3,8 +3,8 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 
 export const useBarcodeStore = defineStore('barcode-store', {
   state: () => ({
-    barcodeScanAllowed: false,
-    barcodeInputDelay: .25,
+    barcodeScanAllowed: true,
+    barcodeInputDelay: process.env.VITE_ENV == 'production' || process.env.VITE_ENV == 'stage' ? .25 : 1,
     barcodeDetails: {
       id: null,
       type_id: null,

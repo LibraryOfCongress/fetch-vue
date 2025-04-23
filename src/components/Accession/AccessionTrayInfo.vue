@@ -402,7 +402,7 @@ const handleTrayScan = async (barcode_value) => {
         barcode_id: barcodeDetails.value.id,
         collection_accessioned: false,
         media_type_id: accessionJob.value.media_type_id,
-        scanned_for_accession: false,
+        scanned_for_accession: true,
         size_class_id: generateSizeClass
       }
       await postAccessionTray(payload)

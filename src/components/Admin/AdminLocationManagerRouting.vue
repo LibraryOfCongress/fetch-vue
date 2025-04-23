@@ -93,7 +93,8 @@
                 option-type="aisles"
                 :option-query="{
                   building_id: locationRoutingForm.building_id,
-                  module_id: locationRoutingForm.module_id
+                  module_id: locationRoutingForm.module_id,
+                  sort_by: 'aisle_number'
                 }"
                 option-value="id"
                 :option-label="opt => opt.aisle_number.number"
@@ -146,7 +147,8 @@
                   building_id: locationRoutingForm.building_id,
                   module_id: locationRoutingForm.module_id,
                   aisle_id: locationRoutingForm.aisle_id,
-                  side_id: locationRoutingForm.side_id
+                  side_id: locationRoutingForm.side_id,
+                  sort_by: 'ladder_number'
                 }"
                 option-value="id"
                 :option-label="opt => opt.ladder_number.number"
