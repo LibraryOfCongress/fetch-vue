@@ -449,7 +449,6 @@ const {
   appPendingSync,
   appIsOffline
 } = storeToRefs(useGlobalStore())
-const { getOptions } = useOptionStore()
 const { userData } = storeToRefs(useUserStore())
 const {
   patchShelvingJob,
@@ -652,53 +651,11 @@ const handleOptionMenu = async (action, rowData) => {
         if (!appIsOffline.value) {
           appIsLoadingData.value = true
           if (itemLocationIdList) {
-            await Promise.all([
-              getOptions('modules', { building_id: shelvingJob.value.building_id }),
-              getOptions('aisles', {
-                building_id: shelvingJob.value.building_id,
-                module_id: itemLocationIdList[1]
-              }),
-              getSideList({
-                building_id: shelvingJob.value.building_id,
-                module_id: itemLocationIdList[1],
-                aisle_id: itemLocationIdList[2]
-              }),
-              getOptions('ladders', {
-                building_id: shelvingJob.value.building_id,
-                module_id: itemLocationIdList[1],
-                aisle_id: itemLocationIdList[2],
-                side_id: itemLocationIdList[3]
-              }),
-              getOptions('shelves', {
-                building_id: shelvingJob.value.building_id,
-                module_id: itemLocationIdList[1],
-                aisle_id: itemLocationIdList[2],
-                side_id: itemLocationIdList[3],
-                ladder_id: itemLocationIdList[4],
-                owner_id: rowData.owner.id,
-                size_class_id: rowData.size_class.id
-              }),
-              getOptions('shelvesPositions', {
-                shelf_id: itemLocationIdList[5],
-                empty: true
-              })
-
-              // getBuildingDetails(shelvingJob.value.building_id),
-              // getModuleDetails(itemLocationIdList[1]), //loads the aisle list
-              // getAisleDetails(itemLocationIdList[2]), //loads the side list
-              // getSideDetails(itemLocationIdList[3]), //loads the ladder list
-              // getShelveList({
-              //   shelf_id: shelvingJob.value.building_id,
-              //   module_id: itemLocationIdList[1],
-              //   aisle_id: itemLocationIdList[2],
-              //   side_id: itemLocationIdList[3],
-              //   ladder_id: itemLocationIdList[4],
-              //   owner_id: rowData.owner.id,
-              //   size_class_id: rowData.size_class.id
-              // }), //loads the shelve list
-              // getShelfDetails(itemLocationIdList[5]),
-              // getShelfPositionsList(itemLocationIdList[5], true) //loads the shelve positions list
-            ])
+            await getSideList({
+              building_id: shelvingJob.value.building_id,
+              module_id: itemLocationIdList[1],
+              aisle_id: itemLocationIdList[2]
+            })
           }
         }
 

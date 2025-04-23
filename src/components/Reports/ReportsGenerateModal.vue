@@ -81,7 +81,8 @@
                 option-type="aisles"
                 :option-query="{
                   building_id: reportForm.building_id,
-                  module_id: reportForm.module_id
+                  module_id: reportForm.module_id,
+                  sort_by: 'aisle_number'
                 }"
                 option-value="id"
                 :option-label="opt => opt.aisle_number.number"
@@ -125,7 +126,8 @@
                   building_id: reportForm.building_id,
                   module_id: reportForm.module_id,
                   aisle_id: reportForm.aisle_id,
-                  side_id: reportForm.side_id
+                  side_id: reportForm.side_id,
+                  sort_by: 'ladder_number'
                 }"
                 option-value="id"
                 :option-label="opt => opt.ladder_number.number"
@@ -184,6 +186,7 @@
                 v-model="reportForm.height"
                 :placeholder="`Enter Height`"
                 :disabled="!reportForm.building_id"
+                type="number"
                 :aria-label="`heightInput`"
               />
             </div>
@@ -198,6 +201,7 @@
                 v-model="reportForm.width"
                 :placeholder="`Enter Width`"
                 :disabled="!reportForm.building_id"
+                type="number"
                 :aria-label="`widthInput`"
               />
             </div>
@@ -212,6 +216,7 @@
                 v-model="reportForm.depth"
                 :placeholder="`Enter Depth`"
                 :disabled="!reportForm.building_id"
+                type="number"
                 :aria-label="`depthInput`"
               />
             </div>
@@ -623,29 +628,6 @@ const generateReportModal = () => {
         }
       ]
       break
-    case 'Move/Withdraw Discrepancy':
-      reportForm.value = {
-        from_dt: null,
-        to_dt: null,
-        assigned_user_id: null
-      }
-      reportParams.value = [
-        {
-          query: 'from_dt',
-          label: 'Date (From)'
-        },
-        {
-          query: 'to_dt',
-          label: 'Date (To)'
-        },
-        {
-          query: 'assigned_user_id',
-          label: 'Assigned User',
-          options: users,
-          optionType: 'users'
-        }
-      ]
-      break
     case 'Non-Tray Count':
       reportForm.value = {
         building_id: null, // required
@@ -721,6 +703,7 @@ const generateReportModal = () => {
         aisle_id: null,
         side_id: null,
         ladder_id: null,
+        size_class_id: null,
         owner_id: null,
         height: null,
         width: null,
@@ -783,6 +766,29 @@ const generateReportModal = () => {
         {
           query: 'assigned_user_id',
           multiple: true,
+          label: 'Assigned User',
+          options: users,
+          optionType: 'users'
+        }
+      ]
+      break
+    case 'Shelving Move Discrepancy':
+      reportForm.value = {
+        from_dt: null,
+        to_dt: null,
+        assigned_user_id: null
+      }
+      reportParams.value = [
+        {
+          query: 'from_dt',
+          label: 'Date (From)'
+        },
+        {
+          query: 'to_dt',
+          label: 'Date (To)'
+        },
+        {
+          query: 'assigned_user_id',
           label: 'Assigned User',
           options: users,
           optionType: 'users'
@@ -937,7 +943,8 @@ const generateReport = async () => {
 
     await getReport(queryParams, mainProps.reportType)
 
-    emit('submit')
+    //emit to main report dashboard and pass query params so we can store them in the route
+    emit('submit', queryParams)
   } catch (error) {
     handleAlert({
       type: 'error',

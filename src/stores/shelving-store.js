@@ -364,6 +364,44 @@ export const useShelvingStore = defineStore('shelving-store', {
         }
       }
     },
+    async postShelvingJobContainerProposedLocation (payload) {
+      try {
+        if (globalStore.appIsOffline) {
+          navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.shelvingJobs}${payload.job_id}/reassign-proposed-location` })
+        }
+        const res = await this.$api.post(`${inventoryServiceApi.shelvingJobs}${payload.job_id}/reassign-proposed-location`, payload)
+        this.shelvingJobContainer.shelf_position_id = res.data.shelf_position_id
+        this.shelvingJobContainer.shelf_position.shelf_position_number.number = payload.shelf_position_number
+        this.shelvingJobContainer = {
+          ...this.shelvingJobContainer,
+          ...res.data
+        }
+
+        // update the container at the shelving job level as well
+        if (payload.trayed) {
+          const trayItemIndex = this.shelvingJob.trays.findIndex(container => container.id == payload.container_id)
+          const trayItemByIndex = this.shelvingJob.trays[trayItemIndex] = this.shelvingJobContainer
+
+          // move the item to bottom of the list
+          this.shelvingJob.trays.splice(trayItemIndex, 1)
+          this.shelvingJob.trays.push(trayItemByIndex)
+        } else {
+          const nonTrayItemIndex = this.shelvingJob.non_tray_items.findIndex(container => container.id == payload.container_id)
+          const nonTrayItemByIndex = this.shelvingJob.non_tray_items[nonTrayItemIndex] = this.shelvingJobContainer
+
+          // move the item to bottom of the list
+          this.shelvingJob.non_tray_items.splice(nonTrayItemIndex, 1)
+          this.shelvingJob.non_tray_items.push(nonTrayItemByIndex)
+        }
+        this.originalShelvingJob = { ...this.shelvingJob }
+      } catch (error) {
+        if (globalStore.appIsOffline) {
+          return
+        } else {
+          throw error
+        }
+      }
+    },
     async getShelvingTrayContainerDetails (barcode_value) {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.traysBarcode}${barcode_value}`)

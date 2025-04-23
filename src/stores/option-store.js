@@ -65,6 +65,7 @@ export const useOptionStore = defineStore('option-store', {
 
         // set the total number of rendered options which is used for pagination limits
         this.optionsTotal = res.data.total
+        return res
       } catch (error) {
         throw error
       }
@@ -93,11 +94,19 @@ export const useOptionStore = defineStore('option-store', {
         throw error
       }
     },
-    async getExactOptionById (optionType, id) {
+    async getExactOptionById (optionType, id, combineOptions = false) {
       // preloads options needed on our select inputs when they mount with a modelValue passed in
       try {
         const res = await this.$api.get(`${inventoryServiceApi[optionType]}${id}`)
-        this[optionType] = [res.data]
+
+        if (combineOptions) {
+          this[optionType] = [
+            ...this[optionType],
+            res.data
+          ]
+        } else {
+          this[optionType] = [res.data]
+        }
       } catch (error) {
         throw error
       }

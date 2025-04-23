@@ -48,6 +48,7 @@
                 <TextInput
                   v-model="inputForm[field.field]"
                   :placeholder="`Enter ${field.label}`"
+                  :type="field.fieldType ?? ''"
                   :disabled="field.disabled"
                   :aria-label="`${field.field}_input`"
                 />
@@ -272,16 +273,19 @@ const generateListModal = async () => {
         {
           field: 'width',
           label: 'Width (in)',
+          fieldType: 'number',
           required: true
         },
         {
           field: 'depth',
           label: 'Depth (in)',
+          fieldType: 'number',
           required: true
         },
         {
           field: 'height',
           label: 'Height (in)',
+          fieldType: 'number',
           required: true
         }
       ]
@@ -348,13 +352,17 @@ const generateListModal = async () => {
       inputFormOriginal.value = { ...toRaw(inputForm.value) }
 
       //TEMP loop the shelf type size class options until we get all size class data needed for the modal
-      await getOptions('sizeClass', { size: 50 })
+      await getOptions('sizeClass', {
+        size: 50,
+        sort_by: 'name'
+      })
       if (optionsTotal.value > 50) {
         let page = 2
         let totalPages = Math.ceil(optionsTotal.value/50)
         while (page <= totalPages) {
           await getOptions('sizeClass', {
             size: 50,
+            sort_by: 'name',
             page
           }, true)
           page++

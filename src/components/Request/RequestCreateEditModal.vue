@@ -324,7 +324,8 @@ const createRequestJob = async (isNext = false) => {
         requestor_name: manualRequestForm.value.requestor_name,
         barcode_value: manualRequestForm.value.barcode,
         delivery_location_id: manualRequestForm.value.delivery_location_id,
-        priority_id: manualRequestForm.value.priority_id
+        priority_id: manualRequestForm.value.priority_id,
+        requested_by_id: userData.value.user_id
       }
       await postRequestJob(payload)
       handleAlert({
@@ -337,7 +338,7 @@ const createRequestJob = async (isNext = false) => {
     } else {
       payload = {
         file: requestFile.value[0].file,
-        user_id: userData.value.user_id
+        requested_by_id: userData.value.user_id
       }
       await postRequestBatchJob(payload)
 

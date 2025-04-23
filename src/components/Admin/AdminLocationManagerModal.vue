@@ -49,6 +49,7 @@
                   v-model="locationForm[field.field]"
                   :placeholder="`Enter ${field.label}`"
                   :disabled="field.disabled"
+                  :type="field.fieldType ?? ''"
                   :aria-label="`${field.field}_input`"
                 />
               </div>
@@ -242,6 +243,7 @@ const generateLocationModal = () => {
         {
           field: 'module_number',
           label: 'Module Number',
+          fieldType: 'number',
           required: true
         }
       ]
@@ -256,11 +258,13 @@ const generateLocationModal = () => {
         {
           field: 'aisle_number',
           label: 'Aisle Number',
+          fieldType: 'number',
           required: true,
           disabled: mainProps.actionType == 'Edit'
         },
         {
           field: 'sort_priority',
+          fieldType: 'number',
           label: 'Aisle Priority'
         }
       ]
@@ -275,11 +279,13 @@ const generateLocationModal = () => {
         {
           field: 'ladder_number',
           label: 'Ladder Number',
+          fieldType: 'number',
           required: true,
           disabled: mainProps.actionType == 'Edit'
         },
         {
           field: 'sort_priority',
+          fieldType: 'number',
           label: 'Ladder Priority'
         }
       ]
@@ -337,25 +343,30 @@ const generateLocationModal = () => {
         {
           field: 'shelf_number',
           label: 'Shelf Number',
+          fieldType: 'number',
           disabled: mainProps.actionType == 'Edit',
           required: true
         },
         {
           field: 'sort_priority',
+          fieldType: 'number',
           label: 'Shelf Priority'
         },
         {
           field: 'width',
+          fieldType: 'number',
           label: 'Width (in)',
           required: true
         },
         {
           field: 'depth',
+          fieldType: 'number',
           label: 'Depth (in)',
           required: true
         },
         {
           field: 'height',
+          fieldType: 'number',
           label: 'Height (in)',
           required: true
         }
