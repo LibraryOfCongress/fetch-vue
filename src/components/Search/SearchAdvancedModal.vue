@@ -257,7 +257,7 @@
             </div>
             <!-- text inputs -->
             <div
-              v-else-if="param.query == 'barcode' || param.query == 'job_id' || param.query == 'requestor_name' || param.query == 'external_request_id'"
+              v-else-if="param.query == 'barcode_value' || param.query == 'job_id' || param.query == 'requestor_name' || param.query == 'external_request_id'"
               class="col-12 q-mb-md"
             >
               <div class="form-group">
@@ -554,7 +554,7 @@ const generateSearchModal = () => {
         from_dt: null,
         to_dt: null,
         requested_by_id: null,
-        barcode: null,
+        barcode_value: null,
         external_request_id: null,
         requestor_name: '',
         priority_id: null,
@@ -578,7 +578,7 @@ const generateSearchModal = () => {
           optionLabel: 'name'
         },
         {
-          query: 'barcode',
+          query: 'barcode_value',
           label: 'Item Barcode'
         },
         {
