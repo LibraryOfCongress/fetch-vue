@@ -826,7 +826,7 @@ const completeMoveShelfLocations = async () => {
     if (capturedMoveErrors.length > 0) {
       handleAlert({
         type: 'error',
-        text: `Failed to move ${capturedMoveErrors.length} container(s). Please see move discrepency <a href='/reports/Shelving%20Move%20Discrepancy?from_dt=${moment().format('YYYY-MM-DDT00:00:00.000') + 'Z'}&to_dt=${moment().format('YYYY-MM-DDT23:59:59.999') + 'Z'}&assigned_user_id=${userData.value.user_id}' tabindex='0'>report</a>`,
+        text: `Failed to move ${capturedMoveErrors.length} container(s). Please see move discrepancy <a href='/reports/Shelving%20Move%20Discrepancy?from_dt=${moment().format('YYYY-MM-DDT00:00:00.000') + 'Z'}&to_dt=${moment().format('YYYY-MM-DDT23:59:59.999') + 'Z'}&assigned_user_id=${userData.value.user_id}' tabindex='0'>report</a>`,
         autoClose: false
       })
     }
@@ -889,7 +889,7 @@ const completeMoveTrayItem = async () => {
     if (capturedMoveErrors.length > 0) {
       handleAlert({
         type: 'error',
-        text: `Failed to move ${capturedMoveErrors.length} container(s). Please see move discrepency <a href='/reports/Shelving%20Move%20Discrepancy?from_dt=${moment().format('YYYY-MM-DDT00:00:00.000') + 'Z'}&to_dt=${moment().format('YYYY-MM-DDT23:59:59.999') + 'Z'}&assigned_user_id=${userData.value.user_id}' tabindex='0'>report</a>`,
+        text: `Failed to move ${capturedMoveErrors.length} container(s). Please see move discrepancy <a href='/reports/Shelving%20Move%20Discrepancy?from_dt=${moment().format('YYYY-MM-DDT00:00:00.000') + 'Z'}&to_dt=${moment().format('YYYY-MM-DDT23:59:59.999') + 'Z'}&assigned_user_id=${userData.value.user_id}' tabindex='0'>report</a>`,
         autoClose: false
       })
     }
