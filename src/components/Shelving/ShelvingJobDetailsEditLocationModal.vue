@@ -427,7 +427,7 @@ const submitLocationForm = async () => {
         container_id: locationForm.value.id,
         container_barcode_value: locationForm.value.barcode,
         shelf_position_number: shelvesPositions.value.find(shelf_pos => shelf_pos.id == locationForm.value.shelf_position_id)?.shelf_position_number?.number,
-        shelf_barcode_value: locationForm.value.shelf_barcode
+        shelf_id: locationForm.value.shelf_id
       }
     }
 
