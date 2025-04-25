@@ -255,7 +255,7 @@
             ]}"
             option-value="id"
             option-label="id"
-            @focus="picklists = []"
+            :force-option-type-reload="true"
             :placeholder="'Select Pick List Job'"
             aria-label="picklistJobSelect"
           />

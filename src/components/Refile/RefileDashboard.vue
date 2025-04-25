@@ -261,7 +261,7 @@
             ]}"
             option-value="id"
             option-label="id"
-            @focus="refileJobs = []"
+            :force-option-type-reload="true"
             :placeholder="'Select Refile Job'"
             aria-label="refileJobSelect"
           />

@@ -136,6 +136,11 @@ const mainProps = defineProps({
   disabled: {
     type: Boolean,
     default: false
+  },
+  forceOptionTypeReload: {
+    // this allows up for force the select input to reload is option data from the api, ex: shelving job creation, verification select uses this to ensure we get the latest list of verificaiton jobs on click
+    type: Boolean,
+    default: false
   }
 })
 
@@ -201,7 +206,7 @@ const updateModelValue = (value) => {
 const filterOptions = async (val, update) => {
   // if there is an optionType then we need to get a the intial list of options from the api based on the optionType passed in
   // the passed in optionType should match an http endpoint
-  if (mainProps.optionType !== '' && localOptions.value.length <= 1 && optionTypeTotal.value == 0) {
+  if (mainProps.forceOptionTypeReload || mainProps.optionType !== '' && localOptions.value.length <= 1 && optionTypeTotal.value == 0) {
     // for string based option labels we can set these as our default sort by, nested option labels must be passed in via optionQuery
     const defaultSortBy = mainProps.optionLabel.toString().includes('.') ? null : mainProps.optionLabel
     const res = await getOptions(mainProps.optionType, {

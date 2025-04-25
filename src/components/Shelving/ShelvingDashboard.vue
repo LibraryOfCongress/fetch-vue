@@ -204,12 +204,12 @@
                   :multiple="true"
                   :use-chips="true"
                   :hide-selected="false"
+                  :force-option-type-reload="true"
                   :options="verificationJobs"
                   option-type="verificationJobs"
                   :option-query="{ unshelved: true }"
                   option-value="id"
                   option-label="workflow_id"
-                  @focus="verificationJobs = []"
                   :placeholder="'Select Verification Job(s) by Number'"
                   aria-label="verificationJobSelect"
                 >
