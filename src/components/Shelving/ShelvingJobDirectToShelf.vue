@@ -156,6 +156,7 @@
   <!-- dts scan container modal -->
   <PopupModal
     v-if="showScanContainerModal"
+    ref="scanContainerModal"
     title="Container Location"
     @reset="showScanContainerModal = false; resetShelvingJobContainer();"
     aria-label="scanContainerModal"
@@ -180,6 +181,7 @@
           <TextInput
             v-model="shelvingJobContainer.shelf_position_number"
             placeholder="Enter Shelf Postion"
+            type="number"
           />
         </div>
       </q-card-section>
@@ -195,7 +197,7 @@
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
           :disabled="!shelvingJobContainer.shelf_position_number"
-          @click="assignContainerLocation(); hideModal();"
+          @click="assignContainerLocation();"
         />
 
         <q-space class="q-mx-xs" />
@@ -264,6 +266,7 @@ const {
 } = storeToRefs(useShelvingStore())
 
 // Local Data
+const scanContainerModal = ref(null)
 const shelfTableColumns = ref([
   {
     name: 'barcode',
@@ -442,6 +445,7 @@ const assignContainerLocation = async () => {
   } finally {
     appActionIsLoadingData.value = false
     resetShelvingJobContainer()
+    scanContainerModal.value.hideModal()
   }
 }
 const completeDirectToShelfJob = async () => {

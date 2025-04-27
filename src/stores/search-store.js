@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia'
 import inventoryServiceApi from '@/http/InventoryService.js'
+import moment from 'moment/moment'
 
 export const useSearchStore = defineStore('search-store', {
   state: () => ({
-    advanceSearchHistory: null,
+    advancedSearchHistory: null,
+    searchType: null,
     searchResultsTotal: 0,
     searchResults: []
   }),
@@ -124,7 +126,27 @@ export const useSearchStore = defineStore('search-store', {
 
         // store the advance search history and total for pagination
         this.searchResultsTotal = res.data.total
-        this.advanceSearchHistory = paramsObj
+        this.advancedSearchHistory = paramsObj
+        this.searchType = searchType
+      } catch (error) {
+        throw error
+      }
+    },
+    async downloadAdvancedSearchResults (endpoint) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi[endpoint]}download`, {
+          params: this.advancedSearchHistory ?? {}
+        })
+        const url = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
+        const formattedDate = moment().format().slice(0, 19).replace(/[-T:]/g, '_')
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `advanced_search_${this.searchType}_${formattedDate}.csv`
+        document.body.appendChild(link)
+        link.click()
+
+        link.remove()
+        window.URL.revokeObjectURL(url)
       } catch (error) {
         throw error
       }

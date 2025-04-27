@@ -58,21 +58,10 @@
               Container Size
             </label>
             <p
-              v-if="!editMode || editMode && !accessionContainer.id"
               :class="accessionContainer.id ? 'outline' : ''"
             >
               {{ accessionContainer.size_class?.name }}
             </p>
-            <SelectInput
-              v-else
-              aria-label="containerSizeSelect"
-              v-model="accessionContainer.size_class_id"
-              :options="sizeClass"
-              :clearable="false"
-              option-type="sizeClass"
-              option-value="id"
-              option-label="name"
-            />
           </div>
 
           <div class="accession-container-info-details col-xs-6 col-sm-12">
@@ -289,14 +278,17 @@ const { compiledBarCode } = useBarcodeScanHandler()
 const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
-const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { verifyBarcode } = useBarcodeStore()
 const { barcodeDetails, barcodeScanAllowed } = storeToRefs(useBarcodeStore())
 const {
   sizeClass,
   mediaTypes
 } = storeToRefs(useOptionStore())
-const { getOptions } = useOptionStore()
+const {
+  getOptions,
+  getMediaType
+} = useOptionStore()
 const {
   patchAccessionJob,
   getAccessionTray,
@@ -329,8 +321,17 @@ const showAuditTrailModal = ref(false)
 const handleAlert = inject('handle-alert')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
-const handleOptionMenu = (option) => {
+watch(route, () => {
+  if (!route.params.containerId) {
+    // if the user clicks to go back to the job in the breadcrumb
+    // we need to kick the user out of the edit mode
+    editMode.value = false
+  }
+})
+
+const handleOptionMenu = async (option) => {
   if (option.text == 'Edit') {
+    await loadOptionData()
     editMode.value = true
   } else if (option.text == 'Cancel Job') {
     showConfirmationModal.value = 'CancelJob'
@@ -345,6 +346,25 @@ const handleOptionMenu = (option) => {
     showAuditTrailModal.value = 'accession_jobs'
   }
 }
+const loadOptionData = async () => {
+  try {
+    appIsLoadingData.value = true
+    // load the exact option data needed in our container and media type select inputs
+    if (!accessionContainer.value.id) {
+      await getMediaType(accessionJob.value.media_type_id)
+    } else {
+      await getMediaType(accessionContainer.value.media_type_id)
+    }
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
+  }
+}
 
 watch(compiledBarCode, (barcode) => {
   if (barcode !== '' && !accessionContainer.value.id && accessionJob.value.status !== 'Paused') {
@@ -353,6 +373,7 @@ watch(compiledBarCode, (barcode) => {
 })
 const handleTrayScan = async (barcode_value) => {
   try {
+    appIsLoadingData.value = true
     // stop the scan if no size class matches the scanned tray
     await getOptions('sizeClass', { short_name: barcode_value.slice(0, 2) })
     const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
@@ -381,7 +402,7 @@ const handleTrayScan = async (barcode_value) => {
         barcode_id: barcodeDetails.value.id,
         collection_accessioned: false,
         media_type_id: accessionJob.value.media_type_id,
-        scanned_for_accession: false,
+        scanned_for_accession: true,
         size_class_id: generateSizeClass
       }
       await postAccessionTray(payload)
@@ -403,6 +424,8 @@ const handleTrayScan = async (barcode_value) => {
       text: error,
       persistent: true
     })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 

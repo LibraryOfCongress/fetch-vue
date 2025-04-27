@@ -1,83 +1,41 @@
 import { defineStore } from 'pinia'
 import inventoryServiceApi from '@/http/InventoryService.js'
+import { useOptionStore } from './option-store'
+const optionStore = useOptionStore()
 
 export const useBuildingStore = defineStore('building-store', {
   state: () => ({
     buildingsTotal: 0,
+    sidesTotal: 0,
     shelvesTotal: 0,
     buildings: [],
-    modules: [], //TODO setup endpoint to get list of modules filtered by building id
-    aisles: [], //TODO setup endpoint to get list of aisles filtered by building id, module id
-    sides: [], //TODO setup endpoint to get list of sides filtered by building id, module id, aisle id
-    ladders: [], //TODO setup endpoint to get list of ladders filtered by building id, module id, aisle id, side id
-    shelves: [], //TODO setup endpoint to get list of shelves filtered by building id, module id, aisle id, side id, ladder id
+    modules: [],
+    aisles: [],
+    sides: [
+      // default state needed for toggle buttons utilizing sides
+      {
+        id: 1,
+        side_orientation: {
+          name: 'Left'
+        }
+      },
+      {
+        id: 2,
+        side_orientation: {
+          name: 'Right'
+        }
+      }
+    ],
+    ladders: [],
+    shelves: [],
+    shelvesPositions: [],
     buildingDetails: {},
     moduleDetails: {},
     aisleDetails: {},
     sideDetails: {},
     ladderDetails: {},
-    shelfDetails: {},
-    shelfPositions: []
+    shelfDetails: {}
   }),
-  getters: {
-    renderBuildingModules: (state) => {
-      let modules = []
-      if (state.buildingDetails.id && state.buildingDetails.modules) {
-        modules = state.buildingDetails.modules
-      }
-      return modules
-    },
-    renderBuildingOrModuleAisles: (state) => {
-      let aisles = []
-      if (state.moduleDetails.id && state.moduleDetails.aisles) {
-        aisles = state.moduleDetails.aisles
-      } else if (state.buildingDetails.id && state.buildingDetails.aisles) {
-        aisles = state.buildingDetails.aisles
-      }
-      return aisles
-    },
-    renderAisleSides: (state) => {
-      let sides = [
-        {
-          id: null,
-          side_orientation: {
-            name: 'Left'
-          }
-        },
-        {
-          id: 0,
-          side_orientation: {
-            name: 'Right'
-          }
-        }
-      ]
-      if (state.aisleDetails.id && state.aisleDetails.sides) {
-        sides = state.aisleDetails.sides
-      }
-      return sides
-    },
-    renderSideLadders: (state) => {
-      let ladders = []
-      if (state.sideDetails.id && state.sideDetails.ladders) {
-        ladders = state.sideDetails.ladders
-      }
-      return ladders
-    },
-    renderLadderShelves: (state) => {
-      let shelves = []
-      if (state.ladderDetails.id && state.ladderDetails.shelves) {
-        shelves = state.ladderDetails.shelves
-      }
-      return shelves
-    },
-    renderShelfPositions: (state) => {
-      let shelf_positions = []
-      if (state.shelfDetails.id && state.shelfDetails.shelf_positions) {
-        shelf_positions = state.shelfDetails.shelf_positions
-      }
-      return shelf_positions
-    }
-  },
   actions: {
     resetBuildingStore () {
       this.$reset()
@@ -90,8 +48,32 @@ export const useBuildingStore = defineStore('building-store', {
       this.sideDetails = {}
       this.ladderDetails = {}
       this.shelfDetails = {}
+      this.modules = []
+      this.aisles = []
+      this.sides = [
+        {
+          id: 1,
+          side_orientation: {
+            name: 'Left'
+          }
+        },
+        {
+          id: 2,
+          side_orientation: {
+            name: 'Right'
+          }
+        }
+      ]
+      this.ladders = []
       this.shelves = []
-      this.shelfPositions = []
+      this.shelvesPositions = []
+
+      // we also need to clear the relevant options utilized in select inputs via the optionStore
+      optionStore.modules = []
+      optionStore.aisles = []
+      optionStore.ladders = []
+      optionStore.shelves = []
+      optionStore.shelvesPositions = []
     },
     resetModuleChildren () {
       // clears state for aisle options downward since user will need to select an aisle next to populate the rest of the data
@@ -99,29 +81,81 @@ export const useBuildingStore = defineStore('building-store', {
       this.sideDetails = {}
       this.ladderDetails = {}
       this.shelfDetails = {}
+      this.aisles = []
+      this.sides = [
+        {
+          id: 1,
+          side_orientation: {
+            name: 'Left'
+          }
+        },
+        {
+          id: 2,
+          side_orientation: {
+            name: 'Right'
+          }
+        }
+      ]
+      this.ladders = []
       this.shelves = []
-      this.shelfPositions = []
+      this.shelvesPositions = []
+
+      // we also need to clear the relevant options utilized in select inputs via the optionStore
+      optionStore.aisles = []
+      optionStore.ladders = []
+      optionStore.shelves = []
+      optionStore.shelvesPositions = []
     },
     resetAisleChildren () {
       // clears state for side options downward since user will need to select an side next to populate the rest of the data
       this.sideDetails = {}
       this.ladderDetails = {}
       this.shelfDetails = {}
+      this.sides = [
+        {
+          id: 1,
+          side_orientation: {
+            name: 'Left'
+          }
+        },
+        {
+          id: 2,
+          side_orientation: {
+            name: 'Right'
+          }
+        }
+      ]
+      this.ladders = []
       this.shelves = []
-      this.shelfPositions = []
+      this.shelvesPositions = []
+
+      // we also need to clear the relevant options utilized in select inputs via the optionStore
+      optionStore.ladders = []
+      optionStore.shelves = []
+      optionStore.shelvesPositions = []
     },
     resetSideChildren () {
       // clears state for ladder options downward since user will need to select an ladder next to populate the rest of the data
       this.ladderDetails = {}
       this.shelfDetails = {}
+      this.ladders = []
       this.shelves = []
-      this.shelfPositions = []
+      this.shelvesPositions = []
+
+      // we also need to clear the relevant options utilized in select inputs via the optionStore
+      optionStore.ladders = []
+      optionStore.shelves = []
+      optionStore.shelvesPositions = []
     },
     resetLadderChildren () {
       // clears state for shelf options downward since user will need to select an shelf next to populate the rest of the data
       this.shelfDetails = {}
       this.shelves = []
-      this.shelfPositions = []
+      this.shelvesPositions = []
+
+      // we also need to clear the relevant options utilized in select inputs via the optionStore
+      optionStore.shelves = []
+      optionStore.shelvesPositions = []
     },
     async getBuildingsList (qParams) {
       try {
@@ -143,127 +177,6 @@ export const useBuildingStore = defineStore('building-store', {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.buildings}${id}`)
         this.buildingDetails = res.data
-        // this.buildingDetails = [
-        //   {
-        //     id: 1,
-        //     name: 'Cabin Branch',
-        //     modules: [
-        //       {
-        //         id: 10,
-        //         name: 'module 1',
-        //         aisles: [
-        //           {
-        //             id: 1,
-        //             ladders: 12
-        //           },
-        //           {
-        //             id: 2,
-        //             ladders: 13
-        //           },
-        //           {
-        //             id: 3,
-        //             ladders: 14
-        //           },
-        //           {
-        //             id: 4,
-        //             ladders: 15
-        //           }
-        //         ]
-        //       },
-        //       {
-        //         id: 11,
-        //         name: 'module 2',
-        //         aisles: [
-        //           {
-        //             id: 1,
-        //             ladders: 12
-        //           },
-        //           {
-        //             id: 2,
-        //             ladders: 13
-        //           },
-        //           {
-        //             id: 3,
-        //             ladders: 14
-        //           },
-        //           {
-        //             id: 4,
-        //             ladders: 15
-        //           }
-        //         ]
-        //       },
-        //       {
-        //         id: 12,
-        //         name: 'module 3',
-        //         aisles: [
-        //           {
-        //             id: 1,
-        //             ladders: 12
-        //           },
-        //           {
-        //             id: 2,
-        //             ladders: 13
-        //           },
-        //           {
-        //             id: 3,
-        //             ladders: 14
-        //           },
-        //           {
-        //             id: 4,
-        //             ladders: 15
-        //           }
-        //         ]
-        //       },
-        //       {
-        //         id: 13,
-        //         name: 'module 4',
-        //         aisles: [
-        //           {
-        //             id: 1,
-        //             ladders: 12
-        //           },
-        //           {
-        //             id: 2,
-        //             ladders: 13
-        //           },
-        //           {
-        //             id: 3,
-        //             ladders: 14
-        //           },
-        //           {
-        //             id: 4,
-        //             ladders: 15
-        //           }
-        //         ]
-        //       }
-        //     ],
-        //     available_shelves: 120
-        //   },
-        //   {
-        //     id: 2,
-        //     name: 'Fort Meade',
-        //     modules: [],
-        //     aisles: [
-        //       {
-        //         id: 1,
-        //         ladders: 12
-        //       },
-        //       {
-        //         id: 2,
-        //         ladders: 13
-        //       },
-        //       {
-        //         id: 3,
-        //         ladders: 14
-        //       },
-        //       {
-        //         id: 4,
-        //         ladders: 15
-        //       }
-        //     ],
-        //     available_shelves: 60
-        //   }
-        // ].find(b => b.id == id)
       } catch (error) {
         throw error
       }
@@ -383,6 +296,22 @@ export const useBuildingStore = defineStore('building-store', {
         throw error
       }
     },
+    async getSideList (qParams) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.sides}`, {
+          params: {
+            size: this.apiPageSizeDefault,
+            ...qParams
+          }
+        })
+        this.sides = res.data.items
+
+        // keep track of response total for pagination
+        this.sidesTotal = res.data.total
+      } catch (error) {
+        throw error
+      }
+    },
     async getSideDetails (id) {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.sides}${id}`)
@@ -498,7 +427,7 @@ export const useBuildingStore = defineStore('building-store', {
             size: this.apiPageSizeDefault
           }
         })
-        this.shelfPositions = res.data.items
+        this.shelvesPositions = res.data.items
       } catch (error) {
         throw error
       }

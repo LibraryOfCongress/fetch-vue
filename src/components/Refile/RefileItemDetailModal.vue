@@ -144,6 +144,7 @@
           color="accent"
           label="Cancel"
           class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
           @click="hideModal"
         />
       </q-card-section>
@@ -155,6 +156,7 @@
 import { inject, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { useGlobalStore } from '@/stores/global-store'
 import { useRefileStore } from '@/stores/refile-store'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
@@ -171,6 +173,7 @@ const { compiledBarCode } = useBarcodeScanHandler()
 const { addDataToIndexDb } = useIndexDbHandler()
 
 // Store Data
+const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   patchRefileJobTrayItemScanned,
   patchRefileJobNonTrayItemScanned,
@@ -232,6 +235,7 @@ const triggerShelfScan = (barcode_value) => {
 
 const updateTrayItemAsRefiled = async () => {
   try {
+    appActionIsLoadingData.value = true
     const payload = {
       job_id: route.params.jobId,
       item_id: refileItem.value.id,
@@ -241,6 +245,14 @@ const updateTrayItemAsRefiled = async () => {
 
     // directly update the refile tray item in the refile job items
     refileJob.value.items[refileJob.value.items.findIndex(itm => itm.id == payload.item_id)].status = payload.status
+
+    // also directly update the refile tray item in the refile_job_items array
+    const refileJobItemIndex = refileJob.value.refile_job_items.findIndex(itm => itm.barcode.value == refileItem.value.barcode.value)
+    const refileJobItemByIndex = refileJob.value.refile_job_items[refileJobItemIndex]
+    refileJobItemByIndex.status = payload.status
+    // move the item to bottom of the list
+    refileJob.value.refile_job_items.splice(refileJobItemIndex, 1)
+    refileJob.value.refile_job_items.push(refileJobItemByIndex)
 
     // update the stored refileJob since the container will get changed at the job requests level
     addDataToIndexDb('refileStore', 'refileJob', JSON.parse(JSON.stringify(refileJob.value)))
@@ -259,10 +271,13 @@ const updateTrayItemAsRefiled = async () => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appActionIsLoadingData.value = false
   }
 }
 const updateNonTrayItemAsRefiled = async () => {
   try {
+    appActionIsLoadingData.value = true
     const payload = {
       job_id: route.params.jobId,
       non_tray_item_id: refileItem.value.id,
@@ -272,6 +287,14 @@ const updateNonTrayItemAsRefiled = async () => {
 
     // directly update the refile non tray item in the refile job items
     refileJob.value.non_tray_items[refileJob.value.non_tray_items.findIndex(itm => itm.id == payload.non_tray_item_id)].status = payload.status
+
+    // also directly update the refile non tray item in the refile_job_items array
+    const refileJobItemIndex = refileJob.value.refile_job_items.findIndex(itm => itm.barcode.value == refileItem.value.barcode.value)
+    const refileJobItemByIndex = refileJob.value.refile_job_items[refileJobItemIndex]
+    refileJobItemByIndex.status = payload.status
+    // move the item to bottom of the list
+    refileJob.value.refile_job_items.splice(refileJobItemIndex, 1)
+    refileJob.value.refile_job_items.push(refileJobItemByIndex)
 
     // update the stored refileJob since the container will get changed at the job requests level
     addDataToIndexDb('refileStore', 'refileJob', JSON.parse(JSON.stringify(refileJob.value)))
@@ -290,6 +313,8 @@ const updateNonTrayItemAsRefiled = async () => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appActionIsLoadingData.value = false
   }
 }
 </script>

@@ -120,6 +120,16 @@ export const useRequestStore = defineStore('request-store', {
       try {
         const res = await this.$api.patch(`${inventoryServiceApi.requests}${payload.id}`, payload)
         this.requestJob = res.data
+        // refresh the requestJobList using request view filter since this endpoint only triggers from the request view tab
+        await this.getRequestJobList({ queue: true })
+      } catch (error) {
+        throw error
+      }
+    },
+    async deleteRequestJob (id) {
+      try {
+        await this.$api.delete(`${inventoryServiceApi.requests}${id}`)
+        this.resetRequestJob()
       } catch (error) {
         throw error
       }
@@ -153,17 +163,11 @@ export const useRequestStore = defineStore('request-store', {
         // create a formData Object and assign the file to the formData to be passed to api as 'multipart/form-data' content
         let formData = new FormData()
         formData.append('file', payload.file)
-        formData.append('user_id', payload.user_id)
-        const res = await this.$api.post(`${inventoryServiceApi.batchUpload}request`, formData)
+        formData.append('requested_by_id', payload.requested_by_id)
+        await this.$api.post(`${inventoryServiceApi.batchUpload}request`, formData)
 
         // reload batch request data
         await this.getRequestBatchJobList()
-
-        // check if success message contains errors and return them
-        if (res.data.errors && res.data.errors.length > 0) {
-          // TODO setup a better way to read success errors
-          return res.data.errors
-        }
       } catch (error) {
         throw error
       }

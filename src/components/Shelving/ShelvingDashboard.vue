@@ -204,11 +204,13 @@
                   :multiple="true"
                   :use-chips="true"
                   :hide-selected="false"
-                  :options="verificationJobList"
+                  :force-option-type-reload="true"
+                  :options="verificationJobs"
+                  option-type="verificationJobs"
+                  :option-query="{ unshelved: true }"
                   option-value="id"
                   option-label="workflow_id"
                   :placeholder="'Select Verification Job(s) by Number'"
-                  @focus="loadVerificationJobs"
                   aria-label="verificationJobSelect"
                 >
                   <template #option="{ itemProps, opt, selected, toggleOption }">
@@ -251,6 +253,7 @@
                   option-type="buildings"
                   option-value="id"
                   option-label="name"
+                  :clearable="false"
                   :placeholder="'Select Building'"
                   @update:model-value="handleShelvingJobFormChange('Building')"
                   aria-label="buildingSelect"
@@ -266,11 +269,16 @@
                   </label>
                   <SelectInput
                     v-model="shelvingJob.module_id"
-                    :options="renderBuildingModules"
+                    :options="modules"
+                    option-type="modules"
+                    :option-query="{
+                      building_id: shelvingJob.building_id
+                    }"
                     option-value="id"
                     option-label="module_number"
                     :placeholder="'Select Module'"
-                    :disabled="renderBuildingModules.length == 0"
+                    :disabled="!shelvingJob.building_id"
+                    :clearable="false"
                     @update:model-value="handleShelvingJobFormChange('Module')"
                     aria-label="moduleSelect"
                   />
@@ -286,11 +294,18 @@
                       </label>
                       <SelectInput
                         v-model="shelvingJob.aisle_id"
-                        :options="renderBuildingOrModuleAisles"
+                        :options="aisles"
+                        option-type="aisles"
+                        :option-query="{
+                          building_id: shelvingJob.building_id,
+                          module_id: shelvingJob.module_id,
+                          sort_by: 'aisle_number'
+                        }"
                         option-value="id"
                         :option-label="opt => opt.aisle_number.number"
                         :placeholder="'Select Aisle'"
-                        :disabled="renderBuildingOrModuleAisles.length == 0"
+                        :disabled="!shelvingJob.module_id"
+                        :clearable="false"
                         @update:model-value="handleShelvingJobFormChange('Aisle')"
                         aria-label="aisleSelect"
                       />
@@ -305,10 +320,10 @@
                       </label>
                       <ToggleButtonInput
                         v-model="shelvingJob.side_id"
-                        :options="renderAisleSides"
+                        :options="sides"
                         option-value="id"
                         option-label="side_orientation.name"
-                        :disabled="!renderAisleSides[0].id"
+                        :disabled="!shelvingJob.aisle_id"
                         @update:model-value="handleShelvingJobFormChange('Side')"
                       />
                     </div>
@@ -323,11 +338,20 @@
                   </label>
                   <SelectInput
                     v-model="shelvingJob.ladder_id"
-                    :options="renderSideLadders"
+                    :options="ladders"
+                    option-type="ladders"
+                    :option-query="{
+                      building_id: shelvingJob.building_id,
+                      module_id: shelvingJob.module_id,
+                      aisle_id: shelvingJob.aisle_id,
+                      side_id: shelvingJob.side_id,
+                      sort_by: 'ladder_number'
+                    }"
                     option-value="id"
                     :option-label="opt => opt.ladder_number.number"
                     :placeholder="'Select Ladder'"
-                    :disabled="renderSideLadders.length == 0"
+                    :disabled="!shelvingJob.side_id"
+                    :clearable="false"
                     @update:model-value="handleShelvingJobFormChange('Ladder')"
                     aria-label="ladderSelect"
                   />
@@ -356,6 +380,7 @@
                   option-type="buildings"
                   option-value="id"
                   option-label="name"
+                  :clearable="false"
                   :placeholder="'Select Building'"
                   @update:model-value="handleShelvingJobFormChange('Building')"
                   aria-label="buildingSelect"
@@ -412,7 +437,6 @@ import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
 import { useOptionStore } from '@/stores/option-store'
-import { useVerificationStore } from 'src/stores/verification-store'
 import { useBuildingStore } from '@/stores/building-store'
 import { useShelvingStore } from '@/stores/shelving-store'
 import { storeToRefs } from 'pinia'
@@ -434,26 +458,27 @@ const {
   appIsLoadingData,
   appIsOffline
 } = storeToRefs(useGlobalStore())
-const { buildings, users } = storeToRefs(useOptionStore())
-const { getVerificationJobList } = useVerificationStore()
-const { verificationJobList } = storeToRefs(useVerificationStore())
+const {
+  buildings,
+  modules,
+  aisles,
+  ladders,
+  users,
+  verificationJobs
+} = storeToRefs(useOptionStore())
 const {
   getBuildingDetails,
   getModuleDetails,
   getAisleDetails,
   getSideDetails,
+  getSideList,
   resetBuildingStore,
   resetBuildingChildren,
   resetModuleChildren,
   resetAisleChildren,
   resetSideChildren
 } = useBuildingStore()
-const {
-  renderBuildingModules,
-  renderBuildingOrModuleAisles,
-  renderAisleSides,
-  renderSideLadders
-} = storeToRefs(useBuildingStore())
+const { sides } = storeToRefs(useBuildingStore())
 const {
   shelvingJobList,
   shelvingJob,
@@ -508,7 +533,7 @@ const shelfTableColumns = ref([
   },
   {
     name: 'user_id',
-    field: row => row.user ? `${row.user.first_name} ${row.user.last_name}` : '',
+    field: row => row.user ? row.user.name : '',
     label: 'Assigned User',
     align: 'left',
     sortable: true,
@@ -557,12 +582,12 @@ const shelfTableFilters = computed(() => {
       ]
     },
     {
-      field: row => row.user ? `${row.user.first_name} ${row.user.last_name}` : '',
+      field: row => row.user ? row.user.name : '',
       label: 'Assigned User',
       apiField: 'assigned_user',
       options: users.value.map(usr => {
         return {
-          text: `${usr.first_name} ${usr.last_name}`,
+          text: usr.name,
           value: false
         }
       })
@@ -609,31 +634,37 @@ const handleShelvingJobFormChange = async (valueType) => {
   // reset the form depending on the edited form field type
   switch (valueType) {
     case 'Building':
+      resetBuildingChildren()
       await getBuildingDetails(shelvingJob.value.building_id)
       shelvingJob.value.module_id = null
       shelvingJob.value.aisle_id = null
       shelvingJob.value.side_id = null
       shelvingJob.value.ladder_id = null
-      resetBuildingChildren()
       return
     case 'Module':
+      // clear state for aisle options downward since user needs to select an aisle next to populate the rest of the data
+      resetModuleChildren()
       await getModuleDetails(shelvingJob.value.module_id)
       shelvingJob.value.aisle_id = null
       shelvingJob.value.side_id = null
       shelvingJob.value.ladder_id = null
-      // clear state for aisle options downward since user needs to select an aisle next to populate the rest of the data
-      resetModuleChildren()
       return
     case 'Aisle':
+      resetAisleChildren()
       await getAisleDetails(shelvingJob.value.aisle_id)
+      // also get sides since sides are buttons and not dynamically loaded from a options select input
+      await getSideList({
+        building_id: shelvingJob.value.building_id,
+        module_id: shelvingJob.value.module_id,
+        aisle_id: shelvingJob.value.aisle_id
+      })
       shelvingJob.value.side_id = null
       shelvingJob.value.ladder_id = null
-      resetAisleChildren()
       return
     case 'Side':
+      resetSideChildren()
       await getSideDetails(shelvingJob.value.side_id)
       shelvingJob.value.ladder_id = null
-      resetSideChildren()
       return
     case 'Ladder':
       return
@@ -772,18 +803,6 @@ const submitShelvingMove = async (moveType) => {
       type: moveType
     }
   })
-}
-
-const loadVerificationJobs = async () => {
-  try {
-    await getVerificationJobList({ unshelved: true })
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
-  }
 }
 
 </script>

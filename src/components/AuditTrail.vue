@@ -135,9 +135,11 @@ const tableVisibleColumns = ref([
 
 // Logic
 const formatDateTime = inject('format-date-time')
-onMounted(() => {
+onMounted( async () => {
   if (mainProps.jobType && mainProps.jobId) {
-    getAuditTrailData(mainProps.jobType, mainProps.jobId)
+    appIsLoadingData.value = true
+    await getAuditTrailData(mainProps.jobType, mainProps.jobId)
+    appIsLoadingData.value = false
   }
 })
 </script>

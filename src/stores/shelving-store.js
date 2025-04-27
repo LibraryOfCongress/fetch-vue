@@ -108,11 +108,16 @@ export const useShelvingStore = defineStore('shelving-store', {
       } else if (state.directToShelfJob.id) {
         containerList = containerList.concat(state.directToShelfJob.trays, state.directToShelfJob.non_tray_items)
       }
-      // return the list sorted alphnumerically
+      // return the list first sorted alphnumerically then sorted by scanned boolean
+      const sortBoolOrder = {
+        false: 1,
+        null: 2,
+        true: 3
+      }
       return containerList.sort(new Intl.Collator('en', {
         numeric:true,
         sensitivity:'accent'
-      }).compare)
+      }).compare).sort((a, b) => sortBoolOrder[a.scanned_for_shelving] - sortBoolOrder[b.scanned_for_shelving])
     },
     allContainersShelved: (state) => {
       if (state.shelvingJob.id && state.shelvingJob.status !== 'Created') {
@@ -305,9 +310,19 @@ export const useShelvingStore = defineStore('shelving-store', {
 
         // update the container at the shelving job level as well
         if (payload.trayed) {
-          this.shelvingJob.trays[this.shelvingJob.trays.findIndex(container => container.id == payload.container_id)] = this.shelvingJobContainer
+          const trayItemIndex = this.shelvingJob.trays.findIndex(container => container.id == payload.container_id)
+          const trayItemByIndex = this.shelvingJob.trays[trayItemIndex] = this.shelvingJobContainer
+
+          // move the item to bottom of the list
+          this.shelvingJob.trays.splice(trayItemIndex, 1)
+          this.shelvingJob.trays.push(trayItemByIndex)
         } else {
-          this.shelvingJob.non_tray_items[this.shelvingJob.non_tray_items.findIndex(container => container.id == payload.container_id)] = this.shelvingJobContainer
+          const nonTrayItemIndex = this.shelvingJob.non_tray_items.findIndex(container => container.id == payload.container_id)
+          const nonTrayItemByIndex = this.shelvingJob.non_tray_items[nonTrayItemIndex] = this.shelvingJobContainer
+
+          // move the item to bottom of the list
+          this.shelvingJob.non_tray_items.splice(nonTrayItemIndex, 1)
+          this.shelvingJob.non_tray_items.push(nonTrayItemByIndex)
         }
         this.originalShelvingJob = { ...this.shelvingJob }
       } catch (error) {
@@ -341,6 +356,44 @@ export const useShelvingStore = defineStore('shelving-store', {
             this.shelvingJobContainer
           ]
         }
+      } catch (error) {
+        if (globalStore.appIsOffline) {
+          return
+        } else {
+          throw error
+        }
+      }
+    },
+    async postShelvingJobContainerProposedLocation (payload) {
+      try {
+        if (globalStore.appIsOffline) {
+          navigator.serviceWorker.controller.postMessage({ queueIncomingApiCall: `${inventoryServiceApi.shelvingJobs}${payload.job_id}/reassign-proposed-location` })
+        }
+        const res = await this.$api.post(`${inventoryServiceApi.shelvingJobs}${payload.job_id}/reassign-proposed-location`, payload)
+        this.shelvingJobContainer.shelf_position_id = res.data.shelf_position_id
+        this.shelvingJobContainer.shelf_position.shelf_position_number.number = payload.shelf_position_number
+        this.shelvingJobContainer = {
+          ...this.shelvingJobContainer,
+          ...res.data
+        }
+
+        // update the container at the shelving job level as well
+        if (payload.trayed) {
+          const trayItemIndex = this.shelvingJob.trays.findIndex(container => container.id == payload.container_id)
+          const trayItemByIndex = this.shelvingJob.trays[trayItemIndex] = this.shelvingJobContainer
+
+          // move the item to bottom of the list
+          this.shelvingJob.trays.splice(trayItemIndex, 1)
+          this.shelvingJob.trays.push(trayItemByIndex)
+        } else {
+          const nonTrayItemIndex = this.shelvingJob.non_tray_items.findIndex(container => container.id == payload.container_id)
+          const nonTrayItemByIndex = this.shelvingJob.non_tray_items[nonTrayItemIndex] = this.shelvingJobContainer
+
+          // move the item to bottom of the list
+          this.shelvingJob.non_tray_items.splice(nonTrayItemIndex, 1)
+          this.shelvingJob.non_tray_items.push(nonTrayItemByIndex)
+        }
+        this.originalShelvingJob = { ...this.shelvingJob }
       } catch (error) {
         if (globalStore.appIsOffline) {
           return

@@ -34,8 +34,23 @@
                   {label: 'Non-Tray Items', value: 'nonTrayItem'},
                   {label: 'Tray Items', value: 'trayItem'}
                 ]"
-                @update:model-value="loadAdvancedSearch(advanceSearchHistory);"
+                @update:model-value="loadAdvancedSearch(advancedSearchHistory);"
                 class="text-no-wrap"
+              />
+            </div>
+            <div
+              v-if="showDownloadReport"
+              class="col-xs-12 col-sm-12 col-md-auto flex"
+              :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? 'justify-end q-mb-md' : 'order-1'"
+            >
+              <q-btn
+                no-caps
+                unelevated
+                color="accent"
+                label="Download Report"
+                class="text-body1 q-ml-xs-none q-ml-sm-sm"
+                :disabled="appIsOffline"
+                @click="downloadAdvancedSearchReport()"
               />
             </div>
           </template>
@@ -73,20 +88,22 @@ const router = useRouter()
 
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
+const { appIsOffline } = storeToRefs(useGlobalStore())
 
 // Store Data
 const {
   searchResults,
   searchResultsTotal,
-  advanceSearchHistory
+  advancedSearchHistory
 } = storeToRefs(useSearchStore())
-const { getAdvancedSearchResults } = useSearchStore()
+const { getAdvancedSearchResults, downloadAdvancedSearchResults } = useSearchStore()
 const { appIsLoadingData } = storeToRefs(useGlobalStore())
 
 // Local Data
 const toggleSearchTab = ref(null)
 const searchResultsTableVisibleColumns = ref([])
 const searchResultsTableColumns = ref([])
+const showDownloadReport = ref(false)
 
 // Logic
 const formatDateTime = inject('format-date-time')
@@ -102,7 +119,8 @@ watch(route, () => {
 })
 
 const generateSearchTableFields = () => {
-  // creates the search table fields needed based on the route searcType
+  showDownloadReport.value = false
+  // creates the search table fields needed based on the route searchType
   switch (route.params.searchType) {
     case 'Item':
     case 'TrayItem':
@@ -175,6 +193,7 @@ const generateSearchTableFields = () => {
           'barcode_value'
         ]
       }
+      showDownloadReport.value = true
       break
     case 'Tray':
       searchResultsTableColumns.value = [
@@ -379,37 +398,79 @@ const generateSearchTableFields = () => {
     case 'Request':
       searchResultsTableColumns.value = [
         {
-          name: 'create_dt',
-          field: 'create_dt',
-          label: 'Create Date',
+          name: 'requested_by',
+          field: row => renderUserName(row?.requested_by),
+          label: 'Requested By',
           align: 'left',
           sortable: true
         },
         {
-          name: 'id',
-          field: 'id',
-          label: 'Request ID #',
+          name: 'barcode_value',
+          field: row => renderItemBarcodeDisplay(row.non_tray_item ? row.non_tray_item : row.item),
+          label: 'Barcode',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'external_request_id',
+          field: 'external_request_id',
+          label: 'External Request ID',
           align: 'left',
           sortable: true
         },
         {
           name: 'requestor_name',
           field: 'requestor_name',
-          label: 'Requested By',
+          label: 'Requestor Name',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'request_type',
+          field: row => row.request_type?.type,
+          label: 'Request Type',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'priority',
+          field: row => row.priority?.value,
+          label: 'Priority',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'delivery_location',
+          field: row => row.delivery_location?.address,
+          label: 'Delivery Location',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'create_dt',
+          field: 'create_dt',
+          label: 'Create Date',
           align: 'left',
           sortable: true
         }
       ]
       searchResultsTableVisibleColumns.value = [
-        'create_dt',
-        'id',
-        'requestor_name'
+        'requested_by',
+        'barcode_value',
+        'external_request_id',
+        'requestor_name',
+        'request_type',
+        'priority',
+        'delivery_location',
+        'create_dt'
       ]
       if (currentScreenSize.value == 'xs') {
         searchResultsTableVisibleColumns.value = [
-          'create_dt',
-          'id',
-          'requestor_name'
+          'barcode_value',
+          'external_request_id',
+          'priority',
+          'delivery_location',
+          'create_dt'
         ]
       }
       break
@@ -641,7 +702,7 @@ const handleResultSelection = (rowData) => {
       break
     case 'Request':
       router.push({
-        name: 'request',
+        name: 'request-details',
         params: {
           jobId: rowData.id
         }
@@ -688,14 +749,14 @@ const loadAdvancedSearch = async (qParams) => {
     }
 
     await getAdvancedSearchResults({
-      ...advanceSearchHistory.value,
+      ...advancedSearchHistory.value,
       ...qParams
     }, route.params.searchType)
 
     // update route queries to match new searches
     router.replace({
       query: {
-        ...advanceSearchHistory.value,
+        ...advancedSearchHistory.value,
         ...qParams
       }
     })
@@ -709,6 +770,35 @@ const loadAdvancedSearch = async (qParams) => {
     appIsLoadingData.value = false
   }
 }
+
+const downloadAdvancedSearchReport = async () => {
+  try {
+    appIsLoadingData.value = true
+    // Send the download the endpoint to use based on which tab we are looking at
+    // The endpoints set here need to match the keys in InventoryService.js
+    let endpoint
+    switch (route.params.searchType) {
+      case 'Item':
+        endpoint = 'nonTrayItems'
+        break
+      case 'TrayItem':
+        endpoint = 'items'
+        break
+      default:
+        return
+    }
+    await downloadAdvancedSearchResults(endpoint)
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appIsLoadingData.value = false
+  }
+}
+
 </script>
 <style lang="scss" scoped>
 </style>

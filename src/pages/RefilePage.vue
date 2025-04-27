@@ -13,7 +13,7 @@
 </template>
 
 <script setup>
-import { inject, onMounted } from 'vue'
+import { inject, onMounted, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useRefileStore } from '@/stores/refile-store'
@@ -33,15 +33,20 @@ const { pageInitLoading } = storeToRefs(useGlobalStore())
 // Logic
 const handlePageOffset = inject('handle-page-offset')
 
-onMounted( async () => {
+onBeforeMount(() => {
   pageInitLoading.value = true
+})
+
+onMounted( async () => {
   // load any options info that will be needed on the refile page
-  await Promise.all([
-    getOptions('mediaTypes'),
-    getOptions('users'),
-    getOptions('owners'),
-    getOptions('sizeClass')
-  ])
+  if (!route.params.jobId) {
+    await Promise.all([
+      getOptions('mediaTypes', { sort_by: 'name' }),
+      getOptions('users', { sort_by: 'name' }),
+      getOptions('owners', { sort_by: 'name' }),
+      getOptions('sizeClass', { sort_by: 'name' })
+    ])
+  }
 
   // if there is an id in the url we need to load that refile job
   if (route.params.jobId) {

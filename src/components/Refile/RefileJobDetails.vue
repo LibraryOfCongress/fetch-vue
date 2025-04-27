@@ -4,8 +4,9 @@
       <div class="flex q-mb-xs">
         <MoreOptionsMenu
           :options="[
-            { text: 'Edit', hidden: !checkUserPermission('can_assign_and_reassign_refile_job'), disabled: appIsOffline || editJob || refileJob.status == 'Paused' || refileJob.status == 'Completed' },
-            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_refile_job'), optionClass: 'text-negative', disabled: appIsOffline || editJob || refileJob.status == 'Completed' || (refileJob.refile_job_items && refileJob.refile_job_items.some(itm => itm.status == 'In'))},
+            { text: 'Edit Job Info', hidden: !checkUserPermission('can_assign_and_reassign_refile_job'), disabled: appIsOffline || editJobInfo || editItems || refileJob.status == 'Paused' || refileJob.status == 'Completed' },
+            { text: 'Edit Items', disabled: appIsOffline || editJobInfo || editItems || refileJob.status == 'Paused' || refileJob.status == 'Completed' },
+            { text: 'Delete Job', hidden: !checkUserPermission('can_delete_refile_job'), optionClass: 'text-negative', disabled: appIsOffline || editJobInfo || editItems || refileJob.status == 'Completed' || (refileJob.refile_job_items && refileJob.refile_job_items.some(itm => itm.status == 'In'))},
             { text: 'Print Job' },
             { text: 'View History' }
           ]"
@@ -33,10 +34,10 @@
             Assigned User:
           </label>
           <p
-            v-if="!editJob"
+            v-if="!editJobInfo"
             class="text-body1"
           >
-            {{ refileJob.assigned_user?.first_name }}
+            {{ refileJob.assigned_user?.name }}
           </p>
           <SelectInput
             v-else
@@ -44,7 +45,7 @@
             :options="users"
             option-type="users"
             option-value="id"
-            option-label="first_name"
+            option-label="name"
             aria-label="userSelect"
             class="q-pr-xs-sm q-pr-md-none"
           />
@@ -95,17 +96,18 @@
         class="col-sm-12 col-md-12 col-lg-3 q-ml-auto"
       >
         <div
-          v-if="editJob"
+          v-if="editJobInfo || editItems"
           class="info-display-details-action q-mt-sm-sm q-mt-md-md"
         >
           <q-btn
             no-caps
             unelevated
-            color="accent"
-            label="Save Edits"
+            :color="editJobInfo ? 'accent' : 'negative'"
+            :label="editJobInfo ? 'Save Edits' : 'Revert Items to Queue'"
+            :disable="editItems && !selectedItems.length"
             class="btn-no-wrap text-body1 q-mr-sm"
             :loading="appActionIsLoadingData"
-            @click="updateRefileJob"
+            @click="editJobInfo ? updateRefileJob() : revertItemsToQueue()"
           />
           <q-btn
             no-caps
@@ -146,12 +148,13 @@
         </div>
       </div>
       <MobileActionBar
-        v-else-if="currentScreenSize == 'xs' && editJob"
-        button-one-color="accent"
-        :button-one-label="'Save Edits'"
+        v-else-if="currentScreenSize == 'xs' && (editJobInfo || editItems)"
+        :button-one-color="editJobInfo ? 'accent' : 'negative'"
+        :button-one-label="editJobInfo ? 'Save Edits' : 'Revert Items to Queue'"
         :button-one-outline="false"
         :button-one-loading="appActionIsLoadingData"
-        @button-one-click="updateRefileJob"
+        :button-one-disabled="editItems && !selectedItems.length"
+        @button-one-click="editJobInfo ? updateRefileJob() : revertItemsToQueue()"
         button-two-color="accent"
         :button-two-label="'Cancel'"
         :button-two-outline="true"
@@ -176,19 +179,21 @@
 
     <template #table-content>
       <EssentialTable
+        ref="refileItemsTableComponent"
         :table-columns="itemTableColumns"
         :table-visible-columns="itemTableVisibleColumns"
         :filter-options="itemTableFilters"
-        :table-data="refileJob.refile_job_items ?? []"
-        :row-key="'barcode'"
+        :table-data="refileJobItems"
+        :row-key="row => renderItemBarcodeDisplay(row)"
         :enable-table-reorder="false"
-        :enable-selection="false"
+        :enable-selection="editItems"
         :heading-row-class="'q-mb-lg q-px-xs-sm q-px-sm-md'"
         :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
         :highlight-row-class="'justify-end bg-color-green-light'"
         :highlight-row-key="'status'"
         :highlight-row-value="'In'"
         @selected-table-row="loadRefileItem(renderItemBarcodeDisplay($event))"
+        @selected-data="selectedItems = $event"
       >
         <template #heading-row>
           <div class="col-xs-7 col-sm-5 q-mb-md-sm q-mr-auto">
@@ -347,8 +352,11 @@ const {
 } = storeToRefs(useRefileStore())
 
 // Local Data
+const refileItemsTableComponent = ref(null)
 const batchSheetComponent = ref(null)
-const editJob = ref(false)
+const editJobInfo = ref(false)
+const editItems = ref(false)
+const selectedItems = ref([])
 const itemTableVisibleColumns = ref([
   'actions',
   'item_location',
@@ -412,6 +420,12 @@ const itemTableColumns = ref([
     headerStyle: 'max-width: 200px'
   }
 ])
+const refileJobItems = computed(() => {
+  if (!refileJob.value.refile_job_items) {
+    return []
+  }
+  return editItems.value ? refileJob.value.refile_job_items.filter(item => item.status == 'Out') : refileJob.value.refile_job_items
+})
 const itemTableFilters = computed(() => {
   let tablesFilters = []
   if (refileJob.value.refile_job_items && refileJob.value.refile_job_items.length > 0) {
@@ -510,8 +524,11 @@ const triggerItemScan = (barcode_value) => {
 
 const handleOptionMenu = async (action, rowData) => {
   switch (action.text) {
-    case 'Edit':
-      editJob.value = true
+    case 'Edit Job Info':
+      editJobInfo.value = true
+      return
+    case 'Edit Items':
+      editItems.value = true
       return
     case 'Delete Job':
       showConfirmationModal.value = 'DeleteJob'
@@ -529,8 +546,12 @@ const handleOptionMenu = async (action, rowData) => {
 }
 
 const cancelRefileJobEdits = () => {
+  // Reset the refile job
   refileJob.value = { ...toRaw(originalRefileJob.value) }
-  editJob.value = false
+  editJobInfo.value = false
+  // Reset the items
+  editItems.value = false
+  refileItemsTableComponent.value.clearSelectedData()
 }
 const executeRefileJob = async () => {
   try {
@@ -552,6 +573,21 @@ const executeRefileJob = async () => {
       text: 'Refile Job Successfully Started',
       autoClose: true
     })
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
+  } finally {
+    appActionIsLoadingData.value = false
+  }
+}
+const revertItemsToQueue = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    await removeRefileItems(selectedItems.value.map(item => item.barcode.value))
+    refileItemsTableComponent.value.clearSelectedData()
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -585,11 +621,12 @@ const updateRefileJob = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
-    editJob.value = false
+    editJobInfo.value = false
   }
 }
 const updateRefileJobStatus = async (status) => {
   try {
+    appIsLoadingData.value = true
     const payload = {
       id: refileJob.value.id,
       status,
@@ -618,6 +655,8 @@ const updateRefileJobStatus = async (status) => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 const cancelRefileJob = async () => {
@@ -708,9 +747,10 @@ const removeRefileItems = async (barcode_values) => {
     addDataToIndexDb('refileStore', 'refileJob', JSON.parse(JSON.stringify(refileJob.value)))
     addDataToIndexDb('refileStore', 'originalRefileJob', JSON.parse(JSON.stringify(originalRefileJob.value)))
 
+    const alertMessage = (editItems.value && selectedItems.value.length) > 1 ? 'items have' : 'item has'
     handleAlert({
       type: 'success',
-      text: 'The item has been sent back to the refile queue.',
+      text: `The ${alertMessage} been sent back to the refile queue.`,
       autoClose: true
     })
   } catch (error) {

@@ -184,7 +184,7 @@ const routes = [
       },
       {
         name: 'reports',
-        path: 'reports',
+        path: 'reports/:reportType?',
         component: () => import('@/pages/ReportsPage.vue'),
         meta: {
           requiresAuth: true,
@@ -193,7 +193,16 @@ const routes = [
       },
       {
         name: 'request',
-        path: 'request/:jobId?',
+        path: 'request',
+        component: () => import('@/pages/RequestPage.vue'),
+        meta: {
+          requiresAuth: true,
+          requiresPerm: 'can_access_request'
+        }
+      },
+      {
+        name: 'request-details',
+        path: 'request/details/:jobId',
         component: () => import('@/pages/RequestPage.vue'),
         meta: {
           requiresAuth: true,

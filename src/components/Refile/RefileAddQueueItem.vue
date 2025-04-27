@@ -93,6 +93,7 @@
           color="accent"
           label="Done"
           class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
           @click="resetRefileItem(); hideModal();"
         />
 
@@ -127,7 +128,7 @@ const emit = defineEmits(['hide'])
 const { compiledBarCode } = useBarcodeScanHandler()
 
 // Store Data
-const { appIsLoadingData } = storeToRefs(useGlobalStore())
+const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { getBarcodeDetails } = useBarcodeStore()
 const { barcodeDetails } = storeToRefs(useBarcodeStore())
 const { postRefileQueueItem, resetRefileItem } = useRefileStore()
@@ -158,7 +159,7 @@ const triggerRefileItemScan = (barcode_value) => {
 
 const addItemToQueue = async (barcode_value) => {
   try {
-    appIsLoadingData.value = true
+    appActionIsLoadingData.value = true
     // check if the scanned item barcode is in the system first
     await getBarcodeDetails(barcode_value)
 
@@ -193,7 +194,7 @@ const addItemToQueue = async (barcode_value) => {
       autoClose: true
     })
   } finally {
-    appIsLoadingData.value = false
+    appActionIsLoadingData.value = false
   }
 }
 </script>

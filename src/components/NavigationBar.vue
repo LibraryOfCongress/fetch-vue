@@ -28,7 +28,7 @@
 
       <!-- barcode scan banner -->
       <q-banner
-        v-if="barcodeScanAllowed"
+        v-if="!barcodeScanAllowed"
         class="nav-banner bg-color-gray-light text-color-black"
         inline-actions
         dense
@@ -39,16 +39,16 @@
           size="25px"
           class="q-mr-sm"
         />
-        Barcode scanning is enabled.
+        Barcode scanning is <strong class="text-red">disabled</strong>.
         <template #action>
           <q-btn
             dense
             no-caps
             unelevated
-            color="negative"
-            label="Disable Scan"
+            color="positive"
+            label="Enable Scan"
             class="text-body1"
-            @click="barcodeScanAllowed = false"
+            @click="barcodeScanAllowed = true"
           />
         </template>
       </q-banner>
