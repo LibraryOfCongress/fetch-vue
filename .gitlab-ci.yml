@@ -187,19 +187,11 @@ deploy_prod:
     name: prod
     url: https://fetch.loc.gov/
   script:
-    - export TF_VAR_vault_deployer_password=$VAULT_DEPLOYER_PASSWORD_PROD
-    - export TF_VAR_vault_addr=$VAULT_ADDR_PROD
-    - export TF_VAR_app_name="vue"
-    - export TF_VAR_image='git.loc.gov:4567/fetch/vue/prod:latest'
-    - export TF_VAR_timestamp=$CI_COMMIT_TIMESTAMP
-    - terraform --version
-    - cd terraform
     - kubectl config use-context fetch/build:fetch-prod -v=6
-    - cp -v $KUBECONFIG kubeconfig
-    - export TF_STATE_NAME=prod
-    - envsubst < backend.hcl.tmpl > backend.hcl
-    - terraform init -backend-config=backend.hcl
-    - terraform apply -auto-approve
+    - kubectl -n fetch apply -f k8s/deployment-prod.yml
+    - kubectl -n fetch apply -f k8s/service.yml
+    - sleep 10
+    - kubectl -n fetch rollout restart deployment/vue
   rules:
     - if: '$PROD_BUILD =~ /^TRUE$/'
       when: manual
