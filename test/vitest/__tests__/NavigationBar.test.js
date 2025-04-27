@@ -44,7 +44,14 @@ describe('Navigation Bar Component', () => {
   })
 
   it('should mount component with a top and hidden side nav', async () => {
-    const wrapper = mount(NavigationBar)
+    const wrapper = mount(NavigationBar, {
+      global: {
+        provide: {
+          //If you are using provide/inject
+          'handle-alert': 'test-inject-function'
+        }
+      }
+    })
 
     expect(wrapper.find('.q-header').exists()).toBe(true)
     expect(wrapper.find('.q-drawer-container').exists()).toBe(false)

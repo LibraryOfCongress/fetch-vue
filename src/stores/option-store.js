@@ -4,6 +4,7 @@ import inventoryServiceApi from '@/http/InventoryService.js'
 export const useOptionStore = defineStore('option-store', {
   state: () => ({
     optionsTotal: 0,
+    aisles: [],
     buildings: [],
     containerTypes: [
       {
@@ -15,9 +16,9 @@ export const useOptionStore = defineStore('option-store', {
         name: 'Trayed'
       }
     ],
-    sizeClass: [],
-    shelfTypes: [],
+    ladders: [],
     mediaTypes: [],
+    modules: [],
     owners: [],
     ownersTiers: [],
     ownerTierOptions: [],
@@ -28,6 +29,9 @@ export const useOptionStore = defineStore('option-store', {
     requestsPriorities: [],
     requestsTypes: [],
     shelves: [],
+    shelvesPositions: [],
+    sizeClass: [],
+    shelfTypes: [],
     users: [],
     verificationJobs: []
   }),
@@ -46,18 +50,63 @@ export const useOptionStore = defineStore('option-store', {
         if (combineOptions) {
           // combineOptions is only mainly used when we need to add to our list of options ex: paginated selects on scroll need to add to options
           // merge the results with current options and get rid of duplicates
-          this[optionType] = [
-            ...new Set([
-              ...this[optionType],
-              ...res.data.items
-            ])
+          const combinedArray = [
+            ...this[optionType],
+            ...res.data.items
           ]
+          const uniqueObjects = new Map()
+          combinedArray.forEach(obj => {
+            uniqueObjects.set(obj.id, obj)
+          })
+          this[optionType] = Array.from(uniqueObjects.values())
         } else {
           this[optionType] = res.data.items
         }
 
         // set the total number of rendered options which is used for pagination limits
         this.optionsTotal = res.data.total
+        return res
+      } catch (error) {
+        throw error
+      }
+    },
+    async getExactOption (optionType, qParams) {
+      // this function is used specifically for exact searching on select filters without messing with the total options count
+      try {
+        const res = await this.$api.get(inventoryServiceApi[optionType], {
+          params: {
+            size: this.apiPageSizeDefault,
+            ...qParams
+          }
+        })
+        // updates the passed in optionType and merges in the new exact results
+        const combinedArray = [
+          ...this[optionType],
+          ...res.data.items
+        ]
+        const uniqueObjects = new Map()
+        combinedArray.forEach(obj => {
+          uniqueObjects.set(obj.id, obj)
+        })
+        this[optionType] = Array.from(uniqueObjects.values())
+        return res.data.items
+      } catch (error) {
+        throw error
+      }
+    },
+    async getExactOptionById (optionType, id, combineOptions = false) {
+      // preloads options needed on our select inputs when they mount with a modelValue passed in
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi[optionType]}${id}`)
+
+        if (combineOptions) {
+          this[optionType] = [
+            ...this[optionType],
+            res.data
+          ]
+        } else {
+          this[optionType] = [res.data]
+        }
       } catch (error) {
         throw error
       }
@@ -71,6 +120,14 @@ export const useOptionStore = defineStore('option-store', {
           }
         })
         this['parentOwnerOptions'] = res.data.items
+      } catch (error) {
+        throw error
+      }
+    },
+    async getOwner (id) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.owners}${id}`)
+        this.owners = [res.data]
       } catch (error) {
         throw error
       }
@@ -107,6 +164,14 @@ export const useOptionStore = defineStore('option-store', {
         throw error
       }
     },
+    async getMediaType (id) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.mediaTypes}${id}`)
+        this.mediaTypes = [res.data]
+      } catch (error) {
+        throw error
+      }
+    },
     async postMediaType (payload) {
       try {
         const res = await this.$api.post(inventoryServiceApi.mediaTypes, payload)
@@ -139,6 +204,14 @@ export const useOptionStore = defineStore('option-store', {
         throw error
       }
     },
+    async getSizeClass (id) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.sizeClass}${id}`)
+        this.sizeClass = [res.data]
+      } catch (error) {
+        throw error
+      }
+    },
     async postSizeClass (payload) {
       try {
         const res = await this.$api.post(inventoryServiceApi.sizeClass, payload)
@@ -167,16 +240,6 @@ export const useOptionStore = defineStore('option-store', {
 
         // filter out the specific size class
         this.sizeClass = this.sizeClass.filter(s => s.id !== sizeClassId)
-      } catch (error) {
-        throw error
-      }
-    },
-    async deleteSizeClassOwners (sizeClassId, payload) {
-      try {
-        const res = await this.$api.delete(`${inventoryServiceApi.sizeClass}${sizeClassId}/remove_owner`, { data: payload })
-
-        // update the specific size class with the response info
-        this.sizeClass[this.sizeClass.findIndex(s => s.id == sizeClassId)] = res.data
       } catch (error) {
         throw error
       }

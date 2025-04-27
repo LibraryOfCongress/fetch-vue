@@ -58,7 +58,7 @@
             v-if="!editJob"
             class="text-body1"
           >
-            {{ shelvingJob.user?.first_name }}
+            {{ shelvingJob.user?.name }}
           </p>
           <SelectInput
             v-else
@@ -66,7 +66,7 @@
             :options="users"
             option-type="users"
             option-value="id"
-            option-label="first_name"
+            option-label="name"
             aria-label="userSelect"
           >
             <template #no-option>
@@ -337,6 +337,7 @@
   <!-- complete job modal -->
   <PopupModal
     v-if="showCompleteJobModal"
+    ref="confirmationModal"
     :title="'Confirm'"
     text="Are you sure you want to complete the job?"
     :show-actions="false"
@@ -354,7 +355,6 @@
           :loading="appActionIsLoadingData"
           @click="
             completeShelvingJob(true);
-            hideModal();
           "
         />
 
@@ -369,7 +369,6 @@
           :loading="appActionIsLoadingData"
           @click="
             completeShelvingJob(false);
-            hideModal();
           "
         />
 
@@ -412,8 +411,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
 import { useShelvingStore } from '@/stores/shelving-store'
-import { useOptionStore } from '@/stores/option-store'
 import { useBuildingStore } from '@/stores/building-store'
+import { useOptionStore } from '@/stores/option-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
@@ -452,15 +451,6 @@ const {
 } = storeToRefs(useGlobalStore())
 const { userData } = storeToRefs(useUserStore())
 const {
-  getBuildingDetails,
-  getModuleDetails,
-  getAisleDetails,
-  getSideDetails,
-  getShelveList,
-  getShelfDetails,
-  getShelfPositionsList
-} = useBuildingStore()
-const {
   patchShelvingJob,
   getShelvingJobContainer
 } = useShelvingStore()
@@ -471,10 +461,12 @@ const {
   allContainersShelved
 } = storeToRefs(useShelvingStore())
 const { users } = storeToRefs(useOptionStore())
+const { getSideList } = useBuildingStore()
 
 // Local Data
 const batchSheetComponent = ref(null)
 const locationModalComponent = ref(null)
+const confirmationModal = ref(null)
 const editJob = ref(false)
 const selectedShelvingItem = ref(null)
 const shelfTableColumns = ref([
@@ -620,7 +612,7 @@ watch(compiledBarCode, (barcode) => {
     triggerContainerScan(barcode)
   }
 })
-const triggerContainerScan = (barcode_value) => {
+const triggerContainerScan = async (barcode_value) => {
   // check if the scanned barcode is in the containers data and that the barcode hasnt been shelved already
   if (
     !shelvingJobContainers.value.some((c) => c.barcode.value == barcode_value)
@@ -644,7 +636,9 @@ const triggerContainerScan = (barcode_value) => {
     return
   } else {
     // load the matching containers info directly from the shelvingJob data
-    getShelvingJobContainer(barcode_value)
+    appIsLoadingData.value = true
+    await getShelvingJobContainer(barcode_value)
+    appIsLoadingData.value = false
     showScanContainerModal.value = true
   }
 }
@@ -653,28 +647,15 @@ const handleOptionMenu = async (action, rowData) => {
   switch (action.text) {
     case 'Edit Location':
       try {
-        const itemLocationIdList =
-          rowData.shelf_position?.internal_location?.split('-')
+        const itemLocationIdList = rowData.shelf_position?.internal_location?.split('-')
         if (!appIsOffline.value) {
           appIsLoadingData.value = true
           if (itemLocationIdList) {
-            await Promise.all([
-              getBuildingDetails(shelvingJob.value.building_id),
-              getModuleDetails(itemLocationIdList[1]), //loads the aisle list
-              getAisleDetails(itemLocationIdList[2]), //loads the side list
-              getSideDetails(itemLocationIdList[3]), //loads the ladder list
-              getShelveList({
-                building_id: shelvingJob.value.building_id,
-                module_id: itemLocationIdList[1],
-                aisle_id: itemLocationIdList[2],
-                side_id: itemLocationIdList[3],
-                ladder_id: itemLocationIdList[4],
-                owner_id: rowData.owner.id,
-                size_class_id: rowData.size_class.id
-              }), //loads the shelve list
-              getShelfDetails(itemLocationIdList[5]),
-              getShelfPositionsList(itemLocationIdList[5], true) //loads the shelve positions list
-            ])
+            await getSideList({
+              building_id: shelvingJob.value.building_id,
+              module_id: itemLocationIdList[1],
+              aisle_id: itemLocationIdList[2]
+            })
           }
         }
 
@@ -751,6 +732,7 @@ const executeShelvingJob = async () => {
 }
 const updateShelvingJobStatus = async (status) => {
   try {
+    appIsLoadingData.value = true
     const payload = {
       id: route.params.jobId,
       status,
@@ -788,6 +770,8 @@ const updateShelvingJobStatus = async (status) => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 const updateShelvingJob = async () => {
@@ -850,6 +834,7 @@ const completeShelvingJob = async (printBool) => {
     deleteDataInIndexDb('shelvingStore', 'shelvingJob')
     deleteDataInIndexDb('shelvingStore', 'originalShelvingJob')
     appActionIsLoadingData.value = false
+    confirmationModal.value.hideModal()
   }
 }
 </script>

@@ -324,6 +324,7 @@
 
   <!-- confirmation modal -->
   <PopupModal
+    ref="confirmationModal"
     v-if="showConfirmation !== null"
     :title="'Confirm'"
     :text="showConfirmation.text"
@@ -345,7 +346,6 @@
           :loading="appActionIsLoadingData"
           @click="
             handleConfirmation('completePrint');
-            hideModal();
           "
         />
 
@@ -360,7 +360,6 @@
           :loading="appActionIsLoadingData"
           @click="
             handleConfirmation('completeJob');
-            hideModal();
           "
         />
 
@@ -390,8 +389,7 @@
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
           @click="
-            handleConfirmation('deleteItem');
-            hideModal();
+            handleConfirmation('deleteItem')
           "
         />
 
@@ -417,8 +415,7 @@
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
           @click="
-            handleConfirmation('confirmReaccession');
-            hideModal();
+            handleConfirmation('confirmReaccession')
           "
         />
 
@@ -516,7 +513,7 @@ const { compiledBarCode } = useBarcodeScanHandler()
 const { currentScreenSize } = useCurrentScreenSize()
 
 // Store Data
-const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { userData } = storeToRefs(useUserStore())
 const { verifyBarcode, patchBarcode, deleteBarcode } = useBarcodeStore()
 const { barcodeDetails, barcodeScanAllowed } = storeToRefs(useBarcodeStore())
@@ -538,6 +535,7 @@ const { accessionJob, accessionContainer, allItemsVerified } = storeToRefs(
 
 // Local Data
 const barcodeEditModal = ref(null)
+const confirmationModal = ref(null)
 const trayInfoComponent = ref(null)
 const nonTrayInfoComponent = ref(null)
 const accessionTableComponent = ref(null)
@@ -685,6 +683,7 @@ const setBarcodeEditDisplay = () => {
 }
 const addContainerItem = async () => {
   try {
+    appIsLoadingData.value = true
     const currentDate = new Date()
     if (accessionJob.value.trayed) {
       const payload = {
@@ -720,6 +719,8 @@ const addContainerItem = async () => {
       text: error,
       persistent: true
     })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 const updateContainerItem = async (barcode_value) => {
@@ -829,6 +830,7 @@ const handleConfirmation = async (confirmType) => {
     // print the job after completion
     batchSheetComponent.value.printBatchReport()
   }
+  confirmationModal.value.hideModal()
 }
 const handleOptionMenu = (option) => {
   if (option.text == 'Add Tray') {
@@ -844,11 +846,13 @@ const handleOptionMenu = (option) => {
 }
 
 const addNewTray = async () => {
+  appIsLoadingData.value = true
   //mark the current tray as complete since you can only add a new tray if the current tray has all its items
   await patchAccessionTray({
     id: accessionContainer.value.id,
     collection_accessioned: true
   })
+  appIsLoadingData.value = false
 
   // clear out the accession container data in store
   resetAccessionContainer()
@@ -864,6 +868,7 @@ const addNewTray = async () => {
 
 const updateAccessionJobStatus = async (status) => {
   try {
+    appIsLoadingData.value = true
     const payload = {
       id: accessionJob.value.id,
       status,
@@ -883,6 +888,8 @@ const updateAccessionJobStatus = async (status) => {
       text: error,
       autoClose: true
     })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 const completeAccessionJob = async () => {

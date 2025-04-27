@@ -16,14 +16,15 @@ export const useReportsStore = defineStore('reports-store', {
     generateReportEndpoint (reportType) {
       const endpointMap = {
         'Item Accession': inventoryServiceApi.reportingAccessionItems,
-        'Shelving Job Discrepancy':inventoryServiceApi.reportingShelvingDiscrepancy,
+        'Shelving Job Discrepancy':inventoryServiceApi.reportingShelvingDiscrepancies,
+        'Shelving Move Discrepancy':inventoryServiceApi.reportingMoveDiscrepancies,
         'Open Locations': inventoryServiceApi.reportingOpenLocations,
-        'Tray/Item Count By Aisle': inventoryServiceApi.reportingTrayItemCountByAisle,
+        'Tray/Item Count By Aisle': inventoryServiceApi.reportingAislesItemsCount,
         'Non-Tray Count': inventoryServiceApi.reportingNonTrayItemsCount,
         'Total Item Retrieved': inventoryServiceApi.reportingRetrievalsCount,
         'Item in Tray': inventoryServiceApi.reportingTrayItemsCount,
         'User Job Summary': inventoryServiceApi.reportingUserJobsCount,
-        'Verification Change': inventoryServiceApi.reportingVerificationChanges
+        'Verification Change': inventoryServiceApi.reportingVerificationChangesSummary
       }
 
       return endpointMap[reportType] || null

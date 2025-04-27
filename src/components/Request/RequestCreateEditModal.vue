@@ -8,7 +8,7 @@
     <template #header-content="{ hideModal }">
       <q-card-section class="row items-center q-pb-none">
         <h2 class="text-h6 text-bold">
-          {{ type == 'manual' ? 'Create Manual Request' : 'Import Request File' }}
+          {{ renderRequestModalTitle }}
         </h2>
 
         <q-btn
@@ -24,7 +24,7 @@
     </template>
     <template #main-content>
       <q-card-section
-        v-if="type == 'manual'"
+        v-if="type == 'manual' || type == 'edit'"
         class="row"
       >
         <div class="col-12 q-mb-md">
@@ -37,6 +37,7 @@
               placeholder="Enter or Scan Item Barcode"
               @focus="allowItemBarcodeScan = true"
               @blur="allowItemBarcodeScan = false"
+              :disabled="type == 'edit'"
             />
           </div>
         </div>
@@ -101,7 +102,7 @@
               Delivery Location
             </label>
             <SelectInput
-              v-model="manualRequestForm.building_id"
+              v-model="manualRequestForm.delivery_location_id"
               :options="requestsLocations"
               option-type="requestsLocations"
               option-value="id"
@@ -155,11 +156,25 @@
           label="Submit"
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
-          :disabled="!isCreateRequestjobFormValid"
-          @click="createRequestJob()"
+          :disabled="!isRequestjobFormValid"
+          @click="type == 'edit' ? editRequestJob() : createRequestJob()"
         />
 
         <q-space class="q-mx-xs" />
+
+        <q-btn
+          v-if="type == 'manual'"
+          no-caps
+          unelevated
+          color="accent"
+          label="Next"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          :disabled="!isRequestjobFormValid"
+          @click="createRequestJob(true)"
+        />
+
+        <q-space class="q-ml-xs q-mr-lg" />
 
         <q-btn
           outline
@@ -174,7 +189,7 @@
 </template>
 
 <script setup>
-import { ref, inject, computed, watch } from 'vue'
+import { ref, inject, computed, watch, onMounted } from 'vue'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useUserStore } from '@/stores/user-store'
@@ -191,6 +206,14 @@ const mainProps = defineProps({
   type: {
     type: String,
     default: ''
+  },
+  requestData: {
+    type: Object,
+    default: () => {
+      return {
+        id: null
+      }
+    }
   }
 })
 
@@ -211,7 +234,11 @@ const {
   requestsPriorities,
   requestsLocations
 } = storeToRefs(useOptionStore())
-const { postRequestJob, postRequestBatchJob } = useRequestStore()
+const {
+  postRequestJob,
+  patchRequestJob,
+  postRequestBatchJob
+} = useRequestStore()
 
 // Local Data
 const requestCreateModal = ref(null)
@@ -231,18 +258,27 @@ const manualRequestForm = ref({
   external_request_id: null,
   requestor_name: null,
   request_type_id: null,
-  building_id: null,
+  delivery_location_id: null,
   priority_id: null
 })
-const isCreateRequestjobFormValid = computed(() => {
-  let formIsValid = false
+const renderRequestModalTitle = computed(() => {
   if (mainProps.type == 'manual') {
+    return 'Create Manual Request'
+  } else if (mainProps.type == 'edit') {
+    return 'Edit Request'
+  } else {
+    return 'Import Request File'
+  }
+})
+const isRequestjobFormValid = computed(() => {
+  let formIsValid = false
+  if (mainProps.type == 'manual' || mainProps.type == 'edit') {
     // if any value in our form is null or empty form is not valid except for priority since thats optional
     const optionalFields = [
       'requestor_name',
       'priority_id',
       'request_type_id',
-      'building_id'
+      'delivery_location_id'
     ]
     formIsValid = Object.keys(manualRequestForm.value).every(key => optionalFields.includes(key) || (manualRequestForm.value[key] !== null && manualRequestForm.value[key] !== ''))
   } else {
@@ -254,6 +290,21 @@ const allowItemBarcodeScan = ref(false)
 
 // Logic
 const handleAlert = inject('handle-alert')
+const handleCSVDownload = inject('handle-csv-download')
+
+onMounted(() => {
+  if (mainProps.type == 'edit') {
+    //populate or request form with the passed in request data
+    manualRequestForm.value = {
+      request_type_id: mainProps.requestData.request_type_id,
+      external_request_id: mainProps.requestData.external_request_id,
+      requestor_name: mainProps.requestData.requestor_name,
+      barcode: mainProps.requestData.non_tray_item ? mainProps.requestData.non_tray_item.barcode.value : mainProps.requestData.item.barcode.value,
+      delivery_location_id: mainProps.requestData.delivery_location_id,
+      priority_id: mainProps.requestData.priority_id
+    }
+  }
+})
 
 watch(compiledBarCode, (barcode) => {
   if (barcode !== '' && allowItemBarcodeScan.value) {
@@ -262,7 +313,7 @@ watch(compiledBarCode, (barcode) => {
   }
 })
 
-const createRequestJob = async () => {
+const createRequestJob = async (isNext = false) => {
   try {
     appActionIsLoadingData.value = true
     let payload
@@ -272,8 +323,9 @@ const createRequestJob = async () => {
         external_request_id: manualRequestForm.value.external_request_id,
         requestor_name: manualRequestForm.value.requestor_name,
         barcode_value: manualRequestForm.value.barcode,
-        delivery_location_id: manualRequestForm.value.building_id,
-        priority_id: manualRequestForm.value.priority_id
+        delivery_location_id: manualRequestForm.value.delivery_location_id,
+        priority_id: manualRequestForm.value.priority_id,
+        requested_by_id: userData.value.user_id
       }
       await postRequestJob(payload)
       handleAlert({
@@ -286,25 +338,15 @@ const createRequestJob = async () => {
     } else {
       payload = {
         file: requestFile.value[0].file,
-        user_id: userData.value.user_id
+        requested_by_id: userData.value.user_id
       }
-      const res = await postRequestBatchJob(payload)
+      await postRequestBatchJob(payload)
 
       handleAlert({
         type: 'success',
         text: 'Successfully uploaded batch requests.',
         autoClose: true
       })
-      // check if errors are returned in our 200 response and display them
-      if (res) {
-        res.forEach(err => {
-          handleAlert({
-            type: 'error',
-            text: `Batch request upload failed for the following: ${JSON.stringify(err)}`,
-            autoClose: true
-          })
-        })
-      }
 
       emit('changeDisplay', 'batch_view')
     }
@@ -315,18 +357,63 @@ const createRequestJob = async () => {
         text: error,
         autoClose: true
       })
+    } else if (error.response.status == 400) {
+      handleAlert({
+        type: 'error',
+        text: 'Batch request upload failed with errors. See downloaded error report.',
+        autoClose: true
+      })
+      handleCSVDownload(error.response.data, 'Bulk_Request_Errors')
     } else {
-      //TODO figure out how to handle error logging for the user
-      if (error.response?.data?.errors) {
-        error.response.data.errors.forEach(err => {
-          handleAlert({
-            type: 'error',
-            text: `Batch request upload failed: ${JSON.stringify(err)}`,
-            autoClose: true
-          })
-        })
-      }
+      handleAlert({
+        type: 'error',
+        text: error,
+        autoClose: true
+      })
     }
+  } finally {
+    appActionIsLoadingData.value = false
+    // If we're a manual request and clicking next, we want to reset
+    // the form and keep it displayed.
+    if (mainProps.type == 'manual' && isNext) {
+      manualRequestForm.value = {
+        request_type_id: null,
+        external_request_id: null,
+        requestor_name: null,
+        barcode: null,
+        delivery_location_id: null,
+        priority_id: null
+      }
+    } else {
+      requestCreateModal.value.hideModal()
+    }
+  }
+}
+const editRequestJob = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    const payload = {
+      id: mainProps.requestData.id,
+      request_type_id: manualRequestForm.value.request_type_id,
+      external_request_id: manualRequestForm.value.external_request_id,
+      requestor_name: manualRequestForm.value.requestor_name,
+      delivery_location_id: manualRequestForm.value.delivery_location_id,
+      priority_id: manualRequestForm.value.priority_id
+    }
+    await patchRequestJob(payload)
+    handleAlert({
+      type: 'success',
+      text: 'Successfully updated the request.',
+      autoClose: true
+    })
+
+    emit('changeDisplay', 'request_view')
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      autoClose: true
+    })
   } finally {
     appActionIsLoadingData.value = false
     requestCreateModal.value.hideModal()

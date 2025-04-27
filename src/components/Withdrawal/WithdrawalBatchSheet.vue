@@ -14,13 +14,13 @@
 
         <section>
           <p class="text-bold q-mb-sm">
-            Withdrawal Job Created Date: {{ formatDateTime(withdrawalJobDetails.create_dt).date }}
+            Withdrawal Job Completed Date: {{ withdrawalJobDetails.status === 'Completed' ? formatDateTime(withdrawalJobDetails.last_transition).date : '' }}
           </p>
           <p class="text-bold">
             Withdrawal Job User:
             {{
               withdrawalJobDetails.assigned_user
-                ? `${withdrawalJobDetails.assigned_user.first_name} ${withdrawalJobDetails.assigned_user.last_name}`
+                ? withdrawalJobDetails.assigned_user.name
                 : "No Assignee"
             }}
           </p>
@@ -92,6 +92,7 @@ const formatDateTime = inject('format-date-time')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 const renderWithdrawnTrayBarcode = inject('render-withdrawn-tray-barcode')
 const renderWithdrawnShelfBarcode = inject('render-withdrawn-shelf-barcode')
+const renderWithdrawnItemLocation = inject('render-withdrawn-item-location')
 
 const printBatchReport = () => {
   printTemplate.value.print()
@@ -108,10 +109,7 @@ const renderItemDetails = (item, details) => {
     case 'shelf barcode':
       return item.status === 'Withdrawn' ? renderWithdrawnShelfBarcode(item) : renderItemBarcodeDisplay(item.tray ? item?.tray?.shelf_position?.shelf : item?.shelf_position?.shelf)
     case 'location':
-      if (item.status === 'Withdrawn') {
-        return item?.withdrawn_location
-      }
-      return item.tray ? item?.tray?.shelf_position?.location : item?.shelf_position?.location
+      return renderWithdrawnItemLocation(item)
     default:
       return ''
   }

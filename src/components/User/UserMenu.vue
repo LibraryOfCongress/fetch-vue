@@ -139,10 +139,7 @@ const handleOptions = (option) => {
 }
 const logoutUser = async () => {
   try {
-    const payload = {
-      user_id: userData.user_id
-    }
-    await patchLogout(payload)
+    await patchLogout()
 
     //reload the route to trigger any route gaurds if the user is on an auth based page
     router.go()
