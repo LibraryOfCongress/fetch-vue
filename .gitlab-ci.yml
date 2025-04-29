@@ -29,6 +29,30 @@ build_image_dev:
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
 
+build_image_demo:
+  stage: build
+  image:
+    name: git.loc.gov:4567/fetch/build/kaniko-project/executor:1.0.0
+    entrypoint: [""]
+  variables:
+    IMAGE_FULL_TAG: $CI_REGISTRY_IMAGE:demo
+  script:
+    - echo IMAGE_FULL_TAG $IMAGE_FULL_TAG
+    - cp -v images/web.dev.Containerfile Dockerfile
+    - echo $DEVELOP_VITE_ENV > env/.env
+    - echo $DEVELOP_VITE_INV_SERVCE_API >> env/.env
+    - echo $DEVELOP_VITE_API_BASE_URI >> env/.env
+    - cat -A env/.env
+    - /kaniko/executor
+      --context $CI_PROJECT_DIR
+      --build-arg DEVELOP_VITE_ENV=$DEVELOP_VITE_ENV
+      --dockerfile $CI_PROJECT_DIR/Dockerfile
+      --destination $IMAGE_FULL_TAG
+  rules:
+    - if: "$DEMO_BUILD =~ /^TRUE$/"
+      when: manual
+    - when: never
+
 build_mr:
   stage: build_mr
   image:
@@ -49,9 +73,8 @@ build_mr:
       --dockerfile $CI_PROJECT_DIR/Dockerfile
       --destination $IMAGE_FULL_TAG
   rules:
-    - if: '$CI_MERGE_REQUEST_ID'
+    - if: "$CI_MERGE_REQUEST_ID"
       when: manual
-
 
 build_image_test:
   stage: build
@@ -118,7 +141,7 @@ build_image_prod:
       --dockerfile $CI_PROJECT_DIR/Dockerfile
       --destination $IMAGE_FULL_TAG
   rules:
-    - if: '$PROD_BUILD =~ /^TRUE$/'
+    - if: "$PROD_BUILD =~ /^TRUE$/"
       when: manual
     - when: never
 
@@ -138,6 +161,21 @@ deploy_dev:
     - kubectl -n fetch rollout restart deployment/vue
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
+
+deploy_demo:
+  stage: deploy
+  image:
+    name: bitnami/kubectl:latest
+    entrypoint: [""]
+  script:
+    - kubectl config use-context fetch/build:fetch -v=6
+    - kubectl -n fetch apply --wait=true --timeout=120s -f k8s/deployment-demo.yml
+    - kubectl -n fetch apply -f k8s/service.yml
+    - kubectl -n fetch rollout restart deployment/vue
+  rules:
+    - if: "$DEMO_BUILD =~ /^TRUE$/"
+      when: manual
+    - when: never
 
 deploy_test:
   stage: deploy
@@ -187,12 +225,20 @@ deploy_prod:
     name: prod
     url: https://fetch.loc.gov/
   script:
+    - export TF_VAR_vault_deployer_password=$VAULT_DEPLOYER_PASSWORD_PROD
+    - export TF_VAR_vault_addr=$VAULT_ADDR_PROD
+    - export TF_VAR_app_name="vue"
+    - export TF_VAR_image='git.loc.gov:4567/fetch/vue/prod:latest'
+    - export TF_VAR_timestamp=$CI_COMMIT_TIMESTAMP
+    - terraform --version
+    - cd terraform
     - kubectl config use-context fetch/build:fetch-prod -v=6
-    - kubectl -n fetch apply -f k8s/deployment-prod.yml
-    - kubectl -n fetch apply -f k8s/service.yml
-    - sleep 10
-    - kubectl -n fetch rollout restart deployment/vue
+    - cp -v $KUBECONFIG kubeconfig
+    - export TF_STATE_NAME=prod
+    - envsubst < backend.hcl.tmpl > backend.hcl
+    - terraform init -backend-config=backend.hcl
+    - terraform apply -auto-approve
   rules:
-    - if: '$PROD_BUILD =~ /^TRUE$/'
+    - if: "$PROD_BUILD =~ /^TRUE$/"
       when: manual
     - when: never
