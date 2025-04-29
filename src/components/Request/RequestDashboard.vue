@@ -16,6 +16,7 @@
           :enable-pagination="true"
           :pagination-total="requestJobListTotal"
           :pagination-loading="appIsLoadingData"
+          :rows-per-page-options="[25, 50, 75, 100, 250, 500]"
           @update-pagination="loadRequestJobs($event)"
           @selected-table-row="loadRequestJob($event.id)"
           @selected-data="selectedRequestItems = $event"

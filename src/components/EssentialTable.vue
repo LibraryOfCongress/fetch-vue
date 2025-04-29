@@ -181,7 +181,7 @@
           :hide-pagination="enablePagination ? false : true"
           v-model:pagination="paginationConfig"
           :loading="paginationLoading"
-          :rows-per-page-options="[25, 50, 75, 100]"
+          :rows-per-page-options="rowsPerPageOptions"
           :selection="enableSelection ? 'multiple' : 'none'"
           v-model:selected="selectedTableData"
           @request="onTableRequest"
@@ -279,6 +279,17 @@ const mainProps = defineProps({
   paginationLoading: {
     type: Boolean,
     default: false
+  },
+  rowsPerPageOptions: {
+    type: Array,
+    default: () => {
+      return [
+        25,
+        50,
+        75,
+        100
+      ]
+    }
   },
   enableSelection: {
     type: Boolean,
