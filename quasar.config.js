@@ -126,9 +126,13 @@ module.exports = configure(function (ctx) {
       swFilename: 'sw.js',
       manifestFilename: 'manifest.json',
       useCredentialsForManifestTag: false,
-      useFilenameHashes: false
+      useFilenameHashes: false,
+      extendManifestJson (json) {
+        // tamper with the json inline
+        json.name = process.env.VITE_ENV == 'production' ? json.name : `${json.name}-${process.env.VITE_ENV}`,
+        json.short_name = process.env.VITE_ENV == 'production' ? json.short_name : `${json.short_name}-${process.env.VITE_ENV}`
+      }
       // extendInjectManifestOptions (cfg) {},
-      // extendManifestJson (json) {}
       // extendPWACustomSWConf (esbuildConf) {}
     },
     sourceFiles: {
