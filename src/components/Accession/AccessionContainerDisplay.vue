@@ -186,7 +186,7 @@
             class="btn-no-wrap text-body1 q-ml-sm"
             :class="currentScreenSize == 'xs' ? 'full-width' : ''"
             :outline="!allItemsVerified || accessionJob.status == 'Paused'"
-            :disabled="!allItemsVerified || accessionJob.status == 'Paused' || accessionJob.status == 'Completed'"
+            :disabled="!allItemsVerified || accessionJob.status == 'Paused' || accessionJob.status == 'Completed' && accessionJob.verification_job !== null"
             @click="
               showConfirmation = {
                 type: 'completeJob',
@@ -255,7 +255,7 @@
       button-two-label="Complete Job"
       :button-two-outline="false"
       :button-two-disabled="
-        !allItemsVerified || accessionJob.status == 'Paused' || accessionJob.status == 'Completed'
+        !allItemsVerified || accessionJob.status == 'Paused' || accessionJob.status == 'Completed' && accessionJob.verification_job !== null
       "
       :button-two-loading="appActionIsLoadingData"
       @button-two-click="
