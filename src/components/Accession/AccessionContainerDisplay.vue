@@ -186,7 +186,7 @@
             class="btn-no-wrap text-body1 q-ml-sm"
             :class="currentScreenSize == 'xs' ? 'full-width' : ''"
             :outline="!allItemsVerified || accessionJob.status == 'Paused'"
-            :disabled="!allItemsVerified || accessionJob.status == 'Paused' || accessionJob.status == 'Completed'"
+            :disabled="!allItemsVerified || accessionJob.status == 'Paused' || accessionJob.status == 'Completed' && verificationJobGenerated"
             @click="
               showConfirmation = {
                 type: 'completeJob',
@@ -255,7 +255,7 @@
       button-two-label="Complete Job"
       :button-two-outline="false"
       :button-two-disabled="
-        !allItemsVerified || accessionJob.status == 'Paused' || accessionJob.status == 'Completed'
+        !allItemsVerified || accessionJob.status == 'Paused' || accessionJob.status == 'Completed' && verificationJobGenerated
       "
       :button-two-loading="appActionIsLoadingData"
       @button-two-click="
@@ -487,12 +487,13 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, inject } from 'vue'
+import { ref, watch, computed, inject, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
 import { useAccessionStore } from '@/stores/accession-store'
+import { useVerificationStore } from '@/stores/verification-store'
 import { useBarcodeStore } from '@/stores/barcode-store'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
@@ -529,9 +530,8 @@ const {
   patchAccessionNonTrayItem,
   deleteAccessionNonTrayItem
 } = useAccessionStore()
-const { accessionJob, accessionContainer, allItemsVerified } = storeToRefs(
-  useAccessionStore()
-)
+const { accessionJob, accessionContainer, allItemsVerified } = storeToRefs(useAccessionStore())
+const { getVerificationJobByAccessionId } = useVerificationStore()
 
 // Local Data
 const barcodeEditModal = ref(null)
@@ -561,6 +561,7 @@ const showConfirmation = ref(null)
 const showBarcodeEdit = ref(false)
 const manualBarcodeEdit = ref('')
 const showNextTrayModal = ref(false)
+const verificationJobGenerated = ref(false)
 const renderIsEditMode = computed(() => {
   if (trayInfoComponent.value && trayInfoComponent.value.editMode) {
     return true
@@ -578,6 +579,12 @@ const renderIsEditMode = computed(() => {
 const handleAlert = inject('handle-alert')
 const currentIsoDate = inject('current-iso-date')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
+
+onMounted(() => {
+  if (accessionJob.value.status == 'Completed') {
+    checkVerificationJobGeneration()
+  }
+})
 
 watch(route, () => {
   if (!route.params.containerId) {
@@ -914,19 +921,23 @@ const completeAccessionJob = async () => {
     }
     await patchAccessionJob(payload)
 
-    handleAlert({
-      type: 'success',
-      text: 'The Job has been completed and moved for verification.',
-      autoClose: true
-    })
+    //check that verification job generation was successful
+    await checkVerificationJobGeneration()
+    if (verificationJobGenerated.value) {
+      handleAlert({
+        type: 'success',
+        text: 'The Job has been completed and moved for verification.',
+        autoClose: true
+      })
 
-    // route the user back to the accession init dashboard
-    router.push({
-      name: 'accession',
-      params: {
-        jobId: null
-      }
-    })
+      // route the user back to the accession init dashboard
+      router.push({
+        name: 'accession',
+        params: {
+          jobId: null
+        }
+      })
+    }
   } catch (error) {
     handleAlert({
       type: 'error',
@@ -935,6 +946,24 @@ const completeAccessionJob = async () => {
     })
   } finally {
     appActionIsLoadingData.value = false
+  }
+}
+const checkVerificationJobGeneration = async () => {
+  try {
+    appIsLoadingData.value = true
+    const res = await getVerificationJobByAccessionId(accessionJob.value.id)
+    if (res.data.id) {
+      verificationJobGenerated.value = true
+      return
+    }
+  } catch (error) {
+    handleAlert({
+      type: 'error',
+      text: error,
+      persistent: true
+    })
+  } finally {
+    appIsLoadingData.value = false
   }
 }
 </script>
