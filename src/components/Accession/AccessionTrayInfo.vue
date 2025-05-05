@@ -286,8 +286,7 @@ const {
   mediaTypes
 } = storeToRefs(useOptionStore())
 const {
-  getOptions,
-  getMediaType
+  getOptions
 } = useOptionStore()
 const {
   patchAccessionJob,
@@ -331,7 +330,6 @@ watch(route, () => {
 
 const handleOptionMenu = async (option) => {
   if (option.text == 'Edit') {
-    await loadOptionData()
     editMode.value = true
   } else if (option.text == 'Cancel Job') {
     showConfirmationModal.value = 'CancelJob'
@@ -344,25 +342,6 @@ const handleOptionMenu = async (option) => {
     emit('print')
   } else if (option.text == 'View History') {
     showAuditTrailModal.value = 'accession_jobs'
-  }
-}
-const loadOptionData = async () => {
-  try {
-    appIsLoadingData.value = true
-    // load the exact option data needed in our container and media type select inputs
-    if (!accessionContainer.value.id) {
-      await getMediaType(accessionJob.value.media_type_id)
-    } else {
-      await getMediaType(accessionContainer.value.media_type_id)
-    }
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
-  } finally {
-    appIsLoadingData.value = false
   }
 }
 

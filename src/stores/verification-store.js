@@ -87,6 +87,14 @@ export const useVerificationStore = defineStore('verification-store', {
         items: []
       }
     },
+    async getVerificationJobByAccessionId (accessionJobId) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.verificationJobsByAccessionJobId}${accessionJobId}`)
+        return res
+      } catch (error) {
+        throw error
+      }
+    },
     async getVerificationJobList (paramsObj) {
       try {
         const res = await this.$api.get(inventoryServiceApi.verificationJobs, {

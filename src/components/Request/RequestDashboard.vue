@@ -127,7 +127,7 @@
                   {label: 'Request View', value: 'request_view'},
                   {label: 'Batch View', value: 'batch_view'}
                 ]"
-                @update:model-value="clearTableSelection(); loadRequestJobs();"
+                @update:model-value="clearTableSelection(); requestTableComponent.resetTablePagination(); loadRequestJobs();"
                 class="text-no-wrap"
               />
             </div>
@@ -152,7 +152,7 @@
                   outline
                   label="Cancel"
                   class="btn-no-wrap text-body1 q-ml-xs full-height"
-                  @click="resetPickListForm(); getRequestJobList({ queue: true });"
+                  @click="resetPickListForm(); requestTableComponent.resetTablePagination(); loadRequestJobs();"
                 />
               </div>
             </div>
@@ -167,7 +167,7 @@
               :button-two-color="'black'"
               :button-two-label="'Cancel'"
               :button-two-outline="true"
-              @button-two-click="resetPickListForm(); getRequestJobList({ queue: true });"
+              @button-two-click="resetPickListForm(); requestTableComponent.resetTablePagination(); loadRequestJobs();"
             />
           </template>
 
@@ -678,7 +678,8 @@ const loadRequestJobs = async (qParams) => {
     if (requestDisplayType.value == 'request_view') {
       await getRequestJobList({
         ...qParams,
-        queue: true
+        queue: true,
+        unassociated_pick_list: showCreatePickList.value || showAddPickList.value ? true : false
       })
     } else {
       await getRequestBatchJobList({ ...qParams })
@@ -697,14 +698,13 @@ const loadRequestJobsByBuilding = async () => {
   try {
     appActionIsLoadingData.value = true
     // this function only gets called during the creation/add picklist workflow
-    if (requestDisplayType.value == 'request_view') {
-      await getRequestJobList({
-        building_id: filterRequestsByBuilding.value,
-        unassociated_pick_list: true
-      })
-    } else {
-      await getRequestBatchJobList({ building_id: filterRequestsByBuilding.value })
-    }
+    // change table view back to request view and clear out any pagination settings
+    requestDisplayType.value = 'request_view'
+    requestTableComponent.value.resetTablePagination()
+    await getRequestJobList({
+      building_id: filterRequestsByBuilding.value,
+      unassociated_pick_list: true
+    })
 
     // display next step in picklist creation
     if (showPickListModal.value == 'Create') {
@@ -769,6 +769,7 @@ const createPickListJob = async () => {
       text: `Successfully created Pick List #: <a href='/picklist/${picklistJob.value.id}' tabindex='0'>${picklistJob.value.id}</a>`,
       autoClose: false
     })
+    requestTableComponent.value.resetTablePagination()
     loadRequestJobs()
   } catch (error) {
     handleAlert({
@@ -796,6 +797,7 @@ const updatePickListJob = async () => {
       text: `Successfully added items to Pick List #: <a href='/picklist/${picklistJob.value.id}' tabindex='0'>${picklistJob.value.id}</a>`,
       autoClose: false
     })
+    requestTableComponent.value.resetTablePagination()
     loadRequestJobs()
   } catch (error) {
     handleAlert({

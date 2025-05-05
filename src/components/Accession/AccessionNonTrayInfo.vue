@@ -226,11 +226,7 @@ const { currentScreenSize } = useCurrentScreenSize()
 const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
-const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
-const {
-  getSizeClass,
-  getMediaType
-} = useOptionStore()
+const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
   sizeClass,
   mediaTypes
@@ -269,7 +265,6 @@ watch(route, () => {
 
 const handleOptionMenu = async (option) => {
   if (option.text == 'Edit') {
-    await loadOptionData()
     editMode.value = true
   } else if (option.text == 'Cancel Job') {
     showConfirmationModal.value = 'CancelJob'
@@ -277,31 +272,6 @@ const handleOptionMenu = async (option) => {
     emit('print')
   } else if (option.text == 'View History') {
     showAuditTrailModal.value = 'accession_jobs'
-  }
-}
-const loadOptionData = async () => {
-  try {
-    appIsLoadingData.value = true
-    // load the exact option data needed in our container and media type select inputs
-    if (!accessionContainer.value.id) {
-      await Promise.all([
-        getSizeClass(accessionJob.value.size_class_id),
-        getMediaType(accessionJob.value.media_type_id)
-      ])
-    } else {
-      await Promise.all([
-        getSizeClass(accessionContainer.value.size_class_id),
-        getMediaType(accessionContainer.value.media_type_id)
-      ])
-    }
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
-    })
-  } finally {
-    appIsLoadingData.value = false
   }
 }
 
