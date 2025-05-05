@@ -255,7 +255,7 @@
       button-two-label="Complete Job"
       :button-two-outline="false"
       :button-two-disabled="
-        !allItemsVerified || accessionJob.status == 'Paused' || accessionJob.status == 'Completed' && accessionJob.verification_job !== null
+        !allItemsVerified || accessionJob.status == 'Paused' || accessionJob.status == 'Completed' && verificationJobGenerated
       "
       :button-two-loading="appActionIsLoadingData"
       @button-two-click="
