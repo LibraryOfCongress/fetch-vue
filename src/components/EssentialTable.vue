@@ -498,6 +498,12 @@ watch(() => mainProps.paginationTotal, () => {
 const clearSelectedData = () => {
   tableComponent.value.clearSelection()
 }
+const resetTablePagination = () => {
+  paginationConfig.value.sortBy = ''
+  paginationConfig.value.descending = false
+  paginationConfig.value.page = 1
+  paginationConfig.value.rowsPerPage = 50
+}
 
 const filterTableData = () => {
   // get all user selected filters
@@ -619,7 +625,10 @@ const reorderTableItemDOM = (e) => {
 }
 
 
-defineExpose({ clearSelectedData })
+defineExpose({
+  clearSelectedData,
+  resetTablePagination
+})
 </script>
 
 <style lang="scss" scoped>
