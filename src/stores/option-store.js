@@ -33,7 +33,8 @@ export const useOptionStore = defineStore('option-store', {
     sizeClass: [],
     shelfTypes: [],
     users: [],
-    verificationJobs: []
+    verificationJobs: [],
+    verificationJobsOptions: []
   }),
   actions: {
     resetOptionStore () {

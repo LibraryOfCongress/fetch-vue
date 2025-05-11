@@ -205,8 +205,8 @@
                   :use-chips="true"
                   :hide-selected="false"
                   :force-option-type-reload="true"
-                  :options="verificationJobs"
-                  option-type="verificationJobs"
+                  :options="verificationJobsOptions"
+                  option-type="verificationJobsOptions"
                   :option-query="{ unshelved: true }"
                   option-value="id"
                   option-label="workflow_id"
@@ -464,7 +464,7 @@ const {
   aisles,
   ladders,
   users,
-  verificationJobs
+  verificationJobsOptions
 } = storeToRefs(useOptionStore())
 const {
   getBuildingDetails,

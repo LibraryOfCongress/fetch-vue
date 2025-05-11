@@ -62,6 +62,7 @@ export default {
   traysMove: '/trays/move/',
   users: '/users/',
   verificationJobs: '/verification-jobs/',
+  verificationJobsOptions: '/verification-jobs/options/',
   verificationJobsByAccessionJobId: '/verification-jobs/by-accession-job-id/',
   verificationJobsWorkflow: '/verification-jobs/workflow/',
   withdrawJobs: '/withdraw-jobs/'
