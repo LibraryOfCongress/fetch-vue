@@ -921,23 +921,20 @@ const completeAccessionJob = async () => {
     }
     await patchAccessionJob(payload)
 
-    //check that verification job generation was successful
-    await checkVerificationJobGeneration()
-    if (verificationJobGenerated.value) {
-      handleAlert({
-        type: 'success',
-        text: 'The Job has been completed and moved for verification.',
-        autoClose: true
-      })
+    verificationJobGenerated.value = true
+    handleAlert({
+      type: 'success',
+      text: 'The Job has been completed and moved for verification.',
+      autoClose: true
+    })
 
-      // route the user back to the accession init dashboard
-      router.push({
-        name: 'accession',
-        params: {
-          jobId: null
-        }
-      })
-    }
+    // route the user back to the accession init dashboard
+    router.push({
+      name: 'accession',
+      params: {
+        jobId: null
+      }
+    })
   } catch (error) {
     handleAlert({
       type: 'error',
