@@ -449,7 +449,7 @@ const {
   sizeClass,
   mediaTypes,
   users,
-  verificationJobs
+  verificationJobsDropdown
 } = storeToRefs(useOptionStore())
 const {
   getSideList,
@@ -881,8 +881,8 @@ const generateReportModal = () => {
           optionLabel: 'workflow_id',
           optionValue: 'workflow_id',
           label: 'Job Number',
-          options: verificationJobs,
-          optionType: 'verificationJobs'
+          options: verificationJobsDropdown,
+          optionType: 'verificationJobsDropdown'
         },
         {
           query: 'from_dt',
