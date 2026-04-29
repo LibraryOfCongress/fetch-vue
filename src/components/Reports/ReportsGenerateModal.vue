@@ -474,6 +474,10 @@ const isReportFormValid = computed( () => {
       return !!reportForm.value.building_id
     case 'Open Locations':
       return !(!reportForm.value.building_id && !(reportForm.value.owner_id?.length) && !(reportForm.value.size_class_id?.length))
+    case 'Not Shelved':
+      return !!reportForm.value.container_type
+        && !!reportForm.value.from_dt
+        && !!reportForm.value.to_dt
     default:
       return true
   }
@@ -693,6 +697,47 @@ const generateReportModal = () => {
           label: 'Size Class',
           options: sizeClass,
           optionType: 'sizeClass'
+        }
+      ]
+      break
+    case 'Not Shelved':
+      reportForm.value = {
+        container_type: null,
+        from_dt: null,
+        to_dt: null
+      }
+      reportParams.value = [
+        {
+          query: 'container_type',
+          label: 'Container Type',
+          required: true,
+          multiple: false,
+          options: ref([
+            {
+              id: 'Tray',
+              name: 'Tray'
+            },
+            {
+              id: 'NonTray',
+              name: 'Non-Tray'
+            },
+            {
+              id: 'Both',
+              name: 'Both'
+            }
+          ]),
+          optionValue: 'id',
+          optionLabel: 'name'
+        },
+        {
+          query: 'from_dt',
+          label: 'Accession Date (From)',
+          required: true
+        },
+        {
+          query: 'to_dt',
+          label: 'Accession Date (To)',
+          required: true
         }
       ]
       break

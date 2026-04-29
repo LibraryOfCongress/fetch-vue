@@ -185,6 +185,7 @@ const reportOptions =  ref([
   'Item Accession',
   'Item in Tray',
   'Non-Tray Count',
+  'Not Shelved',
   'Open Locations',
   'Refile Discrepancy',
   'Shelving Job Discrepancy',
@@ -327,6 +328,44 @@ const generateReportTableFields = (qParams) => {
       generatedTableVisibleColumns.value = [
         'size_class_short_name',
         'non_tray_item_count'
+      ]
+      break
+    case 'Not Shelved':
+      generatedTableColumns.value = [
+        {
+          name: 'barcode_value',
+          field: 'barcode_value',
+          label: 'Barcode #',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'owner_name',
+          field: 'owner_name',
+          label: 'Owner',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'workflow_id',
+          field: 'workflow_id',
+          label: 'Verification #',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'accession_dt',
+          field: 'accession_dt',
+          label: 'Accession Date',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      generatedTableVisibleColumns.value = [
+        'barcode_value',
+        'owner_name',
+        'workflow_id',
+        'accession_dt'
       ]
       break
     case 'Open Locations':
