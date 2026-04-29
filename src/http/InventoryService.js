@@ -40,6 +40,7 @@ export default {
   reportingOpenLocations: '/reporting/open-locations/',
   reportingShelvingDiscrepancies: '/reporting/shelving-job-discrepancies/',
   reportingMoveDiscrepancies: '/reporting/move-discrepancies/',
+  reportingNotShelved: '/reporting/not-shelved/',
   reportingTrayItemsCount: '/reporting/tray_items/count/',
   reportingAislesItemsCount: '/reporting/aisles/items_count/',
   reportingNonTrayItemsCount: '/reporting/non_tray_items/count/',

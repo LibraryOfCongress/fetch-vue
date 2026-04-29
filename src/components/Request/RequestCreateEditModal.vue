@@ -3,6 +3,7 @@
     ref="requestCreateModal"
     :show-actions="false"
     @reset="emit('hide')"
+    @show="focusBarcodeInput"
     aria-label="manualRequestModal"
   >
     <template #header-content="{ hideModal }">
@@ -33,6 +34,7 @@
               Item Barcode <span class="text-caption text-negative">(Required)</span>
             </label>
             <TextInput
+              ref="barcodeInput"
               v-model="manualRequestForm.barcode"
               placeholder="Enter or Scan Item Barcode"
               @focus="allowItemBarcodeScan = true"
@@ -242,6 +244,7 @@ const {
 
 // Local Data
 const requestCreateModal = ref(null)
+const barcodeInput = ref(null)
 const bulkRequestTemplateData = ref([
   {
     'Item Barcode': '',
@@ -291,6 +294,10 @@ const allowItemBarcodeScan = ref(false)
 // Logic
 const handleAlert = inject('handle-alert')
 const handleCSVDownload = inject('handle-csv-download')
+
+const focusBarcodeInput = () => {
+  barcodeInput.value?.$el?.querySelector('input')?.focus()
+}
 
 onMounted(() => {
   if (mainProps.type == 'edit') {
@@ -384,6 +391,7 @@ const createRequestJob = async (isNext = false) => {
         delivery_location_id: null,
         priority_id: null
       }
+      focusBarcodeInput()
     } else {
       requestCreateModal.value.hideModal()
     }

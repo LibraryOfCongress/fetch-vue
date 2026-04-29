@@ -3,6 +3,7 @@
     v-model="showPopupModal"
     persistent
     @hide="emit('reset')"
+    @show="emit('show')"
   >
     <q-card
       class="popup-modal"
@@ -103,7 +104,8 @@ defineProps({
 // Emits
 const emit = defineEmits([
   'reset',
-  'confirm'
+  'confirm',
+  'show'
 ])
 
 // Store Data

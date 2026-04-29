@@ -196,7 +196,7 @@
           label="Submit"
           class="text-body1 full-width"
           :loading="appActionIsLoadingData"
-          :disabled="!shelvingJobContainer.shelf_position_number"
+          :disabled="!shelvingJobContainer.shelf_position_number || !checkUserPermission('can_create_and_execute_direct_shelving_job')"
           @click="assignContainerLocation();"
         />
 

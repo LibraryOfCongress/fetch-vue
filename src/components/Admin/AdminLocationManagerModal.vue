@@ -181,7 +181,12 @@ const { barcodeDetails } = storeToRefs(useBarcodeStore())
 
 // Local Data
 const titleCaseLocationType = computed(() => {
-  return mainProps.locationType.replace(mainProps.locationType[0], mainProps.locationType[0].toUpperCase()).slice(0, -1)
+  const type = mainProps.locationType
+  const capitalized = type.replace(type[0], type[0].toUpperCase())
+  if (capitalized.endsWith('ves')) {
+    return capitalized.slice(0, -3) + 'f'
+  }
+  return capitalized.slice(0, -1)
 })
 const locationModal = ref(null)
 const locationFields = ref(null)
