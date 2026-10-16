@@ -10,7 +10,7 @@
           {{ entryType == 'Scan' ? 'Scan Item' : entryType == 'Bulk' ? 'Bulk Upload Items' : 'Manual Barcode Entry' }}
         </h2>
 
-        <q-btn
+        <BaseButton
           icon="close"
           flat
           round
@@ -95,7 +95,7 @@
       <q-card-section
         class="row no-wrap justify-between items-center q-pt-sm"
       >
-        <q-btn
+        <BaseButton
           v-if="entryType == 'Scan'"
           no-caps
           unelevated
@@ -104,7 +104,7 @@
           class="text-body1 full-width"
           @click="hideModal()"
         />
-        <q-btn
+        <BaseButton
           v-else-if="entryType == 'Bulk'"
           no-caps
           unelevated
@@ -115,7 +115,7 @@
           :disabled="withdrawFile.length == 0"
           @click="bulkAddItemToWithdrawJob()"
         />
-        <q-btn
+        <BaseButton
           v-else
           no-caps
           unelevated
@@ -129,7 +129,7 @@
 
         <q-space class="q-mx-xs" />
 
-        <q-btn
+        <BaseButton
           outline
           no-caps
           label="Cancel"
@@ -142,11 +142,13 @@
 </template>
 
 <script setup>
-import { ref, inject, watch } from 'vue'
+import BaseButton from '@/components/Base/BaseButton.vue'
+import { ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useWithdrawalStore } from '@/stores/withdrawal-store'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
+import { notify } from '@/utils/notify'
 import PopupModal from '@/components/PopupModal.vue'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 import TextInput from '@/components/TextInput.vue'
@@ -184,7 +186,7 @@ const showAddAlert = ref(false)
 const withdrawFile = ref([])
 
 // Logic
-const handleAlert = inject('handle-alert')
+
 
 watch(compiledBarCode, (barcode) => {
   if (barcode !== '') {
@@ -194,10 +196,9 @@ watch(compiledBarCode, (barcode) => {
 const triggerItemScan = (barcode_value) => {
   // check if barcode already is part of the job items
   if (withdrawJobItems.value.length > 0 && (withdrawJobItems.value.some(itm => itm.barcode.value == barcode_value) || withdrawJob.value.trays.some(itm => itm.barcode.value == barcode_value))) {
-    handleAlert({
-      type: 'error',
-      text: 'The scanned barcode already exists in this withdraw job. Please try again!',
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: 'The scanned barcode already exists in this withdraw job. Please try again!'
     })
   } else {
     itemBarcode.value = barcode_value
@@ -214,18 +215,16 @@ const addItemToWithdrawJob = async () => {
     }
     const res = await postWithdrawJobItem(payload)
 
-    handleAlert({
-      type: 'success',
-      text: 'Successfully added an item to the Withdraw Job!',
-      autoClose: true
+    notify({
+      type: 'positive',
+      message: 'Successfully added an item to the Withdraw Job!'
     })
     // check if errors are returned in our 200 response and display them
     if (res) {
       res.forEach(err => {
-        handleAlert({
-          type: 'error',
-          text: `Batch withdraw upload failed for the following: ${JSON.stringify(err)}`,
-          autoClose: true
+        notify({
+          type: 'negative',
+          message: `Batch withdraw upload failed for the following: ${JSON.stringify(err)}`
         })
       })
     }
@@ -237,17 +236,15 @@ const addItemToWithdrawJob = async () => {
   } catch (error) {
     if (error.response?.data?.errors) {
       error.response.data.errors.forEach(err => {
-        handleAlert({
-          type: 'error',
-          text: `Batch withdraw upload failed: ${JSON.stringify(err)}`,
-          autoClose: true
+        notify({
+          type: 'negative',
+          message: `Batch withdraw upload failed: ${JSON.stringify(err)}`
         })
       })
     } else {
-      handleAlert({
-        type: 'error',
-        text: error,
-        autoClose: true
+      notify({
+        type: 'negative',
+        message: error.response?.data?.detail || error.message || 'Failed to add item'
       })
     }
   } finally {
@@ -266,18 +263,16 @@ const bulkAddItemToWithdrawJob = async () => {
     }
     const res = await postWithdrawJobBulkItems(payload)
 
-    handleAlert({
-      type: 'success',
-      text: 'Successfully bulk added items to the Withdraw Job!',
-      autoClose: true
+    notify({
+      type: 'positive',
+      message: 'Successfully bulk added items to the Withdraw Job!'
     })
     // check if errors are returned in our 200 response and display them
     if (res) {
       res.forEach(err => {
-        handleAlert({
-          type: 'error',
-          text: `Batch withdraw upload failed for the following: ${JSON.stringify(err)}`,
-          autoClose: true
+        notify({
+          type: 'negative',
+          message: `Batch withdraw upload failed for the following: ${JSON.stringify(err)}`
         })
       })
     }
@@ -285,17 +280,15 @@ const bulkAddItemToWithdrawJob = async () => {
     //TODO figure out how to handle error logging for the user
     if (error.response?.data?.errors) {
       error.response.data.errors.forEach(err => {
-        handleAlert({
-          type: 'error',
-          text: `Batch withdraw upload failed: ${JSON.stringify(err)}`,
-          autoClose: true
+        notify({
+          type: 'negative',
+          message: `Batch withdraw upload failed: ${JSON.stringify(err)}`
         })
       })
     } else {
-      handleAlert({
-        type: 'error',
-        text: error,
-        autoClose: true
+      notify({
+        type: 'negative',
+        message: error.response?.data?.detail || error.message || 'Bulk upload failed'
       })
     }
   } finally {

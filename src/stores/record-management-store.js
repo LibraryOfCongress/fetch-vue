@@ -90,6 +90,49 @@ export const useRecordManagementStore = defineStore('record-management-store', {
       } catch (error) {
         throw error
       }
+    },
+    async patchTray (payload) {
+      try {
+        const trayId = payload.id
+        const updateData = { ...payload }
+        delete updateData.id
+
+        const res = await this.$api.patch(`${inventoryServiceApi.trays}${trayId}`, updateData)
+
+        this.trayDetails = res.data
+
+        return res.data
+      } catch (error) {
+        console.error('Failed to update tray:', error)
+        throw error
+      }
+    },
+
+    async patchNonTrayItem (payload) {
+      try {
+        const itemId = payload.id
+        const updateData = { ...payload }
+        delete updateData.id
+
+        const res = await this.$api.patch(`${inventoryServiceApi.nonTrayItems}${itemId}`, updateData)
+        // -------------------------------------------------------
+        this.itemDetails = res.data
+
+        return res.data
+      } catch (error) {
+        console.error('Failed to update Non-Tray Item:', error)
+        throw error
+      }
+    },
+
+    async getIlsItemMetadata (barcodeValue) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.itemsIlsMetadata}${barcodeValue}/ils-metadata`)
+        return res.data
+      } catch (error) {
+        console.error('Failed to fetch ILS Item Metadata:', error)
+        throw error
+      }
     }
   }
 })

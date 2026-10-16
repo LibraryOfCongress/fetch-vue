@@ -30,6 +30,7 @@ module.exports = configure(function (ctx) {
     // https://v2.quasar.dev/quasar-cli/boot-files
     boot: [
       'axios',
+      'session',
       'htmlToPaper',
       'vueJsonExcel'
     ],
@@ -47,7 +48,7 @@ module.exports = configure(function (ctx) {
       // 'themify',
       // 'line-awesome',
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
-      'roboto-font', // optional, you are not bound to it
+      // 'roboto-font', // optional, you are not bound to it
       'material-icons', // optional, you are not bound to it
       'mdi-v7'
     ],
@@ -81,7 +82,8 @@ module.exports = configure(function (ctx) {
       plugins: [
         'LocalStorage',
         'SessionStorage',
-        'Notify'
+        'Notify',
+        'Dialog'
       ]
     },
 

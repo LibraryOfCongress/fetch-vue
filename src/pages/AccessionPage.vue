@@ -14,8 +14,9 @@
 </template>
 
 <script setup>
-import { onBeforeMount, onMounted, inject } from 'vue'
+import { onBeforeMount, onMounted, inject, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { notify } from '@/utils/notify'
 import { storeToRefs } from 'pinia'
 import { useAccessionStore } from 'src/stores/accession-store'
 import { useGlobalStore } from '@/stores/global-store'
@@ -33,17 +34,48 @@ const {
   getAccessionNonTrayItem
 } = useAccessionStore()
 const { accessionJob } = storeToRefs(useAccessionStore())
-const { pageInitLoading } = storeToRefs(useGlobalStore())
+const globalStore = useGlobalStore()
+const { pageInitLoading } = storeToRefs(globalStore)
+const { setMainNavDrawerOpen } = globalStore
 
 // Logic
 const handlePageOffset = inject('handle-page-offset')
-const handleAlert = inject('handle-alert')
+
+
+// Close the drawer when entering a job page
+watch(() => route.params.jobId, (newJobId) => {
+  if (newJobId) {
+    setMainNavDrawerOpen(false)
+  }
+}, {
+  immediate: true
+})
+
+watch(() => route.params.containerId, async (newId, oldId) => {
+  if (newId && newId !== oldId) {
+    if (accessionJob.value.trayed) {
+      await getAccessionTray(newId).catch(error => {
+        notify({
+          type: 'negative',
+          message: error.response?.data?.detail || error
+        })
+        router.push({
+          name: 'accession',
+          params: {
+            jobId: route.params.jobId
+          }
+        })
+      })
+    }
+  }
+})
 
 onBeforeMount(() => {
   pageInitLoading.value = true
 })
 
 onMounted( async () => {
+  // REMOVED: The logic to close the drawer has been moved to the new watcher.
   if (route.params.jobId) {
     await getAccessionJob(route.params.jobId)
   }
@@ -51,10 +83,9 @@ onMounted( async () => {
   if (route.params.containerId) {
     if (accessionJob.value.trayed) {
       await getAccessionTray(route.params.containerId).catch(error => {
-        handleAlert({
-          type: 'error',
-          text: error,
-          autoClose: true
+        notify({
+          type: 'negative',
+          message: error.response?.data?.detail || error
         })
         router.push({
           name: 'accession',
@@ -65,10 +96,9 @@ onMounted( async () => {
       })
     } else {
       await getAccessionNonTrayItem(route.params.containerId).catch(error => {
-        handleAlert({
-          type: 'error',
-          text: error,
-          autoClose: true
+        notify({
+          type: 'negative',
+          message: error.response?.data?.detail || error
         })
         router.push({
           name: 'accession',

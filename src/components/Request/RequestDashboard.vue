@@ -6,24 +6,22 @@
           ref="requestTableComponent"
           :table-columns="requestDisplayType == 'request_view' ? requestTableColumns : requestBatchTableColumns"
           :table-visible-columns="requestDisplayType == 'request_view' ? requestTableVisibleColumns : requestBatchTableVisibleColumns"
-          :filter-options="showCreatePickList || showAddPickList ? [] : requestDisplayType == 'request_view' ? requestTableFilters : requestBatchTableFilters"
           :table-data="requestJobList"
           :enable-table-reorder="false"
           :enable-selection="showCreatePickList || showAddPickList"
           :heading-row-class="'q-mb-xs-md q-mb-md-xl'"
-          :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
-          :heading-rearrange-class="showCreatePickList || showAddPickList ? 'q-ml-auto' : null"
           :enable-pagination="true"
           :pagination-total="requestJobListTotal"
           :pagination-loading="appIsLoadingData"
           :rows-per-page-options="[25, 50, 75, 100, 250, 500]"
+          :hide-table-rearrange="true"
           @update-pagination="loadRequestJobs($event)"
           @selected-table-row="loadRequestJob($event.id)"
           @selected-data="selectedRequestItems = $event"
         >
           <template #heading-row>
             <div
-              class="col-sm-5 col-md-12 q-mb-md-sm"
+              class="col-sm-5 col-md-auto q-mb-md-sm"
               :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
             >
               <h1 class="text-h4 text-bold">
@@ -31,17 +29,57 @@
               </h1>
             </div>
 
+            <!-- View toggle - left justified after title -->
             <div
-              class="col-xs-grow col-sm-7 col-md-auto flex"
-              :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? 'justify-end q-mb-md' : 'order-1'"
+              class="col-auto q-ml-md self-center"
+              :class="currentScreenSize == 'xs' ? 'col-12 q-mb-md' : ''"
             >
-              <q-btn
+              <ToggleButtonInput
+                v-model="requestDisplayType"
+                :options="[
+                  {label: 'Request View', value: 'request_view'},
+                  {label: 'Batch View', value: 'batch_view'}
+                ]"
+                @update:model-value="clearTableSelection(); requestTableComponent.resetTablePagination(); loadRequestJobs();"
+                class="text-no-wrap toggle-modern"
+              />
+            </div>
+
+            <div class="col-grow" />
+
+            <!-- Filter buttons and Create - right justified -->
+            <div
+              class="col-auto flex items-center"
+              :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? 'justify-end q-mb-md' : ''"
+            >
+              <BaseButton
+                flat
+                dense
+                no-caps
+                :color="showFilterRow ? 'accent' : 'grey-7'"
+                :label="showFilterRow ? 'Hide Filters' : 'Show Filters'"
+                :icon="showFilterRow ? 'filter_alt' : 'filter_alt_off'"
+                class="q-mr-sm"
+                @click="showFilterRow = !showFilterRow"
+              />
+              <BaseButton
+                v-if="showFilterRow"
+                flat
+                dense
+                no-caps
+                color="grey-7"
+                label="Clear"
+                icon="clear_all"
+                class="q-mr-md"
+                @click="clearColumnFilters"
+              />
+              <BaseButton
                 no-caps
                 unelevated
                 icon-right="arrow_drop_down"
                 color="accent"
                 label="Create"
-                class="text-body1 q-ml-xs-none q-ml-sm-sm"
+                class="text-body1 btn-modern"
                 :disabled="showCreatePickList || showAddPickList"
                 aria-label="createRequestJobMenu"
                 aria-haspopup="menu"
@@ -53,36 +91,6 @@
                   aria-label="requestJobMenuList"
                 >
                   <q-list>
-                    <q-item
-                      v-if="checkUserPermission('can_add_to_picklist_job')"
-                      clickable
-                      v-close-popup
-                      @click="showPickListModal = 'Add'"
-                      role="menuitem"
-                    >
-                      <q-item-section>
-                        <q-item-label>
-                          <span>
-                            Add to Pick List
-                          </span>
-                        </q-item-label>
-                      </q-item-section>
-                    </q-item>
-                    <q-item
-                      v-if="checkUserPermission('can_create_picklist_job')"
-                      clickable
-                      v-close-popup
-                      @click="showPickListModal = 'Create'"
-                      role="menuitem"
-                    >
-                      <q-item-section>
-                        <q-item-label>
-                          <span>
-                            Create a Pick List
-                          </span>
-                        </q-item-label>
-                      </q-item-section>
-                    </q-item>
                     <q-item
                       v-if="checkUserPermission('can_create_and_submit_manual_requests')"
                       clickable
@@ -113,23 +121,55 @@
                         </q-item-label>
                       </q-item-section>
                     </q-item>
+                    <q-item
+                      v-if="checkUserPermission('can_create_and_submit_batch_requests')"
+                      clickable
+                      v-close-popup
+                      @click="triggerIlsSyncModalOpen"
+                      role="menuitem"
+                    >
+                      <q-item-section>
+                        <q-item-label>
+                          <span class="text-no-wrap">
+                            Sync ILS Requests
+                          </span>
+                        </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                    <q-separator v-if="checkUserPermission('can_create_picklist_job') || checkUserPermission('can_add_to_picklist_job')" />
+                    <q-item
+                      v-if="checkUserPermission('can_create_picklist_job')"
+                      clickable
+                      v-close-popup
+                      @click="handlePickListModalOpen('Create')"
+                      role="menuitem"
+                    >
+                      <q-item-section>
+                        <q-item-label>
+                          <span>
+                            Create a Pick List
+                          </span>
+                        </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                    <q-item
+                      v-if="checkUserPermission('can_add_to_picklist_job')"
+                      clickable
+                      v-close-popup
+                      @click="handlePickListModalOpen('Add')"
+                      role="menuitem"
+                    >
+                      <q-item-section>
+                        <q-item-label>
+                          <span>
+                            Add to Pick List
+                          </span>
+                        </q-item-label>
+                      </q-item-section>
+                    </q-item>
                   </q-list>
                 </q-menu>
-              </q-btn>
-            </div>
-
-            <div
-              class="col-xs-12 col-sm-auto col-md-auto q-mb-xs-md q-mb-sm-none"
-            >
-              <ToggleButtonInput
-                v-model="requestDisplayType"
-                :options="[
-                  {label: 'Request View', value: 'request_view'},
-                  {label: 'Batch View', value: 'batch_view'}
-                ]"
-                @update:model-value="clearTableSelection(); requestTableComponent.resetTablePagination(); loadRequestJobs();"
-                class="text-no-wrap"
-              />
+              </BaseButton>
             </div>
 
             <div
@@ -137,7 +177,7 @@
               class="col-12 order-2 flex"
             >
               <div class="request-dashboard-actions q-ml-auto q-mt-md">
-                <q-btn
+                <BaseButton
                   no-caps
                   unelevated
                   :color="showCreatePickList ? 'accent' : 'positive'"
@@ -147,7 +187,7 @@
                   :loading="appActionIsLoadingData"
                   @click="showCreatePickList ? createPickListJob() : updatePickListJob()"
                 />
-                <q-btn
+                <BaseButton
                   no-caps
                   outline
                   label="Cancel"
@@ -171,6 +211,292 @@
             />
           </template>
 
+          <!-- Filter row inside table header -->
+          <template #header-filter-row="{ cols }">
+            <q-tr
+              v-if="showFilterRow"
+              class="filter-row"
+            >
+              <q-th
+                v-for="col in cols"
+                :key="col.name"
+                class="filter-cell"
+              >
+                <!-- Request View Filters -->
+                <template v-if="requestDisplayType === 'request_view'">
+                  <!-- Request ID filter -->
+                  <q-input
+                    v-if="col.name === 'id'"
+                    v-model="columnFilters.id"
+                    dense
+                    outlined
+                    clearable
+                    placeholder="Search..."
+                    class="column-filter-input"
+                    @keyup.enter="applyColumnFilters"
+                    @click.stop
+                  >
+                    <template #prepend>
+                      <q-icon
+                        name="search"
+                        size="16px"
+                        color="grey-6"
+                      />
+                    </template>
+                  </q-input>
+
+                  <!-- Request Type filter -->
+                  <q-select
+                    v-else-if="col.name === 'request_type'"
+                    v-model="columnFilters.request_type"
+                    dense
+                    outlined
+                    clearable
+                    multiple
+                    emit-value
+                    map-options
+                    :options="requestTypeOptionsFromData.length > 0 ? requestTypeOptionsFromData : requestTypeOptions"
+                    placeholder="All"
+                    class="column-filter-input"
+                    @update:model-value="applyColumnFilters"
+                    @click.stop
+                  />
+
+                  <!-- Barcode filter -->
+                  <q-input
+                    v-else-if="col.name === 'barcode_value'"
+                    v-model="columnFilters.barcode"
+                    dense
+                    outlined
+                    clearable
+                    placeholder="Search..."
+                    class="column-filter-input"
+                    @keyup.enter="applyColumnFilters"
+                    @click.stop
+                  >
+                    <template #prepend>
+                      <q-icon
+                        name="search"
+                        size="16px"
+                        color="grey-6"
+                      />
+                    </template>
+                  </q-input>
+
+                  <!-- External Request ID filter -->
+                  <q-input
+                    v-else-if="col.name === 'external_request_id'"
+                    v-model="columnFilters.external_request_id"
+                    dense
+                    outlined
+                    clearable
+                    placeholder="Search..."
+                    class="column-filter-input"
+                    @keyup.enter="applyColumnFilters"
+                    @click.stop
+                  >
+                    <template #prepend>
+                      <q-icon
+                        name="search"
+                        size="16px"
+                        color="grey-6"
+                      />
+                    </template>
+                  </q-input>
+
+                  <!-- Building filter -->
+                  <q-select
+                    v-else-if="col.name === 'building_name'"
+                    v-model="columnFilters.building_id"
+                    dense
+                    outlined
+                    clearable
+                    multiple
+                    emit-value
+                    map-options
+                    :options="buildingOptionsFromData.length > 0 ? buildingOptionsFromData : buildingOptions"
+                    placeholder="All"
+                    class="column-filter-input"
+                    @update:model-value="applyColumnFilters"
+                    @click.stop
+                  />
+
+                  <!-- Requestor Name filter -->
+                  <q-input
+                    v-else-if="col.name === 'requestor_name'"
+                    v-model="columnFilters.requestor_name"
+                    dense
+                    outlined
+                    clearable
+                    placeholder="Search..."
+                    class="column-filter-input"
+                    @keyup.enter="applyColumnFilters"
+                    @click.stop
+                  >
+                    <template #prepend>
+                      <q-icon
+                        name="search"
+                        size="16px"
+                        color="grey-6"
+                      />
+                    </template>
+                  </q-input>
+
+                  <!-- Status filter -->
+                  <q-select
+                    v-else-if="col.name === 'status'"
+                    v-model="columnFilters.status"
+                    dense
+                    outlined
+                    clearable
+                    multiple
+                    emit-value
+                    map-options
+                    :options="statusOptionsFromData.length > 0 ? statusOptionsFromData : requestStatusOptions"
+                    placeholder="All"
+                    class="column-filter-input"
+                    @update:model-value="applyColumnFilters"
+                    @click.stop
+                  />
+
+                  <!-- Priority filter -->
+                  <q-select
+                    v-else-if="col.name === 'priority'"
+                    v-model="columnFilters.priority"
+                    dense
+                    outlined
+                    clearable
+                    multiple
+                    emit-value
+                    map-options
+                    :options="priorityOptionsFromData.length > 0 ? priorityOptionsFromData : priorityOptions"
+                    placeholder="All"
+                    class="column-filter-input"
+                    @update:model-value="applyColumnFilters"
+                    @click.stop
+                  />
+
+                  <!-- Media Type filter -->
+                  <q-select
+                    v-else-if="col.name === 'media_type'"
+                    v-model="columnFilters.media_type"
+                    dense
+                    outlined
+                    clearable
+                    multiple
+                    emit-value
+                    map-options
+                    :options="mediaTypeOptionsFromData.length > 0 ? mediaTypeOptionsFromData : mediaTypeOptions"
+                    placeholder="All"
+                    class="column-filter-input"
+                    @update:model-value="applyColumnFilters"
+                    @click.stop
+                  />
+
+                  <!-- Item Location filter -->
+                  <q-input
+                    v-else-if="col.name === 'location'"
+                    v-model="columnFilters.location"
+                    dense
+                    outlined
+                    clearable
+                    placeholder="Search..."
+                    class="column-filter-input"
+                    @keyup.enter="applyColumnFilters"
+                    @click.stop
+                  >
+                    <template #prepend>
+                      <q-icon
+                        name="search"
+                        size="16px"
+                        color="grey-6"
+                      />
+                    </template>
+                  </q-input>
+
+                  <!-- Delivery Location filter -->
+                  <q-select
+                    v-else-if="col.name === 'delivery_location'"
+                    v-model="columnFilters.delivery_location"
+                    dense
+                    outlined
+                    clearable
+                    multiple
+                    emit-value
+                    map-options
+                    :options="deliveryLocationOptionsFromData.length > 0 ? deliveryLocationOptionsFromData : deliveryLocationOptions"
+                    placeholder="All"
+                    class="column-filter-input"
+                    @update:model-value="applyColumnFilters"
+                    @click.stop
+                  />
+                </template>
+
+                <!-- Batch View Filters -->
+                <template v-else>
+                  <!-- Import Source filter -->
+                  <q-input
+                    v-if="col.name === 'file_type'"
+                    v-model="batchColumnFilters.file_type"
+                    dense
+                    outlined
+                    clearable
+                    placeholder="Search..."
+                    class="column-filter-input"
+                    @keyup.enter="applyColumnFilters"
+                    @click.stop
+                  >
+                    <template #prepend>
+                      <q-icon
+                        name="search"
+                        size="16px"
+                        color="grey-6"
+                      />
+                    </template>
+                  </q-input>
+
+                  <!-- Status filter (Batch) -->
+                  <q-select
+                    v-else-if="col.name === 'status'"
+                    v-model="batchColumnFilters.status"
+                    dense
+                    outlined
+                    clearable
+                    multiple
+                    emit-value
+                    map-options
+                    :options="batchStatusOptions"
+                    placeholder="All"
+                    class="column-filter-input"
+                    @update:model-value="applyColumnFilters"
+                    @click.stop
+                  />
+
+                  <!-- Uploaded By filter -->
+                  <q-input
+                    v-else-if="col.name === 'user_id'"
+                    v-model="batchColumnFilters.user_name"
+                    dense
+                    outlined
+                    clearable
+                    placeholder="Search..."
+                    class="column-filter-input"
+                    @keyup.enter="applyColumnFilters"
+                    @click.stop
+                  >
+                    <template #prepend>
+                      <q-icon
+                        name="search"
+                        size="16px"
+                        color="grey-6"
+                      />
+                    </template>
+                  </q-input>
+                </template>
+              </q-th>
+            </q-tr>
+          </template>
+
           <template #table-td="{ colName, value }">
             <span
               v-if="colName == 'request_type'"
@@ -181,9 +507,13 @@
             </span>
             <span
               v-else-if="colName == 'status'"
-              class="outline text-nowrap"
-              :class="value == 'Completed' ? 'text-highlight' : value == 'InProgress' ? 'text-highlight-warning' : null"
+              class="status-badge"
+              :class="getStatusBadgeClass(value)"
             >
+              <q-icon
+                :name="getStatusIcon(value)"
+                size="16px"
+              />
               {{ value }}
             </span>
             <span
@@ -224,7 +554,7 @@
             {{ showPickListModal == 'Create' ? 'Filter Requests By Building' : 'Filter Requests & Select Pick List' }}
           </h2>
 
-          <q-btn
+          <BaseButton
             icon="close"
             flat
             round
@@ -296,7 +626,7 @@
 
       <template #footer-content="{ hideModal }">
         <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-          <q-btn
+          <BaseButton
             no-caps
             unelevated
             color="accent"
@@ -309,7 +639,7 @@
 
           <q-space class="q-mx-xs" />
 
-          <q-btn
+          <BaseButton
             outline
             no-caps
             label="Cancel"
@@ -319,17 +649,101 @@
         </q-card-section>
       </template>
     </PopupModal>
+
+    <!-- ILS Sync Modal -->
+    <PopupModal
+      v-if="showSyncIlsRequestsModal"
+      :show-actions="false"
+      @reset="showSyncIlsRequestsModal = false"
+      aria-label="ilsSyncModal"
+    >
+      <template #header-content="{ hideModal }">
+        <q-card-section class="row items-center justify-between q-pb-none">
+          <h2 class="text-h6">
+            Sync Requests from ILS
+          </h2>
+          <BaseButton
+            icon="close"
+            flat
+            round
+            dense
+            @click="hideModal()"
+          />
+        </q-card-section>
+      </template>
+
+      <template #main-content>
+        <q-card-section class="column no-wrap items-center">
+          <div class="text-body1 q-mb-md">
+            Trigger a background job to pull pending requests from configured Integration Systems.
+          </div>
+          <div class="form-group full-width">
+            <label class="form-group-label">
+              ILS Configurations
+            </label>
+            <q-select
+              v-model="selectedIlsConfigsToSync"
+              :options="ilsConfigurations.filter(c => c.is_active && c.enable_requests_hook)"
+              option-value="id"
+              option-label="name"
+              map-options
+              emit-value
+              multiple
+              outlined
+              dense
+              :loading="loadingIlsConfigs"
+              placeholder="Select Integrations"
+              class="full-width"
+            >
+              <template #no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No active configurations with request syncing enabled.
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+        </q-card-section>
+      </template>
+
+      <template #footer-content="{ hideModal }">
+        <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
+          <BaseButton
+            no-caps
+            unelevated
+            color="accent"
+            label="Sync Now"
+            class="text-body1 full-width"
+            :disabled="selectedIlsConfigsToSync.length === 0"
+            :loading="appActionIsLoadingData"
+            @click="submitIlsSyncRequest"
+          />
+          <q-space class="q-mx-xs" />
+          <BaseButton
+            outline
+            no-caps
+            label="Cancel"
+            class="text-body1 full-width"
+            @click="hideModal()"
+          />
+        </q-card-section>
+      </template>
+    </PopupModal>
   </div>
 </template>
 
 <script setup>
-import { onBeforeMount, ref, reactive, inject } from 'vue'
+import BaseButton from '@/components/Base/BaseButton.vue'
+import { onBeforeMount, ref, inject, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { notify } from '@/utils/notify'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useRequestStore } from '@/stores/request-store'
 import { usePicklistStore } from '@/stores/picklist-store'
+import { useIlsConfigurationStore } from '@/stores/ils-configuration-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
@@ -369,6 +783,287 @@ const {
 const { postPicklistJob, patchPicklistJobItem } = usePicklistStore()
 const { picklistJob } = storeToRefs(usePicklistStore())
 const { userData } = storeToRefs(useUserStore())
+const ilsStore = useIlsConfigurationStore()
+const { ilsConfigurations } = storeToRefs(ilsStore)
+
+// Component State
+const showSyncIlsRequestsModal = ref(false)
+const selectedIlsConfigsToSync = ref([])
+const loadingIlsConfigs = ref(false)
+
+const triggerIlsSyncModalOpen = async () => {
+  showSyncIlsRequestsModal.value = true
+  selectedIlsConfigsToSync.value = []
+  loadingIlsConfigs.value = true
+  try {
+    await ilsStore.getIlsConfigurations()
+  } catch (err) {
+    notify({
+      type: 'negative',
+      message: 'Failed to load ILS Configurations'
+    })
+  } finally {
+    loadingIlsConfigs.value = false
+  }
+}
+
+const submitIlsSyncRequest = async () => {
+  appActionIsLoadingData.value = true
+  try {
+    await ilsStore.syncIlsRequests(selectedIlsConfigsToSync.value)
+    notify({
+      type: 'positive',
+      message: 'ILS Request Sync Triggered Successfully'
+    })
+    showSyncIlsRequestsModal.value = false
+  } catch (err) {
+    notify({
+      type: 'negative',
+      message: 'Failed to trigger ILS Sync'
+    })
+  } finally {
+    appActionIsLoadingData.value = false
+  }
+}
+
+// Filter State
+const showFilterRow = ref(false)
+
+// Column filter state for Request View (server-side filtering)
+const columnFilters = ref({
+  id: null,
+  request_type: [],
+  barcode: null,
+  external_request_id: null,
+  building_id: [],
+  requestor_name: null,
+  status: [],
+  priority: [],
+  media_type: [],
+  location: null,
+  delivery_location: []
+})
+
+// Column filter state for Batch View
+const batchColumnFilters = ref({
+  file_type: null,
+  status: [],
+  user_name: null
+})
+
+// Static filter dropdown options
+const requestTypeOptions = [
+  {
+    label: 'General Delivery',
+    value: 'General Delivery'
+  },
+  {
+    label: 'ILL (InterLibrary Loan)',
+    value: 'ILL (InterLibrary Loan)'
+  },
+  {
+    label: 'Scan and Deliver',
+    value: 'Scan and Deliver'
+  }
+]
+
+const requestStatusOptions = [
+  {
+    label: 'New',
+    value: 'New'
+  },
+  {
+    label: 'PickList',
+    value: 'PickList'
+  },
+  {
+    label: 'Retrieved',
+    value: 'Retrieved'
+  },
+  {
+    label: 'Completed',
+    value: 'Completed'
+  }
+]
+
+const batchStatusOptions = [
+  {
+    label: 'New',
+    value: 'New'
+  },
+  {
+    label: 'Processing',
+    value: 'Processing'
+  },
+  {
+    label: 'Failed',
+    value: 'Failed'
+  },
+  {
+    label: 'Cancelled',
+    value: 'Cancelled'
+  },
+  {
+    label: 'Completed',
+    value: 'Completed'
+  }
+]
+
+// Dynamic filter options from current table data
+const requestTypeOptionsFromData = computed(() => {
+  const types = new Set()
+  requestJobList.value.forEach(row => {
+    if (row.request_type?.type) {
+      types.add(row.request_type.type)
+    }
+  })
+  return Array.from(types).sort().map(t => ({
+    label: t,
+    value: t
+  }))
+})
+
+const buildingOptionsFromData = computed(() => {
+  const buildingSet = new Set()
+  requestJobList.value.forEach(row => {
+    if (row.building?.id && row.building?.name) {
+      buildingSet.add(JSON.stringify({
+        id: row.building.id,
+        name: row.building.name
+      }))
+    }
+  })
+  return Array.from(buildingSet).map(b => {
+    const parsed = JSON.parse(b)
+    return {
+      label: parsed.name,
+      value: parsed.id
+    }
+  }).sort((a, b) => a.label.localeCompare(b.label))
+})
+
+const statusOptionsFromData = computed(() => {
+  const statuses = new Set()
+  requestJobList.value.forEach(row => {
+    if (row.status) {
+      statuses.add(row.status)
+    }
+  })
+  return Array.from(statuses).sort().map(s => ({
+    label: s,
+    value: s
+  }))
+})
+
+const priorityOptionsFromData = computed(() => {
+  const priorities = new Set()
+  requestJobList.value.forEach(row => {
+    if (row.priority?.value) {
+      priorities.add(row.priority.value)
+    }
+  })
+  return Array.from(priorities).sort().map(p => ({
+    label: p,
+    value: p
+  }))
+})
+
+const mediaTypeOptionsFromData = computed(() => {
+  const types = new Set()
+  requestJobList.value.forEach(row => {
+    const type = row.item?.media_type?.name || row.non_tray_item?.media_type?.name
+    if (type) {
+      types.add(type)
+    }
+  })
+  return Array.from(types).sort().map(t => ({
+    label: t,
+    value: t
+  }))
+})
+
+const deliveryLocationOptionsFromData = computed(() => {
+  const locations = new Set()
+  requestJobList.value.forEach(row => {
+    if (row.delivery_location?.name) {
+      locations.add(row.delivery_location.name)
+    }
+  })
+  return Array.from(locations).sort().map(l => ({
+    label: l,
+    value: l
+  }))
+})
+
+// Fallback options from store data
+const buildingOptions = computed(() =>
+  buildings.value.map(b => ({
+    label: b.name,
+    value: b.id
+  }))
+)
+
+const priorityOptions = computed(() =>
+  requestsPriorities.value.map(p => ({
+    label: p.value,
+    value: p.value
+  }))
+)
+
+const mediaTypeOptions = computed(() =>
+  mediaTypes.value.map(m => ({
+    label: m.name,
+    value: m.name
+  }))
+)
+
+const deliveryLocationOptions = computed(() =>
+  requestsLocations.value.map(dl => ({
+    label: dl.name,
+    value: dl.name
+  }))
+)
+
+// Status badge helper functions
+const getStatusIcon = (status) => {
+  switch (status) {
+    case 'New':
+      return 'mdi-plus-circle'
+    case 'PickList':
+      return 'mdi-format-list-checks'
+    case 'Retrieved':
+      return 'mdi-truck-delivery'
+    case 'Processing':
+      return 'mdi-progress-clock'
+    case 'Completed':
+      return 'mdi-check-circle'
+    case 'Failed':
+      return 'mdi-alert-circle'
+    case 'Cancelled':
+      return 'mdi-cancel'
+    default:
+      return 'mdi-help-circle'
+  }
+}
+
+const getStatusBadgeClass = (status) => {
+  switch (status) {
+    case 'New':
+      return 'status-badge--new'
+    case 'PickList':
+    case 'Processing':
+    case 'Retrieved':
+      return 'status-badge--in-progress'
+    case 'Completed':
+      return 'status-badge--completed'
+    case 'Failed':
+      return 'status-badge--failed'
+    case 'Cancelled':
+      return 'status-badge--cancelled'
+    default:
+      return ''
+  }
+}
 
 // Local Data
 const requestJobMenuState = ref(false)
@@ -407,7 +1102,8 @@ const requestTableColumns = ref([
     field: row => row.item ? renderItemBarcodeDisplay(row.item) : renderItemBarcodeDisplay(row.non_tray_item),
     label: 'Barcode',
     align: 'left',
-    sortable: true
+    sortable: true,
+    style: 'min-width: 150px'
   },
   {
     name: 'external_request_id',
@@ -473,85 +1169,6 @@ const requestTableColumns = ref([
     sortable: true
   }
 ])
-const requestTableFilters =  reactive([
-  {
-    field: row => row.request_type?.type,
-    label: 'Request Type',
-    apiField: 'request_type',
-    options: [
-      {
-        text: 'General Delivery',
-        value: false
-      },
-      {
-        text: 'ILL (InterLibrary Loan)',
-        value: false
-      },
-      {
-        text: 'Scan and Deliver',
-        value: false
-      }
-    ]
-  },
-  {
-    field: row => row.building?.name,
-    label: 'Building',
-    apiField: 'building_name',
-    options: buildings.value.map(b => {
-      return {
-        text: b.name,
-        value: false
-      }
-    })
-  },
-  {
-    field: 'status',
-    label: 'Request Status',
-    options: [
-      {
-        text: 'New',
-        value: false
-      },
-      {
-        text: 'InProgress',
-        value: false
-      }
-    ]
-  },
-  {
-    field: row => row.priority?.value,
-    label: 'Priority',
-    apiField: 'priority',
-    options: requestsPriorities.value.map(p => {
-      return {
-        text: p.value,
-        value: false
-      }
-    })
-  },
-  {
-    field: row => row.item ? row.item?.media_type?.name : row.non_tray_item?.media_type?.name,
-    label: 'Media Type',
-    apiField: 'media_type',
-    options: mediaTypes.value.map(m => {
-      return {
-        text: m.name,
-        value: false
-      }
-    })
-  },
-  {
-    field: row => row.delivery_location?.name,
-    label: 'Delivery Location',
-    apiField: 'delivery_location',
-    options: requestsLocations.value.map(dl => {
-      return {
-        text: dl.name,
-        value: false
-      }
-    })
-  }
-])
 const requestBatchTableVisibleColumns = ref([
   'file_type',
   'request_count',
@@ -596,34 +1213,6 @@ const requestBatchTableColumns = ref([
     sortable: true
   }
 ])
-const requestBatchTableFilters =  ref([
-  {
-    field: 'status',
-    label: 'Status',
-    options: [
-      {
-        text: 'New',
-        value: false
-      },
-      {
-        text: 'Processing',
-        value: false
-      },
-      {
-        text: 'Failed',
-        value: false
-      },
-      {
-        text: 'Cancelled',
-        value: false
-      },
-      {
-        text: 'Completed',
-        value: false
-      }
-    ]
-  }
-])
 const requestDisplayType = ref('request_view')
 const picklistModalComponent = ref(null)
 const showCreatePickList = ref(false)
@@ -633,9 +1222,10 @@ const addToPickListJob = ref(null)
 const selectedRequestItems = ref([])
 const showCreateRequestByType = ref(null)
 const filterRequestsByBuilding = ref(null)
+const activePickListBuildingFilter = ref(null)
 
 // Logic
-const handleAlert = inject('handle-alert')
+
 const formatDateTime = inject('format-date-time')
 const getItemLocation = inject('get-item-location')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
@@ -668,59 +1258,174 @@ const resetPickListForm = () => {
   showAddPickList.value = false
   showPickListModal.value = null
   filterRequestsByBuilding.value = null
+  activePickListBuildingFilter.value = null
   addToPickListJob.value = null
   clearTableSelection()
+}
+
+const handlePickListModalOpen = async (mode) => {
+  if (userData.value?.default_building_id) {
+    filterRequestsByBuilding.value = userData.value.default_building_id
+    await loadRequestJobsByBuilding(mode)
+  } else {
+    showPickListModal.value = mode
+  }
 }
 
 const loadRequestJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
     if (requestDisplayType.value == 'request_view') {
-      await getRequestJobList({
+      const isPickListMode = showCreatePickList.value || showAddPickList.value
+
+      // Build filter params from column filters
+      const filterParams = {
         ...qParams,
         queue: true,
-        unassociated_pick_list: showCreatePickList.value || showAddPickList.value ? true : false
-      })
+        unassociated_pick_list: isPickListMode ? true : false,
+        // Persist building filter during pick list mode for sorting/pagination
+        ...(isPickListMode && activePickListBuildingFilter.value ? { building_id: activePickListBuildingFilter.value } : {})
+      }
+
+      // Apply column filters (only when not in pick list mode)
+      if (!isPickListMode) {
+        if (columnFilters.value.id) {
+          filterParams.id = columnFilters.value.id
+        }
+        if (columnFilters.value.request_type && columnFilters.value.request_type.length > 0) {
+          filterParams.request_type = columnFilters.value.request_type
+        }
+        if (columnFilters.value.barcode) {
+          filterParams.barcode_value = columnFilters.value.barcode
+        }
+        if (columnFilters.value.external_request_id) {
+          filterParams.external_request_id = columnFilters.value.external_request_id
+        }
+        if (columnFilters.value.building_id && columnFilters.value.building_id.length > 0) {
+          filterParams.building_id = columnFilters.value.building_id
+        }
+        if (columnFilters.value.requestor_name) {
+          filterParams.requestor_name = columnFilters.value.requestor_name
+        }
+        if (columnFilters.value.status && columnFilters.value.status.length > 0) {
+          filterParams.status = columnFilters.value.status
+        }
+        if (columnFilters.value.priority && columnFilters.value.priority.length > 0) {
+          filterParams.priority = columnFilters.value.priority
+        }
+        if (columnFilters.value.media_type && columnFilters.value.media_type.length > 0) {
+          filterParams.media_type = columnFilters.value.media_type
+        }
+        if (columnFilters.value.location) {
+          // Convert displayed location format to database format
+          // Display uses "R" and "L", database stores "Right" and "Left"
+          let locationSearch = columnFilters.value.location
+          // Replace standalone -R- with -Right- and -L- with -Left-
+          locationSearch = locationSearch.replace(/-R-/gi, '-Right-')
+          locationSearch = locationSearch.replace(/-L-/gi, '-Left-')
+          // Handle if R or L is at the end (e.g., "M1-A2-R")
+          locationSearch = locationSearch.replace(/-R$/gi, '-Right')
+          locationSearch = locationSearch.replace(/-L$/gi, '-Left')
+          filterParams.item_location = locationSearch
+        }
+        if (columnFilters.value.delivery_location && columnFilters.value.delivery_location.length > 0) {
+          filterParams.delivery_location = columnFilters.value.delivery_location
+        }
+      }
+
+      await getRequestJobList(filterParams)
     } else {
-      await getRequestBatchJobList({ ...qParams })
+      // Batch View filters
+      const batchFilterParams = { ...qParams }
+
+      if (batchColumnFilters.value.file_type) {
+        batchFilterParams.file_type = batchColumnFilters.value.file_type
+      }
+      if (batchColumnFilters.value.status && batchColumnFilters.value.status.length > 0) {
+        batchFilterParams.status = batchColumnFilters.value.status
+      }
+      if (batchColumnFilters.value.user_name) {
+        batchFilterParams.user_name = batchColumnFilters.value.user_name
+      }
+
+      await getRequestBatchJobList(batchFilterParams)
     }
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to load requests'
     })
   } finally {
     appIsLoadingData.value = false
   }
 }
-const loadRequestJobsByBuilding = async () => {
+
+// Apply column filters - triggers server-side filtering
+const applyColumnFilters = () => {
+  // Reset pagination to page 1 when filters change
+  if (requestTableComponent.value) {
+    requestTableComponent.value.resetTablePagination()
+  }
+  loadRequestJobs()
+}
+
+// Clear all column filters
+const clearColumnFilters = () => {
+  if (requestDisplayType.value === 'request_view') {
+    columnFilters.value = {
+      id: null,
+      request_type: [],
+      barcode: null,
+      external_request_id: null,
+      building_id: [],
+      requestor_name: null,
+      status: [],
+      priority: [],
+      media_type: [],
+      location: null,
+      delivery_location: []
+    }
+  } else {
+    batchColumnFilters.value = {
+      file_type: null,
+      status: [],
+      user_name: null
+    }
+  }
+  applyColumnFilters()
+}
+const loadRequestJobsByBuilding = async (modeOverride = null) => {
   try {
     appActionIsLoadingData.value = true
-    // this function only gets called during the creation/add picklist workflow
+    const mode = modeOverride || showPickListModal.value
+
     // change table view back to request view and clear out any pagination settings
     requestDisplayType.value = 'request_view'
     requestTableComponent.value.resetTablePagination()
+    // Store the selected building filter so it persists during sorting/pagination
+    activePickListBuildingFilter.value = filterRequestsByBuilding.value
+
     await getRequestJobList({
       building_id: filterRequestsByBuilding.value,
       unassociated_pick_list: true
     })
 
     // display next step in picklist creation
-    if (showPickListModal.value == 'Create') {
+    if (mode == 'Create') {
       showCreatePickList.value = true
     } else {
       showAddPickList.value = true
     }
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to filter requests'
     })
   } finally {
     appActionIsLoadingData.value = false
-    picklistModalComponent.value.hideModal()
+    if (picklistModalComponent.value) {
+      picklistModalComponent.value.hideModal()
+    }
   }
 }
 const loadRequestJob = async (id) => {
@@ -745,10 +1450,9 @@ const loadRequestJob = async (id) => {
       })
     }
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to load request job'
     })
   } finally {
     appIsLoadingData.value = false
@@ -764,18 +1468,24 @@ const createPickListJob = async () => {
     await postPicklistJob(payload)
 
     // display an alert with the created picklist job id so you can click that and link directly to the new job if needed
-    handleAlert({
-      type: 'success',
-      text: `Successfully created Pick List #: <a href='/picklist/${picklistJob.value.id}' tabindex='0'>${picklistJob.value.id}</a>`,
-      autoClose: false
+    notify({
+      type: 'positive',
+      message: `Successfully created Pick List #: <a href='/picklist/${picklistJob.value.id}' style='color: white; text-decoration: underline;'>${picklistJob.value.id}</a>`,
+      html: true,
+      timeout: 0,
+      actions: [
+        {
+          icon: 'close',
+          color: 'white'
+        }
+      ]
     })
     requestTableComponent.value.resetTablePagination()
     loadRequestJobs()
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to create picklist'
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -792,18 +1502,24 @@ const updatePickListJob = async () => {
     await patchPicklistJobItem(payload)
 
     // display an alert with the updated picklist job id so you can click that and link directly to the job if needed
-    handleAlert({
-      type: 'success',
-      text: `Successfully added items to Pick List #: <a href='/picklist/${picklistJob.value.id}' tabindex='0'>${picklistJob.value.id}</a>`,
-      autoClose: false
+    notify({
+      type: 'positive',
+      message: `Successfully added items to Pick List #: <a href='/picklist/${picklistJob.value.id}' style='color: white; text-decoration: underline;'>${picklistJob.value.id}</a>`,
+      html: true,
+      timeout: 0,
+      actions: [
+        {
+          icon: 'close',
+          color: 'white'
+        }
+      ]
     })
     requestTableComponent.value.resetTablePagination()
     loadRequestJobs()
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to update picklist'
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -813,4 +1529,57 @@ const updatePickListJob = async () => {
 </script>
 
 <style lang="scss" scoped>
+.toggle-modern {
+  :deep(.q-btn-group) {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.1),
+      0 4px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  :deep(.q-btn) {
+    border-radius: 0;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: all 0.2s ease-in-out;
+
+    &:first-child {
+      border-top-left-radius: 10px;
+      border-bottom-left-radius: 10px;
+    }
+
+    &:last-child {
+      border-top-right-radius: 10px;
+      border-bottom-right-radius: 10px;
+    }
+  }
+}
+
+// Table horizontal scroll and minimum column widths
+:deep(.q-table__container) {
+  overflow-x: auto;
+}
+
+:deep(.q-table) {
+  min-width: 1400px; // Ensure table has minimum width to prevent cramping
+}
+
+:deep(.filter-row) {
+  .filter-cell {
+    min-width: 120px;
+    padding: 4px 8px;
+  }
+
+  .column-filter-input {
+    min-width: 100px;
+    width: 100%;
+  }
+}
+
+// Ensure table header cells also have minimum widths
+:deep(.q-table th) {
+  min-width: 100px;
+  white-space: nowrap;
+}
 </style>

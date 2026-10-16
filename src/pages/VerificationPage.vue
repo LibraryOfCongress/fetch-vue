@@ -17,8 +17,9 @@
 </template>
 
 <script setup>
-import { onBeforeMount, onMounted, inject } from 'vue'
-import { useRoute } from 'vue-router'
+import { onBeforeMount, onMounted, inject, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { notify } from '@/utils/notify'
 import { storeToRefs } from 'pinia'
 import { useVerificationStore } from 'src/stores/verification-store'
 import { useGlobalStore } from '@/stores/global-store'
@@ -27,6 +28,7 @@ import VerificationDashboard from '@/components/Verification/VerificationDashboa
 import VerificationContainerDisplay from '@/components/Verification/VerificationContainerDisplay.vue'
 
 const route = useRoute()
+const router = useRouter() // Initialize router
 
 // Store Data
 const {
@@ -35,10 +37,44 @@ const {
   getVerificationNonTrayItem
 } = useVerificationStore()
 const { verificationJob } = storeToRefs(useVerificationStore())
-const { pageInitLoading } = storeToRefs(useGlobalStore())
+const globalStore = useGlobalStore()
+const { pageInitLoading } = storeToRefs(globalStore)
+const { setMainNavDrawerOpen } = globalStore
 
 // Logic
 const handlePageOffset = inject('handle-page-offset')
+
+
+// Close the drawer when entering a job page
+watch(() => route.params.jobId, (newJobId) => {
+  if (newJobId) {
+    setMainNavDrawerOpen(false)
+  }
+}, {
+  immediate: true
+})
+
+// NEW: Watch for changes in the containerId URL parameter to re-fetch data
+watch(() => route.params.containerId, async (newId, oldId) => {
+  // Only run if the ID has actually changed and exists
+  if (newId && newId !== oldId) {
+    // Re-fetch the data for the newly selected tray
+    if (verificationJob.value.trayed) {
+      await getVerificationTray(newId).catch(error => {
+        notify({
+          type: 'negative',
+          message: error.response?.data?.detail || error
+        })
+        router.push({
+          name: 'verification',
+          params: {
+            jobId: route.params.jobId
+          }
+        })
+      })
+    }
+  }
+})
 
 onBeforeMount(() => {
   pageInitLoading.value = true

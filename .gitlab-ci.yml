@@ -7,6 +7,22 @@ stages:
   - deploy
   - deploy_staging
 
+# Manual "build any branch for any target" control. On the Run Pipeline screen
+# (CI/CD > Pipelines > Run pipeline) pick a branch, then choose a target here;
+# GitLab renders this as a dropdown. The matching build_image_<target> (and
+# deploy_<target>) jobs then appear as manual ▶ buttons in the pipeline.
+# Leave on "none" for normal pushes/MRs (no build/deploy jobs are added).
+variables:
+  DEPLOY_TARGET:
+    value: "none"
+    options:
+      - "none"
+      - "dev"
+      - "test"
+      - "stage"
+      - "prod"
+    description: "Manual build/deploy target for the selected branch (none = no deploy build)."
+
 build_image_dev:
   stage: build
   image:
@@ -27,7 +43,11 @@ build_image_dev:
       --dockerfile $CI_PROJECT_DIR/Dockerfile
       --destination $IMAGE_FULL_TAG
   rules:
-    - if: $CI_COMMIT_BRANCH == 'develop'
+    # Manual dev build for ANY branch: set DEPLOY_TARGET=dev on Run pipeline.
+    - if: '$DEPLOY_TARGET == "dev"'
+      when: manual
+      allow_failure: true
+    - when: never
 
 build_image_demo:
   stage: build
@@ -96,6 +116,10 @@ build_image_test:
       --dockerfile $CI_PROJECT_DIR/Dockerfile
       --destination $IMAGE_FULL_TAG
   rules:
+    # Manual test build for ANY branch via the dropdown...
+    - if: '$DEPLOY_TARGET == "test"'
+      when: manual
+    # ...plus the existing automatic build on develop.
     - if: $CI_COMMIT_BRANCH == 'develop'
 
 build_image_staging:
@@ -117,9 +141,13 @@ build_image_staging:
       --build-arg VITE_ENV=$STAGING_VITE_ENV
       --dockerfile $CI_PROJECT_DIR/Dockerfile
       --destination $IMAGE_FULL_TAG
-  when: manual
   rules:
+    # Manual stage build for ANY branch via the dropdown...
+    - if: '$DEPLOY_TARGET == "stage"'
+      when: manual
+    # ...plus the existing staging-branch build (manual).
     - if: $CI_COMMIT_BRANCH == 'staging'
+      when: manual
 
 build_image_prod:
   stage: build_deploy_prod
@@ -141,9 +169,12 @@ build_image_prod:
       --dockerfile $CI_PROJECT_DIR/Dockerfile
       --destination $IMAGE_FULL_TAG
   rules:
-    - if: "$PROD_BUILD =~ /^TRUE$/"
+    # Manual prod build for ANY branch via the dropdown...
+    - if: '$DEPLOY_TARGET == "prod"'
       when: manual
-    - when: never
+    # ...plus the main-branch build (manual), same shape as staging.
+    - if: $CI_COMMIT_BRANCH == 'main'
+      when: manual
 
 deploy_dev:
   stage: deploy
@@ -160,7 +191,10 @@ deploy_dev:
     - sleep 10
     - kubectl -n fetch rollout restart deployment/vue
   rules:
-    - if: $CI_COMMIT_BRANCH == 'develop'
+    # Manual dev deploy for ANY branch: set DEPLOY_TARGET=dev (run build_image_dev first).
+    - if: '$DEPLOY_TARGET == "dev"'
+      when: manual
+    - when: never
 
 deploy_demo:
   stage: deploy
@@ -192,6 +226,10 @@ deploy_test:
     - sleep 10
     - kubectl -n fetch rollout restart deployment/vue
   rules:
+    # Manual test deploy for ANY branch via the dropdown...
+    - if: '$DEPLOY_TARGET == "test"'
+      when: manual
+    # ...plus the existing automatic test deploy on develop.
     - if: $CI_COMMIT_BRANCH == 'develop'
 
 deploy_stage:
@@ -211,6 +249,10 @@ deploy_stage:
     - sleep 10
     - kubectl -n fetch rollout restart deployment/vue
   rules:
+    # Manual stage deploy for ANY branch via the dropdown...
+    - if: '$DEPLOY_TARGET == "stage"'
+      when: manual
+    # ...plus the existing staging-branch deploy.
     - if: '$CI_COMMIT_BRANCH == "staging"'
       when: manual
 
@@ -229,6 +271,9 @@ deploy_prod:
     - sleep 10
     - kubectl -n fetch rollout restart deployment/vue
   rules:
-    - if: "$PROD_BUILD =~ /^TRUE$/"
+    # Manual prod deploy for ANY branch via the dropdown...
+    - if: '$DEPLOY_TARGET == "prod"'
       when: manual
-    - when: never
+    # ...plus the main-branch deploy (manual), same shape as staging.
+    - if: $CI_COMMIT_BRANCH == 'main'
+      when: manual

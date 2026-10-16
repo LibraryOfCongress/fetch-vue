@@ -3,22 +3,22 @@
     <div class="row q-mb-xs-xl q-mb-sm-none">
       <div class="col-grow q-mb-xs-md q-mb-sm-none">
         <EssentialTable
+          ref="withdrawTableComponent"
           :table-columns="withdrawTableColumns"
           :table-visible-columns="withdrawTableVisibleColumns"
-          :filter-options="withdrawTableFilters"
           :table-data="withdrawJobList"
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
-          :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
           :enable-pagination="true"
           :pagination-total="withdrawJobListTotal"
           :pagination-loading="appIsLoadingData"
+          :hide-table-rearrange="true"
           @update-pagination="loadWithdrawJobs($event)"
           @selected-table-row="loadWithdrawJob($event.id)"
         >
           <template #heading-row>
             <div
-              class="col-sm-5 col-md-12 col-lg-auto"
+              class="col-sm-5 col-md-auto q-mb-md-sm"
               :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? '' : 'self-center'"
             >
               <h1 class="text-h4 text-bold">
@@ -26,33 +26,131 @@
               </h1>
             </div>
 
+            <div class="col-grow" />
+
+            <!-- Filter buttons and Create - right justified -->
             <div
-              class="col-xs-grow col-sm-7 col-md-auto flex"
-              :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? 'justify-end q-mb-md' : 'order-1'"
+              class="col-auto flex items-center"
+              :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? 'justify-end q-mb-md' : ''"
             >
-              <q-btn
+              <BaseButton
+                flat
+                dense
+                no-caps
+                :color="showFilterRow ? 'accent' : 'grey-7'"
+                :label="showFilterRow ? 'Hide Filters' : 'Show Filters'"
+                :icon="showFilterRow ? 'filter_alt' : 'filter_alt_off'"
+                class="q-mr-sm"
+                @click="showFilterRow = !showFilterRow"
+              />
+              <BaseButton
+                v-if="showFilterRow"
+                flat
+                dense
+                no-caps
+                color="grey-7"
+                label="Clear"
+                icon="clear_all"
+                class="q-mr-md"
+                @click="clearColumnFilters"
+              />
+              <BaseButton
                 no-caps
                 unelevated
                 color="accent"
                 label="Create Withdraw Job"
-                class="btn-no-wrap text-body1 q-ml-xs-none q-ml-sm-sm"
+                class="btn-no-wrap text-body1 btn-modern"
                 :disabled="appIsOffline"
                 @click="createWithdrawJob"
               />
             </div>
           </template>
 
+          <!-- Filter row inside table header -->
+          <template #header-filter-row="{ cols }">
+            <q-tr
+              v-if="showFilterRow"
+              class="filter-row"
+            >
+              <q-th
+                v-for="col in cols"
+                :key="col.name"
+                class="filter-cell"
+              >
+                <!-- Job ID filter -->
+                <q-input
+                  v-if="col.name === 'id'"
+                  v-model="columnFilters.id"
+                  dense
+                  outlined
+                  clearable
+                  placeholder="Search..."
+                  class="column-filter-input"
+                  @keyup.enter="applyColumnFilters"
+                  @click.stop
+                >
+                  <template #prepend>
+                    <q-icon
+                      name="search"
+                      size="16px"
+                      color="grey-6"
+                    />
+                  </template>
+                </q-input>
+
+                <!-- Status filter -->
+                <q-select
+                  v-else-if="col.name === 'status'"
+                  v-model="columnFilters.status"
+                  dense
+                  outlined
+                  clearable
+                  multiple
+                  emit-value
+                  map-options
+                  options-dense
+                  :options="statusOptions"
+                  placeholder="All"
+                  class="column-filter-input"
+                  @update:model-value="applyColumnFilters"
+                  @click.stop
+                />
+
+                <!-- Assigned User filter -->
+                <q-select
+                  v-else-if="col.name === 'assigned_user_id'"
+                  v-model="columnFilters.assigned_user"
+                  dense
+                  outlined
+                  clearable
+                  multiple
+                  emit-value
+                  map-options
+                  :options="userOptionsFromData.length > 0 ? userOptionsFromData : userOptions"
+                  placeholder="All"
+                  class="column-filter-input"
+                  @update:model-value="applyColumnFilters"
+                  @click.stop
+                />
+              </q-th>
+            </q-tr>
+          </template>
+
           <template #table-td="{ colName, value }">
             <span
               v-if="colName == 'status'"
-              class="outline text-nowrap"
-              :class="value == 'Created' || value == 'Completed' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-warning' : 'text-highlight-negative'"
+              class="status-badge"
+              :class="getStatusBadgeClass(value)"
             >
+              <q-icon
+                :name="getStatusIcon(value)"
+                size="16px"
+              />
               {{ value }}
             </span>
             <span
               v-else-if="colName == 'item_count'"
-              class="outline text-nowrap"
+              class="text-nowrap"
             >
               {{ value }} Items
             </span>
@@ -70,10 +168,13 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, inject } from 'vue'
+import BaseButton from '@/components/Base/BaseButton.vue'
+import { onBeforeMount, ref, inject, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { notify } from '@/utils/notify'
 import { useGlobalStore } from '@/stores/global-store'
 import { useWithdrawalStore } from '@/stores/withdrawal-store'
+import { useOptionStore } from 'src/stores/option-store'
 import { useUserStore } from '@/stores/user-store'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
@@ -103,10 +204,53 @@ const {
 const { userData } = storeToRefs(useUserStore())
 
 // Local Data
+const withdrawTableComponent = ref(null)
+const showFilterRow = ref(false)
+
+// Column filters
+const columnFilters = ref({
+  id: null,
+  status: [
+    'Created',
+    'Assigned',
+    'Paused',
+    'Running'
+  ],
+  assigned_user: []
+})
+
+// Dynamic filter options from current table data
+const userOptionsFromData = computed(() => {
+  const userSet = new Set()
+  withdrawJobList.value.forEach(row => {
+    if (row.assigned_user?.name) {
+      userSet.add(row.assigned_user.name)
+    } else if (row.assigned_user?.first_name) {
+      userSet.add(`${row.assigned_user.first_name} ${row.assigned_user.last_name}`)
+    }
+  })
+  return Array.from(userSet).sort().map(u => ({
+    label: u,
+    value: u
+  }))
+})
+
+// Fallback options from store data
+const userOptions = computed(() => {
+  if (useOptionStore().users) {
+    return useOptionStore().users.map(u => ({
+      label: u.name,
+      value: u.name
+    }))
+  }
+  return []
+})
+
 const withdrawTableVisibleColumns = ref([
   'id',
   'item_count',
   'status',
+  'assigned_user_id',
   'create_dt'
 ])
 const withdrawTableColumns = ref([
@@ -115,57 +259,96 @@ const withdrawTableColumns = ref([
     field: 'id',
     label: 'Job ID #',
     align: 'left',
-    sortable: true
+    sortable: true,
+    style: 'min-width: 120px'
   },
   {
     name: 'item_count',
     field: row => row.item_count + row.non_tray_item_count,
     label: '# of Items',
     align: 'left',
-    sortable: true
+    sortable: true,
+    style: 'min-width: 120px'
   },
   {
     name: 'status',
     field: 'status',
     label: 'Status',
     align: 'left',
-    sortable: true
+    sortable: true,
+    style: 'min-width: 150px'
+  },
+  {
+    name: 'assigned_user_id',
+    field: row => row.assigned_user ? `${row.assigned_user.first_name} ${row.assigned_user.last_name}` : '',
+    label: 'Assigned User',
+    align: 'left',
+    sortable: true,
+    style: 'min-width: 150px'
   },
   {
     name: 'create_dt',
     field: 'create_dt',
     label: 'Date Created',
     align: 'left',
-    sortable: true
-  }
-])
-const withdrawTableFilters =  ref([
-  {
-    field: 'status',
-    label: 'Status',
-    options: [
-      {
-        text: 'Created',
-        value: true
-      },
-      {
-        text: 'Paused',
-        value: true
-      },
-      {
-        text: 'Running',
-        value: true
-      },
-      {
-        text: 'Completed',
-        value: false
-      }
-    ]
+    sortable: true,
+    style: 'min-width: 150px'
   }
 ])
 
+// Dynamic dropdown options
+const statusOptions = computed(() => {
+  const dynamicStatuses = new Set()
+  if (withdrawJobList.value && withdrawJobList.value.length > 0) {
+    withdrawJobList.value.forEach(job => {
+      if (job.status) {
+        dynamicStatuses.add(job.status)
+      }
+    })
+  }
+  // Add all possible statuses
+  const allStatuses = [
+    'Created',
+    'Assigned',
+    'Running',
+    'Paused',
+    'Completed',
+    'Canceled'
+  ]
+  allStatuses.forEach(s => dynamicStatuses.add(s))
+  return Array.from(dynamicStatuses).sort().map(s => ({
+    label: s,
+    value: s
+  }))
+})
+
+// Status badge helpers
+const getStatusBadgeClass = (status) => {
+  const statusMap = {
+    Created: 'status-badge--created',
+    Assigned: 'status-badge--assigned',
+    Running: 'status-badge--running',
+    Paused: 'status-badge--paused',
+    Completed: 'status-badge--completed',
+    Canceled: 'status-badge--failed'
+  }
+  return statusMap[status] || ''
+}
+
+const getStatusIcon = (status) => {
+  const iconMap = {
+    Created: 'schedule',
+    Assigned: 'mdi-account-check',
+    Running: 'play_arrow',
+    Paused: 'pause',
+    Completed: 'check_circle',
+    Canceled: 'cancel'
+  }
+  return iconMap[status] || 'help'
+}
+
 // Logic
-const handleAlert = inject('handle-alert')
+
 const formatDateTime = inject('format-date-time')
 
 onBeforeMount(() => {
@@ -176,6 +359,7 @@ onBeforeMount(() => {
     withdrawTableVisibleColumns.value = [
       'id',
       'item_count',
+      'assigned_user_id',
       'create_dt'
     ]
   }
@@ -184,20 +368,56 @@ onBeforeMount(() => {
 const loadWithdrawJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    await getWithdrawJobList({
-      ...qParams,
-      status: withdrawTableFilters.value.find(fltr => fltr.field == 'status').options.flatMap(opt => opt.value == true ? opt.text : [])
-    })
+
+    // Build filter params
+    const filterParams = { ...qParams }
+
+    // Apply column filters
+    if (columnFilters.value.id) {
+      filterParams.workflow_id = columnFilters.value.id
+    }
+    if (columnFilters.value.status && columnFilters.value.status.length > 0) {
+      filterParams.status = columnFilters.value.status
+    }
+
+    if (columnFilters.value.assigned_user && columnFilters.value.assigned_user.length > 0) {
+      filterParams.assigned_user = columnFilters.value.assigned_user
+    }
+
+    await getWithdrawJobList(filterParams)
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to load withdraw jobs'
     })
   } finally {
     appIsLoadingData.value = false
   }
 }
+
+// Apply column filters
+const applyColumnFilters = () => {
+  if (withdrawTableComponent.value) {
+    withdrawTableComponent.value.resetTablePagination()
+  }
+  loadWithdrawJobs()
+}
+
+// Clear all column filters
+const clearColumnFilters = () => {
+  columnFilters.value = {
+    id: null,
+    status: [
+      'Created',
+      'Assigned',
+      'Paused',
+      'Running'
+    ],
+    assigned_user: []
+  }
+  applyColumnFilters()
+}
+
 const loadWithdrawJob = async (jobId) => {
   try {
     appIsLoadingData.value = true
@@ -210,10 +430,9 @@ const loadWithdrawJob = async (jobId) => {
       }
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to load withdraw job'
     })
   } finally {
     appIsLoadingData.value = false
@@ -235,16 +454,14 @@ const createWithdrawJob = async () => {
       }
     })
 
-    handleAlert({
-      type: 'success',
-      text: 'A Withdraw Job has been successfully created.',
-      autoClose: true
+    notify({
+      type: 'positive',
+      message: 'A Withdraw Job has been successfully created.'
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to create withdraw job'
     })
   } finally {
     appIsLoadingData.value = false
@@ -253,4 +470,42 @@ const createWithdrawJob = async () => {
 
 </script>
 <style lang="scss" scoped>
+:deep(.filter-row) {
+  background: rgba(0, 0, 0, 0.02);
+
+  .filter-cell {
+    padding: 8px 12px;
+    min-width: 120px;
+  }
+}
+
+:deep(.column-filter-input) {
+  min-width: 100px;
+
+  .q-field__control {
+    min-height: 32px;
+    height: 32px;
+  }
+
+  .q-field__native {
+    padding: 0 8px;
+    font-size: 13px;
+  }
+
+  .q-field__marginal {
+    height: 32px;
+  }
+}
+
+:deep(.table-component-table) {
+  min-width: 600px;
+
+  th {
+    min-width: 100px;
+  }
+}
+
+:deep(.q-table__container) {
+  overflow-x: auto;
+}
 </style>

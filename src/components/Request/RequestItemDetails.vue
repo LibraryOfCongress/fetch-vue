@@ -4,8 +4,18 @@
       <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
         <MoreOptionsMenu
           :options="[
-            { text: 'Edit Request', disabled: requestJob.status == 'InProgress' || requestJob.status == 'Completed'},
-            { text: 'Delete Request', optionClass: 'text-negative', disabled: requestJob.status == 'Completed', hidden: !checkUserPermission('can_delete_request')},
+            {
+              text: 'Edit Request',
+              disabled: requestJob.status == 'PickList' || requestJob.status == 'Completed' || requestJob.deleted,
+              tooltip: requestJob.deleted ? 'Request is deleted' : null
+            },
+            {
+              text: 'Delete Request',
+              optionClass: 'text-negative',
+              disabled: requestJob.status == 'PickList' || requestJob.status == 'Completed' || requestJob.deleted,
+              tooltip: requestJob.deleted ? 'Request is already deleted' : ((requestJob.status == 'PickList' || requestJob.status == 'Completed') ? 'Cannot delete active request' : null),
+              hidden: !checkUserPermission('can_delete_request')
+            },
           ]"
           class="q-mr-sm"
           @click="handleOptionMenu"
@@ -63,9 +73,9 @@
             </label>
             <p
               class="request-details-text outline"
-              :class="requestJob.status == 'Completed' ? 'text-highlight' : requestJob.status == 'InProgress' ? 'text-highlight-warning' : null"
+              :class="requestJob.deleted ? 'text-negative' : (requestJob.status == 'Completed' ? 'text-highlight' : requestJob.status == 'PickList' ? 'text-highlight-warning' : null)"
             >
-              {{ requestJob.status }}
+              {{ requestJob.deleted ? 'Deleted' : requestJob.status }}
             </p>
           </div>
         </div>
@@ -149,7 +159,7 @@
   >
     <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-        <q-btn
+        <BaseButton
           no-caps
           unelevated
           color="negative"
@@ -159,7 +169,7 @@
           @click="deleteRequest()"
         />
         <q-space class="q-mx-xs" />
-        <q-btn
+        <BaseButton
           outline
           no-caps
           label="Cancel"
@@ -172,8 +182,10 @@
 </template>
 
 <script setup>
+import BaseButton from '@/components/Base/BaseButton.vue'
 import { ref, inject, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import { notify } from '@/utils/notify'
 import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { useGlobalStore } from '@/stores/global-store'
 import { useRequestStore } from '@/stores/request-store'
@@ -208,7 +220,7 @@ const showEditRequestModal = ref(false)
 const showConfirmationModal = ref(false)
 
 // Logic
-const handleAlert = inject('handle-alert')
+
 const formatDateTime = inject('format-date-time')
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
@@ -234,10 +246,9 @@ const deleteRequest = async () => {
     appActionIsLoadingData.value = true
     await deleteRequestJob(requestJob.value.id)
 
-    handleAlert({
-      type: 'success',
-      text: 'The request has been deleted.',
-      autoClose: true
+    notify({
+      type: 'positive',
+      message: 'The request has been deleted.'
     })
     appActionIsLoadingData.value = false
 
@@ -250,10 +261,16 @@ const deleteRequest = async () => {
       }
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      persistent: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to delete request',
+      timeout: 0,
+      actions: [
+        {
+          icon: 'close',
+          color: 'white'
+        }
+      ]
     })
     appActionIsLoadingData.value = false
   }

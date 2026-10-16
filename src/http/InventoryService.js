@@ -14,15 +14,26 @@ export default {
   authSsoLogin: '/auth/sso/login/',
   authSsoLogout: '/auth/sso/logout/',
   barcodes: '/barcodes/',
+  // No trailing slash: backend route is `@router.get("/types")` under
+  // prefix `/barcodes`, full path `/barcodes/types` -- a trailing slash
+  // would trigger the 307 redirect / http downgrade.
+  barcodeTypes: '/barcodes/types',
   barcodesValue: '/barcodes/value/',
   batchUpload: '/batch-upload/',
+  // No trailing slash: backend routes are `@router.patch("/location-management")`
+  // and `@router.post("/location-management")` under prefix `/batch-upload`.
   batchUploadLocationManagement: '/batch-upload/location-management',
   buildings: '/buildings/',
   containerTypes: '/container-types/',
+  getItemMetadata: '/items/barcode/metadata/',
   groups: '/groups/',
   history: '/history/',
+  ilsConfigurations: '/ils-configurations/',
+  ilsConfigurationsSyncRequests: '/ils-configurations/sync-requests',
+  ilsSyncErrors: '/ils-sync-errors/',
   items: '/items/',
   itemsBarcode: '/items/barcode/',
+  itemsIlsMetadata: '/items/',
   itemsMove: '/items/move/',
   mediaTypes: '/media-types/',
   modules: '/modules/',
@@ -40,14 +51,30 @@ export default {
   reportingOpenLocations: '/reporting/open-locations/',
   reportingShelvingDiscrepancies: '/reporting/shelving-job-discrepancies/',
   reportingMoveDiscrepancies: '/reporting/move-discrepancies/',
-  reportingNotShelved: '/reporting/not-shelved/',
+  reportingShippingBins: '/reporting/shipping-bins/',
   reportingTrayItemsCount: '/reporting/tray_items/count/',
   reportingAislesItemsCount: '/reporting/aisles/items_count/',
   reportingNonTrayItemsCount: '/reporting/non_tray_items/count/',
   reportingRetrievalsCount: '/reporting/retrievals/count/',
   reportingUserJobsCount: '/reporting/user-jobs/count/',
   reportingVerificationChangesSummary: '/reporting/verification-changes/summary/',
+  // No trailing slash: backend route is `@router.get("/verification-status")`
+  // (the sibling `/verification-status/download` route does have one).
+  reportingVerificationStatus: '/reporting/verification-status',
+  reportingWithdrawnItems: '/reporting/withdrawn-items/',
+  reportingWorkerEfficiency: '/reporting/worker-efficiency/',
+  reportingHotZones: '/reporting/hot-zones/',
+  reportingCapacityForecast: '/reporting/capacity-forecast/',
+  reportingCapacityForecastHeight: '/reporting/capacity-forecast-height/',
+  reportingDailyPulse: '/reporting/daily-pulse/',
+  reportingExport: '/reporting/exports/',
+  reportingScheduledExports: '/reporting/scheduled-exports/',
+  reportingExportHistory: '/reporting/export-history/',
   requests: '/requests/',
+  // No trailing slash: backend routes are defined as @router.get("/locations"),
+  // "/priorities", "/types" under the /requests prefix (not "/"). With a
+  // trailing slash, FastAPI returns a 307 redirect whose Location header is
+  // http:// behind our proxy, which the browser blocks as Mixed Content.
   requestsLocations: '/requests/locations',
   requestsPriorities: '/requests/priorities',
   requestsTypes: '/requests/types',
@@ -56,12 +83,17 @@ export default {
   shelvesBarcode: '/shelves/barcode/',
   shelvesPositions: '/shelves/positions/',
   shelvingJobs: '/shelving-jobs/',
+  shippingJobs: '/shipping-jobs/',
   sides: '/sides/',
   sizeClass: '/size_class/',
+  systemSettings: '/system-settings/',
   trays: '/trays/',
   traysBarcode: '/trays/barcode/',
   traysMove: '/trays/move/',
   users: '/users/',
+  // Self-service: authenticated user updates their own profile settings
+  // (e.g. default building) without admin user-management permissions.
+  usersMe: '/users/me',
   verificationJobs: '/verification-jobs/',
   verificationJobsDropdown: '/verification-jobs/dropdown/',
   verificationJobsByAccessionJobId: '/verification-jobs/by-accession-job-id/',

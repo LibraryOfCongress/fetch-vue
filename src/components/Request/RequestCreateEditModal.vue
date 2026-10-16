@@ -3,7 +3,6 @@
     ref="requestCreateModal"
     :show-actions="false"
     @reset="emit('hide')"
-    @show="focusBarcodeInput"
     aria-label="manualRequestModal"
   >
     <template #header-content="{ hideModal }">
@@ -12,7 +11,7 @@
           {{ renderRequestModalTitle }}
         </h2>
 
-        <q-btn
+        <BaseButton
           icon="close"
           flat
           round
@@ -57,7 +56,10 @@
         <div class="col-12 q-mb-md">
           <div class="form-group">
             <label class="form-group-label">
-              Requestor Name
+              Requestor Name <span
+                v-if="systemSettingsRequiredFields.includes('requestor_name')"
+                class="text-caption text-negative"
+              >(Required)</span>
             </label>
             <TextInput
               v-model="manualRequestForm.requestor_name"
@@ -69,7 +71,10 @@
         <div class="col-12 q-mb-md">
           <div class="form-group">
             <label class="form-group-label">
-              Priority
+              Priority <span
+                v-if="systemSettingsRequiredFields.includes('priority_id')"
+                class="text-caption text-negative"
+              >(Required)</span>
             </label>
             <SelectInput
               v-model="manualRequestForm.priority_id"
@@ -85,7 +90,10 @@
         <div class="col-12 q-mb-md">
           <div class="form-group">
             <label class="form-group-label">
-              Select Request Type
+              Select Request Type <span
+                v-if="systemSettingsRequiredFields.includes('request_type_id')"
+                class="text-caption text-negative"
+              >(Required)</span>
             </label>
             <SelectInput
               v-model="manualRequestForm.request_type_id"
@@ -101,7 +109,10 @@
         <div class="col-12">
           <div class="form-group">
             <label class="form-group-label">
-              Delivery Location
+              Delivery Location <span
+                v-if="systemSettingsRequiredFields.includes('delivery_location_id')"
+                class="text-caption text-negative"
+              >(Required)</span>
             </label>
             <SelectInput
               v-model="manualRequestForm.delivery_location_id"
@@ -151,7 +162,7 @@
 
     <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-        <q-btn
+        <BaseButton
           no-caps
           unelevated
           color="accent"
@@ -164,7 +175,7 @@
 
         <q-space class="q-mx-xs" />
 
-        <q-btn
+        <BaseButton
           v-if="type == 'manual'"
           no-caps
           unelevated
@@ -178,7 +189,7 @@
 
         <q-space class="q-ml-xs q-mr-lg" />
 
-        <q-btn
+        <BaseButton
           outline
           no-caps
           label="Cancel"
@@ -191,7 +202,9 @@
 </template>
 
 <script setup>
-import { ref, inject, computed, watch, onMounted } from 'vue'
+import BaseButton from '@/components/Base/BaseButton.vue'
+import { ref, inject, computed, watch, onMounted, nextTick } from 'vue'
+import { notify } from '@/utils/notify'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { useUserStore } from '@/stores/user-store'
@@ -231,11 +244,12 @@ const { compiledBarCode } = useBarcodeScanHandler()
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { userData } = storeToRefs(useUserStore())
+const optionStore = useOptionStore()
 const {
   requestsTypes,
   requestsPriorities,
   requestsLocations
-} = storeToRefs(useOptionStore())
+} = storeToRefs(optionStore)
 const {
   postRequestJob,
   patchRequestJob,
@@ -264,6 +278,7 @@ const manualRequestForm = ref({
   delivery_location_id: null,
   priority_id: null
 })
+const systemSettingsRequiredFields = ref([])
 const renderRequestModalTitle = computed(() => {
   if (mainProps.type == 'manual') {
     return 'Create Manual Request'
@@ -276,13 +291,12 @@ const renderRequestModalTitle = computed(() => {
 const isRequestjobFormValid = computed(() => {
   let formIsValid = false
   if (mainProps.type == 'manual' || mainProps.type == 'edit') {
-    // if any value in our form is null or empty form is not valid except for priority since thats optional
     const optionalFields = [
       'requestor_name',
       'priority_id',
       'request_type_id',
       'delivery_location_id'
-    ]
+    ].filter(field => !systemSettingsRequiredFields.value.includes(field))
     formIsValid = Object.keys(manualRequestForm.value).every(key => optionalFields.includes(key) || (manualRequestForm.value[key] !== null && manualRequestForm.value[key] !== ''))
   } else {
     formIsValid = requestFile.value.length == 0 ? false : true
@@ -292,14 +306,10 @@ const isRequestjobFormValid = computed(() => {
 const allowItemBarcodeScan = ref(false)
 
 // Logic
-const handleAlert = inject('handle-alert')
+
 const handleCSVDownload = inject('handle-csv-download')
 
-const focusBarcodeInput = () => {
-  barcodeInput.value?.$el?.querySelector('input')?.focus()
-}
-
-onMounted(() => {
+onMounted(async () => {
   if (mainProps.type == 'edit') {
     //populate or request form with the passed in request data
     manualRequestForm.value = {
@@ -310,6 +320,19 @@ onMounted(() => {
       delivery_location_id: mainProps.requestData.delivery_location_id,
       priority_id: mainProps.requestData.priority_id
     }
+  }
+
+  try {
+    const setting = await optionStore.getSystemSetting('manual_request_required_fields')
+    if (setting && setting.value) {
+      systemSettingsRequiredFields.value = JSON.parse(setting.value)
+    }
+  } catch (error) {
+    // Setting doesn't exist yet, that's completely safely fine.
+  }
+
+  if (mainProps.type == 'manual') {
+    nextTick(() => barcodeInput.value?.focus())
   }
 })
 
@@ -335,10 +358,9 @@ const createRequestJob = async (isNext = false) => {
         requested_by_id: userData.value.user_id
       }
       await postRequestJob(payload)
-      handleAlert({
-        type: 'success',
-        text: 'Successfully created the request.',
-        autoClose: true
+      notify({
+        type: 'positive',
+        message: 'Successfully created the request.'
       })
 
       emit('changeDisplay', 'request_view')
@@ -349,33 +371,29 @@ const createRequestJob = async (isNext = false) => {
       }
       await postRequestBatchJob(payload)
 
-      handleAlert({
-        type: 'success',
-        text: 'Successfully uploaded batch requests.',
-        autoClose: true
+      notify({
+        type: 'positive',
+        message: 'Successfully uploaded batch requests.'
       })
 
       emit('changeDisplay', 'batch_view')
     }
   } catch (error) {
     if (mainProps.type == 'manual') {
-      handleAlert({
-        type: 'error',
-        text: error,
-        autoClose: true
+      notify({
+        type: 'negative',
+        message: error.response?.data?.detail || error.message || 'Failed to create request'
       })
     } else if (error.response.status == 400) {
-      handleAlert({
-        type: 'error',
-        text: 'Batch request upload failed with errors. See downloaded error report.',
-        autoClose: true
+      notify({
+        type: 'negative',
+        message: 'Batch request upload failed with errors. See downloaded error report.'
       })
       handleCSVDownload(error.response.data, 'Bulk_Request_Errors')
     } else {
-      handleAlert({
-        type: 'error',
-        text: error,
-        autoClose: true
+      notify({
+        type: 'negative',
+        message: error.response?.data?.detail || error.message || 'Failed to upload batch requests'
       })
     }
   } finally {
@@ -391,7 +409,7 @@ const createRequestJob = async (isNext = false) => {
         delivery_location_id: null,
         priority_id: null
       }
-      focusBarcodeInput()
+      nextTick(() => barcodeInput.value?.focus())
     } else {
       requestCreateModal.value.hideModal()
     }
@@ -409,18 +427,16 @@ const editRequestJob = async () => {
       priority_id: manualRequestForm.value.priority_id
     }
     await patchRequestJob(payload)
-    handleAlert({
-      type: 'success',
-      text: 'Successfully updated the request.',
-      autoClose: true
+    notify({
+      type: 'positive',
+      message: 'Successfully updated the request.'
     })
 
     emit('changeDisplay', 'request_view')
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to update request'
     })
   } finally {
     appActionIsLoadingData.value = false

@@ -1,6 +1,6 @@
 {
   "name": "quasar-pwa",
-  "version": "0.0.1",
+  "version": "2.0.0",
   "description": "Inventory Management Software Development PWA bult using the Quasar Framework",
   "productName": "Fetch App",
   "author": "zegle <zegle@example.com>",
@@ -22,6 +22,8 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.16.12",
+    "ag-grid-community": "^35.0.0",
+    "ag-grid-vue3": "^35.0.0",
     "axios": "^1.7.7",
     "dotenv": "^16.4.5",
     "jwt-decode": "^4.0.0",
@@ -35,7 +37,7 @@
     "vue-router": "^4.4.5"
   },
   "devDependencies": {
-    "@pinia/testing": "^0.1.6",
+    "@pinia/testing": "^0.1.7",
     "@quasar/app-vite": "^1.10.2",
     "@quasar/quasar-app-extension-testing": "^2.1.1",
     "@quasar/quasar-app-extension-testing-unit-vitest": "^1.1.0",

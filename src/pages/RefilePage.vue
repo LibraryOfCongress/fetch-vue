@@ -7,7 +7,10 @@
     <LoadingOverlay />
     <template v-if="!pageInitLoading">
       <RefileDashboard v-if="!route.params.jobId" />
-      <RefileJobDetails v-if="route.params.jobId" />
+      <RefileExecute
+        v-else
+        :job-id="route.params.jobId"
+      />
     </template>
   </q-page>
 </template>
@@ -21,7 +24,7 @@ import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import RefileDashboard from '@/components/Refile/RefileDashboard.vue'
-import RefileJobDetails from '@/components/Refile/RefileJobDetails.vue'
+import RefileExecute from '@/components/Refile/RefileExecute.vue'
 
 const route = useRoute()
 

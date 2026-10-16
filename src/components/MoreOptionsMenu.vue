@@ -1,5 +1,5 @@
 <template>
-  <q-btn
+  <BaseButton
     flat
     icon="more_vert"
     class="more-menu"
@@ -17,21 +17,25 @@
           v-for="(opt, i) in options.filter(opt => !opt.hidden)"
           :key="i"
           :clickable="!opt.disabled"
-          v-close-popup
-          @click="emit('click', opt)"
+          v-close-popup="!opt.disabled"
+          @click="!opt.disabled ? emit('click', opt) : null"
           :class="[opt.disabled ? 'disabled' : '', opt.optionClass ?? '']"
           role="menuitem"
         >
           <q-item-section>
             {{ opt.text }}
           </q-item-section>
+          <q-tooltip v-if="opt.tooltip">
+            {{ opt.tooltip }}
+          </q-tooltip>
         </q-item>
       </q-list>
     </q-menu>
-  </q-btn>
+  </BaseButton>
 </template>
 
 <script setup>
+import BaseButton from '@/components/Base/BaseButton.vue'
 import { ref } from 'vue'
 
 defineProps({

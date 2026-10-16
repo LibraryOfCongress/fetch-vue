@@ -1,0 +1,30 @@
+# Dedicated stack for running the vue unit-test suite (vitest) in Docker, so the
+# tests run without a host-side node_modules / npm install.
+#
+# Full suite:
+#   docker compose -f docker-compose.test.yml up --build \
+#       --abort-on-container-exit --exit-code-from test_runner
+#   docker compose -f docker-compose.test.yml down
+#
+# A subset (e.g. just the changed components):
+#   docker compose -f docker-compose.test.yml run --rm test_runner \
+#       npx vitest run BreadCrumb NavigationBar TextInput
+#
+# The image bakes node_modules + sources; ./src and ./test are bind-mounted so
+# local edits are picked up without a rebuild. Re-build only when deps change.
+name: vue-tests
+
+services:
+  test_runner:
+    build:
+      context: .
+      dockerfile: images/web.vitest.Containerfile
+    environment:
+      CI: "true"
+    # Overlay the working copy so host edits run without rebuilding the image.
+    # node_modules stays from the image (only sub-dirs are mounted, not /app).
+    volumes:
+      - ./src:/app/src
+      - ./test:/app/test
+    working_dir: /app
+    command: ["npm", "run", "test:unit:ci"]

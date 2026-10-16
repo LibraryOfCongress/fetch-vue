@@ -1,29 +1,48 @@
 <template>
   <div class="breadcrumb row items-center">
-    <div
-      class="col-auto"
-      v-for="(breadCrumb, i) in breadcrumbList"
-      :key="i"
-    >
-      <div class="breadcrumb-items">
+    <!-- Mobile View: Compact Back Button -->
+    <template v-if="currentScreenSize === 'xs'">
+      <div
+        v-if="parentBreadcrumb"
+        class="breadcrumb-items q-py-xs"
+      >
         <EssentialLink
-          :title="breadCrumb.text"
-          :icon="currentScreenSize !== 'xs' ? breadCrumb.icon : null"
-          :icon-size="'25px'"
-          :icon-padding="'0px 4px 0px 0px'"
-          @click="router.push(breadCrumb.to)"
-          :disabled="!breadCrumb.to"
-          :dense="currentScreenSize == 'xs'"
-        />
-
-        <q-icon
-          v-if="i !== (breadcrumbList.length - 1)"
-          name="arrow_right"
-          color="primary"
-          size="25px"
+          :title="parentBreadcrumb.text"
+          icon="chevron_left"
+          icon-size="25px"
+          icon-padding="0px 4px 0px 0px"
+          dense
+          @click="router.push(parentBreadcrumb.to)"
         />
       </div>
-    </div>
+    </template>
+
+    <!-- Desktop View: Full Breadcrumbs -->
+    <template v-else>
+      <div
+        class="col-auto"
+        v-for="(breadCrumb, i) in breadcrumbList"
+        :key="i"
+      >
+        <div class="breadcrumb-items">
+          <EssentialLink
+            :title="breadCrumb.text"
+            :icon="breadCrumb.icon"
+            :icon-size="'25px'"
+            :icon-padding="'0px 4px 0px 0px'"
+            :disabled="!breadCrumb.to"
+            @click="router.push(breadCrumb.to)"
+          />
+
+          <q-icon
+            v-if="i !== (breadcrumbList.length - 1)"
+            name="arrow_right"
+            color="primary"
+            size="25px"
+          />
+        </div>
+      </div>
+    </template>
 
     <q-space class="divider" />
   </div>
@@ -161,54 +180,78 @@ const breadcrumbList = computed(() => {
         { text: 'Manage Shelf Type' }
       ]
       break
-    case 'admin-location-manage-buildings':
+    case 'admin-manage-priority':
       breadCrumbs = [
         ...breadCrumbs,
         {
           text: 'Admin',
           to: '/admin'
         },
-        { text: 'Manage Buildings' }
+        { text: 'Manage Priority' }
       ]
       break
-    case 'admin-location-manage-modules':
+    case 'admin-manage-delivery-location':
       breadCrumbs = [
         ...breadCrumbs,
         {
           text: 'Admin',
           to: '/admin'
         },
-        { text: 'Manage Modules' }
+        { text: 'Manage Delivery Location' }
       ]
       break
-    case 'admin-location-manage-aisles':
+    case 'admin-manage-request-type':
       breadCrumbs = [
         ...breadCrumbs,
         {
           text: 'Admin',
           to: '/admin'
         },
-        { text: 'Manage Aisles' }
+        { text: 'Manage Request Type' }
       ]
       break
-    case 'admin-location-manage-ladders':
+    case 'admin-manage-barcode-type':
       breadCrumbs = [
         ...breadCrumbs,
         {
           text: 'Admin',
           to: '/admin'
         },
-        { text: 'Manage Ladders' }
+        { text: 'Manage Barcode Types' }
       ]
       break
-    case 'admin-location-manage-shelves':
+    case 'admin-manage-ils':
       breadCrumbs = [
         ...breadCrumbs,
         {
           text: 'Admin',
           to: '/admin'
         },
-        { text: 'Manage Shelves' }
+        { text: 'Manage ILS Integrations' }
+      ]
+      break
+    case 'admin-integration-issues':
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Admin',
+          to: '/admin'
+        },
+        {
+          text: 'Manage ILS Integrations',
+          to: '/admin/manage/ils'
+        },
+        { text: 'Integration Issues' }
+      ]
+      break
+    case 'admin-location-explorer':
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Admin',
+          to: '/admin'
+        },
+        { text: 'Location Manager' }
       ]
       break
     case 'picklist':
@@ -338,6 +381,36 @@ const breadcrumbList = computed(() => {
         { text: `Move ${route.params.type == 'tray-non-tray' ? 'Tray/Non-Tray' : 'Tray Item'}` }
       ]
       break
+    case 'shipping':
+      breadCrumbs = [
+        ...breadCrumbs,
+        { text: 'Shipping' }
+      ]
+      break
+    case 'shipping-execute':
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Shipping',
+          to: '/shipping'
+        },
+        { text: `${route.params.jobId}` }
+      ]
+      break
+    case 'shipping-manifest':
+      breadCrumbs = [
+        ...breadCrumbs,
+        {
+          text: 'Shipping',
+          to: '/shipping'
+        },
+        {
+          text: `${route.params.jobId}`,
+          to: `/shipping/${route.params.jobId}`
+        },
+        { text: 'Manifest' }
+      ]
+      break
     case 'verification':
       if (!route.params.jobId) {
         breadCrumbs = [
@@ -392,6 +465,18 @@ const breadcrumbList = computed(() => {
 
   return breadCrumbs
 })
+
+const parentBreadcrumb = computed(() => {
+  const list = breadcrumbList.value
+  if (list && list.length > 1) {
+    for (let i = list.length - 2; i >= 0; i--) {
+      if (list[i].to) {
+        return list[i]
+      }
+    }
+  }
+  return null
+})
 </script>
 
 <style lang="scss" scoped>
@@ -400,13 +485,17 @@ const breadcrumbList = computed(() => {
   top: 50px; // this offsets the main nav
   background-color: $color-white;
   z-index: 1500;
+  padding: 2px 8px;
 
   &-items {
     display: flex;
     align-items: center;
 
-    :deep(.essential-link.q-item--dense) {
-      padding: 2px 3px;
+    :deep(.essential-link) {
+      min-height: unset !important;
+      margin: 0px 2px !important;
+      padding: 2px 4px !important;
+      font-size: 0.85rem;
     }
   }
 }

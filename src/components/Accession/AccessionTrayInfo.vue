@@ -1,37 +1,17 @@
 <template>
-  <div class="col-12 col-lg-4 col-xl-3 accession-container-info">
+  <!-- MODIFIED: Corrected column classes to match the parent's 3-column layout -->
+  <div class="col-12 col-md-3 accession-container-info">
     <div class="row">
-      <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
-        <MoreOptionsMenu
-          :options="!route.params.containerId ? [
-            { text: 'Edit', disabled: accessionJob.status == 'Completed' },
-            { text: 'Cancel Job', optionClass: 'text-negative', disabled: accessionJob.status == 'Completed', hidden: !checkUserPermission('can_cancel_accession')},
-            { text: 'Print Job' },
-            { text: 'View History' }
-          ] : [
-            { text: 'Edit', disabled: accessionJob.status == 'Completed'},
-            { text: 'Cancel Job', optionClass: 'text-negative', disabled: accessionJob.status == 'Completed', hidden: !checkUserPermission('can_cancel_accession')},
-            { text: 'Edit Tray Barcode', disabled: barcodeScanAllowed || accessionJob.status == 'Completed'},
-            { text: 'Delete Tray', optionClass: 'text-negative', disabled: accessionJob.status == 'Completed'},
-            { text: 'Print Job' },
-            { text: 'View History' }
-          ]"
-          class="q-mr-sm"
-          @click="handleOptionMenu"
-        />
-        <h1 class="text-h4 text-bold">
-          {{ `Job: ${accessionJob.workflow_id}` }}
-        </h1>
-      </div>
+      <!-- The header block with MoreOptionsMenu and Job # is correctly removed from here -->
 
-      <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12 q-mb-xs-md q-mb-sm-none q-mb-lg-lg">
+      <div class="col-xs-12 col-sm-6 col-md-12 col-lg-12 q-mb-xs-md q-mb-sm-none q-mb-lg-lg">
         <BarcodeBox
           :barcode="!route.params.containerId ? 'Please Scan Tray' : accessionContainer.barcode?.value"
           class="q-mb-md-xl q-mb-lg-none"
         />
       </div>
 
-      <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12">
+      <div class="col-xs-12 col-sm-6 col-md-12 col-lg-12">
         <div class="row">
           <div class="accession-container-info-details col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg">
             <label class="text-h6 q-mb-xs">
@@ -106,25 +86,25 @@
           <q-space class="divider q-my-sm" />
 
           <div class="col-6 q-pr-xs-xs">
-            <q-btn
+            <BaseButton
               no-caps
               unelevated
               color="accent"
               label="Save Edits"
-              class="full-width text-body1"
+              class="full-width text-body1 btn-modern"
               :loading="appActionIsLoadingData"
               @click="!accessionContainer.id ? updateTrayJob() : updateTrayContainer()"
               :disabled="accessionJob.status == 'Paused'"
             />
           </div>
           <div class="col-6 q-pl-xs-xs">
-            <q-btn
+            <BaseButton
               no-caps
               unelevated
               outline
               color="accent"
               label="Cancel"
-              class="full-width text-body1"
+              class="full-width text-body1 btn-modern-outline"
               @click="cancelTrayEdits"
             />
           </div>
@@ -172,7 +152,7 @@
 
     <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-        <q-btn
+        <BaseButton
           no-caps
           unelevated
           color="accent"
@@ -185,7 +165,7 @@
 
         <q-space class="q-mx-xs" />
 
-        <q-btn
+        <BaseButton
           outline
           no-caps
           label="Cancel"
@@ -208,7 +188,7 @@
   >
     <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-        <q-btn
+        <BaseButton
           v-if="showConfirmationModal == 'CancelJob'"
           no-caps
           unelevated
@@ -218,7 +198,7 @@
           :loading="appActionIsLoadingData"
           @click="cancelAccessionJob()"
         />
-        <q-btn
+        <BaseButton
           v-else
           no-caps
           unelevated
@@ -229,7 +209,7 @@
           @click="removeTrayContainer()"
         />
         <q-space class="q-mx-xs" />
-        <q-btn
+        <BaseButton
           outline
           no-caps
           label="Cancel"
@@ -251,19 +231,19 @@
 </template>
 
 <script setup>
+import BaseButton from '@/components/Base/BaseButton.vue'
 import { ref, watch, toRaw, inject, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { notify } from '@/utils/notify'
 import { storeToRefs } from 'pinia'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { useBarcodeScanHandler } from '@/composables/useBarcodeScanHandler.js'
-import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { useGlobalStore } from '@/stores/global-store'
 import { useBarcodeStore } from '@/stores/barcode-store'
 import { useAccessionStore } from '@/stores/accession-store'
 import { useOptionStore } from '@/stores/option-store'
 import BarcodeBox from '@/components/BarcodeBox.vue'
 import SelectInput from '@/components/SelectInput.vue'
-import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
 import MobileActionBar from '@/components/MobileActionBar.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import TextInput from '@/components/TextInput.vue'
@@ -275,12 +255,11 @@ const router = useRouter()
 // Composables
 const { currentScreenSize } = useCurrentScreenSize()
 const { compiledBarCode } = useBarcodeScanHandler()
-const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const { verifyBarcode } = useBarcodeStore()
-const { barcodeDetails, barcodeScanAllowed } = storeToRefs(useBarcodeStore())
+const { barcodeDetails } = storeToRefs(useBarcodeStore())
 const {
   sizeClass,
   mediaTypes
@@ -303,9 +282,6 @@ const {
   originalAccessionJob
 } = storeToRefs(useAccessionStore())
 
-// Emits
-const emit = defineEmits(['print'])
-
 // Local Data
 const editMode = ref(false)
 const confirmationModal = ref(null)
@@ -317,7 +293,7 @@ const historyModal = ref(null)
 const showAuditTrailModal = ref(false)
 
 // Logic
-const handleAlert = inject('handle-alert')
+
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 watch(route, () => {
@@ -327,23 +303,6 @@ watch(route, () => {
     editMode.value = false
   }
 })
-
-const handleOptionMenu = async (option) => {
-  if (option.text == 'Edit') {
-    editMode.value = true
-  } else if (option.text == 'Cancel Job') {
-    showConfirmationModal.value = 'CancelJob'
-  } else if (option.text == 'Edit Tray Barcode') {
-    trayBarcodeInput.value = accessionContainer.value.barcode.value
-    showEditTrayModal.value = true
-  } else if (option.text == 'Delete Tray') {
-    showConfirmationModal.value = 'DeleteTray'
-  } else if (option.text == 'Print Job') {
-    emit('print')
-  } else if (option.text == 'View History') {
-    showAuditTrailModal.value = 'accession_jobs'
-  }
-}
 
 watch(compiledBarCode, (barcode) => {
   if (barcode !== '' && !accessionContainer.value.id && accessionJob.value.status !== 'Paused') {
@@ -357,10 +316,9 @@ const handleTrayScan = async (barcode_value) => {
     await getOptions('sizeClass', { short_name: barcode_value.slice(0, 2) })
     const generateSizeClass = sizeClass.value.find(size => size.short_name == barcode_value.slice(0, 2))?.id
     if (!generateSizeClass && accessionJob.value.status !== 'Completed') {
-      handleAlert({
-        type: 'error',
-        text: `The tray can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`,
-        persistent: true
+      notify({
+        type: 'negative',
+        message: `The tray can not be added, the container size ${barcode_value.slice(0, 2)} doesnt exist in the system. Please add it and try again.`
       })
       return
     }
@@ -398,10 +356,9 @@ const handleTrayScan = async (barcode_value) => {
       })
     }
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      persistent: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error
     })
   } finally {
     appIsLoadingData.value = false
@@ -427,16 +384,14 @@ const updateTrayJob = async () => {
 
     await patchAccessionJob(payload)
 
-    handleAlert({
-      type: 'success',
-      text: 'The job has been updated.',
-      autoClose: true
+    notify({
+      type: 'positive',
+      message: 'The job has been updated.'
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      persistent: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -452,10 +407,9 @@ const cancelAccessionJob = async () => {
     }
     await patchAccessionJob(payload)
 
-    handleAlert({
-      type: 'success',
-      text: 'The Accession Job has been canceled.',
-      autoClose: true
+    notify({
+      type: 'positive',
+      message: 'The Accession Job has been canceled.'
     })
     appActionIsLoadingData.value = false
 
@@ -468,10 +422,9 @@ const cancelAccessionJob = async () => {
       }
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      persistent: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error
     })
     appActionIsLoadingData.value = false
   }
@@ -485,16 +438,14 @@ const updateTrayContainer = async () => {
 
     await patchAccessionTray(payload)
 
-    handleAlert({
-      type: 'success',
-      text: 'The tray has been updated.',
-      autoClose: true
+    notify({
+      type: 'positive',
+      message: 'The tray has been updated.'
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      persistent: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -514,10 +465,9 @@ const updateTrayContainerBarcode = async () => {
     }
     await patchAccessionTray(payload)
 
-    handleAlert({
-      type: 'success',
-      text: 'The tray has been updated.',
-      autoClose: true
+    notify({
+      type: 'positive',
+      message: 'The tray has been updated.'
     })
 
     // update our router params without reloading the page
@@ -529,10 +479,9 @@ const updateTrayContainerBarcode = async () => {
       }
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      persistent: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -546,10 +495,9 @@ const removeTrayContainer = async () => {
     await deleteAccessionTrayItem(accessionContainer.value.items.map(item => item.id))
     await deleteAccessionTray(accessionContainer.value.id)
 
-    handleAlert({
-      type: 'success',
-      text: 'The Tray Container has been deleted.',
-      autoClose: true
+    notify({
+      type: 'positive',
+      message: 'The Tray Container has been deleted.'
     })
     confirmationModal.value.hideModal()
     appActionIsLoadingData.value = false
@@ -561,16 +509,20 @@ const removeTrayContainer = async () => {
       }
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      persistent: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error
     })
     appActionIsLoadingData.value = false
   }
 }
 
-defineExpose({ editMode })
+defineExpose({
+  editMode,
+  showEditTrayModal,
+  showConfirmationModal,
+  showAuditTrailModal
+})
 </script>
 
 <style lang="scss" scoped>

@@ -1,9 +1,10 @@
 <template>
   <div class="search-bar">
-    <q-btn
+    <BaseButton
       dense
       no-caps
-      unelevated
+      flat
+      color="secondary"
       icon-right="arrow_drop_down"
       :label="searchType"
       aria-label="searchBarMenu"
@@ -35,7 +36,7 @@
           </q-item>
         </q-list>
       </q-menu>
-    </q-btn>
+    </BaseButton>
 
     <div class="row full-width">
       <q-input
@@ -86,9 +87,36 @@
               @click="exactSearchResponseInfo !== null ? handlingSearchResultRouting() : null"
               role="menuitem"
             >
-              <q-item-section>
-                {{ searchResults[0] }}
+              <!-- ====================================================== -->
+              <!-- ============ START: LOCATION DISPLAY CODE ============ -->
+              <!-- ====================================================== -->
+              <q-item-section v-if="exactSearchResponseInfo">
+                <!-- For Item searches, show Barcode, Status, and Location -->
+                <template v-if="searchType === 'Item'">
+                  <q-item-label>{{ exactSearchResponseInfo.barcode.value }}</q-item-label>
+                  <q-item-label>
+                    Status: {{ exactSearchResponseInfo.status }}
+                  </q-item-label>
+                  <q-item-label>
+                    <!-- This line checks if the item has a .tray property. If so, it passes the tray to the helper. If not, it passes the item itself. -->
+                    Location: {{ getItemLocation(exactSearchResponseInfo.tray ? exactSearchResponseInfo.tray : exactSearchResponseInfo) || 'N/A' }}
+                  </q-item-label>
+                </template>
+                <!-- For other search types, keep the original display -->
+                <template v-else>
+                  {{ searchResults[0] }}
+                </template>
               </q-item-section>
+
+              <!-- Show a "not found" message if the search returned no results -->
+              <q-item-section v-else>
+                <q-item-label class="text-grey">
+                  No results found.
+                </q-item-label>
+              </q-item-section>
+              <!-- ====================================================== -->
+              <!-- ============= END: LOCATION DISPLAY CODE ============= -->
+              <!-- ====================================================== -->
             </q-item>
           </q-list>
         </q-menu>
@@ -96,7 +124,7 @@
     </div>
 
     <template v-if="currentScreenSize !== 'xs'">
-      <q-btn
+      <BaseButton
         dense
         no-caps
         flat
@@ -106,7 +134,7 @@
         @click="executeExactSearch()"
         aria-label="exactSearchButton"
       />
-      <q-btn
+      <BaseButton
         dense
         no-caps
         flat
@@ -118,7 +146,7 @@
         aria-label="advancedSearchButton"
       />
     </template>
-    <q-btn
+    <BaseButton
       v-else
       dense
       no-caps
@@ -155,7 +183,9 @@
 </template>
 
 <script setup>
+import BaseButton from '@/components/Base/BaseButton.vue'
 import { onMounted, ref, watch, inject, computed } from 'vue'
+import { notify } from '@/utils/notify'
 import { useRoute, useRouter } from 'vue-router'
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
@@ -168,6 +198,7 @@ import { useRequestStore } from '@/stores/request-store'
 import { usePicklistStore } from '@/stores/picklist-store'
 import { useRefileStore } from '@/stores/refile-store'
 import { useWithdrawalStore } from '@/stores/withdrawal-store'
+import { useShippingStore } from '@/stores/shipping-store'
 import { storeToRefs } from 'pinia'
 import SearchAdvancedModal from '@/components/Search/SearchAdvancedModal.vue'
 import ItemDataOverlay from '@/components/RecordManagement/ItemDataOverlay.vue'
@@ -194,6 +225,7 @@ const { requestJob } = storeToRefs(useRequestStore())
 const { picklistJob } = storeToRefs(usePicklistStore())
 const { refileJob } = storeToRefs(useRefileStore())
 const { withdrawJob } = storeToRefs(useWithdrawalStore())
+const { shippingJob } = storeToRefs(useShippingStore())
 
 // Local Data
 const searchIsLoadingData = ref(false)
@@ -244,6 +276,10 @@ const searchTypes = computed(() => {
       hidden: !checkUserPermission('can_access_picklist')
     },
     {
+      name: 'Shipping',
+      hidden: !checkUserPermission('can_access_shipping')
+    },
+    {
       name: 'Refile',
       hidden: !checkUserPermission('can_access_refile')
     },
@@ -260,7 +296,14 @@ const exactSearchResponseInfo = ref(null)
 const showItemQuickView = ref(false)
 
 // Logic
-const handleAlert = inject('handle-alert')
+
+// ======================================================
+// ============ START: LOCATION DISPLAY CODE ============
+// ======================================================
+const getItemLocation = inject('get-item-location')
+// ======================================================
+// ============= END: LOCATION DISPLAY CODE =============
+// ======================================================
 
 onMounted(() => {
   setSearchType()
@@ -287,10 +330,9 @@ const executeExactSearch = async () => {
     }
     showExactSearch.value = true
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to execute search'
     })
   } finally {
     searchIsLoadingData.value = false
@@ -341,12 +383,37 @@ const handlingSearchResultRouting = () => {
       break
     case 'Shelving':
       shelvingJob.value = exactSearchResponseInfo.value
-      router.push({
-        name: searchType.value.toLowerCase(),
-        params: {
-          jobId: searchText.value
-        }
-      })
+      // Route based on job origin type
+      if (exactSearchResponseInfo.value.origin === 'Direct') {
+        // Direct to Shelf jobs use the modernized ShelvingDirectExecute component
+        router.push({
+          name: 'shelving-dts',
+          params: {
+            jobId: searchText.value
+          }
+        })
+      } else if (exactSearchResponseInfo.value.origin === 'List') {
+        // Shelve by List jobs use their dedicated component
+        router.push({
+          name: 'ShelveByListExecute',
+          params: {
+            id: searchText.value
+          }
+        })
+      } else if (exactSearchResponseInfo.value.origin === 'Move') {
+        // Handle Move jobs
+        const moveType = exactSearchResponseInfo.value.mode === 'MoveTrayItem' ? 'tray-item' : 'tray-non-tray'
+        router.push({
+          name: 'shelving-move',
+          params: {
+            type: moveType,
+            jobId: searchText.value
+          }
+        })
+      } else {
+        // Verification-origin jobs are deprecated - redirect to dashboard
+        router.push({ name: 'shelving' })
+      }
       break
     case 'Request':
       requestJob.value = exactSearchResponseInfo.value
@@ -384,6 +451,15 @@ const handlingSearchResultRouting = () => {
         }
       })
       break
+    case 'Shipping':
+      shippingJob.value = exactSearchResponseInfo.value
+      router.push({
+        name: 'shipping-execute',
+        params: {
+          jobId: searchText.value
+        }
+      })
+      break
     default:
       break
   }
@@ -397,8 +473,9 @@ const handlingSearchResultRouting = () => {
   flex-flow: row nowrap;
   width: 100%;
   height: 40px;
-  background-color: $color-white;
-  border-radius: 3px;
+  background-color: #f1f5f9; /* Slate 100 */
+  border: 1px solid $secondary;
+  border-radius: 8px;
   overflow: hidden;
 
   @media (max-width: $breakpoint-sm-min) {

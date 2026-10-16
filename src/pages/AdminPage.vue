@@ -11,14 +11,41 @@
     <AdminGroups v-if="route.name == 'admin-groups' && !route.params.groupId" />
     <AdminGroupDetails v-if="route.name == 'admin-groups' && route.params.groupId" />
 
+    <AdminILSConfiguration
+      v-if="route.name == 'admin-manage-ils'"
+    />
+
+    <AdminIntegrationIssues
+      v-if="route.name == 'admin-integration-issues'"
+    />
+
+    <AdminShelfPositionDirection
+      v-if="route.name == 'admin-manage-shelf-position-direction'"
+    />
+
+    <AdminChildOwnerShelving
+      v-if="route.name == 'admin-manage-child-owner-shelving'"
+    />
+
+    <AdminManualRequestSettings
+      v-if="route.name == 'admin-manage-manual-request-settings'"
+    />
+
+    <AdminUserManagement
+      v-if="route.name == 'admin-users'"
+    />
+
+    <AdminShippingSettings
+      v-if="route.name == 'admin-manage-shipping'"
+    />
+
     <AdminListManagerDisplay
-      v-if="route.name.includes('admin-manage')"
+      v-if="route.name.includes('admin-manage') && !['admin-manage-shelf-position-direction', 'admin-manage-child-owner-shelving', 'admin-manage-manual-request-settings', 'admin-manage-shipping', 'admin-manage-ils'].includes(route.name)"
       :list-type="route.name.split('admin-manage-').pop()"
     />
 
-    <AdminLocationManagerDisplay
-      v-if="route.name.includes('admin-location-manage')"
-      :location-type="route.name.split('-').pop()"
+    <AdminLocationExplorer
+      v-if="route.name === 'admin-location-explorer'"
     />
   </q-page>
 </template>
@@ -31,7 +58,14 @@ import AdminDashboard from '@/components/Admin/AdminDashboard.vue'
 import AdminGroups from '@/components/Admin/AdminGroups.vue'
 import AdminGroupDetails from '@/components/Admin/AdminGroupDetails.vue'
 import AdminListManagerDisplay from '@/components/Admin/AdminListManagerDisplay.vue'
-import AdminLocationManagerDisplay from '@/components/Admin/AdminLocationManagerDisplay.vue'
+import AdminLocationExplorer from '@/components/Admin/AdminLocationExplorer.vue'
+import AdminILSConfiguration from '@/components/Admin/AdminILSConfiguration.vue'
+import AdminIntegrationIssues from '@/components/Admin/AdminIntegrationIssues.vue'
+import AdminShelfPositionDirection from '@/components/Admin/AdminShelfPositionDirection.vue'
+import AdminChildOwnerShelving from '@/components/Admin/AdminChildOwnerShelving.vue'
+import AdminManualRequestSettings from '@/components/Admin/AdminManualRequestSettings.vue'
+import AdminUserManagement from '@/components/Admin/AdminUserManagement.vue'
+import AdminShippingSettings from '@/components/Admin/AdminShippingSettings.vue'
 
 const route = useRoute()
 

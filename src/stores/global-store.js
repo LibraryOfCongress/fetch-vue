@@ -9,6 +9,14 @@ export const useGlobalStore = defineStore('global-store', {
     appPendingSync: false,
     appSyncGuard: null,
     appRouteGuard: null,
-    pageInitLoading: false
-  })
+    pageInitLoading: false,
+    // State to control the main navigation drawer's visibility. Default to closed.
+    mainNavDrawerOpen: false
+  }),
+  // NEW: Action to allow any component to control the drawer's state.
+  actions: {
+    setMainNavDrawerOpen (isOpen) {
+      this.mainNavDrawerOpen = isOpen
+    }
+  }
 })

@@ -30,7 +30,8 @@
               class="col-xs-5 col-sm-auto flex justify-end"
               :class="'order-1'"
             >
-              <q-btn
+              <BaseButton
+                v-if="renderTableAction"
                 no-caps
                 unelevated
                 icon="add"
@@ -82,7 +83,7 @@
       <q-card-section
         class="row no-wrap justify-between items-center q-pt-sm"
       >
-        <q-btn
+        <BaseButton
           no-caps
           unelevated
           color="negative"
@@ -94,7 +95,7 @@
 
         <q-space class="q-mx-xs" />
 
-        <q-btn
+        <BaseButton
           outline
           no-caps
           label="Cancel"
@@ -107,7 +108,9 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, inject, computed } from 'vue'
+import BaseButton from '@/components/Base/BaseButton.vue'
+import { onBeforeMount, ref, computed } from 'vue'
+import { notify } from '@/utils/notify'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { storeToRefs } from 'pinia'
@@ -139,7 +142,10 @@ const {
   deleteSizeClass,
   deleteMediaType,
   deleteOwner,
-  deleteShelfType
+  deleteShelfType,
+  deletePriority,
+  deleteDeliveryLocation,
+  deleteRequestType
 } = useOptionStore()
 const {
   optionsTotal,
@@ -147,7 +153,11 @@ const {
   mediaTypes,
   sizeClass,
   shelfTypes,
-  ownersTiers
+  ownersTiers,
+  requestsPriorities,
+  requestsLocations,
+  requestsTypes,
+  barcodeTypes
 } = storeToRefs(useOptionStore())
 
 // Local Data
@@ -163,6 +173,18 @@ const listData = computed(() => {
       break
     case 'size-class':
       tableData = sizeClass.value
+      break
+    case 'priority':
+      tableData = requestsPriorities.value
+      break
+    case 'delivery-location':
+      tableData = requestsLocations.value
+      break
+    case 'request-type':
+      tableData = requestsTypes.value
+      break
+    case 'barcode-type':
+      tableData = barcodeTypes.value
       break
     case 'shelf-type': {
     // remove any duplicate shelf types by type name
@@ -194,6 +216,14 @@ const renderTableTitle = computed(() => {
     title = 'Media Type'
   } else if (mainProps.listType == 'shelf-type') {
     title = 'Shelf Type'
+  } else if (mainProps.listType == 'priority') {
+    title = 'Priority'
+  } else if (mainProps.listType == 'delivery-location') {
+    title = 'Delivery Location'
+  } else if (mainProps.listType == 'request-type') {
+    title = 'Request Type'
+  } else if (mainProps.listType == 'barcode-type') {
+    title = 'Barcode Type'
   } else {
     title = 'Size Class'
   }
@@ -207,6 +237,14 @@ const renderTableAction = computed(() => {
     actionText = 'Add Media Type'
   } else if (mainProps.listType == 'shelf-type') {
     actionText = 'Add Shelf Type'
+  } else if (mainProps.listType == 'priority') {
+    actionText = 'Add Priority'
+  } else if (mainProps.listType == 'delivery-location') {
+    actionText = 'Add Delivery Location'
+  } else if (mainProps.listType == 'request-type') {
+    actionText = 'Add Request Type'
+  } else if (mainProps.listType == 'barcode-type') {
+    actionText = ''
   } else {
     actionText = 'Add Size Class'
   }
@@ -222,7 +260,7 @@ const showConfirmationModal = ref(null)
 
 
 // Logic
-const handleAlert = inject('handle-alert')
+
 
 onBeforeMount(() => {
   loadListData()
@@ -293,11 +331,13 @@ const generateTableOptionsMenu = () => {
         optionClass: 'text-negative'
       }
     ]
+  } else if (mainProps.listType == 'barcode-type') {
+    options = [{ text: 'Edit Barcode Type' }]
   } else {
     options = [
-      { text: 'Edit Size Class' },
+      { text: `Edit ${renderTableTitle.value}` },
       {
-        text: 'Delete Size Class',
+        text: `Delete ${renderTableTitle.value}`,
         optionClass: 'text-negative'
       }
     ]
@@ -447,6 +487,115 @@ const generateListTableInfo = () => {
         'parent_owner_id',
         'owner_tier_id'
       ]
+
+      break
+    case 'priority':
+      listTableColumns.value = [
+        {
+          name: 'actions',
+          field: 'actions',
+          label: '',
+          align: 'center',
+          sortable: false,
+          required: true
+        },
+        {
+          name: 'value',
+          field: 'value',
+          label: 'Priority Value',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      listTableVisibleColumns.value = [
+        'actions',
+        'value'
+      ]
+      break
+    case 'delivery-location':
+      listTableColumns.value = [
+        {
+          name: 'actions',
+          field: 'actions',
+          label: '',
+          align: 'center',
+          sortable: false,
+          required: true
+        },
+        {
+          name: 'name',
+          field: 'name',
+          label: 'Name',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'address',
+          field: 'address',
+          label: 'Address',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      listTableVisibleColumns.value = [
+        'actions',
+        'name',
+        'address'
+      ]
+      break
+    case 'request-type':
+      listTableColumns.value = [
+        {
+          name: 'actions',
+          field: 'actions',
+          label: '',
+          align: 'center',
+          sortable: false,
+          required: true
+        },
+        {
+          name: 'request_type',
+          field: 'type',
+          label: 'Request Type',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      listTableVisibleColumns.value = [
+        'actions',
+        'request_type'
+      ]
+      break
+    case 'barcode-type':
+      listTableColumns.value = [
+        {
+          name: 'actions',
+          field: 'actions',
+          label: '',
+          align: 'center',
+          sortable: false,
+          required: true
+        },
+        {
+          name: 'name',
+          field: 'name',
+          label: 'Name',
+          align: 'left',
+          sortable: true
+        },
+        {
+          name: 'allowed_pattern',
+          field: 'allowed_pattern',
+          label: 'Allowed Pattern',
+          align: 'left',
+          sortable: true
+        }
+      ]
+      listTableVisibleColumns.value = [
+        'actions',
+        'name',
+        'allowed_pattern'
+      ]
       break
     default:
       break
@@ -474,6 +623,14 @@ const loadListData = async (qParams) => {
           page++
         }
       }
+    } else if (mainProps.listType == 'priority') {
+      await getOptions('requestsPriorities', qParams)
+    } else if (mainProps.listType == 'delivery-location') {
+      await getOptions('requestsLocations', qParams)
+    } else if (mainProps.listType == 'request-type') {
+      await getOptions('requestsTypes', qParams)
+    } else if (mainProps.listType == 'barcode-type') {
+      await getOptions('barcodeTypes', qParams)
     } else {
       await getOptions('sizeClass', qParams)
     }
@@ -481,10 +638,9 @@ const loadListData = async (qParams) => {
     // set the listData total based on the loaded list options from store
     listDataTotal.value = optionsTotal.value
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to load list data'
     })
   } finally {
     appIsLoadingData.value = false
@@ -513,47 +669,58 @@ const deleteListOption = async (id) => {
           if (res.status == 200) {
             deletedShelfTypes.push(shelfType)
           } else {
-            handleAlert({
-              type: 'error',
-              text: `"${shelfType.type} - ${shelfType.size_class.name}" is in use and cannot be deleted.`,
-              autoClose: false
+            notify({
+              type: 'negative',
+              message: `"${shelfType.type} - ${shelfType.size_class.name}" is in use and cannot be deleted.`,
+              timeout: 0,
+              actions: [
+                {
+                  icon: 'close',
+                  color: 'white'
+                }
+              ]
             })
           }
         }))
 
         // display and alert for the successfully deleted shelfTypes
         if (deletedShelfTypes.length == matchingShelfTypesById.length) {
-          handleAlert({
-            type: 'success',
-            text: `"${deletedShelfTypes[0].type}" has been successfully deleted.`,
-            autoClose: true
+          notify({
+            type: 'positive',
+            message: `"${deletedShelfTypes[0].type}" has been successfully deleted.`
           })
         } else if (deletedShelfTypes.length > 0) {
-          handleAlert({
-            type: 'success',
-            text: `${deletedShelfTypes.length} size classes have been successfully deleted from "${deletedShelfTypes[0].type}".`,
-            autoClose: true
+          notify({
+            type: 'positive',
+            message: `${deletedShelfTypes.length} size classes have been successfully deleted from "${deletedShelfTypes[0].type}".`
           })
         }
         break
       }
+      case 'priority':
+        await deletePriority(id)
+        break
+      case 'delivery-location':
+        await deleteDeliveryLocation(id)
+        break
+      case 'request-type':
+        await deleteRequestType(id)
+        break
       default:
         break
     }
 
-    handleAlert({
-      type: 'success',
-      text: `Successfully Deleted The ${renderTableTitle.value}.`,
-      autoClose: true
+    notify({
+      type: 'positive',
+      message: `Successfully Deleted The ${renderTableTitle.value}.`
     })
 
     // update listDataTotal for pagination
     listDataTotal.value = listDataTotal.value == 0 ? 0 : listDataTotal.value - 1
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to delete item'
     })
   } finally {
     appActionIsLoadingData.value = false

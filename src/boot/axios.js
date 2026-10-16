@@ -2,6 +2,7 @@ import { boot } from 'quasar/wrappers'
 import axios from 'axios'
 
 import { useUserStore } from '@/stores/user-store'
+import { useGlobalStore } from '@/stores/global-store'
 
 const api = axios.create({
   baseURL: process.env.VITE_INV_SERVCE_API,
@@ -36,15 +37,12 @@ export default boot(({ app }) => {
   //       so you can easily perform requests against your app's API
 
 
-  // axios interceptor to handle token/security authorization being added to our requests
+  // Set withCredentials to true to ensure cookies are sent with cross-origin requests
+  api.defaults.withCredentials = true
+
+  // axios interceptor (reduced since browser handles cookies automatically)
   api.interceptors.request.use((config) => {
-    // check if we have a user in localstorage and if that user has an auth based token in session storage
-    const userAuth = JSON.parse(localStorage.getItem('user'))
-    const userToken = JSON.parse(sessionStorage.getItem('token'))
-    if (userAuth && userToken) {
-    // if there is an access token we attach that to our requests
-      config.headers.Authorization = 'Bearer ' + userToken
-    }
+    // We no longer manually map a token from sessionStorage to Authorization header
     return config
   })
 
@@ -53,6 +51,8 @@ export default boot(({ app }) => {
   api.interceptors.response.use((response) => {
     return response
   }, (error) => {
+    const globalStore = useGlobalStore()
+
     if (!error.response) {
       error.response = {
         data: {
@@ -61,7 +61,10 @@ export default boot(({ app }) => {
       }
     } else if (error.response.status == 401 && userStore.userData.user_id) {
       // if we get a 401 error then user needs to be logged out and reauthenticated
-      userStore.patchLogout(true)
+      // Suppress logouts during offline sync to prevent interrupting the queue presentation
+      if (!globalStore.appPendingSync) {
+        userStore.patchLogout(true)
+      }
     }
     return Promise.reject(error)
   })

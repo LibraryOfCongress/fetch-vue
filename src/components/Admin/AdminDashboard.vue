@@ -44,16 +44,16 @@
     </div>
   </div>
 
-  <!-- routing modal whenever user selects any nested building field ex: modules, aisles ect-->
-  <AdminLocationManagerRouting
-    v-if="showLocationManageRouteModal !== null"
-    :location-title="showLocationManageRouteModal"
-    @hide="showLocationManageRouteModal = null; resetBuildingStore();"
-  />
-
+  <!-- bulk upload modal -->
   <AdminLocationManagerBulkUpload
     v-if="showBulkUploadLocationModal"
     @hide="showBulkUploadLocationModal = false"
+  />
+
+  <!-- bulk update modal -->
+  <AdminLocationManagerBulkUpdate
+    v-if="showBulkUpdateLocationModal"
+    @hide="showBulkUpdateLocationModal = false"
   />
 </template>
 
@@ -63,8 +63,8 @@ import { useRouter } from 'vue-router'
 import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { useBuildingStore } from '@/stores/building-store'
 import EssentialLink from '@/components/EssentialLink.vue'
-import AdminLocationManagerRouting from '@/components/Admin/AdminLocationManagerRouting.vue'
 import AdminLocationManagerBulkUpload from '@/components/Admin/AdminLocationManagerBulkUpload.vue'
+import AdminLocationManagerBulkUpdate from '@/components/Admin/AdminLocationManagerBulkUpdate.vue'
 
 const router = useRouter()
 
@@ -83,50 +83,99 @@ const adminLinkList = computed(() => {
       hidden: !checkUserPermission('can_manage_groups_and_permissions')
     },
     {
+      title: 'User Management',
+      link: '/admin/users',
+      hidden: !checkUserPermission('can_manage_groups_and_permissions')
+    },
+    {
+      title: 'System Configurations',
+      sublinks: [
+        {
+          title: 'ILS Integrations',
+          hidden: !checkUserPermission('can_manage_system_configurations')
+        },
+        {
+          title: 'Barcode Types',
+          hidden: !checkUserPermission('can_manage_system_configurations')
+        },
+        {
+          title: 'Shelf Position Direction',
+          hidden: !checkUserPermission('can_manage_system_configurations')
+        },
+        {
+          title: 'Child Owner Shelving',
+          hidden: !checkUserPermission('can_manage_system_configurations')
+        },
+        {
+          title: 'Manual Request Settings',
+          hidden: !checkUserPermission('can_manage_system_configurations')
+        },
+        {
+          title: 'Shipping Module',
+          hidden: !checkUserPermission('can_manage_system_configurations')
+        }
+      ],
+      hidden: !checkUserPermission('can_manage_system_configurations')
+    },
+    {
       title: 'List Configurations',
       sublinks: [
         {
           title: 'Add/Edit/Remove Owners',
-          hidden: !checkUserPermission('can_manage_owners')
+          hidden: !checkUserPermission('can_manage_list_configurations')
         },
+
         {
           title: 'Add/Edit/Remove Media Type',
-          hidden: !checkUserPermission('can_manage_media_type')
+          hidden: !checkUserPermission('can_manage_list_configurations')
         },
         {
           title: 'Add/Edit/Remove Size Class',
-          hidden: !checkUserPermission('can_manage_size_class')
+          hidden: !checkUserPermission('can_manage_list_configurations')
         },
         {
           title: 'Add/Edit/Remove Shelf Type',
-          hidden: !checkUserPermission('can_manage_shelf_type')
+          hidden: !checkUserPermission('can_manage_list_configurations')
+        },
+        {
+          title: 'Add/Edit/Remove Priority',
+          hidden: !checkUserPermission('can_manage_list_configurations')
+        },
+        {
+          title: 'Add/Edit/Remove Delivery Location',
+          hidden: !checkUserPermission('can_manage_list_configurations')
+        },
+        {
+          title: 'Add/Edit/Remove Request Type',
+          hidden: !checkUserPermission('can_manage_list_configurations')
         }
       ],
-      hidden: !(checkUserPermission('can_manage_size_class') || checkUserPermission('can_manage_owners') || checkUserPermission('can_manage_media_type') || checkUserPermission('can_manage_shelf_type'))
+      hidden: !checkUserPermission('can_manage_list_configurations')
     },
     {
       title: 'Location Manager',
       sublinks: [
         {
-          title: 'Buildings'
+          title: 'Manage Locations'
         },
         {
-          title: 'Modules'
+          title: 'Bulk Create Shelves/Ladder'
         },
         {
-          title: 'Aisles'
-        },
-        {
-          title: 'Ladders'
-        },
-        {
-          title: 'Shelves'
-        },
-        {
-          title: 'Bulk Upload Ladders/Shelves'
+          title: 'Bulk Edit Shelves'
         }
       ],
       hidden: !checkUserPermission('can_manage_locations')
+    },
+    {
+      title: 'System Diagnostics',
+      sublinks: [
+        {
+          title: 'Integration Issues',
+          hidden: !checkUserPermission('can_manage_system_configurations')
+        }
+      ],
+      hidden: !checkUserPermission('can_manage_system_configurations')
     }
   ]
 
@@ -142,8 +191,8 @@ const adminLinkList = computed(() => {
     }
   })
 })
-const showLocationManageRouteModal = ref(null)
 const showBulkUploadLocationModal = ref(false)
+const showBulkUpdateLocationModal = ref(false)
 
 // Logic
 onBeforeMount(() => {
@@ -152,11 +201,32 @@ onBeforeMount(() => {
 
 const handleRouting = (link) => {
   switch (link.title) {
-    case 'Buildings':
-      router.push({ name: 'admin-location-manage-buildings' })
+    case 'Manage Locations':
+      router.push({ name: 'admin-location-explorer' })
       break
-    case 'Bulk Upload Ladders/Shelves':
+    case 'ILS Integrations':
+      router.push({ name: 'admin-manage-ils' })
+      break
+    case 'Barcode Types':
+      router.push({ name: 'admin-manage-barcode-type' })
+      break
+    case 'Shelf Position Direction':
+      router.push({ name: 'admin-manage-shelf-position-direction' })
+      break
+    case 'Child Owner Shelving':
+      router.push({ name: 'admin-manage-child-owner-shelving' })
+      break
+    case 'Manual Request Settings':
+      router.push({ name: 'admin-manage-manual-request-settings' })
+      break
+    case 'Shipping Module':
+      router.push({ name: 'admin-manage-shipping' })
+      break
+    case 'Bulk Create Shelves/Ladder':
       showBulkUploadLocationModal.value = true
+      break
+    case 'Bulk Edit Shelves':
+      showBulkUpdateLocationModal.value = true
       break
     case 'Add/Edit/Remove Owners':
       router.push({ name: 'admin-manage-owner' })
@@ -170,8 +240,19 @@ const handleRouting = (link) => {
     case 'Add/Edit/Remove Shelf Type':
       router.push({ name: 'admin-manage-shelf-type' })
       break
+    case 'Add/Edit/Remove Priority':
+      router.push({ name: 'admin-manage-priority' })
+      break
+    case 'Add/Edit/Remove Delivery Location':
+      router.push({ name: 'admin-manage-delivery-location' })
+      break
+    case 'Add/Edit/Remove Request Type':
+      router.push({ name: 'admin-manage-request-type' })
+      break
+    case 'Integration Issues':
+      router.push({ name: 'admin-integration-issues' })
+      break
     default:
-      showLocationManageRouteModal.value = link.title
       break
   }
 }

@@ -3,11 +3,10 @@
     v-model="showPopupModal"
     persistent
     @hide="emit('reset')"
-    @show="emit('show')"
   >
     <q-card
       class="popup-modal"
-      :style="[ `width:${modalWidth}; max-width:${modalWidth};` ]"
+      :style="{ width: modalWidth, maxWidth: '90vw' }"
     >
       <!-- header section -->
       <slot
@@ -19,7 +18,7 @@
             {{ title }}
           </h2>
 
-          <q-btn
+          <BaseButton
             icon="close"
             flat
             round
@@ -49,12 +48,10 @@
           v-if="showActions"
           class="row no-wrap justify-between items-center"
         >
-          <q-btn
-            no-caps
-            unelevated
-            color="accent"
+          <BaseButton
+            variant="primary"
             label="Confirm"
-            class="popup-modal-btn text-body1 full-width"
+            class="text-body1 full-width"
             :loading="appActionIsLoadingData"
             @click="emit('confirm'); showPopupModal = false;"
             aria-label="confirmButton"
@@ -62,11 +59,10 @@
 
           <q-space class="q-mx-xs" />
 
-          <q-btn
-            outline
-            no-caps
+          <BaseButton
+            variant="outline"
             label="Cancel"
-            class="popup-modal-btn text-body1 full-width"
+            class="text-body1 full-width"
             @click="showPopupModal = false"
             aria-label="cancelButton"
           />
@@ -80,6 +76,7 @@
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
+import BaseButton from '@/components/Base/BaseButton.vue'
 
 // Props
 defineProps({
@@ -104,8 +101,7 @@ defineProps({
 // Emits
 const emit = defineEmits([
   'reset',
-  'confirm',
-  'show'
+  'confirm'
 ])
 
 // Store Data
@@ -120,20 +116,3 @@ const hideModal = () => {
 }
 defineExpose({ hideModal })
 </script>
-
-<style lang="scss" scoped>
-.popup-modal {
-    @media (max-width: $breakpoint-sm-min) {
-      width: 90vw;
-    }
-
-    &-btn {
-      transition: .3s ease;
-
-      &:hover {
-        color: $accent;
-        border-color: $accent;
-      }
-    }
-  }
-</style>

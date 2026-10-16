@@ -6,6 +6,8 @@ export const useOptionStore = defineStore('option-store', {
     optionsTotal: 0,
     aisles: [],
     buildings: [],
+    barcodeTypes: [],
+    deliveryLocations: [],
     containerTypes: [
       {
         id: 1,
@@ -165,6 +167,44 @@ export const useOptionStore = defineStore('option-store', {
         throw error
       }
     },
+    async getOwnerDeliveryLocations (ownerId) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.owners}${ownerId}/delivery-locations`)
+        return res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async addOwnerDeliveryLocation (ownerId, deliveryLocationId) {
+      try {
+        const res = await this.$api.post(`${inventoryServiceApi.owners}${ownerId}/delivery-locations?delivery_location_id=${deliveryLocationId}`)
+        return res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async removeOwnerDeliveryLocation (ownerId, deliveryLocationId) {
+      try {
+        await this.$api.delete(`${inventoryServiceApi.owners}${ownerId}/delivery-locations/${deliveryLocationId}`)
+      } catch (error) {
+        throw error
+      }
+    },
+    async syncOwnerDeliveryLocations (ownerId, newLocationIds, originalLocationIds) {
+      // Sync delivery location associations: add new ones, remove deleted ones
+      const toAdd = newLocationIds.filter(id => !originalLocationIds.includes(id))
+      const toRemove = originalLocationIds.filter(id => !newLocationIds.includes(id))
+
+      // Add new associations
+      for (const locationId of toAdd) {
+        await this.addOwnerDeliveryLocation(ownerId, locationId)
+      }
+
+      // Remove deleted associations
+      for (const locationId of toRemove) {
+        await this.removeOwnerDeliveryLocation(ownerId, locationId)
+      }
+    },
     async getMediaType (id) {
       try {
         const res = await this.$api.get(`${inventoryServiceApi.mediaTypes}${id}`)
@@ -306,6 +346,142 @@ export const useOptionStore = defineStore('option-store', {
           ...this.ownerTierOptions,
           res.data
         ]
+      } catch (error) {
+        throw error
+      }
+    },
+    async postPriority (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.requestsPriorities, payload)
+
+        this.requestsPriorities = [
+          ...this.requestsPriorities,
+          res.data
+        ]
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchPriority (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.requestsPriorities}${payload.id}`, payload)
+
+        this.requestsPriorities[this.requestsPriorities.findIndex(p => p.id == payload.id)] = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async deletePriority (id) {
+      try {
+        await this.$api.delete(`${inventoryServiceApi.requestsPriorities}${id}`)
+        this.requestsPriorities = this.requestsPriorities.filter(p => p.id !== id)
+      } catch (error) {
+        throw error
+      }
+    },
+    async postDeliveryLocation (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.requestsLocations, payload)
+        this.requestsLocations = [
+          ...this.requestsLocations,
+          res.data
+        ]
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchDeliveryLocation (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.requestsLocations}${payload.id}`, payload)
+        this.requestsLocations[this.requestsLocations.findIndex(l => l.id == payload.id)] = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async deleteDeliveryLocation (id) {
+      try {
+        await this.$api.delete(`${inventoryServiceApi.requestsLocations}${id}`)
+        this.requestsLocations = this.requestsLocations.filter(l => l.id !== id)
+      } catch (error) {
+        throw error
+      }
+    },
+    async postRequestType (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.requestsTypes, payload)
+        this.requestsTypes = [
+          ...this.requestsTypes,
+          res.data
+        ]
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchRequestType (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.requestsTypes}${payload.id}`, payload)
+        this.requestsTypes[this.requestsTypes.findIndex(t => t.id == payload.id)] = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async deleteRequestType (id) {
+      try {
+        await this.$api.delete(`${inventoryServiceApi.requestsTypes}${id}`)
+        this.requestsTypes = this.requestsTypes.filter(t => t.id !== id)
+      } catch (error) {
+        throw error
+      }
+    },
+    async getBarcodeType (id) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.barcodeTypes}${id}`)
+        this.barcodeTypes = [res.data]
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchBarcodeType (payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.barcodeTypes}${payload.id}`, payload)
+        this.barcodeTypes[this.barcodeTypes.findIndex(bt => bt.id == payload.id)] = res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async getDeliveryLocations (qParams) {
+      try {
+        const res = await this.$api.get(inventoryServiceApi.requestsLocations, {
+          params: {
+            size: 500,
+            ...qParams
+          }
+        })
+        this.deliveryLocations = res.data.items.sort((a, b) => a.name.localeCompare(b.name))
+      } catch (error) {
+        throw error
+      }
+    },
+    async getSystemSetting (key) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.systemSettings}${key}`)
+        return res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async postSystemSetting (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.systemSettings, payload)
+        return res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async patchSystemSetting (key, payload) {
+      try {
+        const res = await this.$api.patch(`${inventoryServiceApi.systemSettings}${key}`, payload)
+        return res.data
       } catch (error) {
         throw error
       }

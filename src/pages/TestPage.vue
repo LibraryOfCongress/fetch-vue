@@ -34,7 +34,7 @@
       </div>
 
       <div class="col-12 q-mt-md">
-        <q-btn
+        <BaseButton
           no-caps
           unelevated
           class="text-body1 q-mr-sm"
@@ -43,7 +43,7 @@
           @click="showOwnerTierCreation = !showOwnerTierCreation"
         />
 
-        <q-btn
+        <BaseButton
           no-caps
           unelevated
           class="text-body1"
@@ -126,7 +126,7 @@
           </h1>
 
           <div class="row no-wrap items-center q-mt-md">
-            <q-btn
+            <BaseButton
               no-caps
               outline
               color="negative"
@@ -135,7 +135,7 @@
               @click="generateTestAlert(1)"
             />
 
-            <q-btn
+            <BaseButton
               unelevated
               no-caps
               color="negative"
@@ -168,7 +168,7 @@
         </div>
 
         <div class="col-12">
-          <q-btn
+          <BaseButton
             no-caps
             unelevated
             color="primary"
@@ -177,7 +177,7 @@
             @click="selectTextFile()"
           />
 
-          <q-btn
+          <BaseButton
             no-caps
             unelevated
             color="primary"
@@ -187,7 +187,7 @@
             @click="saveChangesToText"
           />
 
-          <q-btn
+          <BaseButton
             no-caps
             unelevated
             color="primary"
@@ -197,7 +197,7 @@
             @click="saveTextFileToDevice"
           />
 
-          <q-btn
+          <BaseButton
             unelevated
             no-caps
             color="negative"
@@ -229,7 +229,7 @@
 
         <template #footer-content="{ hideModal }">
           <q-card-section class="row no-wrap justify-between items-center">
-            <q-btn
+            <BaseButton
               no-caps
               unelevated
               color="accent"
@@ -240,7 +240,7 @@
 
             <q-space class="q-mx-xs" />
 
-            <q-btn
+            <BaseButton
               outline
               no-caps
               label="Cancel"
@@ -255,10 +255,12 @@
 </template>
 
 <script setup>
+import BaseButton from '@/components/Base/BaseButton.vue'
 import { storeToRefs } from 'pinia'
 import { useOptionStore } from '@/stores/option-store'
 import { useGlobalStore } from '@/stores/global-store'
-import { ref, toRaw, onMounted, inject, watch } from 'vue'
+import { ref, toRaw, onMounted, watch, inject } from 'vue'
+import { notify } from '@/utils/notify'
 import { useIndexDbHandler } from '@/composables/useIndexDbHandler.js'
 import { useFileSystemAccessHandler } from '@/composables/useFileSystemAccessHandler.js'
 import PopupModal from '@/components/PopupModal.vue'
@@ -368,16 +370,14 @@ const saveOwnerTierList = async () => {
   try {
     await addDataToIndexDb('ownerTiers', toRaw(ownerTierOptions.value))
 
-    handleAlert({
-      type: 'success',
-      text: 'Owner Tiers saved for offline usage',
-      autoClose: true
+    notify({
+      type: 'positive',
+      message: 'Owner Tiers saved for offline usage'
     })
   } catch (err) {
-    handleAlert({
-      type: 'error',
-      text: err,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: err.message || 'Error saving Owner Tiers'
     })
   }
 }
@@ -387,29 +387,34 @@ const loadShelves = async (qParams) => {
     tableLoading.value = true
     await getOptions('shelves', { ...qParams })
   } catch (err) {
-    handleAlert({
-      type: 'error',
-      text: err,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: err.message || 'Error loading shelves'
     })
   } finally {
     tableLoading.value = false
   }
 }
 
-const handleAlert = inject('handle-alert')
+
 const generateTestAlert = (val) => {
   if (val == 1) {
-    handleAlert({
-      type: 'error',
-      text: 'This is a user generated error message',
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: 'This is a user generated error message'
     })
   } else {
-    handleAlert({
-      type: 'error',
-      text: 'This is a user generated error message with audio',
-      persistent: true
+    notify({
+      type: 'negative',
+      message: 'This is a user generated error message with audio',
+      timeout: 0,
+      actions: [
+        {
+          label: 'Dismiss',
+          color: 'white',
+          handler: () => { /* ... */ }
+        }
+      ]
     })
   }
 }
@@ -417,19 +422,21 @@ const generateTestAlert = (val) => {
 const saveTextFileToDevice = async () => {
   await saveAsTextFile(fileContent.value)
 
-  handleAlert({
-    type: 'success',
-    text: 'A new text file has been saved to the device',
-    autoClose: true
+  await saveAsTextFile(fileContent.value)
+
+  notify({
+    type: 'positive',
+    message: 'A new text file has been saved to the device'
   })
 }
 const saveChangesToText = async () => {
   await updateTextFile(fileContent.value)
 
-  handleAlert({
-    type: 'success',
-    text: 'The selected text file has been updated on the device',
-    autoClose: true
+  await updateTextFile(fileContent.value)
+
+  notify({
+    type: 'positive',
+    message: 'The selected text file has been updated on the device'
   })
 }
 </script>

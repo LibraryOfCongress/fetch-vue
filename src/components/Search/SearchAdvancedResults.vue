@@ -43,7 +43,7 @@
               class="col-xs-12 col-sm-12 col-md-auto flex"
               :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? 'justify-end q-mb-md' : 'order-1'"
             >
-              <q-btn
+              <BaseButton
                 no-caps
                 unelevated
                 color="accent"
@@ -74,7 +74,9 @@
 </template>
 
 <script setup>
+import BaseButton from '@/components/Base/BaseButton.vue'
 import { onBeforeMount, ref, inject, watch } from 'vue'
+import { notify } from '@/utils/notify'
 import { useRoute, useRouter  } from 'vue-router'
 import { useSearchStore } from '@/stores/search-store'
 import { useGlobalStore } from '@/stores/global-store'
@@ -107,7 +109,7 @@ const showDownloadReport = ref(false)
 
 // Logic
 const formatDateTime = inject('format-date-time')
-const handleAlert = inject('handle-alert')
+
 const renderItemBarcodeDisplay = inject('render-item-barcode-display')
 
 onBeforeMount(() => {
@@ -318,8 +320,8 @@ const generateSearchTableFields = () => {
           sortable: true
         },
         {
-          name: 'user_id',
-          field: row => renderUserName(row.user),
+          name: 'assigned_user_id',
+          field: row => renderUserName(row.assigned_user),
           label: 'Completed By',
           align: 'left',
           sortable: true
@@ -330,14 +332,14 @@ const generateSearchTableFields = () => {
         'workflow_id',
         'status',
         'created_by_id',
-        'user_id'
+        'assigned_user_id'
       ]
       if (currentScreenSize.value == 'xs') {
         searchResultsTableVisibleColumns.value = [
           'create_dt',
           'workflow_id',
           'status',
-          'user_id'
+          'assigned_user_id'
         ]
       }
       break
@@ -372,8 +374,8 @@ const generateSearchTableFields = () => {
           sortable: true
         },
         {
-          name: 'user_id',
-          field: row => renderUserName(row.user),
+          name: 'assigned_user_id',
+          field: row => renderUserName(row.assigned_user),
           label: 'Completed By',
           align: 'left',
           sortable: true
@@ -384,14 +386,14 @@ const generateSearchTableFields = () => {
         'workflow_id',
         'status',
         'created_by_id',
-        'user_id'
+        'assigned_user_id'
       ]
       if (currentScreenSize.value == 'xs') {
         searchResultsTableVisibleColumns.value = [
           'create_dt',
           'workflow_id',
           'status',
-          'user_id'
+          'assigned_user_id'
         ]
       }
       break
@@ -613,8 +615,8 @@ const generateSearchTableFields = () => {
           sortable: true
         },
         {
-          name: 'user_id',
-          field: row => renderUserName(row.user),
+          name: 'assigned_user_id',
+          field: row => renderUserName(row.assigned_user),
           label: 'Completed By',
           align: 'left',
           sortable: true
@@ -625,14 +627,14 @@ const generateSearchTableFields = () => {
         'id',
         'status',
         'created_by_id',
-        'user_id'
+        'assigned_user_id'
       ]
       if (currentScreenSize.value == 'xs') {
         searchResultsTableVisibleColumns.value = [
           'create_dt',
           'id',
           'status',
-          'user_id'
+          'assigned_user_id'
         ]
       }
       break
@@ -693,12 +695,21 @@ const handleResultSelection = (rowData) => {
       })
       break
     case 'Shelving':
-      router.push({
-        name: 'shelving',
-        params: {
-          jobId: rowData.id
-        }
-      })
+      // Route to appropriate shelving page based on origin
+      if (rowData.origin === 'Direct') {
+        router.push({
+          name: 'shelving-dts',
+          params: { jobId: rowData.id }
+        })
+      } else if (rowData.origin === 'List') {
+        router.push({
+          name: 'ShelveByListExecute',
+          params: { jobId: rowData.id }
+        })
+      } else {
+        // Verification origin jobs are deprecated - redirect to dashboard
+        router.push({ name: 'shelving' })
+      }
       break
     case 'Request':
       router.push({
@@ -761,10 +772,9 @@ const loadAdvancedSearch = async (qParams) => {
       }
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to load advanced search results'
     })
   } finally {
     appIsLoadingData.value = false
@@ -789,10 +799,9 @@ const downloadAdvancedSearchReport = async () => {
     }
     await downloadAdvancedSearchResults(endpoint)
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to download report'
     })
   } finally {
     appIsLoadingData.value = false
