@@ -1,10 +1,10 @@
 <template>
-  <q-btn
+  <BaseButton
     no-caps
     flat
     dense
     class="text-body1 authentication"
-    color="white"
+    color="primary"
     label="Login"
     aria-label="Login"
     :loading="isStageOrProd ? appActionIsLoadingData : null"
@@ -31,7 +31,7 @@
           </q-item-section>
         </q-item>
         <q-item role="menuitem">
-          <q-btn
+          <BaseButton
             no-caps
             unelevated
             class="text-body1"
@@ -42,7 +42,7 @@
             :loading="appActionIsLoadingData"
             @click="internalLogin"
           />
-          <q-btn
+          <BaseButton
             no-caps
             flat
             class="q-ml-auto text-body2"
@@ -54,13 +54,14 @@
         </q-item>
       </q-list>
     </q-menu>
-  </q-btn>
+  </BaseButton>
 </template>
 
 <script setup>
+import BaseButton from '@/components/Base/BaseButton.vue'
 import inventoryServiceApi from '@/http/InventoryService.js'
-import { jwtDecode } from 'jwt-decode'
-import { ref, inject, computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { notify } from '@/utils/notify'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
@@ -87,37 +88,27 @@ const loginForm = ref({
 })
 
 // Logic
-const handleAlert = inject('handle-alert')
+
 
 onMounted(async () => {
-  // when a user is using sso login they will get redirected back to the app in a logged out state with a token in the route
-  // there might also be a preserve_route query, this occurs when user is timeout via a 401 and we preserve the users location to come back to on reauthentication
-  if (route.query.token && route.query.preserve_route) {
-    // decode the token and pass and store that info in localstorage
+  // when a user is using sso login they will get redirected back to the app in a logged out state.
+  // The backend will have set an HttpOnly secure cookie containing the authentication JWT.
+  if (route.query.preserve_route) {
     appActionIsLoadingData.value = true
-    const payload = {
-      token: route.query.token,
-      ...jwtDecode(route.query.token)
+    try {
+      // 1. Trigger the store to fetch the profile using the cookie
+      await patchLogin({}, 'Sso')
+      // 2. send the user to the preserved route
+      router.push(route.query.preserve_route)
+    } catch (e) {
+      console.error('SSO Cookie Authentication failed', e)
+    } finally {
+      appActionIsLoadingData.value = false
     }
-    await patchLogin(payload, 'Sso')
-
-    // send the user to the preserved route
-    router.push(route.query.preserve_route)
-
-    appActionIsLoadingData.value = false
-  } else if (route.query.token) {
-    // decode the token and pass and store that info in localstorage
-    appActionIsLoadingData.value = true
-    const payload = {
-      token: route.query.token,
-      ...jwtDecode(route.query.token)
-    }
-    await patchLogin(payload, 'Sso')
-
-    // clear token from the route since we are now logged in
-    router.replace(route.path)
-
-    appActionIsLoadingData.value = false
+  } else {
+    // If there's no specific route to preserve, check if we just logged in via SSO
+    // and arrived at the root page. Let the global navigation guards or app mount
+    // handle the profile fetch if needed. We no longer parse route tokens here.
   }
 })
 
@@ -133,11 +124,13 @@ const internalLogin = async () => {
       email: loginForm.value.user
     }
     await patchLogin(payload, 'Internal')
+
+    // Refresh to allow the app to boot with the new cookie
+    window.location.reload()
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Login failed'
     })
   } finally {
     appActionIsLoadingData.value = false

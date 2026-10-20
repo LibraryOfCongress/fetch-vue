@@ -2,52 +2,81 @@
   <div class="nav">
     <!-- main nav -->
     <q-header
-      elevated
-      class="nav-top"
+      class="nav-top bg-white text-primary bordered"
     >
-      <q-toolbar class="bg-secondary justify-between">
-        <q-btn
-          v-if="userData.user_id"
-          color="white"
-          flat
-          dense
-          icon="menu"
-          aria-label="Menu Button"
-          @click="toggleLeftDrawer"
-        />
+      <q-toolbar class="nav-toolbar justify-between q-py-xs">
+        <!-- Mobile Search Mode Header -->
+        <template v-if="currentScreenSize === 'xs' && mobileSearchOpen">
+          <q-btn
+            flat
+            round
+            dense
+            icon="arrow_back"
+            color="primary"
+            @click="mobileSearchOpen = false"
+          />
+          <div class="col q-pl-xs">
+            <SearchBar v-if="checkUserPermission('can_access_search')" />
+          </div>
+        </template>
 
-        <div class="nav-search">
-          <SearchBar v-if="checkUserPermission('can_access_search')" />
-        </div>
+        <!-- Normal Header Mode -->
+        <template v-else>
+          <!-- MODIFIED: This button now calls the global store action -->
+          <BaseButton
+            v-if="userData.user_id"
+            color="primary"
+            flat
+            dense
+            icon="menu"
+            aria-label="Menu Button"
+            @click="setMainNavDrawerOpen(!mainNavDrawerOpen)"
+          />
 
-        <div class="nav-actions">
-          <UserLogin v-if="!userData.user_id" />
-          <UserMenu v-else />
-        </div>
+          <!-- Mobile Search Icon Button in the Center -->
+          <q-btn
+            v-if="currentScreenSize === 'xs' && checkUserPermission('can_access_search')"
+            flat
+            round
+            dense
+            icon="search"
+            color="primary"
+            @click="mobileSearchOpen = true"
+          />
+
+          <div
+            v-if="currentScreenSize !== 'xs'"
+            class="nav-search"
+          >
+            <SearchBar v-if="checkUserPermission('can_access_search')" />
+          </div>
+
+          <div class="nav-actions row items-center no-wrap q-gutter-x-xs">
+            <UserLogin v-if="!userData.user_id" />
+            <UserMenu v-else />
+          </div>
+        </template>
       </q-toolbar>
 
       <!-- barcode scan banner -->
       <q-banner
         v-if="!barcodeScanAllowed"
-        class="nav-banner bg-color-gray-light text-color-black"
+        class="nav-banner bg-red-1 text-negative"
         inline-actions
         dense
       >
         <q-icon
           name="mdi-barcode-scan"
-          color="black"
-          size="25px"
+          color="negative"
+          size="20px"
           class="q-mr-sm"
         />
-        Barcode scanning is <strong class="text-red">disabled</strong>.
+        <span class="text-weight-medium">Barcode scanning is disabled.</span>
         <template #action>
-          <q-btn
-            dense
-            no-caps
-            unelevated
-            color="positive"
+          <BaseButton
+            variant="danger"
             label="Enable Scan"
-            class="text-body1"
+            class="text-body2"
             @click="barcodeScanAllowed = true"
           />
         </template>
@@ -56,42 +85,39 @@
       <!-- offline banner -->
       <q-banner
         v-if="showOfflineBanner"
-        class="nav-banner bg-color-gray-light text-color-black"
+        class="nav-banner bg-amber-1 text-warning-dark"
         inline-actions
         dense
       >
         <q-icon
           name="signal_wifi_off"
-          color="negative"
-          size="25px"
+          color="warning"
+          size="20px"
           class="q-mr-sm"
         />
-        You are in offline mode.
+        <span class="text-weight-medium">You are in offline mode.</span>
       </q-banner>
 
       <!-- online banner if user has pending api requests -->
       <q-banner
         v-if="appPendingSync && !appIsOffline"
-        class="nav-banner bg-color-gray-light text-color-black"
+        class="nav-banner bg-green-1 text-positive"
         inline-actions
         dense
       >
         <q-icon
           name="wifi"
           color="positive"
-          size="25px"
+          size="20px"
           class="q-mr-sm"
         />
-        You are back online! There are pending requests to be sent.
+        <span class="text-weight-medium">You are back online! There are pending requests.</span>
         <template #action>
-          <q-btn
-            dense
-            no-caps
-            unelevated
+          <BaseButton
             :loading="syncInProgress == 'In Progress'"
-            color="positive"
+            variant="primary"
             :label="syncInProgress == 'Complete' ? 'Sync Completed' : 'Send Requests'"
-            class="text-body1"
+            class="text-body2"
             @click="triggerBackgroundSync"
           />
         </template>
@@ -99,51 +125,52 @@
     </q-header>
 
     <!-- side nav -->
+    <!-- MODIFIED: The v-model is now bound to the global store state -->
     <q-drawer
       v-if="userData.user_id"
-      v-model="leftDrawerOpen"
-      show-if-above
-      class="nav-side bg-primary"
+      v-model="mainNavDrawerOpen"
+      overlay
+      class="nav-side bg-sidebar-theme"
     >
-      <q-list
-        class="nav-list"
-        role="group"
-      >
-        <q-item
-          class="q-my-lg align-center"
-          clickable
-          tag="a"
-          role="link"
-          :to="'/'"
+      <q-scroll-area style="height: 100%;">
+        <q-list
+          class="nav-list"
+          role="group"
+          @click.capture="setMainNavDrawerOpen(false)"
         >
-          <q-item-section>
-            <img
-              :src="mainLogo"
-              alt="FETCH LOGO"
-              width="268"
-              height="100"
-            />
-          </q-item-section>
-        </q-item>
+          <q-item
+            class="q-mt-xl q-mb-lg"
+            clickable
+            tag="a"
+            role="link"
+            :to="'/'"
+          >
+            <q-item-section class="flex flex-center">
+              <div class="nav-logo-text">
+                FETCH
+              </div>
+            </q-item-section>
+          </q-item>
 
-        <EssentialLink
-          v-for="link in essentialLinks"
-          :key="link.title"
-          v-bind="link"
-          :icon-size="'28px'"
-          class="nav-list-link text-white"
-          :class="isActiveLink(link) ? 'nav-active' : ''"
-        />
+          <EssentialLink
+            v-for="link in essentialLinks"
+            :key="link.title"
+            v-bind="link"
+            :icon-size="'28px'"
+            class="nav-list-link text-white"
+            :class="isActiveLink(link) ? 'bg-accent' : ''"
+          />
 
-        <!-- admin level link -->
-        <EssentialLink
-          v-if="checkUserPermission('can_access_admin')"
-          v-bind="adminLink"
-          :icon-size="'28px'"
-          class="nav-list-link-admin text-white"
-          :class="isActiveLink(adminLink) ? 'nav-active' : ''"
-        />
-      </q-list>
+          <!-- admin level link -->
+          <EssentialLink
+            v-if="checkUserPermission('can_access_admin')"
+            v-bind="adminLink"
+            :icon-size="'28px'"
+            class="nav-list-link-admin text-white"
+            :class="isActiveLink(adminLink) ? 'bg-accent' : ''"
+          />
+        </q-list>
+      </q-scroll-area>
     </q-drawer>
 
     <!-- sync navigation guard modal-->
@@ -156,7 +183,7 @@
     >
       <template #footer-content="{ hideModal }">
         <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-          <q-btn
+          <BaseButton
             no-caps
             unelevated
             color="negative"
@@ -165,7 +192,7 @@
             @click="handleRouteSyncGuard(appSyncGuard.name); hideModal();"
           />
           <q-space class="q-mx-xs" />
-          <q-btn
+          <BaseButton
             outline
             no-caps
             label="Cancel"
@@ -179,40 +206,46 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed, watch, inject } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
+import { notify } from '@/utils/notify'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useBarcodeStore } from '@/stores/barcode-store'
 import { useUserStore } from '@/stores/user-store'
-import { useBackgroundSyncHandler } from '@/composables/useBackgroundSyncHandler.js'
+import { useOfflineSync } from '@/composables/useOfflineSync.js'
 import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
+import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
 import EssentialLink from '@/components/EssentialLink.vue'
 import SearchBar from '@/components/Search/SearchBar.vue'
 import PopupModal from '@/components/PopupModal.vue'
 import UserLogin from '@/components/User/UserLogin.vue'
 import UserMenu from '@/components/User/UserMenu.vue'
+import BaseButton from '@/components/Base/BaseButton.vue'
 
-const mainLogo = '/assets/FETCH-Logo.svg'
+
 const route = useRoute()
 const router = useRouter()
 
 // Composables
 const {
-  bgSyncData,
-  syncInProgress,
-  triggerBackgroundSync,
-  deleteDataInBackgroundSyncDb
-} = useBackgroundSyncHandler()
+  pendingOpsCount,
+  syncPendingOps
+} = useOfflineSync()
+const syncInProgress = ref('')
 const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
+// MODIFIED: Import the new state and action
+const globalStore = useGlobalStore()
 const {
   appIsOffline,
   appPendingSync,
   appSyncGuard,
-  appRouteGuard
-} = storeToRefs(useGlobalStore())
+  appRouteGuard,
+  mainNavDrawerOpen // new state
+} = storeToRefs(globalStore)
+const { setMainNavDrawerOpen } = globalStore // new action
 const { barcodeScanAllowed } = storeToRefs(useBarcodeStore())
 const { userData } = storeToRefs(useUserStore())
 
@@ -250,6 +283,12 @@ const essentialLinks = computed(() => {
       requiresPerm: 'can_access_picklist'
     },
     {
+      title: 'Shipping',
+      icon: 'local_shipping',
+      link: '/shipping',
+      requiresPerm: 'can_access_shipping'
+    },
+    {
       title: 'Refile',
       icon: 'format_list_numbered',
       link: '/refile',
@@ -284,12 +323,20 @@ const adminLink = ref({
   icon: 'mdi-shield-account',
   link: '/admin'
 })
-const leftDrawerOpen = ref(false)
+// REMOVED: No longer needed, as we now use the global state
+// const leftDrawerOpen = ref(false)
 const showOfflineBanner = ref(false)
-const refreshWhenOnline = ref(false)
 
 // Logic
-const handleAlert = inject('handle-alert')
+const { currentScreenSize } = useCurrentScreenSize()
+const mobileSearchOpen = ref(false)
+
+// Auto-close the navigation drawer when the route changes
+watch(route, () => {
+  setMainNavDrawerOpen(false)
+  mobileSearchOpen.value = false
+})
+
 
 onMounted(() => {
   window.addEventListener('offline', () => {
@@ -303,69 +350,21 @@ onMounted(() => {
     appIsOffline.value = false
   })
 
-  if ('serviceWorker' in navigator) {
-    // listen for messages from the serviceworker scripts
-    navigator.serviceWorker.addEventListener('message', async (event) => {
-      if (event.data.message == 'pending sync') {
-        // show online banner only if we have requests pending in queue
-        appPendingSync.value = true
-      } else if (event.data.message == 'refreshWhenOnline') {
-        // refresh the app state incase indexDb fails to detect stored queue calls when user comes back online
-        refreshWhenOnline.value = true
-      } else if (event.data.message == 'sync complete') {
-        // when user triggers an offline sync, we need to wait for the syncComplete message from the serviceworker queue
-        syncInProgress.value = 'Complete'
-
-        // handle any non breaking errors passed back from bgSync
-        if (event.data.error && event.data.error.length > 0) {
-          event.data.error.forEach(err => {
-            handleAlert({
-              type: 'error',
-              text: err,
-              autoClose: true
-            })
-          })
-
-          await new Promise(resolve => setTimeout(() => {
-            appPendingSync.value = false
-            syncInProgress.value = ''
-            resolve()
-          }, 5200))
-          window.location.reload()
-        } else {
-          setTimeout(() => {
-            appPendingSync.value = false
-            syncInProgress.value = ''
-            window.location.reload()
-          }, 2500)
-        }
-      } else if (event.data.message == 'sync error') {
-        syncInProgress.value = ''
-        handleAlert({
-          type: 'error',
-          text: event.data.error,
-          autoClose: true
-        })
-      }
-    })
-  }
-
   // display a route guard alert if the user tries to directly navigate to a page
   if (appRouteGuard.value) {
     displayRouteGuardAlert(appRouteGuard.value.name)
   }
 })
 
-// when coming back online sometimes indexDb doesnt catch queue requests, so when our background sync service worker stores api calls it sends a message to frontend to refresh the app
 watch(appIsOffline, () => {
-  if (appIsOffline.value == false && refreshWhenOnline.value == true) {
-    window.location.reload(true)
+  if (!appIsOffline.value && pendingOpsCount.value > 0) {
+    appPendingSync.value = true
   }
 })
 
-// watch the bgSyncData and if we detect any requests that are still pending display the online banner with requests pending action
-watch(bgSyncData, () => {
-  if (bgSyncData.value.length > 0 && navigator.onLine) {
+// watch the pendingOpsCount and if we detect any requests that are still pending display the online banner with requests pending action
+watch(pendingOpsCount, () => {
+  if (pendingOpsCount.value > 0 && !appIsOffline.value) {
     appPendingSync.value = true
   } else {
     appPendingSync.value = false
@@ -378,9 +377,10 @@ watch(appRouteGuard, () => {
   }
 })
 
-const toggleLeftDrawer = () => {
-  leftDrawerOpen.value = !leftDrawerOpen.value
-}
+// REMOVED: No longer needed, as the hamburger button calls the store action directly
+// const toggleLeftDrawer = () => {
+//   leftDrawerOpen.value = !leftDrawerOpen.value
+// }
 
 const isActiveLink = (linkObj) => {
   if (linkObj.link !== '/' && route.path.includes(linkObj.link)) {
@@ -389,20 +389,47 @@ const isActiveLink = (linkObj) => {
     return false
   }
 }
-const handleRouteSyncGuard = async (pathName) => {
-  // delete all requests from background queue and reset app sync status, guard and banner
-  await deleteDataInBackgroundSyncDb()
-  appPendingSync.value = false
+const handleRouteSyncGuard = (pathName) => {
+  // we do not delete pending operations anymore, the user just leaves the page and the ops remain in IDB
   appSyncGuard.value = null
   router.push({
     name: pathName
   })
 }
+
+const triggerBackgroundSync = async () => {
+  syncInProgress.value = 'In Progress'
+  try {
+    await syncPendingOps()
+    syncInProgress.value = 'Complete'
+    // after 2.5 seconds we refresh the page so the app can fetch the latest server state unconditionally
+    setTimeout(() => {
+      syncInProgress.value = ''
+      appPendingSync.value = false
+      window.location.reload()
+    }, 2500)
+  } catch (error) {
+    syncInProgress.value = ''
+    if (error.message === 'AUTH_EXPIRED') {
+      // User has been logged out and redirected by store handler, nothing to do here
+      return
+    }
+
+    if (error.code === 'ERR_BAD_REQUEST') {
+      notify({
+        type: 'negative',
+        message: 'A discrepancy was recorded on your Offline Job'
+      })
+
+      syncInProgress.value = 'Complete'
+    }
+  }
+}
 const displayRouteGuardAlert = (pathName) => {
-  handleAlert({
-    type: 'error',
-    text: `Sorry, you do not have permission to view the <b>${pathName.replaceAll('-', ' ')}</b> page!`,
-    autoClose: true
+  notify({
+    type: 'negative',
+    message: `Sorry, you do not have permission to view the <b>${pathName.replaceAll('-', ' ')}</b> page!`,
+    html: true
   })
   // reset the route guard in our store
   appRouteGuard.value = null
@@ -423,23 +450,47 @@ const displayRouteGuardAlert = (pathName) => {
     z-index: 6000;
   }
 
-  &-active {
-    background-color: $accent;
+  &-toolbar {
+    @media (max-width: $breakpoint-sm-min) {
+      padding-top: 2px;
+      padding-bottom: 2px;
+      min-height: 40px;
+    }
   }
 
   &-search {
     width: 60%;
 
-    @media (max-width: $breakpoint-sm-min) {
-      width: 75%;
+    @media (max-width: $breakpoint-sm-max) {
+      width: 55%;
     }
   }
+
+  &-title-mobile {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #F45D01; /* LC Orange */
+  }
+
+  // Scale hamburger and action buttons on mobile
+  @media (max-width: $breakpoint-sm-min) {
+    :deep(.q-toolbar > .q-btn) {
+      padding: 4px;
+
+      .q-icon {
+        font-size: 20px;
+      }
+    }
+  }
+
 
   &-list {
     position: relative;
     display: flex;
     flex-flow: column nowrap;
     height: 100%;
+    padding-top: 24px;
 
     &-link {
       &-admin {
@@ -451,5 +502,27 @@ const displayRouteGuardAlert = (pathName) => {
   &-banner {
     border-top: 1px solid $secondary;
   }
+}
+</style>
+<style lang="scss">
+/* Global styles for the navigation drawer and logo */
+.nav-side {
+  border-radius: 0 24px 24px 0 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1) !important;
+
+  .q-drawer__content {
+    border-radius: 0 24px 24px 0 !important;
+  }
+}
+
+.nav-logo-text {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #F45D01; /* LC Orange */
+  letter-spacing: -0.05em;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

@@ -38,7 +38,7 @@
       </div>
 
       <div class="col-xs-12 col-sm-4 col-md-3 q-pa-xs-xs q-pa-lg-sm q-pa-xl-md">
-        <q-btn
+        <BaseButton
           no-caps
           unelevated
           outline
@@ -76,7 +76,7 @@
 
     <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-        <q-btn
+        <BaseButton
           no-caps
           unelevated
           color="accent"
@@ -89,7 +89,7 @@
 
         <q-space class="q-mx-xs" />
 
-        <q-btn
+        <BaseButton
           outline
           no-caps
           label="Cancel"
@@ -122,7 +122,7 @@
 
     <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-        <q-btn
+        <BaseButton
           no-caps
           unelevated
           color="accent"
@@ -135,7 +135,7 @@
 
         <q-space class="q-mx-xs" />
 
-        <q-btn
+        <BaseButton
           outline
           no-caps
           label="Cancel"
@@ -187,7 +187,7 @@
                 class="col-xs-6 col-sm-4 col-md-3"
               >
                 <div class="admin-groups-users-chip q-pa-xs">
-                  <q-btn
+                  <BaseButton
                     dense
                     outline
                     no-caps
@@ -206,7 +206,7 @@
                       class="q-ml-auto"
                       aria-label="removeUserIcon"
                     />
-                  </q-btn>
+                  </BaseButton>
                 </div>
               </div>
             </div>
@@ -217,7 +217,7 @@
 
     <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-        <q-btn
+        <BaseButton
           no-caps
           unelevated
           color="accent"
@@ -230,7 +230,7 @@
 
         <q-space class="q-mx-xs" />
 
-        <q-btn
+        <BaseButton
           outline
           no-caps
           label="Cancel"
@@ -256,7 +256,7 @@
         v-if="showConfirmationModal.type == 'deleteUser'"
         class="row no-wrap justify-between items-center q-pt-sm"
       >
-        <q-btn
+        <BaseButton
           no-caps
           unelevated
           color="negative"
@@ -268,7 +268,7 @@
 
         <q-space class="q-mx-xs" />
 
-        <q-btn
+        <BaseButton
           outline
           no-caps
           label="Cancel"
@@ -280,7 +280,7 @@
         v-else-if="showConfirmationModal.type == 'deleteGroup'"
         class="row no-wrap justify-between items-center q-pt-sm"
       >
-        <q-btn
+        <BaseButton
           no-caps
           unelevated
           color="negative"
@@ -292,7 +292,7 @@
 
         <q-space class="q-mx-xs" />
 
-        <q-btn
+        <BaseButton
           outline
           no-caps
           label="Cancel"
@@ -305,8 +305,10 @@
 </template>
 
 <script setup>
-import { ref, inject, onBeforeMount } from 'vue'
+import BaseButton from '@/components/Base/BaseButton.vue'
+import { ref, onBeforeMount } from 'vue'
 import { useRouter } from 'vue-router'
+import { notify } from '@/utils/notify'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -353,7 +355,7 @@ const confirmationModal = ref(null)
 const showConfirmationModal = ref(null)
 
 // Logic
-const handleAlert = inject('handle-alert')
+
 
 onBeforeMount(() => {
   resetGroupStore()
@@ -389,10 +391,9 @@ const loadAdminGroups = async () => {
     appIsLoadingData.value = true
     await getAdminGroupList()
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to load admin groups'
     })
   } finally {
     appIsLoadingData.value = false
@@ -410,10 +411,9 @@ const loadAdminGroupPermissions = async () => {
       }
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to load group permissions'
     })
   } finally {
     appIsLoadingData.value = false
@@ -425,10 +425,9 @@ const loadAdminGroupUsers = async () => {
     await getAdminGroupUsers(selectedGroup.value.id)
     showGroupUserModal.value = true
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to load group users'
     })
   } finally {
     appIsLoadingData.value = false
@@ -442,16 +441,16 @@ const createAdminGroup = async () => {
     }
     await postAdminGroup(payload)
 
-    handleAlert({
-      type: 'success',
-      text: `The ${groupDetails.value.name} group has been created.`,
-      autoClose: true
+
+
+    notify({
+      type: 'positive',
+      message: `The ${groupDetails.value.name} group has been created.`
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to create group'
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -467,16 +466,16 @@ const updateAdminGroup = async () => {
     }
     await patchAdminGroup(payload)
 
-    handleAlert({
-      type: 'success',
-      text: 'The groups name has been updated.',
-      autoClose: true
+
+
+    notify({
+      type: 'positive',
+      message: 'The groups name has been updated.'
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to update group name'
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -488,16 +487,16 @@ const removeAdminGroup = async () => {
     appActionIsLoadingData.value = true
     await deleteAdminGroup(selectedGroup.value.id)
 
-    handleAlert({
-      type: 'success',
-      text: 'The group has been successfully deleted.',
-      autoClose: true
+
+
+    notify({
+      type: 'positive',
+      message: 'The group has been successfully deleted.'
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to delete group'
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -510,10 +509,11 @@ const addAdminGroupUser = async () => {
     appActionIsLoadingData.value = true
     await Promise.all(addUserInput.value.map(usr => postAdminGroupUser(selectedGroup.value.id, usr)))
 
-    handleAlert({
-      type: 'success',
-      text: 'The group users have been updated.',
-      autoClose: true
+
+
+    notify({
+      type: 'positive',
+      message: 'The group users have been updated.'
     })
 
     // check if the signed in user exists in an edited group and reload permissions on the user if change to group is detected
@@ -521,10 +521,9 @@ const addAdminGroupUser = async () => {
       loadUserPermissions()
     }
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to add user to group'
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -536,10 +535,11 @@ const removeAdminGroupUser = async () => {
     appActionIsLoadingData.value = true
     await deleteAdminGroupUser(selectedGroup.value.id, selectedGroupUserId.value)
 
-    handleAlert({
-      type: 'success',
-      text: 'The user has been successfully deleted from the group.',
-      autoClose: true
+
+
+    notify({
+      type: 'positive',
+      message: 'The user has been successfully deleted from the group.'
     })
 
     // check if the delete user is the signed user and reload their permissions
@@ -547,10 +547,9 @@ const removeAdminGroupUser = async () => {
       loadUserPermissions()
     }
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to remove user from group'
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -562,10 +561,9 @@ const loadUserPermissions = async () => {
   try {
     await getUserPermissions()
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to reload user permissions'
     })
   }
 }

@@ -11,7 +11,7 @@
           {{ actionType == 'Add' ? 'Add New' : 'Edit' }} {{ titleCaseListType }}
         </h2>
 
-        <q-btn
+        <BaseButton
           icon="close"
           flat
           round
@@ -52,6 +52,13 @@
                   :disabled="field.disabled"
                   :aria-label="`${field.field}_input`"
                 />
+                <div
+                  v-if="field.hint"
+                  class="text-caption text-grey-7 q-mt-xs"
+                  style="white-space: pre-wrap;"
+                >
+                  {{ field.hint }}
+                </div>
               </div>
             </div>
             <!-- select inputs -->
@@ -120,7 +127,7 @@
 
     <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-        <q-btn
+        <BaseButton
           no-caps
           unelevated
           color="accent"
@@ -133,7 +140,7 @@
 
         <q-space class="q-mx-xs" />
 
-        <q-btn
+        <BaseButton
           outline
           no-caps
           label="Cancel"
@@ -146,13 +153,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount, inject, toRaw } from 'vue'
+import BaseButton from '@/components/Base/BaseButton.vue'
+import { ref, computed, onBeforeMount, toRaw } from 'vue'
+import { notify } from '@/utils/notify'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
 import { storeToRefs } from 'pinia'
 import SelectInput from '@/components/SelectInput.vue'
 import TextInput from '@/components/TextInput.vue'
 import PopupModal from '@/components/PopupModal.vue'
+import { useIlsConfigurationStore } from '@/stores/ils-configuration-store'
 
 // Props
 const mainProps = defineProps({
@@ -183,15 +193,20 @@ const emit = defineEmits([
 
 // Store Data
 const { appActionIsLoadingData } = storeToRefs(useGlobalStore())
+const ilsStore = useIlsConfigurationStore()
+const { ilsConfigurations } = storeToRefs(ilsStore)
 const {
   sizeClass,
   shelfTypes,
   ownersTiers,
   parentOwnerOptions,
-  optionsTotal
+  optionsTotal,
+  requestsLocations
 } = storeToRefs(useOptionStore())
 const {
   getParentOwnerOptions,
+  getOwnerDeliveryLocations,
+  syncOwnerDeliveryLocations,
   postSizeClass,
   patchSizeClass,
   postOwner,
@@ -201,7 +216,14 @@ const {
   postShelfType,
   patchShelfType,
   deleteShelfType,
-  getOptions
+  postPriority,
+  patchPriority,
+  postDeliveryLocation,
+  patchDeliveryLocation,
+  postRequestType,
+  patchRequestType,
+  getOptions,
+  patchBarcodeType
 } = useOptionStore()
 
 // Local Data
@@ -239,7 +261,7 @@ const parentOwnerRequired = computed(() => {
 })
 
 // Logic
-const handleAlert = inject('handle-alert')
+
 
 onBeforeMount(() => {
   generateListModal()
@@ -305,14 +327,40 @@ const generateListModal = async () => {
         }
       ]
       break
-    case 'owner':
+    case 'owner': {
+      // Load delivery locations for the dropdown
+      await getOptions('requestsLocations', { size: 100 })
+      // Load existing delivery locations for this owner when editing
+      let ownerDeliveryLocationIds = []
+      if (mainProps.actionType === 'Edit' && mainProps.listData.id) {
+        try {
+          const existingLocations = await getOwnerDeliveryLocations(mainProps.listData.id)
+          ownerDeliveryLocationIds = existingLocations.map(loc => loc.id)
+        } catch (error) {
+          // If table doesn't exist or API fails, continue with empty array
+          console.warn('Could not load delivery locations for owner:', error)
+        }
+      }
+
+      // Load ILS Configurations
+      try {
+        await ilsStore.getIlsConfigurations()
+      } catch (err) {
+        console.warn('Could not load ILS Configurations:', err)
+      }
+
       inputForm.value = {
         owner_tier_id: mainProps.listData.owner_tier_id ?? '',
         parent_owner_id: mainProps.listData.parent_owner_id ?? null,
-        name: mainProps.listData.name ?? ''
+        ils_configuration_id: mainProps.listData.ils_configuration_id ?? null,
+        name: mainProps.listData.name ?? '',
+        delivery_location_ids: ownerDeliveryLocationIds
       }
       // create a copy of our input form
-      inputFormOriginal.value = { ...toRaw(inputForm.value) }
+      inputFormOriginal.value = {
+        ...toRaw(inputForm.value),
+        delivery_location_ids: [...ownerDeliveryLocationIds]
+      }
 
       inputFields.value = [
         {
@@ -333,9 +381,94 @@ const generateListModal = async () => {
           field: 'name',
           label: 'Owner Name',
           required: true
+        },
+        {
+          field: 'ils_configuration_id',
+          label: 'ILS Integration Override (Optional)',
+          options: ilsConfigurations,
+          required: false,
+          allowMultiple: false
+        },
+        {
+          field: 'delivery_location_ids',
+          label: 'Allowed Delivery Locations',
+          options: requestsLocations,
+          allowMultiple: true,
+          required: false
         }
       ]
 
+      break
+    }
+    case 'priority':
+      inputForm.value = {
+        value: mainProps.listData.value ?? ''
+      }
+      inputFormOriginal.value = { ...toRaw(inputForm.value) }
+
+      inputFields.value = [
+        {
+          field: 'value',
+          label: 'Priority Value',
+          required: true
+        }
+      ]
+      break
+    case 'delivery-location':
+      inputForm.value = {
+        name: mainProps.listData.name ?? '',
+        address: mainProps.listData.address ?? ''
+      }
+      inputFormOriginal.value = { ...toRaw(inputForm.value) }
+
+      inputFields.value = [
+        {
+          field: 'name',
+          label: 'Name',
+          required: false // Name is nullable in model but let's see. Model says Optional[str] = unique. Address is required.
+        },
+        {
+          field: 'address',
+          label: 'Address',
+          required: true
+        }
+      ]
+      break
+    case 'request-type':
+      inputForm.value = {
+        type: mainProps.listData.type ?? ''
+      }
+      inputFormOriginal.value = { ...toRaw(inputForm.value) }
+
+      inputFields.value = [
+        {
+          field: 'type',
+          label: 'Request Type',
+          required: true
+        }
+      ]
+      break
+    case 'barcode-type':
+      inputForm.value = {
+        name: mainProps.listData.name ?? '',
+        allowed_pattern: mainProps.listData.allowed_pattern ?? ''
+      }
+      inputFormOriginal.value = { ...toRaw(inputForm.value) }
+
+      inputFields.value = [
+        {
+          field: 'name',
+          label: 'Name',
+          required: true,
+          disabled: true
+        },
+        {
+          field: 'allowed_pattern',
+          label: 'Allowed Pattern',
+          required: true,
+          hint: 'Common Regex symbols:\n^ : Start of string\n$ : End of string\n\\d : Digit [0-9]\n{n} : Exactly n times\n{n,m} : Between n and m times\n[A-Z] : Uppercase letter'
+        }
+      ]
       break
     case 'shelf-type': {
       const matchingShelfTypes = shelfTypes.value.filter(s => s.type == mainProps.listData.type)
@@ -415,20 +548,27 @@ const addNewListType = async () => {
       case 'owner':
         await postOwner(payload)
         break
+      case 'priority':
+        await postPriority(payload)
+        break
+      case 'delivery-location':
+        await postDeliveryLocation(payload)
+        break
+      case 'request-type':
+        await postRequestType(payload)
+        break
       default:
         break
     }
 
-    handleAlert({
-      type: 'success',
-      text: `Successfully added a new ${titleCaseListType.value}.`,
-      autoClose: true
+    notify({
+      type: 'positive',
+      message: `Successfully added a new ${titleCaseListType.value}.`
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to add new item'
     })
   } finally {
     appActionIsLoadingData.value = false
@@ -462,10 +602,16 @@ const updateListType = async () => {
           await Promise.all(removedSizeClasses.map(async sizeClassObj => {
             const res = await deleteShelfType(sizeClassObj.shelf_type_id)
             if (res.status !== 200) {
-              handleAlert({
-                type: 'error',
-                text: `The shelf type: "${payload.type} - ${sizeClassObj.name}" is in use and cannot be deleted.`,
-                autoClose: false
+              notify({
+                type: 'negative',
+                message: `The shelf type: "${payload.type} - ${sizeClassObj.name}" is in use and cannot be deleted.`,
+                timeout: 0,
+                actions: [
+                  {
+                    icon: 'close',
+                    color: 'white'
+                  }
+                ]
               })
             }
           }))
@@ -494,33 +640,64 @@ const updateListType = async () => {
             max_capacity: sizeClassObj.max_capacity
           })
           if (res.status !== 200) {
-            handleAlert({
-              type: 'error',
-              text: `"${payload.type} - ${sizeClassObj.name}" - ${res.response.data.detail}`,
-              autoClose: false
+            notify({
+              type: 'negative',
+              message: `"${payload.type} - ${sizeClassObj.name}" - ${res.response.data.detail}`,
+              timeout: 0,
+              actions: [
+                {
+                  icon: 'close',
+                  color: 'white'
+                }
+              ]
             })
           }
         }))
         break
       }
       case 'owner': {
-        await patchOwner(payload)
+        // First update the owner basic info
+        const ownerPayload = {
+          id: payload.id,
+          owner_tier_id: payload.owner_tier_id,
+          parent_owner_id: payload.parent_owner_id,
+          ils_configuration_id: payload.ils_configuration_id,
+          name: payload.name
+        }
+        await patchOwner(ownerPayload)
+
+        // Sync delivery location associations
+        await syncOwnerDeliveryLocations(
+          payload.id,
+          inputForm.value.delivery_location_ids || [],
+          inputFormOriginal.value.delivery_location_ids || []
+        )
         break
       }
+      case 'priority':
+        await patchPriority(payload)
+        break
+      case 'delivery-location':
+        await patchDeliveryLocation(payload)
+        break
+      case 'request-type':
+        await patchRequestType(payload)
+        break
+      case 'barcode-type':
+        await patchBarcodeType(payload)
+        break
       default:
         break
     }
 
-    handleAlert({
-      type: 'success',
-      text: `Successfully updated the ${titleCaseListType.value}.`,
-      autoClose: true
+    notify({
+      type: 'positive',
+      message: `Successfully updated the ${titleCaseListType.value}.`
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to update item'
     })
   } finally {
     appActionIsLoadingData.value = false

@@ -11,7 +11,7 @@
           View History
         </h2>
 
-        <q-btn
+        <BaseButton
           icon="close"
           flat
           round
@@ -29,8 +29,8 @@
             class="link text-body2 text-accent"
             :data="auditTrailData"
             type="csv"
-            :name="`audit-trail-export-${mainProps.jobType}-job-${mainProps.jobId}.csv`"
-            :worksheet="`Audit Trail - ${mainProps.jobType} Job ${mainProps.jobId}`"
+            :name="exportFileName"
+            :worksheet="exportWorksheetName"
             :escape-csv="false"
             aria-label="downloadAuditTrailLink"
           >
@@ -57,7 +57,7 @@
     </template>
     <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-        <q-btn
+        <BaseButton
           outline
           no-caps
           label="Close"
@@ -70,6 +70,7 @@
 </template>
 
 <script setup>
+import BaseButton from '@/components/Base/BaseButton.vue'
 
 // Imports
 import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
@@ -77,7 +78,7 @@ import PopupModal from '@/components/PopupModal.vue'
 import EssentialTable from '@/components/EssentialTable.vue'
 import { useGlobalStore } from '@/stores/global-store'
 import { useReportsStore } from '@/stores/reports-store'
-import { ref, onMounted, inject } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
 import { storeToRefs } from 'pinia'
 
 // Props
@@ -88,6 +89,17 @@ const mainProps = defineProps({
   },
   jobId: {
     type: Number,
+    default: null
+  },
+  entityType: {
+    type: String,
+    default: ''
+  },
+  entityId: {
+    type: [
+      Number,
+      String
+    ],
     default: null
   }
 })
@@ -101,7 +113,24 @@ const { currentScreenSize } = useCurrentScreenSize()
 // Store Data
 const { appIsLoadingData } = storeToRefs(useGlobalStore())
 const { auditTrailData } = storeToRefs(useReportsStore())
-const { getAuditTrailData } = useReportsStore()
+const { getAuditTrailData, getEntityAuditTrailData } = useReportsStore()
+
+// Computed
+const isEntityMode = computed(() => mainProps.entityType && mainProps.entityId)
+
+const exportFileName = computed(() => {
+  if (isEntityMode.value) {
+    return `audit-trail-export-${mainProps.entityType}-${mainProps.entityId}.csv`
+  }
+  return `audit-trail-export-${mainProps.jobType}-job-${mainProps.jobId}.csv`
+})
+
+const exportWorksheetName = computed(() => {
+  if (isEntityMode.value) {
+    return `Audit Trail - ${mainProps.entityType} ${mainProps.entityId}`
+  }
+  return `Audit Trail - ${mainProps.jobType} Job ${mainProps.jobId}`
+})
 
 // Local Data
 const tableColumns = ref([
@@ -136,12 +165,15 @@ const tableVisibleColumns = ref([
 // Logic
 const formatDateTime = inject('format-date-time')
 onMounted( async () => {
-  if (mainProps.jobType && mainProps.jobId) {
-    appIsLoadingData.value = true
+  appIsLoadingData.value = true
+  if (isEntityMode.value) {
+    await getEntityAuditTrailData(mainProps.entityType, mainProps.entityId)
+  } else if (mainProps.jobType && mainProps.jobId) {
     await getAuditTrailData(mainProps.jobType, mainProps.jobId)
-    appIsLoadingData.value = false
   }
+  appIsLoadingData.value = false
 })
 </script>
 
 <style lang="scss" scoped></style>
+

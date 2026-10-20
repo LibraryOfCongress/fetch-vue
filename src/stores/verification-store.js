@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import inventoryServiceApi from '@/http/InventoryService.js'
+import { useUserStore } from '@/stores/user-store'
 
 export const useVerificationStore = defineStore('verification-store', {
   state: () => ({
@@ -200,7 +201,7 @@ export const useVerificationStore = defineStore('verification-store', {
         await Promise.all(barcodeItemList.map(item => {
           return this.$api.patch(`${inventoryServiceApi.verificationJobs}${this.verificationJob.id}/remove`, {
             barcode_value: item.barcode.value,
-            user_id: item.user_id
+            user_id: useUserStore().userData.user_id
           })
         }))
 
@@ -274,7 +275,7 @@ export const useVerificationStore = defineStore('verification-store', {
         await Promise.all(barcodeItemList.map(item => {
           return this.$api.patch(`${inventoryServiceApi.verificationJobs}${this.verificationJob.id}/remove`, {
             barcode_value: item.barcode.value,
-            user_id: item.user_id
+            user_id: useUserStore().userData.user_id
           })
         }))
 
@@ -285,7 +286,7 @@ export const useVerificationStore = defineStore('verification-store', {
         // filter the deleted non tray items from the verificationJob
         this.verificationJob = {
           ...this.verificationJob,
-          non_tray_items: this.verificationJob.non_tray_items.filter(b => !barcodeItemList.map(item => item.id).includes(b.id) )
+          non_tray_items: this.verificationJob.non_tray_items.filter(b => !barcodeItemList.map(item => item.id).includes(b.id))
         }
         this.originalVerificationJob = { ...this.verificationJob }
       } catch (error) {
@@ -297,8 +298,26 @@ export const useVerificationStore = defineStore('verification-store', {
         await this.$api.patch(`${inventoryServiceApi.items}${id}`, { scanned_for_verification: true })
 
         // update the verified status for the item in verificationContainer items
-        this.verificationContainer.items[this.verificationContainer.items.findIndex(item => item.id == id)].scanned_for_verification = true
-        this.originalVerificationContainer = { ...this.verificationContainer }
+        const itemIndex = this.verificationContainer.items.findIndex(item => item.id == id)
+        if (itemIndex !== -1) {
+          this.verificationContainer.items[itemIndex].scanned_for_verification = true
+          this.originalVerificationContainer = { ...this.verificationContainer }
+        }
+
+        // Check if all items in the current tray are verified
+        const allItemsNowVerified = this.verificationContainer.items.every(item => item.scanned_for_verification)
+
+        if (allItemsNowVerified) {
+          // Update tray as collection_verified
+          await this.patchVerificationTray({
+            id: this.verificationContainer.id,
+            collection_verified: true
+          })
+
+          // Also update the tray in the main job list locally to ensure UI updates immediately (if patchVerificationTray doesn't handle it fully or we want to be sure)
+          // patchVerificationTray already updates verificationJob.trays, so we should be good.
+        }
+
       } catch (error) {
         throw error
       }

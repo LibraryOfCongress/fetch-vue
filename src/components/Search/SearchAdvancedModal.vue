@@ -11,7 +11,7 @@
           Advanced {{ searchType }} Search
         </h2>
 
-        <q-btn
+        <BaseButton
           icon="close"
           flat
           round
@@ -85,7 +85,7 @@
                   sort_by: 'aisle_number'
                 }"
                 option-value="id"
-                :option-label="opt => opt.aisle_number.number"
+                option-label="aisle_number"
                 :placeholder="'Select Aisle'"
                 :disabled="!searchForm.module_id"
                 @update:model-value="handleLocationFormChange('Aisle')"
@@ -130,7 +130,7 @@
                   sort_by: 'ladder_number'
                 }"
                 option-value="id"
-                :option-label="opt => opt.ladder_number.number"
+                option-label="ladder_number"
                 :placeholder="'Select Ladder'"
                 :disabled="!searchForm.side_id"
                 @update:model-value="handleLocationFormChange('Ladder')"
@@ -157,7 +157,7 @@
                   ladder_id: searchForm.ladder_id,
                   sort_by: 'shelf_number'
                 }"
-                :option-label="opt => opt.shelf_number.number"
+                option-label="shelf_number"
                 :placeholder="'Select Shelf'"
                 :disabled="!searchForm.ladder_id"
                 aria-label="shelfSelect"
@@ -240,7 +240,7 @@
                           mask="MM/DD/YYYY"
                         >
                           <div class="row items-center justify-end">
-                            <q-btn
+                            <BaseButton
                               v-close-popup
                               label="Close"
                               color="primary"
@@ -299,7 +299,7 @@
 
     <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-        <q-btn
+        <BaseButton
           no-caps
           unelevated
           color="accent"
@@ -312,7 +312,7 @@
 
         <q-space class="q-mx-xs" />
 
-        <q-btn
+        <BaseButton
           outline
           no-caps
           label="Cancel"
@@ -325,7 +325,9 @@
 </template>
 
 <script setup>
-import { ref, inject, onBeforeMount, watch } from 'vue'
+import BaseButton from '@/components/Base/BaseButton.vue'
+import { ref, onBeforeMount, watch } from 'vue'
+import { notify } from '@/utils/notify'
 import { useRouter } from 'vue-router'
 import { useGlobalStore } from '@/stores/global-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -389,7 +391,7 @@ const searchParams = ref(null)
 const searchForm = ref({})
 
 // Logic
-const handleAlert = inject('handle-alert')
+
 
 onBeforeMount(() => {
   generateSearchModal()
@@ -699,10 +701,9 @@ const executeAdvancedSearch = async () => {
       query: queryParams
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to execute advanced search'
     })
   } finally {
     appActionIsLoadingData.value = false

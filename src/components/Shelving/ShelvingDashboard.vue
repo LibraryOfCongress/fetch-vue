@@ -3,16 +3,16 @@
     <div class="row q-mb-xs-xl q-mb-sm-none">
       <div class="col-grow q-mb-xs-md q-mb-sm-none">
         <EssentialTable
+          ref="shelvingTableRef"
           :table-columns="shelfTableColumns"
           :table-visible-columns="shelfTableVisibleColumns"
-          :filter-options="shelfTableFilters"
           :table-data="shelvingJobList"
           :enable-table-reorder="false"
           :heading-row-class="'q-mb-xs-md q-mb-md-lg'"
-          :heading-filter-class="currentScreenSize == 'xs' ? 'col-xs-6 q-mr-auto' : 'q-ml-auto'"
           :enable-pagination="true"
           :pagination-total="shelvingJobListTotal"
           :pagination-loading="appIsLoadingData"
+          :hide-table-rearrange="true"
           @update-pagination="loadShelvingJobs($event)"
           @selected-table-row="loadShelvingJob($event.id, $event.origin)"
         >
@@ -26,17 +26,40 @@
               </h1>
             </div>
 
+            <div class="col-grow" />
+
             <div
-              class="col-xs-grow col-sm-7 col-md-auto flex"
-              :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? 'justify-end q-mb-md' : 'order-1'"
+              class="col-auto flex items-center"
+              :class="currentScreenSize == 'sm' || currentScreenSize == 'xs' ? 'justify-end q-mb-md' : ''"
             >
-              <q-btn
+              <BaseButton
+                flat
+                dense
+                no-caps
+                :color="showFilterRow ? 'accent' : 'grey-7'"
+                :label="showFilterRow ? 'Hide Filters' : 'Show Filters'"
+                :icon="showFilterRow ? 'filter_alt' : 'filter_alt_off'"
+                class="q-mr-sm"
+                @click="showFilterRow = !showFilterRow"
+              />
+              <BaseButton
+                v-if="showFilterRow"
+                flat
+                dense
+                no-caps
+                color="grey-7"
+                label="Clear"
+                icon="clear_all"
+                class="q-mr-md"
+                @click="clearColumnFilters"
+              />
+              <BaseButton
                 no-caps
                 unelevated
                 icon-right="arrow_drop_down"
                 color="accent"
                 label="Create Shelving Job"
-                class="text-body1 q-ml-xs-none q-ml-sm-sm"
+                class="text-body1 btn-modern"
                 :disabled="appIsOffline"
                 aria-label="createShelvingJobMenu"
                 aria-haspopup="menu"
@@ -52,7 +75,7 @@
                       v-if="checkUserPermission('can_create_and_execute_direct_shelving_job')"
                       clickable
                       v-close-popup
-                      @click="showShelvingJobModal = 'Direct'"
+                      @click="handleCreateShelvingJob('Direct')"
                       role="menuitem"
                     >
                       <q-item-section>
@@ -67,13 +90,13 @@
                       v-if="checkUserPermission('can_create_and_execute_shelving_job')"
                       clickable
                       v-close-popup
-                      @click="showShelvingJobModal = 'Verification'"
+                      @click="$router.push({ name: 'ShelveByListCreate' })"
                       role="menuitem"
                     >
                       <q-item-section>
                         <q-item-label>
                           <span>
-                            From Verification Job
+                            Shelve by List
                           </span>
                         </q-item-label>
                       </q-item-section>
@@ -110,15 +133,92 @@
                     </q-item>
                   </q-list>
                 </q-menu>
-              </q-btn>
+              </BaseButton>
             </div>
+          </template>
+
+          <!-- Filter row inside table header -->
+          <template #header-filter-row="{ cols }">
+            <q-tr
+              v-if="showFilterRow"
+              class="filter-row"
+            >
+              <q-th
+                v-for="col in cols"
+                :key="col.name"
+                class="filter-cell"
+              >
+                <!-- Job Number filter -->
+                <q-input
+                  v-if="col.name === 'id'"
+                  v-model="columnFilters.id"
+                  dense
+                  outlined
+                  clearable
+                  placeholder="Search..."
+                  class="column-filter-input"
+                  debounce="400"
+                  @update:model-value="applyColumnFilters"
+                  @click.stop
+                >
+                  <template #prepend>
+                    <q-icon
+                      name="search"
+                      size="16px"
+                      color="grey-6"
+                    />
+                  </template>
+                </q-input>
+
+                <!-- Status filter -->
+                <q-select
+                  v-else-if="col.name === 'status'"
+                  v-model="columnFilters.status"
+                  dense
+                  outlined
+                  clearable
+                  multiple
+                  emit-value
+                  map-options
+                  :options="statusOptions"
+                  placeholder="All"
+                  class="column-filter-input"
+                  @update:model-value="applyColumnFilters"
+                  @click.stop
+                />
+
+                <!-- Origin filter -->
+                <q-select
+                  v-else-if="col.name === 'origin'"
+                  v-model="columnFilters.origin"
+                  dense
+                  outlined
+                  clearable
+                  :options="['Direct', 'List', 'Verification', 'Move']"
+                  placeholder="All"
+                  class="column-filter-input"
+                  @update:model-value="applyColumnFilters"
+                  @click.stop
+                />
+              </q-th>
+            </q-tr>
           </template>
 
           <template #table-td="{ colName, value }">
             <span
               v-if="colName == 'status'"
-              class="outline text-nowrap"
-              :class="value == 'Created' || value == 'Completed' ? 'text-highlight' : value == 'Paused' || value == 'Running' ? 'text-highlight-warning' : 'text-highlight-negative'"
+              class="status-badge"
+              :class="getStatusBadgeClass(value)"
+            >
+              <q-icon
+                :name="getStatusIcon(value)"
+                size="16px"
+              />
+              {{ value }}
+            </span>
+            <span
+              v-else-if="colName == 'origin'"
+              class="text-weight-medium"
             >
               {{ value }}
             </span>
@@ -135,6 +235,7 @@
               {{ formatDateTime(value).date }}
             </span>
           </template>
+
         </EssentialTable>
       </div>
     </div>
@@ -156,7 +257,7 @@
             {{ showShelvingJobModal == 'Direct' ? 'Create Direct Shelving Job' : 'Create Shelving Job' }}
           </h2>
 
-          <q-btn
+          <BaseButton
             icon="close"
             flat
             round
@@ -302,7 +403,7 @@
                           sort_by: 'aisle_number'
                         }"
                         option-value="id"
-                        :option-label="opt => opt.aisle_number.number"
+                        option-label="aisle_number"
                         :placeholder="'Select Aisle'"
                         :disabled="!shelvingJob.module_id"
                         :clearable="false"
@@ -348,7 +449,7 @@
                       sort_by: 'ladder_number'
                     }"
                     option-value="id"
-                    :option-label="opt => opt.ladder_number.number"
+                    option-label="ladder_number"
                     :placeholder="'Select Ladder'"
                     :disabled="!shelvingJob.side_id"
                     :clearable="false"
@@ -395,7 +496,7 @@
         <q-card-section
           class="row no-wrap justify-between items-center q-pt-sm"
         >
-          <q-btn
+          <BaseButton
             v-if="showShelvingJobModal == 'Direct'"
             no-caps
             unelevated
@@ -405,7 +506,7 @@
             :disabled="!isCreateShelvingJobFormValid"
             @click="submitDirectToShelfJob(); hideModal();"
           />
-          <q-btn
+          <BaseButton
             v-else
             no-caps
             unelevated
@@ -418,7 +519,7 @@
 
           <q-space class="q-mx-xs" />
 
-          <q-btn
+          <BaseButton
             outline
             no-caps
             label="Cancel"
@@ -432,8 +533,10 @@
 </template>
 
 <script setup>
+import BaseButton from '@/components/Base/BaseButton.vue'
 import { onBeforeMount, ref, inject, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { notify } from '@/utils/notify'
 import { useGlobalStore } from '@/stores/global-store'
 import { useUserStore } from '@/stores/user-store'
 import { useOptionStore } from '@/stores/option-store'
@@ -463,7 +566,6 @@ const {
   modules,
   aisles,
   ladders,
-  users,
   verificationJobsDropdown
 } = storeToRefs(useOptionStore())
 const {
@@ -482,27 +584,99 @@ const { sides } = storeToRefs(useBuildingStore())
 const {
   shelvingJobList,
   shelvingJob,
-  directToShelfJob,
   shelvingJobListTotal
 } = storeToRefs(useShelvingStore())
 const {
   resetShelvingStore,
   resetShelvingJob,
   getShelvingJobList,
-  getShelvingJob,
   postShelvingJob,
-  getDirectShelvingJob,
-  postDirectShelvingJob
+  getShelvingJob,
+  createShelvingJob
 } = useShelvingStore()
 const { userData } = storeToRefs(useUserStore())
 
 // Local Data
 const createShelvingJobModal = ref(null)
+const shelvingTableRef = ref(null)
+const showFilterRow = ref(false)  // Toggle visibility of filter row
+
+// Column filter state for server-side filtering
+const columnFilters = ref({
+  id: null,
+  status: [
+    'Created',
+    'Assigned',
+    'Paused',
+    'Running'
+  ]  // Default to showing active jobs
+})
+
+// Filter dropdown options
+const statusOptions = [
+  {
+    label: 'Created',
+    value: 'Created'
+  },
+  {
+    label: 'Assigned',
+    value: 'Assigned'
+  },
+  {
+    label: 'Paused',
+    value: 'Paused'
+  },
+  {
+    label: 'Running',
+    value: 'Running'
+  },
+  {
+    label: 'Completed',
+    value: 'Completed'
+  }
+]
+
+// Status badge helper functions
+const getStatusIcon = (status) => {
+  switch (status) {
+    case 'Created':
+      return 'mdi-plus-circle'
+    case 'Assigned':
+      return 'mdi-account-check'
+    case 'Running':
+      return 'mdi-play-circle'
+    case 'Paused':
+      return 'mdi-pause-circle'
+    case 'Completed':
+      return 'mdi-check-circle'
+    default:
+      return 'mdi-alert-circle'
+  }
+}
+
+const getStatusBadgeClass = (status) => {
+  switch (status) {
+    case 'Created':
+      return 'status-badge--created'
+    case 'Assigned':
+      return 'status-badge--assigned'
+    case 'Running':
+      return 'status-badge--running'
+    case 'Paused':
+      return 'status-badge--paused'
+    case 'Completed':
+      return 'status-badge--completed'
+    default:
+      return 'status-badge--error'
+  }
+}
+
 const shelfTableVisibleColumns = ref([
   'id',
+  'origin',
   'container_count',
   'status',
-  'user_id',
+  'assigned_user_id',
   'create_dt',
   'last_transition'
 ])
@@ -516,12 +690,20 @@ const shelfTableColumns = ref([
     order: 0
   },
   {
+    name: 'origin',
+    field: 'origin',
+    label: 'Job Type',
+    align: 'left',
+    sortable: true,
+    order: 1
+  },
+  {
     name: 'container_count',
     field: row => (row.tray_count + row.non_tray_item_count),
     label: '# of Containers in Job',
     align: 'left',
     sortable: true,
-    order: 1
+    order: 2
   },
   {
     name: 'status',
@@ -529,15 +711,20 @@ const shelfTableColumns = ref([
     label: 'Status',
     align: 'left',
     sortable: true,
-    order: 2
+    order: 3
   },
   {
-    name: 'user_id',
-    field: row => row.user ? row.user.name : '',
+    name: 'assigned_user_id',
+    field: row => {
+      if (!row.assigned_user) {
+        return ''
+      }
+      return row.assigned_user.name ? row.assigned_user.name : `${row.assigned_user.first_name} ${row.assigned_user.last_name}`
+    },
     label: 'Assigned User',
     align: 'left',
     sortable: true,
-    order: 3
+    order: 4
   },
   {
     name: 'create_dt',
@@ -545,7 +732,7 @@ const shelfTableColumns = ref([
     label: 'Date Added',
     align: 'left',
     sortable: true,
-    order: 4
+    order: 5
   },
   {
     name: 'last_transition',
@@ -553,48 +740,9 @@ const shelfTableColumns = ref([
     label: 'Last Updated',
     align: 'left',
     sortable: true,
-    order: 5
+    order: 6
   }
 ])
-const shelfTableFilters = computed(() => {
-  let tablesFilters = []
-  tablesFilters = [
-    {
-      field: 'status',
-      label: 'Status',
-      options: [
-        {
-          text: 'Created',
-          value: true
-        },
-        {
-          text: 'Paused',
-          value: true
-        },
-        {
-          text: 'Running',
-          value: true
-        },
-        {
-          text: 'Completed',
-          value: false
-        }
-      ]
-    },
-    {
-      field: row => row.user ? row.user.name : '',
-      label: 'Assigned User',
-      apiField: 'assigned_user',
-      options: users.value.map(usr => {
-        return {
-          text: usr.name,
-          value: false
-        }
-      })
-    }
-  ]
-  return tablesFilters
-})
 const shelvingJobMenuState = ref(false)
 const showShelvingJobModal = ref(null)
 const isCreateShelvingJobFormValid = computed(() => {
@@ -608,7 +756,7 @@ const isCreateShelvingJobFormValid = computed(() => {
 })
 
 // Logic
-const handleAlert = inject('handle-alert')
+
 const formatDateTime = inject('format-date-time')
 
 onBeforeMount(() => {
@@ -619,7 +767,7 @@ onBeforeMount(() => {
     shelfTableVisibleColumns.value = [
       'id',
       'status',
-      'user_id',
+      'assigned_user_id',
       'create_dt'
     ]
   }
@@ -629,6 +777,21 @@ const resetCreateShelfJobModal = () => {
   resetShelvingJob()
   resetBuildingStore()
   showShelvingJobModal.value = null
+}
+
+const handleCreateShelvingJob = async (type) => {
+  if (userData.value?.default_building_id) {
+    shelvingJob.value.building_id = userData.value.default_building_id
+
+    if (type === 'Direct') {
+      // Direct origin only needs building, we can immediately submit.
+      await submitDirectToShelfJob()
+      return
+    } else {
+      await handleShelvingJobFormChange('Building')
+    }
+  }
+  showShelvingJobModal.value = type
 }
 const handleShelvingJobFormChange = async (valueType) => {
   // reset the form depending on the edited form field type
@@ -674,47 +837,112 @@ const handleShelvingJobFormChange = async (valueType) => {
 const loadShelvingJobs = async (qParams) => {
   try {
     appIsLoadingData.value = true
-    await getShelvingJobList({
-      ...qParams,
-      status: shelfTableFilters.value.find(fltr => fltr.field == 'status').options.flatMap(opt => opt.value == true ? opt.text : []),
-      user_id: checkUserPermission('can_view_all_shelving_jobs') ? null : userData.value.user_id
-    })
+
+    // Build filter params from column filters
+    const filterParams = {
+      ...qParams
+    }
+
+    // Add id search if provided
+    if (columnFilters.value.id) {
+      filterParams.id = columnFilters.value.id
+    }
+
+    // Add status filter
+    if (columnFilters.value.status && columnFilters.value.status.length > 0) {
+      filterParams.status = columnFilters.value.status
+    }
+
+    // Add origin filter
+    if (columnFilters.value.origin) {
+      filterParams.origin = columnFilters.value.origin
+    }
+
+    // Add user filter based on permission
+    filterParams.user_id = checkUserPermission('can_view_all_shelving_jobs') ? null : userData.value.user_id
+
+    await getShelvingJobList(filterParams)
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to load shelving jobs'
     })
   } finally {
     appIsLoadingData.value = false
   }
 }
+
+// Apply column filters - triggers server-side filtering
+const applyColumnFilters = () => {
+  // Reset pagination to page 1 when filters change
+  if (shelvingTableRef.value) {
+    shelvingTableRef.value.resetTablePagination()
+  }
+  loadShelvingJobs()
+}
+
+// Clear all column filters
+const clearColumnFilters = () => {
+  columnFilters.value = {
+    id: null,
+    status: [
+      'Created',
+      'Assigned',
+      'Paused',
+      'Running'
+    ], // Reset to default active statuses
+    origin: null
+  }
+  applyColumnFilters()
+}
 const loadShelvingJob = async (jobId, type) => {
   try {
     appIsLoadingData.value = true
+    await getShelvingJob(jobId)
 
-    if (type == 'Verification') {
-      await getShelvingJob(jobId)
-      router.push({
-        name: 'shelving',
-        params: {
-          jobId
-        }
-      })
-    } else if (type == 'Direct') {
-      await getDirectShelvingJob(jobId)
+    // Route based on job origin/type
+    // Note: 'type' param comes from table row 'origin' field
+    const origin = type || shelvingJob.value.origin
+
+    if (origin === 'Direct') {
       router.push({
         name: 'shelving-dts',
         params: {
           jobId
         }
       })
+    } else if (origin === 'List') {
+      router.push({
+        name: 'ShelveByListExecute',
+        params: {
+          id: jobId
+        }
+      })
+    } else if (origin === 'Move') {
+      let moveType = 'tray-item'
+      if (shelvingJob.value.mode === 'MoveShelf') {
+        moveType = 'tray-non-tray'
+      }
+      router.push({
+        name: 'shelving-move',
+        params: {
+          type: moveType,
+          jobId
+        }
+      })
+    } else {
+      // Default / Verification
+      router.push({
+        name: 'shelving',
+        params: {
+          jobId
+        }
+      })
     }
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to load shelving job'
     })
   } finally {
     appIsLoadingData.value = false
@@ -746,20 +974,18 @@ const submitShelvingJob = async () => {
       }
     })
 
-    handleAlert({
-      type: 'success',
-      text: 'A Shelving Job has been successfully created.',
-      autoClose: true
+    notify({
+      type: 'positive',
+      message: 'A Shelving Job has been successfully created.'
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to create Shelving Job'
     })
   } finally {
     appIsLoadingData.value = false
-    createShelvingJobModal.value.hideModal()
+    createShelvingJobModal.value?.hideModal()
   }
 }
 const submitDirectToShelfJob = async () => {
@@ -768,41 +994,60 @@ const submitDirectToShelfJob = async () => {
     const payload = {
       status: 'Created',
       building_id: shelvingJob.value.building_id,
-      user_id: userData.value.user_id,
+      assigned_user_id: userData.value.user_id,
       origin: 'Direct',
       created_by_id: userData.value.user_id
     }
-    await postDirectShelvingJob(payload)
+    await createShelvingJob(payload)
     router.push({
       name: 'shelving-dts',
       params: {
-        jobId: directToShelfJob.value.id
+        jobId: shelvingJob.value.id
       }
     })
 
-    handleAlert({
-      type: 'success',
-      text: 'A Direct Shelving Job has been successfully created.',
-      autoClose: true
+    notify({
+      type: 'positive',
+      message: 'A Direct Shelving Job has been successfully created.'
     })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to create Direct Shelving Job'
     })
   } finally {
     appIsLoadingData.value = false
-    createShelvingJobModal.value.hideModal()
+    createShelvingJobModal.value?.hideModal()
   }
 }
 const submitShelvingMove = async (moveType) => {
-  router.push({
-    name: 'shelving-move',
-    params: {
-      type: moveType
+  try {
+    appIsLoadingData.value = true
+    const mode = moveType === 'tray-item' ? 'MoveTrayItem' : 'MoveShelf'
+    const payload = {
+      status: 'Created',
+      origin: 'Move',
+      mode,
+      building_id: userData.value.building_id || 1,
+      created_by_id: userData.value.user_id,
+      assigned_user_id: userData.value.user_id
     }
-  })
+    const res = await createShelvingJob(payload)
+    router.push({
+      name: 'shelving-move',
+      params: {
+        type: moveType,
+        jobId: res.id
+      }
+    })
+  } catch (e) {
+    notify({
+      type: 'negative',
+      message: e.response?.data?.detail || e.message || 'Failed to create Move Job'
+    })
+  } finally {
+    appIsLoadingData.value = false
+  }
 }
 
 </script>

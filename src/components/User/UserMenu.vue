@@ -1,11 +1,11 @@
 <template>
-  <q-btn
+  <BaseButton
     no-caps
     flat
     dense
     round
     icon="person"
-    color="white"
+    color="primary"
     class="user-avatar"
     aria-label="UserMenu"
     aria-haspopup="menu"
@@ -98,11 +98,13 @@
         </q-item>
       </q-list>
     </q-menu>
-  </q-btn>
+  </BaseButton>
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
+import BaseButton from '@/components/Base/BaseButton.vue'
+import { ref } from 'vue'
+import { notify } from '@/utils/notify'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user-store'
 import { useBarcodeStore } from '@/stores/barcode-store'
@@ -130,11 +132,13 @@ const userOptions = ref([
 ])
 
 // Logic
-const handleAlert = inject('handle-alert')
+
 
 const handleOptions = (option) => {
   if (option == 'Logout') {
     logoutUser()
+  } else if (option == 'Settings') {
+    router.push({ name: 'user-settings' })
   }
 }
 const logoutUser = async () => {
@@ -144,10 +148,9 @@ const logoutUser = async () => {
     //reload the route to trigger any route gaurds if the user is on an auth based page
     router.go()
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Logout failed'
     })
   }
 }
@@ -158,6 +161,16 @@ const logoutUser = async () => {
   &-avatar {
     &:hover {
       cursor: pointer;
+    }
+
+    @media (max-width: 599px) {
+      width: 32px;
+      height: 32px;
+      font-size: 10px;
+
+      :deep(.q-icon) {
+        font-size: 20px;
+      }
     }
   }
 }

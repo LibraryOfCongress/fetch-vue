@@ -2,12 +2,17 @@ import { ref, nextTick, watch, onBeforeMount } from 'vue'
 import { useBarcodeStore } from '@/stores/barcode-store'
 import { storeToRefs } from 'pinia'
 
-export function useBarcodeScanHandler () {
+// MODIFIED: The composable now accepts an 'options' object to allow for different modes.
+export function useBarcodeScanHandler (options = {}) {
+  // We check for an explicit option to use the 'Enter' key strategy.
+  const { waitForEnterKey = false } = options
+
   const scannedBarCode = ref([])
   const compiledBarCode = ref('')
 
   const { barcodeScanAllowed, barcodeInputDelay } = storeToRefs(useBarcodeStore())
 
+  // --- Start of Original Timer-Based Debounce Logic (Fallback) ---
   function debounce (callback) {
     let timeoutId = null
     return (...args) => {
@@ -18,12 +23,8 @@ export function useBarcodeScanHandler () {
     }
   }
 
-  function barcodeScanEntry (event) {
-    scannedBarCode.value.push(event.key)
-    handleBarcodeCompile()
-  }
-  const handleBarcodeCompile = debounce(async () => {
-    // if half a second (200ms) passes inbetween barcode key inputs it means the scanner has completed typing a barcode value
+  const handleBarcodeCompileDebounced = debounce(async () => {
+    // if a timeout passes it means the scanner has completed typing a barcode value
     // once scan is complete we render the compiled barcode and reset the barcode scanning state
     compiledBarCode.value = ''
     await nextTick()
@@ -31,6 +32,41 @@ export function useBarcodeScanHandler () {
     compiledBarCode.value = scannedBarCode.value.join('')
     scannedBarCode.value = []
   })
+  // --- End of Original Timer-Based Debounce Logic ---
+
+  // MODIFIED: This function now contains the logic for BOTH modes.
+  function barcodeScanEntry (event) {
+    // Ignore keypresses if the user is typing in an input or textarea
+    // This prevents double-entry where the input handles the key AND this global handler handles it.
+    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+      return
+    }
+
+    if (waitForEnterKey) {
+      // --- NEW 'Enter Key' Mode Logic ---
+      if (event.key === 'Enter') {
+        event.preventDefault()
+        if (scannedBarCode.value.length > 0) {
+          nextTick().then(() => {
+            compiledBarCode.value = scannedBarCode.value.join('')
+            scannedBarCode.value = []
+          })
+        }
+        return
+      }
+
+      if (event.key.length === 1) {
+        scannedBarCode.value.push(event.key)
+      }
+    } else {
+      // --- ORIGINAL 'Debounce' Mode Logic ---
+      // If waitForEnterKey is false, we use the original behavior.
+      if (event.key.length === 1) { // We still only want to push single characters
+        scannedBarCode.value.push(event.key)
+        handleBarcodeCompileDebounced()
+      }
+    }
+  }
 
   watch(barcodeScanAllowed, (val) => {
     if (val == true) {

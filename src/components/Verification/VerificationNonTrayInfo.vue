@@ -1,217 +1,366 @@
 <template>
-  <div
-    class="col-12 col-lg-4 col-xl-3 verification-container-info"
-  >
-    <div class="row">
-      <div class="col-12 flex no-wrap items-center q-mb-xs-md q-mb-sm-lg">
-        <MoreOptionsMenu
-          :options="[
-            { text: 'Edit', disabled: verificationJob.status == 'Completed' },
-            { text: 'Print Job' },
-            { text: 'Cancel Job', optionClass: 'text-negative', disabled: verificationJob.status == 'Completed', hidden: !checkUserPermission('can_cancel_verification_job')},
-            { text: 'View History' }
-          ]"
-          class="q-mr-sm"
-          @click="handleOptionMenu"
-        />
-        <h1 class="text-h4 text-bold">
-          {{ `Job: ${verificationJob.workflow_id}` }}
-        </h1>
-      </div>
-
-      <div class="col-xs-12 col-sm-6 col-md-6 col-lg-12 q-mb-xs-md q-mb-sm-none q-mb-lg-lg">
-        <BarcodeBox
-          :barcode="!verificationContainer.id ? 'Please Scan Non&nbsp;Tray' : verificationContainer.barcode?.value"
-          class="q-mb-md-xl q-mb-lg-none"
-        />
-      </div>
-
-      <div
-        class="col-xs-12 col-sm-6 col-md-6 col-lg-12"
-      >
-        <div class="row">
-          <div class="col-xs-6 col-sm-12 q-mb-xs-sm q-mb-lg-lg verification-container-info-details">
-            <label class="text-h6 q-mb-xs">
-              Owner
-            </label>
-            <p
-              v-if="!editMode"
-              class="outline"
-            >
-              {{ verificationJob.owner?.name }}
-            </p>
-            <SelectInput
-              v-else-if="editMode && verificationContainer.id == null"
-              v-model="verificationJob.owner_id"
-              :options="owners"
-              option-type="owners"
-              option-value="id"
-              option-label="name"
-              :clearable="false"
-              aria-label="ownerSelect"
+  <div class="verification-nontray-container">
+    <!-- Job Header -->
+    <div class="row q-mb-lg items-center q-gutter-md">
+      <div class="col">
+        <div class="row items-center">
+          <!-- Three-dot menu -->
+          <MoreOptionsMenu
+            :options="menuOptions"
+            class="q-mr-sm"
+            @click="handleOptionMenu"
+          />
+          <h1 class="text-h4 text-bold q-mb-none">
+            Verification Job #{{ verificationJob.workflow_id }}
+            <q-badge
+              :color="getStatusColor(verificationJob.status)"
+              :label="verificationJob.status"
+              class="q-ml-sm"
             />
-          </div>
-
-          <div class="col-xs-6 col-sm-12 q-mb-xs-none q-mb-sm-sm q-mb-lg-lg verification-container-info-details">
-            <label class="text-h6 q-mb-xs">
-              Container Type
-            </label>
-            <p
-              class="q-my-auto"
-            >
-              Non-Tray
-            </p>
-          </div>
-
-          <div class="col-xs-6 col-sm-12 q-mb-xs-none q-mb-sm-sm q-mb-lg-lg verification-container-info-details">
-            <label class="text-h6 q-mb-xs">
-              Container Size
-            </label>
-            <p
-              v-if="!editMode"
-              :class="verificationJob.size_class || verificationContainer.size_class ? 'outline' : ''"
-            >
-              {{ !verificationContainer.id ? verificationJob.size_class?.name : verificationContainer.size_class?.name }}
-            </p>
-            <SelectInput
-              v-else-if="!verificationContainer.id"
-              v-model="verificationJob.size_class_id"
-              :options="sizeClass"
-              option-type="sizeClass"
-              option-value="id"
-              option-label="name"
-              :clearable="false"
-              aria-label="sizeClassSelect"
-            />
-            <SelectInput
-              v-else
-              v-model="verificationContainer.size_class_id"
-              :options="sizeClass"
-              option-type="sizeClass"
-              option-value="id"
-              option-label="name"
-              :clearable="false"
-              aria-label="sizeClassSelect"
-            />
-          </div>
-
-          <div class="col-xs-6 col-sm-12 verification-container-info-details">
-            <label class="text-h6 q-mb-xs">
-              Media Type
-            </label>
-            <p
-              v-if="!editMode"
-              class="outline text-highlight"
-            >
-              {{ !verificationContainer.id ? verificationJob.media_type?.name : verificationContainer.media_type?.name }}
-            </p>
-            <SelectInput
-              v-else-if="!verificationContainer.id"
-              v-model="verificationJob.media_type_id"
-              :options="mediaTypes"
-              option-type="mediaTypes"
-              option-value="id"
-              option-label="name"
-              :clearable="false"
-              aria-label="mediaTypeSelect"
-            />
-            <SelectInput
-              v-else
-              v-model="verificationContainer.media_type_id"
-              :options="mediaTypes"
-              option-type="mediaTypes"
-              option-value="id"
-              option-label="name"
-              :clearable="false"
-              aria-label="mediaTypeSelect"
-            />
-          </div>
+          </h1>
         </div>
-
+        <!-- Subtitle with job metadata -->
+        <p class="text-grey-7 q-mb-none">
+          {{ verificationJob.owner?.name }} • {{ verificationJob.media_type?.name || verificationContainer.media_type?.name || 'Unknown Media' }}
+        </p>
+      </div>
+      <div class="col-auto">
+        <!-- Edit buttons -->
         <div
-          v-if="currentScreenSize !== 'xs' && editMode"
-          class="row q-pl-sm-md q-pl-lg-none q-mt-md-sm"
+          v-if="editJob"
+          class="row q-gutter-x-sm"
         >
-          <q-space class="divider q-my-sm" />
+          <BaseButton
+            no-caps
+            unelevated
+            color="accent"
+            label="Save Edits"
 
-          <div class="col-6 q-pr-xs-xs">
-            <q-btn
-              no-caps
-              unelevated
-              color="accent"
-              label="Save Edits"
-              class="full-width text-body1"
-              :loading="appActionIsLoadingData"
-              @click="!verificationContainer.id ? updateNonTrayJob() : updateNonTrayItem()"
-              :disabled="verificationJob.status == 'Paused'"
-            />
-          </div>
-          <div class="col-6 q-pl-xs-xs">
-            <q-btn
-              no-caps
-              unelevated
-              outline
-              color="accent"
-              label="Cancel"
-              class="full-width text-body1"
-              @click="cancelNonTrayEdit()"
-            />
-          </div>
+            :loading="actionLoading"
+            @click="updateUserAssignment"
+          />
+          <BaseButton
+            no-caps
+            unelevated
+            outline
+            color="accent"
+            label="Cancel"
+            class="btn-modern-outline"
+            @click="editJob = false"
+          />
+        </div>
+        <!-- Normal buttons -->
+        <div
+          v-else
+          class="row q-gutter-x-sm"
+        >
+          <!-- Resume button (only when paused) -->
+          <BaseButton
+            v-if="verificationJob.status === 'Paused'"
+            no-caps
+            unelevated
+            color="accent"
+            label="Resume"
+
+            @click="updateVerificationJobStatus('Running')"
+          />
+          <!-- Complete Job button -->
+          <BaseButton
+            v-if="verificationJob.status !== 'Completed'"
+            no-caps
+            unelevated
+            color="positive"
+            label="Complete Job"
+
+            :disabled="!canComplete || verificationJob.status === 'Paused'"
+            :loading="appActionIsLoadingData"
+            @click="showConfirmationModal = { type: 'complete', text: 'Are you sure you want to complete the job?' }"
+          />
         </div>
       </div>
     </div>
 
-    <!-- mobile compressed container info -->
-    <VerificationMobileInfo
-      v-if="currentScreenSize == 'xs'"
-      @handle-option-menu="handleOptionMenu"
-    />
+    <!-- Quick Edit Card -->
+    <q-card
+      v-if="editJob"
+      flat
+      bordered
+      class="details-card q-mb-lg"
+    >
+      <q-card-section class="q-pa-md">
+        <div class="row q-col-gutter-md items-center">
+          <div class="col-12 col-sm-6">
+            <div class="detail-item">
+              <label class="form-group-label">Assigned User</label>
+              <SelectInput
+                v-model="verificationJob.assigned_user_id"
+                :options="users"
+                option-type="users"
+                option-value="id"
+                option-label="name"
+                class="q-mt-xs"
+              />
+            </div>
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
 
-    <MobileActionBar
-      v-if="currentScreenSize == 'xs' && editMode"
-      button-one-color="accent"
-      button-one-label="Save Edits"
-      :button-one-outline="false"
-      :button-one-loading="appActionIsLoadingData"
-      @button-one-click="!verificationContainer.id ? updateNonTrayJob() : updateNonTrayContainer()"
-      button-two-color="accent"
-      button-two-label="Cancel"
-      :button-two-outline="true"
-      @button-two-click="cancelNonTrayEdit()"
-    />
+    <!-- Scan Card -->
+    <q-card
+      v-if="['Running', 'Created', 'Assigned'].includes(verificationJob.status)"
+      class="q-mb-lg"
+    >
+      <q-card-section>
+        <div class="row items-end q-col-gutter-md">
+          <div class="col-12 col-md-8">
+            <div class="text-subtitle1 text-weight-bold q-mb-sm">
+              Scan Non-Tray Item Barcode
+            </div>
+            <q-input
+              v-model="scanBarcodeInput"
+              outlined
+              dense
+              placeholder="Scan or type item barcode and press Enter"
+              @keyup.enter="triggerItemScan"
+              autofocus
+            >
+              <template #append>
+                <q-icon name="qr_code_scanner" />
+              </template>
+            </q-input>
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
 
-    <!-- audit trail modal -->
-    <AuditTrail
-      v-if="showAuditTrailModal"
-      ref="historyModal"
-      @reset="showAuditTrailModal = null"
-      :job-type="showAuditTrailModal"
-      :job-id="verificationJob.id"
-    />
+    <!-- Active Item Card -->
+    <q-card class="q-mb-lg">
+      <q-card-section>
+        <div class="row items-center q-mb-sm">
+          <div class="col">
+            <div class="text-subtitle1 text-weight-bold">
+              Active Item
+            </div>
+          </div>
+          <div
+            v-if="verificationContainer.id"
+            class="col-auto"
+          >
+            <BaseButton
+              flat
+              dense
+              icon="edit"
+              color="grey-7"
+              @click="openEditModal"
+            >
+              <q-tooltip>Edit Item Details</q-tooltip>
+            </BaseButton>
+          </div>
+        </div>
+        <div class="text-h5 text-weight-medium text-center">
+          {{ verificationContainer.barcode?.value || 'No item selected' }}
+        </div>
+        <div
+          v-if="!verificationContainer.id"
+          class="text-caption text-grey-7 text-center"
+        >
+          Scan an item barcode above to begin
+        </div>
+        <!-- Item Details -->
+        <div
+          v-if="verificationContainer.id"
+          class="row q-mt-md q-col-gutter-md justify-center"
+        >
+          <div class="col-auto text-center">
+            <div class="text-caption text-grey-6">
+              Container Size
+            </div>
+            <div class="text-body1">
+              {{ verificationContainer.size_class?.name || verificationJob.size_class?.name || '-' }}
+            </div>
+          </div>
+          <div class="col-auto text-center">
+            <div class="text-caption text-grey-6">
+              Media Type
+            </div>
+            <div class="text-body1">
+              {{ verificationContainer.media_type?.name || verificationJob.media_type?.name || '-' }}
+            </div>
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
+
+    <!-- Items in Job Card (expansion panel) -->
+    <q-card class="q-mb-lg">
+      <q-expansion-item
+        dense
+        expand-separator
+        :label="`Items in Job (${verificationJob.non_tray_items?.length || 0})`"
+        header-class="text-subtitle1 text-weight-bold"
+      >
+        <q-card-section>
+          <q-list
+            bordered
+            separator
+          >
+            <q-item
+              v-for="item in verificationJob.non_tray_items"
+              :key="item.id"
+              clickable
+              @click="navigateToItem(item)"
+              :class="{ 'bg-accent-1': item.id === verificationContainer.id }"
+            >
+              <q-item-section>
+                <q-item-label>{{ item.barcode?.value || 'Unknown' }}</q-item-label>
+                <q-item-label caption>
+                  {{ item.size_class?.name || 'No size' }} • {{ item.media_type?.name || 'No media type' }}
+                </q-item-label>
+              </q-item-section>
+              <q-item-section side>
+                <q-badge
+                  :color="item.scanned_for_verification ? 'positive' : 'warning'"
+                  :label="item.scanned_for_verification ? 'Verified' : 'Pending'"
+                />
+              </q-item-section>
+            </q-item>
+            <q-item v-if="!verificationJob.non_tray_items?.length">
+              <q-item-section class="text-grey-6 text-center">
+                No items scanned yet
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card-section>
+      </q-expansion-item>
+    </q-card>
+
+    <!-- Edit Item Modal -->
+    <PopupModal
+      v-if="editMode"
+      ref="editModalRef"
+      :title="'Edit Item Settings'"
+      :show-actions="false"
+      @reset="cancelNonTrayEdit"
+      aria-label="editItemModal"
+    >
+      <template #main-content>
+        <q-card-section>
+          <div class="text-subtitle1 q-mb-sm">
+            Container Size
+          </div>
+          <q-select
+            v-model="verificationContainer.size_class_id"
+            :options="sizeClass"
+            option-label="name"
+            option-value="id"
+            emit-value
+            map-options
+            outlined
+            dense
+            placeholder="Select size class"
+            class="q-mb-md"
+          />
+          <div class="text-subtitle1 q-mb-sm">
+            Media Type
+          </div>
+          <q-select
+            v-model="verificationContainer.media_type_id"
+            :options="mediaTypes"
+            option-label="name"
+            option-value="id"
+            emit-value
+            map-options
+            outlined
+            dense
+            placeholder="Select media type"
+          />
+        </q-card-section>
+      </template>
+      <template #footer-content>
+        <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
+          <BaseButton
+            no-caps
+            unelevated
+            color="accent"
+            label="Save Changes"
+            class="text-body1 full-width btn-modern"
+            :loading="appActionIsLoadingData"
+            @click="updateNonTrayItem()"
+          />
+          <q-space class="q-mx-xs" />
+          <BaseButton
+            outline
+            no-caps
+            label="Cancel"
+            class="text-body1 full-width"
+            @click="cancelNonTrayEdit"
+          />
+        </q-card-section>
+      </template>
+    </PopupModal>
+
+    <!-- Confirmation/Cancel Modals remain similar but need unified styling -->
+
   </div>
   <!-- confirmation modal -->
   <PopupModal
     v-if="showConfirmationModal"
     ref="confirmationModal"
-    :title="'Cancel'"
-    :text="'Are you sure you want to cancel the Verification Job?'"
+    :title="showConfirmationModal.type === 'cancel' ? 'Cancel' : (showConfirmationModal.type === 'addItem' ? 'Add Item' : 'Complete')"
+    :text="showConfirmationModal.text"
     :show-actions="false"
     @reset="showConfirmationModal = null"
     aria-label="confirmationModal"
   >
     <template #footer-content="{ hideModal }">
-      <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-        <q-btn
+      <q-card-section
+        v-if="showConfirmationModal.type === 'complete'"
+        class="row no-wrap justify-between items-center q-pt-sm"
+      >
+        <BaseButton
           no-caps
           unelevated
-          color="negative"
-          label="Cancel Verification"
-          class="text-body1 full-width"
+          color="accent"
+          label="Complete & Print"
+          class="btn-no-wrap text-body1 full-width"
           :loading="appActionIsLoadingData"
-          @click="cancelVerification()"
+          @click="handleConfirmationAction('completePrint')"
         />
         <q-space class="q-mx-xs" />
-        <q-btn
+        <BaseButton
+          no-caps
+          unelevated
+          color="accent"
+          label="Complete"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="handleConfirmationAction('complete')"
+        />
+        <q-space class="q-mx-xs" />
+        <BaseButton
+          outline
+          no-caps
+          label="Cancel"
+          class="text-body1 full-width"
+          @click="hideModal"
+        />
+      </q-card-section>
+      <q-card-section
+        v-else
+        class="row no-wrap justify-between items-center q-pt-sm"
+      >
+        <BaseButton
+          no-caps
+          unelevated
+          :color="showConfirmationModal.type === 'cancel' ? 'negative' : 'positive'"
+          :label="showConfirmationModal.type === 'cancel' ? 'Cancel Verification' : 'Add Item'"
+          class="text-body1 full-width"
+          :loading="appActionIsLoadingData"
+          @click="handleConfirmationAction"
+        />
+        <q-space class="q-mx-xs" />
+        <BaseButton
           outline
           no-caps
           label="Cancel"
@@ -221,209 +370,456 @@
       </q-card-section>
     </template>
   </PopupModal>
+  <!-- Audit trail modal -->
+  <AuditTrail
+    v-if="showAuditTrailModal"
+    ref="historyModal"
+    @reset="showAuditTrailModal = null"
+    :job-type="showAuditTrailModal"
+    :job-id="verificationJob.id"
+  />
 </template>
 
 <script setup>
-import { ref, toRaw, inject, watch, nextTick } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import BaseButton from '@/components/Base/BaseButton.vue'
+import { ref, computed, inject, nextTick, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { notify } from '@/utils/notify'
 import { storeToRefs } from 'pinia'
 import { usePermissionHandler } from '@/composables/usePermissionHandler.js'
 import { useGlobalStore } from '@/stores/global-store'
 import { useVerificationStore } from '@/stores/verification-store'
 import { useOptionStore } from '@/stores/option-store'
-import { useCurrentScreenSize } from '@/composables/useCurrentScreenSize.js'
-import BarcodeBox from '@/components/BarcodeBox.vue'
-import SelectInput from '@/components/SelectInput.vue'
+import { useBarcodeStore } from '@/stores/barcode-store'
+import { useUserStore } from '@/stores/user-store'
+import { audioAlert } from '@/utils/audio.js'
 import MoreOptionsMenu from '@/components/MoreOptionsMenu.vue'
-import VerificationMobileInfo from '@/components/Verification/VerificationMobileInfo.vue'
-import MobileActionBar from '@/components/MobileActionBar.vue'
 import AuditTrail from '@/components/AuditTrail.vue'
 import PopupModal from '@/components/PopupModal.vue'
+import SelectInput from '@/components/SelectInput.vue'
 
 const router = useRouter()
-const route = useRoute()
 
 // Emits
-const emit = defineEmits(['print'])
+const emit = defineEmits([
+  'print',
+  'scan'
+])
 
 // Composables
-const { currentScreenSize } = useCurrentScreenSize()
 const { checkUserPermission } = usePermissionHandler()
 
 // Store Data
 const { appIsLoadingData, appActionIsLoadingData } = storeToRefs(useGlobalStore())
 const {
-  getOwner,
-  getSizeClass,
-  getMediaType
+  getOptions
 } = useOptionStore()
 const {
-  owners,
+  mediaTypes,
   sizeClass,
-  mediaTypes
+  users
 } = storeToRefs(useOptionStore())
 const {
   patchVerificationJob,
   patchVerificationNonTrayItem,
-  cancelVerificationJob
+  cancelVerificationJob,
+  getVerificationNonTrayItem,
+  verifyNonTrayItem
 } = useVerificationStore()
 const {
   verificationJob,
-  verificationContainer,
-  originalVerificationContainer,
-  originalVerificationJob
+  verificationContainer
 } = storeToRefs(useVerificationStore())
+const { verifyBarcode } = useBarcodeStore()
+const { barcodeDetails } = storeToRefs(useBarcodeStore())
+const { userData } = storeToRefs(useUserStore())
+const { postVerificationNonTrayItem } = useVerificationStore()
 
 // Local Data
+const scanBarcodeInput = ref('')
 const editMode = ref(false)
-const historyModal = ref(null)
 const showAuditTrailModal = ref(false)
-const showConfirmationModal = ref(false)
+const showConfirmationModal = ref(null)
+// isProcessingScan removed — input clears instantly to prevent concatenation
+const editJob = ref(false)
+const actionLoading = ref(false)
 
-// Logic
-const handleAlert = inject('handle-alert')
-
-watch(route, () => {
-  if (!route.params.containerId) {
-    // if the user clicks to go back to the job in the breadcrumb
-    // we need to kick the user out of the edit mode
-    editMode.value = false
+watch(editJob, async (newVal) => {
+  if (newVal) {
+    try {
+      appActionIsLoadingData.value = true
+      await getOptions('users')
+    } catch (error) {
+      console.error('Failed to load users', error)
+    } finally {
+      appActionIsLoadingData.value = false
+    }
   }
 })
 
-const cancelVerification = async () => {
-  try {
-    appActionIsLoadingData.value = true
-    await cancelVerificationJob(verificationJob.value.id)
 
-    handleAlert({
-      type: 'success',
-      text: 'Verification Job canceled',
-      autoClose: true
-    })
-    appActionIsLoadingData.value = false
 
-    await nextTick()
+// Logic
 
-    router.push({
-      name: 'verification',
-      params: {
-        jobId: null
+// Logic
+
+// Logic
+
+const currentIsoDate = inject('current-iso-date')
+
+const menuOptions = computed(() => {
+  const commonOptions = [
+    {
+      text: 'Assign User',
+      icon: 'person_add',
+      color: 'grey',
+      hidden: !checkUserPermission('can_assign_jobs'),
+      disabled: editJob.value || verificationJob.value.status === 'Completed' || verificationJob.value.status === 'Paused',
+      action: () => {
+        editJob.value = true
       }
-    })
+    },
+    {
+      text: 'Edit',
+      disabled: verificationJob.value.status === 'Completed'
+    },
+    { text: 'Print Job' },
+    {
+      text: 'Cancel Job',
+      optionClass: 'text-negative',
+      disabled: verificationJob.value.status === 'Completed',
+      hidden: !checkUserPermission('can_cancel_verification_job')
+    },
+    { text: 'View History' }
+  ]
+  return commonOptions
+})
 
-  } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      persistent: true
+const updateUserAssignment = async () => {
+  actionLoading.value = true
+  try {
+    const payload = {
+      id: verificationJob.value.id,
+      assigned_user_id: verificationJob.value.assigned_user_id,
+      run_timestamp: new Date().toISOString()
+    }
+    await patchVerificationJob(payload)
+
+    notify({
+      type: 'positive',
+      message: 'User assigned successfully'
     })
-    appActionIsLoadingData.value = false
+    editJob.value = false
+  } catch (error) {
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error.message || 'Failed to update user assignment'
+    })
+  } finally {
+    actionLoading.value = false
+  }
+}
+
+// Computed
+const canComplete = computed(() => {
+  if (!verificationJob.value.non_tray_items || verificationJob.value.non_tray_items.length === 0) {
+    return false
+  }
+  return verificationJob.value.non_tray_items.every(item => item.scanned_for_verification)
+})
+
+// Status color helper
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'Created':
+      return 'blue-6'
+    case 'Running':
+      return 'positive'
+    case 'Paused':
+      return 'warning'
+    case 'Completed':
+      return 'primary'
+    case 'Cancelled':
+      return 'negative'
+    default:
+      return 'grey-6'
   }
 }
 
 const handleOptionMenu = async (option) => {
+  if (option.action) {
+    option.action()
+    return
+  }
   if (option.text == 'Edit') {
-    await loadOptionData()
-    editMode.value = true
+    await openEditModal()
   } else if (option.text == 'Print Job') {
     emit('print')
   } else if (option.text == 'Cancel Job') {
-    showConfirmationModal.value = true
+    showConfirmationModal.value = {
+      type: 'cancel',
+      text: 'Are you sure you want to cancel the Verification Job?'
+    }
   } else if (option.text == 'View History') {
     showAuditTrailModal.value = 'verification_jobs'
   }
 }
-const loadOptionData = async () => {
+
+const openEditModal = async () => {
   try {
     appIsLoadingData.value = true
-    // load the exact option data needed in our container and media type select inputs
-    if (!verificationContainer.value.id) {
-      await Promise.all([
-        getOwner(verificationJob.value.owner_id),
-        getSizeClass(verificationJob.value.size_class_id),
-        getMediaType(verificationJob.value.media_type_id)
-      ])
-    } else {
-      await Promise.all([
-        getSizeClass(verificationContainer.value.size_class_id),
-        getMediaType(verificationContainer.value.media_type_id)
-      ])
-    }
+    // Load options
+    await Promise.all([
+      getOptions('sizeClass'),
+      getOptions('mediaTypes')
+    ])
+
+    // Only need specific lookups if we want to ensure data integrity, but getOptions loads the lists.
+    // If we want to set selected values we can rely on v-model binding to IDs.
+
+    editMode.value = true
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      autoClose: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error
     })
   } finally {
     appIsLoadingData.value = false
   }
 }
 
-const cancelNonTrayEdit = () => {
-  if (!verificationContainer.value.id) {
-    verificationJob.value = { ...toRaw(originalVerificationJob.value) }
-  } else {
-    verificationContainer.value = { ...toRaw(originalVerificationContainer.value) }
+const isAssignedToOtherUser = computed(() => {
+  return verificationJob.value.assigned_user_id && verificationJob.value.assigned_user_id !== userData.value.user_id
+})
+
+const triggerItemScan = async () => {
+  const barcode = scanBarcodeInput.value.trim()
+  scanBarcodeInput.value = '' // Instant clear to prevent concatenation
+  if (!barcode) {
+    return
   }
 
-  editMode.value = false
-}
-const updateNonTrayJob = async () => {
+  // Prevent scan if assigned to another user
+  if (isAssignedToOtherUser.value) {
+    notify({
+      type: 'negative',
+      message: 'This job is assigned to another user. You cannot verify items.'
+    })
+    return
+  }
+
   try {
     appActionIsLoadingData.value = true
-    const payload = {
-      id: verificationJob.value.id,
-      owner_id: verificationJob.value.owner_id,
-      media_type_id: verificationJob.value.media_type_id,
-      size_class_id: verificationJob.value.size_class_id,
-      status: 'Running'
+    await verifyBarcode(barcode, 'Item', true)
+
+    // Check if item exists in job
+    if (verificationJob.value.non_tray_items?.some(item => item.barcode?.id === barcodeDetails.value.id)) {
+      // Load item
+      await getVerificationNonTrayItem(barcode)
+      // Verify it if not verified
+      if (!verificationContainer.value.scanned_for_verification) {
+        await verifyNonTrayItem(verificationContainer.value.id)
+      } else {
+        notify({
+          type: 'info',
+          message: 'Item already verified'
+        })
+      }
+
+      if (verificationJob.value.status !== 'Running' && verificationJob.value.status !== 'Completed') {
+        await updateVerificationJobStatus('Running')
+      }
+    } else {
+      showConfirmationModal.value = {
+        type: 'addItem',
+        text: 'Are you sure you want to add a new item to the job?'
+      }
+      audioAlert()
     }
-
-    await patchVerificationJob(payload)
-
-    handleAlert({
-      type: 'success',
-      text: 'The job has been updated.',
-      autoClose: true
-    })
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      persistent: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error,
+      timeout: 0,
+      actions: [
+        {
+          label: 'Dismiss',
+          color: 'white',
+          handler: () => { /* ... */ }
+        }
+      ]
     })
   } finally {
     appActionIsLoadingData.value = false
-    editMode.value = false
   }
 }
+
+const handleConfirmationAction = (actionType) => {
+  if (showConfirmationModal.value.type === 'cancel') {
+    cancelVerification()
+  } else if (showConfirmationModal.value.type === 'addItem') {
+    addItemToJob()
+  } else if (actionType === 'completePrint') {
+    completeVerificationJob(true)
+  } else {
+    completeVerificationJob(false)
+  }
+}
+
+const addItemToJob = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    const payload = {
+      barcode_id: barcodeDetails.value.id,
+      barcode_value: barcodeDetails.value.value,
+      media_type_id: verificationJob.value.media_type_id,
+      size_class_id: verificationJob.value.size_class_id,
+      status: 'In',
+      verification_job_id: verificationJob.value.id,
+      user_id: userData.value.user_id
+    }
+    await postVerificationNonTrayItem(payload)
+    notify({
+      type: 'positive',
+      message: 'Item has been added to the job.'
+    })
+
+    if (verificationJob.value.status !== 'Running' && verificationJob.value.status !== 'Completed') {
+      await updateVerificationJobStatus('Running')
+    }
+  } catch (error) {
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error
+    })
+  } finally {
+    appActionIsLoadingData.value = false
+    showConfirmationModal.value = null
+  }
+}
+
+const navigateToItem = async (item) => {
+  try {
+    appActionIsLoadingData.value = true
+    await getVerificationNonTrayItem(item.barcode.value)
+  } catch (e) {
+    console.error(e)
+  } finally {
+    appActionIsLoadingData.value = false
+  }
+}
+
+const updateVerificationJobStatus = async (status) => {
+  try {
+    appActionIsLoadingData.value = true
+    await patchVerificationJob({
+      id: verificationJob.value.id,
+      status,
+      assigned_user_id: verificationJob.value.assigned_user_id || userData.value.user_id,
+      run_timestamp: currentIsoDate()
+    })
+    notify({
+      type: 'positive',
+      message: `Job ${status === 'Paused' ? 'paused' : 'resumed'} successfully.`
+    })
+  } catch (error) {
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error
+    })
+  } finally {
+    appActionIsLoadingData.value = false
+  }
+}
+
+const cancelVerification = async () => {
+  try {
+    appActionIsLoadingData.value = true
+    await cancelVerificationJob(verificationJob.value.id)
+
+    notify({
+      type: 'positive',
+      message: 'Verification Job canceled'
+    })
+
+    await nextTick()
+    router.push({
+      name: 'verification',
+      params: { jobId: null }
+    })
+
+  } catch (error) {
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error
+    })
+  } finally {
+    appActionIsLoadingData.value = false
+    showConfirmationModal.value = null
+  }
+}
+
+const completeVerificationJob = async (shouldPrint = false) => {
+  try {
+    appActionIsLoadingData.value = true
+    await patchVerificationJob({
+      id: verificationJob.value.id,
+      status: 'Completed'
+    })
+
+    if (shouldPrint) {
+      emit('print')
+    }
+
+    notify({
+      type: 'positive',
+      message: 'Job Completed'
+    })
+    router.push({
+      name: 'verification',
+      params: { jobId: null }
+    })
+  } catch (e) {
+    notify({
+      type: 'negative',
+      message: e.response?.data?.detail || e
+    })
+  } finally {
+    appActionIsLoadingData.value = false
+    showConfirmationModal.value = null
+  }
+}
+
+const cancelNonTrayEdit = () => {
+  // Reset changes
+  // verificationContainer is a store ref, so if we mutated it directly in v-model, we might need to revert.
+  // However, we usually patch on save.
+  // If we want to revert, we might need to reload.
+  editMode.value = false
+}
+
 const updateNonTrayItem = async () => {
   try {
     appActionIsLoadingData.value = true
     const payload = {
       id: verificationContainer.value.id,
       media_type_id: verificationContainer.value.media_type_id,
-      size_class_id: verificationContainer.value.size_class_id,
-      scanned_for_verification: true
+      size_class_id: verificationContainer.value.size_class_id
     }
     await patchVerificationNonTrayItem(payload)
 
-    handleAlert({
-      type: 'success',
-      text: 'The non-tray item has been updated.',
-      autoClose: true
+    notify({
+      type: 'positive',
+      message: 'The non-tray item has been updated.'
     })
+    editMode.value = false
   } catch (error) {
-    handleAlert({
-      type: 'error',
-      text: error,
-      persistent: true
+    notify({
+      type: 'negative',
+      message: error.response?.data?.detail || error
     })
   } finally {
     appActionIsLoadingData.value = false
-    editMode.value = false
   }
 }
 
@@ -431,60 +827,22 @@ defineExpose({ editMode })
 </script>
 
 <style lang="scss" scoped>
-.verification-container {
-  width: 100%;
-  height: auto;
+.verification-nontray-container {
+  width: 80%;
+  margin: 0 auto;
+  padding: 16px 8px;
+}
 
-  &-info {
-    border-right: 1px solid;
-    border-color: $secondary;
-    padding: 3rem;
-    transition: all .4s ease-in-out;
 
-    @media (max-width: $breakpoint-md-max) {
-      border-right: none;
-      padding: 1.5rem;
-      padding-bottom: 0;
-    }
 
-    @media (max-width: $breakpoint-sm-min) {
-      padding: 1rem;
-      padding-bottom: 0;
-    }
+.bg-accent-1 {
+    background-color: #e3f2fd; // Light blue highlight for active item
+}
 
-    &-details {
-      display: flex;
-      flex-flow: column nowrap;
-      align-items: center;
-
-      @media (max-width: $breakpoint-md-max) {
-        align-items: flex-start;
-        padding-left: 1rem;
-      }
-
-      @media (max-width: $breakpoint-sm-min) {
-        align-items: flex-start;
-
-        &:nth-child(odd) {
-          padding-left: 0;
-          padding-right: 4px;
-        }
-
-        &:nth-child(even) {
-          padding-left: 4px;
-          padding-right: 0;
-        }
-      }
-
-      & label {
-        position: relative;
-
-        .q-btn {
-          position: absolute;
-          padding: .4rem;
-        }
-      }
-    }
-  }
+.form-group-label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: #555;
 }
 </style>

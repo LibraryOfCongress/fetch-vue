@@ -50,7 +50,7 @@
         class="text-body1"
       >
         <span>{{ file.name }}</span>
-        <q-btn
+        <BaseButton
           icon="cancel"
           color="negative"
           flat
@@ -64,7 +64,9 @@
 </template>
 
 <script setup>
-import { ref, inject, watch } from 'vue'
+import BaseButton from '@/components/Base/BaseButton.vue'
+import { ref, watch } from 'vue'
+import { notify } from '@/utils/notify'
 
 // Props
 const mainProps = defineProps({
@@ -92,7 +94,7 @@ const activeState = ref(false)
 const files = ref([])
 
 // Logic
-const handleAlert = inject('handle-alert')
+
 
 const handleDrop = (evt) => {
   evt.preventDefault()
@@ -135,10 +137,9 @@ const addFiles = (newFiles) => {
   // validate the files and cancel adding if a file is invalid
   for (const f of uploadableFiles) {
     if (!validateFile(f)) {
-      handleAlert({
-        type: 'error',
-        text: 'One or More Files Selected Are Not Allowed!',
-        autoClose: true
+      notify({
+        type: 'negative',
+        message: 'One or More Files Selected Are Not Allowed!'
       })
       return
     }

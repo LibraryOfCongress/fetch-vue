@@ -99,7 +99,7 @@
                 sort_by: 'aisle_number'
               }"
               option-value="id"
-              :option-label="opt => opt.aisle_number.number"
+              option-label="aisle_number"
               :placeholder="'Select Aisle'"
               :clearable="false"
               :disabled="!bulkUploadLocationForm.module_id"
@@ -130,7 +130,7 @@
 
     <template #footer-content="{ hideModal }">
       <q-card-section class="row no-wrap justify-between items-center q-pt-sm">
-        <q-btn
+        <BaseButton
           no-caps
           unelevated
           color="accent"
@@ -143,7 +143,7 @@
 
         <q-space class="q-mx-xs" />
 
-        <q-btn
+        <BaseButton
           outline
           no-caps
           label="Cancel"
@@ -156,9 +156,11 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue'
+import BaseButton from '@/components/Base/BaseButton.vue'
+import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global-store'
+import { notify } from '@/utils/notify'
 import { useOptionStore } from '@/stores/option-store'
 import { useBuildingStore } from '@/stores/building-store'
 import PopupModal from '@/components/PopupModal.vue'
@@ -180,6 +182,7 @@ const {
 } = storeToRefs(useOptionStore())
 const {
   postBulkLocation,
+  getBatchUpload,
   getSideList,
   resetBuildingStore,
   resetBuildingChildren,
@@ -224,7 +227,7 @@ const isBulkUploadLocationValid = computed(() => {
 })
 
 // Logic
-const handleAlert = inject('handle-alert')
+
 
 const handleLocationFormChange = async (valueType) => {
   // reset the report form depending on the edited form field type
@@ -265,6 +268,70 @@ const resetBulkUploadLocationForm = () => {
   showBulkUploadLocationForm.value = false
   resetBuildingStore()
 }
+// Show ONE consolidated negative notification for a list of per-row errors
+// (used by both the synchronous validation reject and the async Failed result).
+const showConsolidatedErrors = (message, rowErrors) => {
+  if (rowErrors && rowErrors.length) {
+    const summary = message || `${rowErrors.length} row(s) could not be processed. No locations were created.`
+    const lines = rowErrors.map(e => `Line ${e.line}: ${e.error}`).join('\n')
+    notify({
+      type: 'negative',
+      message: summary,
+      caption: lines,
+      html: false,
+      multiLine: true,
+      timeout: 0,
+      actions: [
+        {
+          icon: 'close',
+          color: 'white'
+        }
+      ]
+    })
+  } else {
+    notify({
+      type: 'negative',
+      message: message || 'Failed to upload locations'
+    })
+  }
+}
+
+// Poll the async location upload job every 5s until it finishes.
+const pollBatchUploadStatus = async (id) => {
+  const POLL_MS = 5000
+  const MAX_MS = 10 * 60 * 1000 // give up after 10 minutes
+  const start = Date.now()
+  while (Date.now() - start < MAX_MS) {
+    await new Promise(resolve => setTimeout(resolve, POLL_MS))
+    let batchUpload
+    try {
+      const res = await getBatchUpload(id)
+      batchUpload = res?.data
+    } catch (e) {
+      continue // transient poll error — keep trying
+    }
+    const status = batchUpload?.status
+    if (status === 'Completed') {
+      const result = batchUpload?.result || {}
+      notify({
+        type: 'positive',
+        message: result.message || `Successfully created ${result.shelves_created ?? ''} locations!`
+      })
+      return
+    }
+    if (status === 'Failed') {
+      const result = batchUpload?.result || {}
+      showConsolidatedErrors(result.message, Array.isArray(result.errors) ? result.errors : null)
+      return
+    }
+    // 'Processing' / 'New' -> keep polling
+  }
+  notify({
+    type: 'warning',
+    message: 'Upload is still processing. Please check the batch upload status shortly.'
+  })
+}
+
 const submitBulkUploadLocationForm = async () => {
   try {
     appActionIsLoadingData.value = true
@@ -272,29 +339,35 @@ const submitBulkUploadLocationForm = async () => {
       file: bulkUploadLocationFile.value[0].file,
       ...bulkUploadLocationForm.value
     }
-    await postBulkLocation(payload)
+    // POST validates synchronously; on success it returns 202 + a batch_upload_id.
+    // Validation has passed at this point, so we let the modal close (in finally)
+    // immediately and poll for the background result WITHOUT awaiting -- the
+    // completion toast pops up later, the form doesn't sit on a spinner.
+    const res = await postBulkLocation(payload)
+    const batchId = res?.data?.batch_upload_id
 
-    handleAlert({
-      type: 'success',
-      text: 'Successfully Uploaded New Locations!',
-      autoClose: true
-    })
-  } catch (error) {
-    if (error.response?.data) {
-      error.response.data.forEach(err => {
-        handleAlert({
-          type: 'error',
-          text: `Bulk Location upload failed: ${JSON.stringify(err)}`,
-          autoClose: false
-        })
+    if (!batchId) {
+      notify({
+        type: 'positive',
+        message: res?.data?.message || 'Successfully Uploaded New Locations!'
       })
-    } else {
-      handleAlert({
-        type: 'error',
-        text: error,
-        autoClose: true
-      })
+      return
     }
+
+    notify({
+      type: 'info',
+      message: 'Upload accepted — processing in the background…'
+    })
+    // fire-and-forget: don't block the modal on the background job
+    pollBatchUploadStatus(batchId).catch(() => {})
+  } catch (error) {
+    // Synchronous validation failures (400/422) come back here with the
+    // consolidated { message, errors } payload.
+    const data = error.response?.data
+    const rowErrors = Array.isArray(data?.errors)
+      ? data.errors
+      : Array.isArray(data) ? data : null
+    showConsolidatedErrors(data?.message || data?.detail || error.message, rowErrors)
   } finally {
     appActionIsLoadingData.value = false
     bulkUploadLocationModal.value.hideModal()

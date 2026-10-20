@@ -16,8 +16,8 @@ export const useReportsStore = defineStore('reports-store', {
     generateReportEndpoint (reportType) {
       const endpointMap = {
         'Item Accession': inventoryServiceApi.reportingAccessionItems,
-        'Shelving Job Discrepancy':inventoryServiceApi.reportingShelvingDiscrepancies,
-        'Shelving Move Discrepancy':inventoryServiceApi.reportingMoveDiscrepancies,
+        'Shelving Job Discrepancy': inventoryServiceApi.reportingShelvingDiscrepancies,
+        'Shelving Move Discrepancy': inventoryServiceApi.reportingMoveDiscrepancies,
         'Open Locations': inventoryServiceApi.reportingOpenLocations,
         'Tray/Item Count By Aisle': inventoryServiceApi.reportingAislesItemsCount,
         'Non-Tray Count': inventoryServiceApi.reportingNonTrayItemsCount,
@@ -25,7 +25,14 @@ export const useReportsStore = defineStore('reports-store', {
         'Item in Tray': inventoryServiceApi.reportingTrayItemsCount,
         'User Job Summary': inventoryServiceApi.reportingUserJobsCount,
         'Verification Change': inventoryServiceApi.reportingVerificationChangesSummary,
-        'Not Shelved': inventoryServiceApi.reportingNotShelved
+        'Verification Status': inventoryServiceApi.reportingVerificationStatus,
+        'Withdrawn Items': inventoryServiceApi.reportingWithdrawnItems,
+        'Shipping Bins': inventoryServiceApi.reportingShippingBins,
+        'Worker Efficiency (SLA)': inventoryServiceApi.reportingWorkerEfficiency,
+        'Retrieval Hot Zones': inventoryServiceApi.reportingHotZones,
+        'Capacity Forecast': inventoryServiceApi.reportingCapacityForecast,
+        'Capacity Forecast (Height)': inventoryServiceApi.reportingCapacityForecastHeight,
+        'Daily Pulse': inventoryServiceApi.reportingDailyPulse
       }
 
       return endpointMap[reportType] || null
@@ -40,9 +47,44 @@ export const useReportsStore = defineStore('reports-store', {
               size: this.apiPageSizeDefault,
               ...paramsObj
             }
-          } )
-          this.reportData = res.data.items // Store the report data
-          this.reportDataTotal = res.data.total // keep track of response total for pagination
+          })
+          if (reportType === 'Daily Pulse') {
+            // Transform object to metric/value rows
+            this.reportData = [
+              {
+                metric: 'Items Accessioned Today',
+                value: res.data.accessioned_today
+              },
+              {
+                metric: 'Jobs Shelved Today',
+                value: res.data.shelved_today
+              },
+              {
+                metric: 'Items Retrieved Today',
+                value: res.data.retrieved_today
+              },
+              {
+                metric: 'Items Verified Today',
+                value: res.data.verified_today
+              },
+              {
+                metric: 'New Requests Pending',
+                value: res.data.pending_requests
+              },
+              {
+                metric: 'Verification Backlog',
+                value: res.data.backlog_verification_jobs
+              }
+            ]
+            this.reportDataTotal = this.reportData.length
+          } else if (reportType === 'Capacity Forecast' || reportType === 'Capacity Forecast (Height)') {
+            // Capacity forecasts return a simple list, not a paginated object
+            this.reportData = res.data
+            this.reportDataTotal = res.data.length
+          } else {
+            this.reportData = res.data.items // Store the report data
+            this.reportDataTotal = res.data.total // keep track of response total for pagination
+          }
           this.reportQueryParams = paramsObj // Remember the query params for download
         }
       } catch (error) {
@@ -82,8 +124,68 @@ export const useReportsStore = defineStore('reports-store', {
           delete item.original_values
           delete item.new_values
           return item
+        }).filter(item => item.last_action && item.last_action.trim() !== '')
+      } catch (error) {
+        throw error
+      }
+    },
+    async getEntityAuditTrailData (entityType, entityId) {
+      try {
+        this.auditTrailData = []
+        const res = await this.$api.get(`${inventoryServiceApi.history}entity/${entityType}/${entityId}`)
+        this.auditTrailData = res.data.map(item => {
+          delete item.original_values
+          delete item.new_values
+          return item
+        }).filter(item => item.last_action && item.last_action.trim() !== '')
+      } catch (error) {
+        throw error
+      }
+    },
+    async getScheduledExports () {
+      try {
+        const res = await this.$api.get(inventoryServiceApi.reportingScheduledExports)
+        return res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async createScheduledExport (payload) {
+      try {
+        const res = await this.$api.post(inventoryServiceApi.reportingScheduledExports, payload)
+        return res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async deleteScheduledExport (id) {
+      try {
+        await this.$api.delete(`${inventoryServiceApi.reportingScheduledExports}${id}`)
+      } catch (error) {
+        throw error
+      }
+    },
+    async getExportHistory () {
+      try {
+        const res = await this.$api.get(inventoryServiceApi.reportingExportHistory)
+        return res.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async downloadHistoricalExport (historyItem) {
+      try {
+        const res = await this.$api.get(`${inventoryServiceApi.reportingExportHistory}download/${historyItem.id}`, {
+          responseType: 'blob'
         })
-          .filter(item => item.last_action && item.last_action.trim() !== '')
+        const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/x-gzip' }))
+        const link = document.createElement('a')
+        link.href = url
+        link.download = historyItem.filename
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        window.URL.revokeObjectURL(url)
       } catch (error) {
         throw error
       }
