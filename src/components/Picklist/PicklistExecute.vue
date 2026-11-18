@@ -342,18 +342,20 @@
                 :props="props"
                 class="text-right"
               >
-                <BaseButton
-                  v-if="props.row.status === 'PickList' && job?.status !== 'Completed'"
-                  flat
-                  round
-                  dense
-                  size="sm"
-                  icon="undo"
-                  color="negative"
-                  @click="revertItem(props.row)"
-                >
-                  <q-tooltip>Revert Item to Queue</q-tooltip>
-                </BaseButton>
+                <div class="d-none d-sm-block">
+                  <BaseButton
+                    v-if="props.row.status === 'PickList' && job?.status !== 'Completed'"
+                    flat
+                    round
+                    dense
+                    size="sm"
+                    icon="undo"
+                    color="negative"
+                    @click="revertItem(props.row)"
+                  >
+                    <q-tooltip>Revert Item to Queue</q-tooltip>
+                  </BaseButton>
+                </div>
               </q-td>
             </template>
           </q-table>
@@ -573,7 +575,7 @@ const columns = [
   },
   {
     name: 'actions',
-    label: '',
+    label: 'Actions',
     align: 'right',
     field: 'actions'
   }

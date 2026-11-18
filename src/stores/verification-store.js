@@ -31,6 +31,7 @@ export const useVerificationStore = defineStore('verification-store', {
       media_type_id: null,
       items: []
     },
+    scannedTrayBarcode: null,
     originalVerificationContainer: null
   }),
   getters: {
@@ -339,6 +340,12 @@ export const useVerificationStore = defineStore('verification-store', {
       } catch (error) {
         throw error
       }
+    },
+    setScannedTrayBarcode (val) {
+      this.scannedTrayBarcode = val
+    },
+    resetScannedTrayBarcode () {
+      this.scannedTrayBarcode = null
     }
   }
 })

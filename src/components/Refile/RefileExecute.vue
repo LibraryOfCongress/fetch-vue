@@ -343,17 +343,19 @@
                   :props="cellProps"
                   class="text-right"
                 >
-                  <BaseButton
-                    v-if="cellProps.row.status === 'Out'"
-                    flat
-                    round
-                    dense
-                    color="negative"
-                    icon="undo"
-                    @click="confirmRevert(cellProps.row)"
-                  >
-                    <q-tooltip>Revert to Queue</q-tooltip>
-                  </BaseButton>
+                  <div class="d-none d-sm-block">
+                    <BaseButton
+                      v-if="cellProps.row.status === 'Out'"
+                      flat
+                      round
+                      dense
+                      color="negative"
+                      icon="undo"
+                      @click="confirmRevert(cellProps.row)"
+                    >
+                      <q-tooltip>Revert to Queue</q-tooltip>
+                    </BaseButton>
+                  </div>
                 </q-td>
               </template>
             </q-table>
@@ -663,7 +665,7 @@ const columns = [
   },
   {
     name: 'actions',
-    label: '',
+    label: 'Actions',
     align: 'right',
     field: 'actions'
   }

@@ -120,7 +120,7 @@
         <q-card-section>
           <div class="row q-col-gutter-md items-end">
             <!-- Tray Scan (when no tray selected) -->
-            <template v-if="!verificationContainer.id">
+            <template v-if="!verificationContainer?.id || scannedTrayBarcode !== verificationContainer?.barcode?.value">
               <div class="col-12 col-md-8">
                 <div class="text-subtitle1 text-weight-bold q-mb-sm">
                   Scan Tray Barcode
@@ -771,13 +771,16 @@ const {
   postVerificationTrayItem,
   postVerificationNonTrayItem,
   patchVerificationTrayItem,
-  patchVerificationNonTrayItem
+  patchVerificationNonTrayItem,
+  setScannedTrayBarcode,
+  resetScannedTrayBarcode
 } = useVerificationStore()
 const {
   allItemsVerified,
   allTraysCompleted,
   verificationJob,
-  verificationContainer
+  verificationContainer,
+  scannedTrayBarcode
 } = storeToRefs(useVerificationStore())
 const { patchAccessionJob } = useAccessionStore()
 
@@ -970,6 +973,7 @@ async function processTrayScan (barcode_value) {
       }
 
       if (verificationContainer.value.id) {
+        setScannedTrayBarcode(barcode_value)
         router.push({
           name: 'verification-container',
           params: {
@@ -1329,6 +1333,7 @@ const navigateToTray = (tray) => {
   if (verificationContainer.value.id === tray.id) {
     return
   }
+  resetScannedTrayBarcode()
   router.push({
     name: 'verification-container',
     params: {
@@ -1341,6 +1346,7 @@ const navigateToTray = (tray) => {
 const setNextVerificationTray = async () => {
   // As per user request: "Next Tray" button should simply clear the active tray
   // and await the user to scan another tray, handling out-of-order execution.
+  resetScannedTrayBarcode()
   router.push({
     name: 'verification',
     params: {
