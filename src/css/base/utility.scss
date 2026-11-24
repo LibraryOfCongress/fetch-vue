@@ -109,6 +109,16 @@ $color-map: (
   }
 }
 
+.d-none {
+  display: none;
+}
+
+.d-sm-block {
+  @media (min-width: $breakpoint-sm-min) {
+    display: block;
+  }
+}
+
 .flex-grow {
   flex-grow: 1 !important;
 }
